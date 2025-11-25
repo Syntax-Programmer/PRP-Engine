@@ -39,7 +39,7 @@ typedef void PRP_void;
  */
 typedef size_t PRP_size;
 
-#define PRP_Null (NULL)
+#define PRP_null (NULL)
 
 /**
  * Basic binary ops encapsulated for user ease of use.
@@ -117,7 +117,7 @@ typedef enum {
   PRP_FN_INV_ARG_ERROR,
   PRP_FN_RES_EXHAUSTED_ERROR,
   PRP_FN_FILE_IO_ERROR
-} PRP_FN_Codes;
+} PRP_FnCode;
 
 #ifdef __cplusplus
 }
