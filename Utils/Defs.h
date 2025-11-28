@@ -6,6 +6,7 @@ extern "C" {
 
 #include <stddef.h>
 #include <stdint.h>
+#include <stdlib.h>
 
 /**
  * Type defs to be used in the engine for consistency purposes.
@@ -39,7 +40,14 @@ typedef void PRP_void;
  */
 typedef size_t PRP_size;
 
+#define PRP_INVALID_SIZE ((PRP_size)-1)
+
 #define PRP_null (NULL)
+
+typedef enum {
+  PRP_false = 0,
+  PRP_true = 1,
+} PRP_bool;
 
 /**
  * Basic binary ops encapsulated for user ease of use.
