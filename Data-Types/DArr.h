@@ -49,8 +49,8 @@ PRP_FN_API PRP_DArr *PRP_FN_CALL PRP_DArrClone(PRP_DArr *arr);
  *
  * @param pArr: The pointer to the array pointer to delete.
  *
- * @return PRP_FN_INV_ARG_ERROR if the array is pArr is PRP_null or the array it
- * points to is invalid. Otherwise it returns PRP_FN_SUCCESS.
+ * @return PRP_FN_INV_ARG_ERROR if pArr is PRP_null or the array it points to is
+ * invalid, otherwise it returns PRP_FN_SUCCESS.
  */
 PRP_FN_API PRP_FnCode PRP_FN_CALL PRP_DArrDelete(PRP_DArr **pArr);
 
@@ -64,7 +64,7 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL PRP_DArrDelete(PRP_DArr **pArr);
  * @param pLen: Pointer to where the len of the array will be stored to be used
  * by the caller to prevent unsafe usage.
  *
- * @return PRP_null if the array is invalid or pLen is PRP_null. Otherwise the
+ * @return PRP_null if the array is invalid or pLen is PRP_null, otherwise the
  * memory pointer of the array's raw memory.
  */
 PRP_FN_API PRP_void *PRP_FN_CALL PRP_DArrRaw(PRP_DArr *arr, PRP_size *pLen);
