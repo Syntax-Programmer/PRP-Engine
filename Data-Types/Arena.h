@@ -40,9 +40,8 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL PRP_ArenaDelete(PRP_Arena **pArena);
  * @param arena: The arena to allocate the chunk of mem from.
  * @prarm size: The size of the mem chunk to allocate.
  *
- * @return PRP_FN_INV_ARG_ERROR if the parameters are invalid in any way,
- * PRP_FN_RES_EXHAUSTED_ERROR if size is too big for the current space left in
- * the arena, otherwise PRP_FN_SUCCESS.
+ * @return PRP_null if the parameters are invalid in any way, PRP_null if size
+ * is too big for the current space left in the arena, otherwise PRP_FN_SUCCESS.
  */
 PRP_FN_API PRP_void *PRP_FN_CALL PRP_ArenaAlloc(PRP_Arena *arena,
                                                 PRP_size size);
@@ -53,9 +52,8 @@ PRP_FN_API PRP_void *PRP_FN_CALL PRP_ArenaAlloc(PRP_Arena *arena,
  * @param arena: The arena to allocate the chunk of mem from.
  * @prarm size: The size of the mem chunk to allocate.
  *
- * @return PRP_FN_INV_ARG_ERROR if the parameters are invalid in any way,
- * PRP_FN_RES_EXHAUSTED_ERROR if size is too big for the current space left in
- * the arena, otherwise PRP_FN_SUCCESS.
+ * @return PRP_null if the parameters are invalid in any way, PRP_null if size
+ * is too big for the current space left in the arena, otherwise PRP_FN_SUCCESS.
  */
 PRP_FN_API PRP_void *PRP_FN_CALL PRP_ArenaCalloc(PRP_Arena *arena,
                                                  PRP_size size);
