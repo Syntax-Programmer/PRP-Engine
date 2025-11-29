@@ -13,7 +13,7 @@ extern "C" {
  *
  * @param file: The file from which the log originated, can be achieved by
  * passing in __FILE__ as the param.
- * @param func: The func that madde the logs, can be achieved by passing in
+ * @param func: The func that made the logs, can be achieved by passing in
  * __func__ as the param.
  * @param line: The exact code line where the log function was called, can be
  * achieved by passing in __LINE__ as the param.
@@ -43,7 +43,7 @@ PRP_FN_API PRP_void PRP_FN_CALL PRP_Log(const PRP_char *file,
  * displayed in your logs.
  * @param file: The file from which the log originated, can be achieved by
  * passing in __FILE__ as the param.
- * @param func: The func that madde the logs, can be achieved by passing in
+ * @param func: The func that made the logs, can be achieved by passing in
  * __func__ as the param.
  * @param line: The exact code line where the log function was called, can be
  * achieved by passing in __LINE__ as the param.
@@ -71,7 +71,7 @@ PRP_FN_API PRP_void PRP_FN_CALL PRP_LogFnCode(PRP_FnCode code,
 /**
  * A macro that logs a null error due to the var param.
  *
- * @param var: The variable that casued the error.
+ * @param var: The variable that caused the error.
  */
 #define PRP_LOG_FN_NULL_ERROR(var)                                             \
   PRP_LOG_FN_CODE(PRP_FN_NULL_ERROR,                                           \
@@ -80,7 +80,7 @@ PRP_FN_API PRP_void PRP_FN_CALL PRP_LogFnCode(PRP_FnCode code,
 /**
  * A macro that logs a malloc error due to the var param.
  *
- * @param var: The variable that casued the error.
+ * @param var: The variable that caused the error.
  */
 #define PRP_LOG_FN_MALLOC_ERROR(var)                                           \
   PRP_LOG_FN_CODE(PRP_FN_NULL_ERROR,                                           \
@@ -89,7 +89,7 @@ PRP_FN_API PRP_void PRP_FN_CALL PRP_LogFnCode(PRP_FnCode code,
 /**
  * A macro that logs an UAF(Use After Free) error due to the var param.
  *
- * @param var: The variable that casued the error.
+ * @param var: The variable that caused the error.
  */
 #define PRP_LOG_FN_UAF_ERROR(var)                                              \
   PRP_LOG_FN_CODE(PRP_FN_NULL_ERROR,                                           \
@@ -98,7 +98,7 @@ PRP_FN_API PRP_void PRP_FN_CALL PRP_LogFnCode(PRP_FnCode code,
 /**
  * A macro that logs an invalid argument error due to the var param.
  *
- * @param var: The variable that casued the error.
+ * @param var: The variable that caused the error.
  */
 #define PRP_LOG_FN_INV_ARG_ERROR(var)                                          \
   PRP_LOG_FN_CODE(PRP_FN_NULL_ERROR,                                           \

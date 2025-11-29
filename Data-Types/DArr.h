@@ -58,7 +58,7 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL PRP_DArrDelete(PRP_DArr **pArr);
  * Returns the raw memory pointer of the array to the user.
  * This function returns a non-fixed pointer to the array mem. If an operation
  * is performed to the array after getting the raw data, the raw data is no
- * longer guranteed to be valid.
+ * longer guaranteed to be valid.
  *
  * @param arr: The array to get the raw mem data of.
  * @param pLen: Pointer to where the len of the array will be stored to be used
@@ -104,7 +104,7 @@ PRP_FN_API PRP_void *PRP_FN_CALL PRP_DArrGet(PRP_DArr *arr, PRP_size i);
  * @param i: The index to set the value of.
  * @param data: The pointer to the data that will be set.
  *
- * @return PRP_FN_INV_ARG_ERROR if the paramerters are invalid in any way,
+ * @return PRP_FN_INV_ARG_ERROR if the parameters are invalid in any way,
  * PRP_FN_OOB_ERROR if i is out of bounds of the array, otherwise
  * PRP_FN_SUCCESS.
  */
@@ -112,13 +112,13 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL PRP_DArrSet(PRP_DArr *arr, PRP_size i,
                                               PRP_void *data);
 
 /**
- * Pushes a new element into the given array, auto growing to accomodate for new
- * elements.
+ * Pushes a new element into the given array, auto growing to accommodate for
+ * new elements.
  *
  * @param arr: The array to push the element into.
  * @param data: The pointer to the data to be pushed into the array.
  *
- * @return PRP_FN_INV_ARG_ERROR if the paramerters are invalid in any way,
+ * @return PRP_FN_INV_ARG_ERROR if the parameters are invalid in any way,
  * PRP_FN_RES_EXHAUSTED_ERROR if pushing into the array is not possible,
  * otherwise PRP_FN_SUCCESS.
  */
@@ -129,7 +129,7 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL PRP_DArrPush(PRP_DArr *arr, PRP_void *data);
  * @param arr: The array to reserve into.
  * @param count: The number of elements to reserve.
  *
- * @return PRP_FN_INV_ARG_ERROR if the paramerters are invalid in any way,
+ * @return PRP_FN_INV_ARG_ERROR if the parameters are invalid in any way,
  * PRP_FN_MALLOC_ERROR if reserving failed due to realloc failure, otherwise
  * PRP_FN_SUCCESS.
  */
@@ -142,9 +142,9 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL PRP_DArrReserve(PRP_DArr *arr,
  * @param data: The pointer to the data to insert.
  * @param i: The index to insert the data into.
  *
- * @return PRP_FN_INV_ARG_ERROR if the paramerters are invalid in any way,
+ * @return PRP_FN_INV_ARG_ERROR if the parameters are invalid in any way,
  * PRP_FN_OOB_ERROR if i is out of bounds of the array,
- * PRP_FN_RES_EXHAUSTED_ERROR if accomodating an insert op is not possible,
+ * PRP_FN_RES_EXHAUSTED_ERROR if accommodating an insert op is not possible,
  * otherwise PRP_FN_SUCCESS.
  */
 PRP_FN_API PRP_FnCode PRP_FN_CALL PRP_DArrInsert(PRP_DArr *arr, PRP_void *data,
@@ -157,7 +157,7 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL PRP_DArrInsert(PRP_DArr *arr, PRP_void *data,
  * @param arr: The array to pop data from.
  * @param dest: If not PRP_null, the popped data is copied into it.
  *
- * @return PRP_FN_INV_ARG_ERROR if the paramerters are invalid in any way,
+ * @return PRP_FN_INV_ARG_ERROR if the parameters are invalid in any way,
  * PRP_FN_RES_EXHAUSTED_ERROR if no elements remain to pop, otherwise
  * PRP_FN_SUCCESS.
  */
@@ -169,7 +169,7 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL PRP_DArrPop(PRP_DArr *arr, PRP_void *dest);
  * @param dest: If not PRP_null, the removed data is copied into it.
  * @param i: The index that is to be removed from the array.
  *
- * @return PRP_FN_INV_ARG_ERROR if the paramerters are invalid in any way,
+ * @return PRP_FN_INV_ARG_ERROR if the parameters are invalid in any way,
  * PRP_FN_OOB_ERROR if the given index is out of bounds of the array, otherwise
  * PRP_FN_SUCCESS.
  */
@@ -192,7 +192,7 @@ PRP_FN_API PRP_bool PRP_FN_CALL PRP_DArrCmp(PRP_DArr *arr1, PRP_DArr *arr2);
  * @param arr1: The first array that will contain the final extended array.
  * @param arr2: The array that is to be merged with arr2.
  *
- * @return PRP_FN_INV_ARG_ERROR if the paramerters are invalid in any way,
+ * @return PRP_FN_INV_ARG_ERROR if the parameters are invalid in any way,
  * PRP_FN_MALLOC_ERROR if realloc failed on arr1, otherwise PRP_FN_SUCCESS.
  */
 PRP_FN_API PRP_FnCode PRP_FN_CALL PRP_DArrExtend(PRP_DArr *arr1,
