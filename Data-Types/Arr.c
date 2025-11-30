@@ -1,8 +1,8 @@
-#include "DArr.h"
+#include "Arr.h"
 #include "../Utils/Logger.h"
 #include <string.h>
 
-struct _DArr {
+struct _Arr {
   PRP_size cap;
   PRP_size len;
   PRP_size memb_size;
@@ -19,9 +19,9 @@ struct _DArr {
 
 #define DEFAULT_NEW_CAP(cap) ((cap) * 2)
 
-static PRP_FnCode DArrChangeSize(PRP_DArr *arr, PRP_size new_cap);
+static PRP_FnCode ArrChangeSize(PRP_Arr *arr, PRP_size new_cap);
 
-static PRP_FnCode DArrChangeSize(PRP_DArr *arr, PRP_size new_cap) {
+static PRP_FnCode ArrChangeSize(PRP_Arr *arr, PRP_size new_cap) {
   if (arr->cap == new_cap) {
     return PRP_FN_SUCCESS;
   }
@@ -38,20 +38,20 @@ static PRP_FnCode DArrChangeSize(PRP_DArr *arr, PRP_size new_cap) {
   return PRP_FN_SUCCESS;
 }
 
-PRP_FN_API PRP_DArr *PRP_FN_CALL PRP_DArrCreate(PRP_size memb_size,
-                                                PRP_size cap) {
+PRP_FN_API PRP_Arr *PRP_FN_CALL PRP_ArrCreate(PRP_size memb_size,
+                                              PRP_size cap) {
   if (!memb_size) {
     PRP_LOG_FN_CODE(PRP_FN_INV_ARG_ERROR,
-                    "PRP_DArray can't be made with memb_size=0.");
+                    "PRP_Array can't be made with memb_size=0.");
     return PRP_null;
   }
   if (!cap) {
     PRP_LOG_FN_CODE(PRP_FN_INV_ARG_ERROR,
-                    "PRP_DArray can't be made with cap=0.");
+                    "PRP_Array can't be made with cap=0.");
     return PRP_null;
   }
 
-  PRP_DArr *arr = malloc(sizeof(PRP_DArr));
+  PRP_Arr *arr = malloc(sizeof(PRP_Arr));
   if (arr) {
     PRP_LOG_FN_MALLOC_ERROR(arr);
     return PRP_null;
@@ -69,14 +69,14 @@ PRP_FN_API PRP_DArr *PRP_FN_CALL PRP_DArrCreate(PRP_size memb_size,
   return arr;
 }
 
-PRP_FN_API PRP_DArr *PRP_FN_CALL PRP_DArrCreateDefault(PRP_size memb_size) {
-  return PRP_DArrCreate(memb_size, 16);
+PRP_FN_API PRP_Arr *PRP_FN_CALL PRP_ArrCreateDefault(PRP_size memb_size) {
+  return PRP_ArrCreate(memb_size, 16);
 }
 
-PRP_FN_API PRP_DArr *PRP_FN_CALL PRP_DArrClone(PRP_DArr *arr) {
+PRP_FN_API PRP_Arr *PRP_FN_CALL PRP_ArrClone(PRP_Arr *arr) {
   ARRAY_VALIDITY_CHECK(arr, PRP_null);
 
-  PRP_DArr *cpy = PRP_DArrCreate(arr->memb_size, arr->cap);
+  PRP_Arr *cpy = PRP_ArrCreate(arr->memb_size, arr->cap);
   if (!cpy) {
     PRP_LOG_FN_MALLOC_ERROR(cpy);
     return PRP_null;
@@ -88,12 +88,12 @@ PRP_FN_API PRP_DArr *PRP_FN_CALL PRP_DArrClone(PRP_DArr *arr) {
   return cpy;
 }
 
-PRP_FN_API PRP_FnCode PRP_FN_CALL PRP_DArrDelete(PRP_DArr **pArr) {
+PRP_FN_API PRP_FnCode PRP_FN_CALL PRP_ArrDelete(PRP_Arr **pArr) {
   if (!pArr) {
     PRP_LOG_FN_INV_ARG_ERROR(pArr);
     return PRP_FN_INV_ARG_ERROR;
   }
-  PRP_DArr *arr = *pArr;
+  PRP_Arr *arr = *pArr;
   ARRAY_VALIDITY_CHECK(arr, PRP_FN_INV_ARG_ERROR);
 
   if (arr->mem) {
@@ -107,7 +107,7 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL PRP_DArrDelete(PRP_DArr **pArr) {
   return PRP_FN_SUCCESS;
 }
 
-PRP_FN_API PRP_void *PRP_FN_CALL PRP_DArrRaw(PRP_DArr *arr, PRP_size *pLen) {
+PRP_FN_API PRP_void *PRP_FN_CALL PRP_ArrRaw(PRP_Arr *arr, PRP_size *pLen) {
   ARRAY_VALIDITY_CHECK(arr, PRP_null);
   if (!pLen) {
     PRP_LOG_FN_INV_ARG_ERROR(pLen);
@@ -119,19 +119,19 @@ PRP_FN_API PRP_void *PRP_FN_CALL PRP_DArrRaw(PRP_DArr *arr, PRP_size *pLen) {
   return arr->mem;
 }
 
-PRP_FN_API PRP_size PRP_FN_CALL PRP_DArrLen(PRP_DArr *arr) {
+PRP_FN_API PRP_size PRP_FN_CALL PRP_ArrLen(PRP_Arr *arr) {
   ARRAY_VALIDITY_CHECK(arr, PRP_INVALID_SIZE);
 
   return arr->len;
 }
 
-PRP_FN_API PRP_size PRP_FN_CALL PRP_DArrCap(PRP_DArr *arr) {
+PRP_FN_API PRP_size PRP_FN_CALL PRP_ArrCap(PRP_Arr *arr) {
   ARRAY_VALIDITY_CHECK(arr, PRP_INVALID_SIZE);
 
   return arr->cap;
 }
 
-PRP_FN_API PRP_void *PRP_FN_CALL PRP_DArrGet(PRP_DArr *arr, PRP_size i) {
+PRP_FN_API PRP_void *PRP_FN_CALL PRP_ArrGet(PRP_Arr *arr, PRP_size i) {
   ARRAY_VALIDITY_CHECK(arr, PRP_null);
   if (i >= arr->len) {
     PRP_LOG_FN_CODE(
@@ -144,8 +144,8 @@ PRP_FN_API PRP_void *PRP_FN_CALL PRP_DArrGet(PRP_DArr *arr, PRP_size i) {
   return arr->mem + (i * arr->memb_size);
 }
 
-PRP_FN_API PRP_FnCode PRP_FN_CALL PRP_DArrSet(PRP_DArr *arr, PRP_size i,
-                                              PRP_void *data) {
+PRP_FN_API PRP_FnCode PRP_FN_CALL PRP_ArrSet(PRP_Arr *arr, PRP_size i,
+                                             PRP_void *data) {
   ARRAY_VALIDITY_CHECK(arr, PRP_FN_INV_ARG_ERROR);
   if (!data) {
     PRP_LOG_FN_INV_ARG_ERROR(data);
@@ -163,14 +163,14 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL PRP_DArrSet(PRP_DArr *arr, PRP_size i,
   return PRP_FN_SUCCESS;
 }
 
-PRP_FN_API PRP_FnCode PRP_FN_CALL PRP_DArrPush(PRP_DArr *arr, PRP_void *data) {
+PRP_FN_API PRP_FnCode PRP_FN_CALL PRP_ArrPush(PRP_Arr *arr, PRP_void *data) {
   ARRAY_VALIDITY_CHECK(arr, PRP_FN_INV_ARG_ERROR);
   if (!data) {
     PRP_LOG_FN_INV_ARG_ERROR(data);
   }
 
   if (arr->len == arr->cap &&
-      DArrChangeSize(arr, DEFAULT_NEW_CAP(arr->cap)) != PRP_FN_SUCCESS) {
+      ArrChangeSize(arr, DEFAULT_NEW_CAP(arr->cap)) != PRP_FN_SUCCESS) {
     PRP_LOG_FN_CODE(PRP_FN_RES_EXHAUSTED_ERROR,
                     "Cannot push more elements to the array. Array is full.");
     return PRP_FN_RES_EXHAUSTED_ERROR;
@@ -180,12 +180,11 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL PRP_DArrPush(PRP_DArr *arr, PRP_void *data) {
   return PRP_FN_SUCCESS;
 }
 
-PRP_FN_API PRP_FnCode PRP_FN_CALL PRP_DArrReserve(PRP_DArr *arr,
-                                                  PRP_size count) {
+PRP_FN_API PRP_FnCode PRP_FN_CALL PRP_ArrReserve(PRP_Arr *arr, PRP_size count) {
   ARRAY_VALIDITY_CHECK(arr, PRP_FN_INV_ARG_ERROR);
   if (!count) {
     PRP_LOG_FN_CODE(PRP_FN_INV_ARG_ERROR,
-                    "Cannot reserve 0 members in PRP_DArr.");
+                    "Cannot reserve 0 members in PRP_Arr.");
     return PRP_FN_INV_ARG_ERROR;
   }
 
@@ -193,11 +192,11 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL PRP_DArrReserve(PRP_DArr *arr,
     return PRP_FN_SUCCESS;
   }
 
-  return DArrChangeSize(arr, arr->len + count);
+  return ArrChangeSize(arr, arr->len + count);
 }
 
-PRP_FN_API PRP_FnCode PRP_FN_CALL PRP_DArrInsert(PRP_DArr *arr, PRP_void *data,
-                                                 PRP_size i) {
+PRP_FN_API PRP_FnCode PRP_FN_CALL PRP_ArrInsert(PRP_Arr *arr, PRP_void *data,
+                                                PRP_size i) {
   ARRAY_VALIDITY_CHECK(arr, PRP_FN_INV_ARG_ERROR);
   if (!data) {
     PRP_LOG_FN_INV_ARG_ERROR(data);
@@ -211,7 +210,7 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL PRP_DArrInsert(PRP_DArr *arr, PRP_void *data,
   }
 
   if (arr->len == arr->cap &&
-      DArrChangeSize(arr, DEFAULT_NEW_CAP(arr->cap)) != PRP_FN_SUCCESS) {
+      ArrChangeSize(arr, DEFAULT_NEW_CAP(arr->cap)) != PRP_FN_SUCCESS) {
     PRP_LOG_FN_CODE(PRP_FN_RES_EXHAUSTED_ERROR,
                     "Cannot insert more elements to the array. Array is full.");
     return PRP_FN_RES_EXHAUSTED_ERROR;
@@ -224,7 +223,7 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL PRP_DArrInsert(PRP_DArr *arr, PRP_void *data,
   return PRP_FN_SUCCESS;
 }
 
-PRP_FN_API PRP_FnCode PRP_FN_CALL PRP_DArrPop(PRP_DArr *arr, PRP_void *dest) {
+PRP_FN_API PRP_FnCode PRP_FN_CALL PRP_ArrPop(PRP_Arr *arr, PRP_void *dest) {
   ARRAY_VALIDITY_CHECK(arr, PRP_FN_INV_ARG_ERROR);
 
   if (!arr->len) {
@@ -240,8 +239,8 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL PRP_DArrPop(PRP_DArr *arr, PRP_void *dest) {
   return PRP_FN_SUCCESS;
 }
 
-PRP_FN_API PRP_FnCode PRP_FN_CALL PRP_DArrRemove(PRP_DArr *arr, PRP_void *dest,
-                                                 PRP_size i) {
+PRP_FN_API PRP_FnCode PRP_FN_CALL PRP_ArrRemove(PRP_Arr *arr, PRP_void *dest,
+                                                PRP_size i) {
   ARRAY_VALIDITY_CHECK(arr, PRP_FN_INV_ARG_ERROR);
   if (i >= arr->len) {
     PRP_LOG_FN_CODE(
@@ -262,7 +261,7 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL PRP_DArrRemove(PRP_DArr *arr, PRP_void *dest,
   return PRP_FN_SUCCESS;
 }
 
-PRP_FN_API PRP_bool PRP_FN_CALL PRP_DArrCmp(PRP_DArr *arr1, PRP_DArr *arr2) {
+PRP_FN_API PRP_bool PRP_FN_CALL PRP_ArrCmp(PRP_Arr *arr1, PRP_Arr *arr2) {
   ARRAY_VALIDITY_CHECK(arr1, PRP_false);
   ARRAY_VALIDITY_CHECK(arr2, PRP_false);
 
@@ -273,8 +272,7 @@ PRP_FN_API PRP_bool PRP_FN_CALL PRP_DArrCmp(PRP_DArr *arr1, PRP_DArr *arr2) {
   return memcmp(arr1->mem, arr2->mem, arr1->len * arr1->memb_size) == 0;
 }
 
-PRP_FN_API PRP_FnCode PRP_FN_CALL PRP_DArrExtend(PRP_DArr *arr1,
-                                                 PRP_DArr *arr2) {
+PRP_FN_API PRP_FnCode PRP_FN_CALL PRP_ArrExtend(PRP_Arr *arr1, PRP_Arr *arr2) {
   ARRAY_VALIDITY_CHECK(arr1, PRP_FN_INV_ARG_ERROR);
   ARRAY_VALIDITY_CHECK(arr2, PRP_FN_INV_ARG_ERROR);
   if (arr1->memb_size != arr2->memb_size) {
@@ -297,7 +295,7 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL PRP_DArrExtend(PRP_DArr *arr1,
   return PRP_FN_SUCCESS;
 }
 
-PRP_FN_API PRP_FnCode PRP_FN_CALL PRP_DArrReset(PRP_DArr *arr) {
+PRP_FN_API PRP_FnCode PRP_FN_CALL PRP_ArrReset(PRP_Arr *arr) {
   ARRAY_VALIDITY_CHECK(arr, PRP_FN_INV_ARG_ERROR);
 
   arr->len = 0;
@@ -305,15 +303,15 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL PRP_DArrReset(PRP_DArr *arr) {
   return PRP_FN_SUCCESS;
 }
 
-PRP_FN_API PRP_FnCode PRP_FN_CALL PRP_DArrShrinkFit(PRP_DArr *arr) {
+PRP_FN_API PRP_FnCode PRP_FN_CALL PRP_ArrShrinkFit(PRP_Arr *arr) {
   ARRAY_VALIDITY_CHECK(arr, PRP_FN_INV_ARG_ERROR);
 
   // The ternary op makes sure there is space of at-least one elem.
-  return DArrChangeSize(arr, (arr->len) ? arr->len : 1);
+  return ArrChangeSize(arr, (arr->len) ? arr->len : 1);
 }
 
 PRP_FN_API PRP_FnCode PRP_FN_CALL
-PRP_DArrForEach(PRP_DArr *arr, PRP_FnCode (*cb)(PRP_void *val)) {
+PRP_ArrForEach(PRP_Arr *arr, PRP_FnCode (*cb)(PRP_void *val)) {
   ARRAY_VALIDITY_CHECK(arr, PRP_FN_INV_ARG_ERROR);
   if (!cb) {
     PRP_LOG_FN_INV_ARG_ERROR(cb);
