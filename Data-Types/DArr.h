@@ -223,8 +223,8 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL PRP_DArrShrinkFit(PRP_DArr *arr);
  * @param cb: The callback to be called per element. If this doesn't return
  * PRP_FN_SUCCESS, further execution will be halted.
  *
- * @return RP_FN_INV_ARG_ERROR if the array is invalid in some way,
- * PRP_FN_MALLOC_ERROR if realloc failed on arr, otherwise PRP_FN_SUCCESS.
+ * @return PRP_FN_INV_ARG_ERROR if the parameters are invalid in some way,
+ * otherwise PRP_FN_SUCCESS.
  */
 PRP_FN_API PRP_FnCode PRP_FN_CALL
 PRP_DArrForEach(PRP_DArr *arr, PRP_FnCode (*cb)(PRP_void *val));
