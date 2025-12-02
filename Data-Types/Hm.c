@@ -4,9 +4,9 @@
 
 // If 67% of the layout is filled, it is grown.
 #define LOAD_FACTOR (0.67)
-// Sentinal for a free index in the layout.
+// Sentinel for a free index in the layout.
 #define EMPTY_I ((PRP_size) - 1)
-// Sentinal for a currently free, previously occupied index in the layout.
+// Sentinel for a currently free, previously occupied index in the layout.
 #define DEAD_I ((PRP_size) - 2)
 
 // These helps in finding new indices when hash collision occurs.
@@ -39,7 +39,7 @@ struct _Hm {
   PRP_size *layout;
   PRP_size layout_cap;
   /*
-   * Stores the key-val pairs in a thightly packed array separate from the hm
+   * Stores the key-val pairs in a tightly packed array separate from the hm
    * layout. This also promotes iterability over every key/val, since values are
    * in an array.
    */
@@ -185,7 +185,7 @@ static PRP_FnCode GrowHmLayout(PRP_Hm *hm) {
   hm->layout_cap *= 2;
 
   memset(hm->layout, LAYOUT_EMPTYING_MASK, sizeof(PRP_size) * hm->layout_cap);
-  // Rehasshing and deleting all the dead slots.
+  // Rehashing and deleting all the dead slots.
   PRP_u64 mask = hm->layout_cap - 1;
   for (PRP_size i = 0; i < hm->elem_len; i++) {
     Elem elem = hm->elems[i];
@@ -278,7 +278,7 @@ PRP_FN_API PRP_void *PRP_FN_CALL PRP_HmGet(PRP_Hm *hm, PRP_void *key) {
 
 static PRP_FnCode FetchLayoutElemI(PRP_Hm *hm, PRP_void *key,
                                    PRP_size *pLayout_i, PRP_size *pElem_i) {
-  *pLayout_i = *pElem_i = PRP_INVALID_SIZE;
+  *pLayout_i = *pElem_i = PRP_INVALID_INDEX;
 
   PRP_u64 mask = hm->layout_cap - 1;
   PRP_u64 hash = hm->hash_fn(key);

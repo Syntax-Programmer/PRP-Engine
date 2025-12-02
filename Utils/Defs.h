@@ -40,7 +40,12 @@ typedef void PRP_void;
  */
 typedef size_t PRP_size;
 
-#define PRP_INVALID_SIZE ((PRP_size)-1)
+#define PRP_INVALID_SIZE ((PRP_size) - 1)
+#define PRP_INVALID_INDEX ((PRP_size) - 1)
+#define PRP_INVALID_POS ((PRP_size)0)
+
+#define PRP_POS_TO_I(pos) ((pos) - 1)
+#define PRP_I_TO_POS(i) ((i) + 1)
 
 #define PRP_null (NULL)
 
@@ -52,10 +57,10 @@ typedef enum {
 /**
  * Basic binary ops encapsulated for user ease of use.
  */
-#define PRP_BIN_SET(x, y) (x) |= (y)
-#define PRP_BIN_CLR(x, y) (x) &= ~(y)
-#define PRP_BIN_TOGGLE(x, y) (x) ^= (y)
-#define PRP_BIN_IS_SET (((x) & (y)) != 0)
+#define PRP_BIT_SET(x, y) (x) |= (y)
+#define PRP_BIT_CLR(x, y) (x) &= ~(y)
+#define PRP_BIT_TOGGLE(x, y) (x) ^= (y)
+#define PRP_BIT_IS_SET(x, y) (((x) & (y)) != 0)
 
 /**
  * These are added to a function to mark it as being exposed as dlls

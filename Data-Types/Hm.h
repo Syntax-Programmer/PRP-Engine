@@ -8,7 +8,7 @@ extern "C" {
 
 /**
  * A generic hashmap that can store key-value pairs.
- * This supports user defined hash functions for flexibility. Thsi hashmap
+ * This supports user defined hash functions for flexibility. This hashmap
  * implementation is counterpart to cPython's dicts, but a little more
  * leaner(since python is very generic).
  */
@@ -97,7 +97,7 @@ PRP_FN_API PRP_size PRP_FN_CALL PRP_HmLen(PRP_Hm *hm);
  *
  * @param hm: The hashmap on which the foreach will happen.
  * @param cb: The callback tho be called per key-val pair. If this doesn't
- * return PRP_FN_SUCCESS, futher execution will be halted.
+ * return PRP_FN_SUCCESS, further execution will be halted.
  *
  * @return PRP_FN_INV_ARG_ERROR if the parameters are invalid in any way,
  * otherwise PRP_FN_SUCCESS.

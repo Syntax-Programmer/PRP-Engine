@@ -52,12 +52,12 @@ PRP_FN_API PRP_Arr *PRP_FN_CALL PRP_ArrCreate(PRP_size memb_size,
   }
 
   PRP_Arr *arr = malloc(sizeof(PRP_Arr));
-  if (arr) {
+  if (!arr) {
     PRP_LOG_FN_MALLOC_ERROR(arr);
     return PRP_null;
   }
   arr->mem = malloc(memb_size * cap);
-  if (arr->mem) {
+  if (!arr->mem) {
     free(arr);
     PRP_LOG_FN_MALLOC_ERROR(arr->mem);
     return PRP_null;
