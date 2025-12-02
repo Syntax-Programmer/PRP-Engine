@@ -74,14 +74,14 @@ struct _Hm {
     }                                                                          \
   } while (0)
 
-static PRP_FnCode GrowHmElems(PRP_Hm *hm);
-static PRP_FnCode GrowHmLayout(PRP_Hm *hm);
+static PRP_FnCode GrowHmElems(DT_Hm *hm);
+static PRP_FnCode GrowHmLayout(DT_Hm *hm);
 
-PRP_FN_API PRP_Hm *PRP_FN_CALL
-PRP_HmCreate(PRP_u64 (*hash_fn)(const PRP_void *key),
-             PRP_bool (*key_cmp_cb)(const PRP_void *k1, const PRP_void *k2),
-             PRP_FnCode (*key_del_cb)(PRP_void *key),
-             PRP_FnCode (*val_del_cb)(PRP_void *val)) {
+PRP_FN_API DT_Hm *PRP_FN_CALL
+DT_HmCreate(PRP_u64 (*hash_fn)(const PRP_void *key),
+            PRP_bool (*key_cmp_cb)(const PRP_void *k1, const PRP_void *k2),
+            PRP_FnCode (*key_del_cb)(PRP_void *key),
+            PRP_FnCode (*val_del_cb)(PRP_void *val)) {
   if (!hash_fn) {
     PRP_LOG_FN_INV_ARG_ERROR(hash_fn);
     return PRP_null;
@@ -99,7 +99,7 @@ PRP_HmCreate(PRP_u64 (*hash_fn)(const PRP_void *key),
     return PRP_null;
   }
 
-  PRP_Hm *hm = calloc(1, sizeof(PRP_Hm));
+  DT_Hm *hm = calloc(1, sizeof(DT_Hm));
   if (!hm) {
     PRP_LOG_FN_MALLOC_ERROR(hm);
     return PRP_null;
@@ -130,12 +130,12 @@ PRP_HmCreate(PRP_u64 (*hash_fn)(const PRP_void *key),
   return hm;
 }
 
-PRP_FN_API PRP_FnCode PRP_FN_CALL PRP_HmDelete(PRP_Hm **pHm) {
+PRP_FN_API PRP_FnCode PRP_FN_CALL DT_HmDelete(DT_Hm **pHm) {
   if (!pHm) {
     PRP_LOG_FN_INV_ARG_ERROR(pHm);
     return PRP_FN_INV_ARG_ERROR;
   }
-  PRP_Hm *hm = *pHm;
+  DT_Hm *hm = *pHm;
   HM_VALIDITY_CHECK(hm, PRP_FN_INV_ARG_ERROR);
 
   if (hm->layout) {
@@ -163,7 +163,7 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL PRP_HmDelete(PRP_Hm **pHm) {
   return PRP_FN_SUCCESS;
 }
 
-static PRP_FnCode GrowHmElems(PRP_Hm *hm) {
+static PRP_FnCode GrowHmElems(DT_Hm *hm) {
   Elem *elems = realloc(hm->elems, sizeof(Elem) * hm->elem_cap * 2);
   if (!elems) {
     PRP_LOG_FN_MALLOC_ERROR(elems);
@@ -175,7 +175,7 @@ static PRP_FnCode GrowHmElems(PRP_Hm *hm) {
   return PRP_FN_SUCCESS;
 }
 
-static PRP_FnCode GrowHmLayout(PRP_Hm *hm) {
+static PRP_FnCode GrowHmLayout(DT_Hm *hm) {
   PRP_size *layout = realloc(hm->layout, sizeof(PRP_size) * hm->layout_cap * 2);
   if (!layout) {
     PRP_LOG_FN_MALLOC_ERROR(layout);
@@ -199,8 +199,8 @@ static PRP_FnCode GrowHmLayout(PRP_Hm *hm) {
   return PRP_FN_SUCCESS;
 }
 
-PRP_FN_API PRP_FnCode PRP_FN_CALL PRP_HmAdd(PRP_Hm *hm, PRP_void *key,
-                                            PRP_void *val) {
+PRP_FN_API PRP_FnCode PRP_FN_CALL DT_HmAdd(DT_Hm *hm, PRP_void *key,
+                                           PRP_void *val) {
   HM_VALIDITY_CHECK(hm, PRP_FN_INV_ARG_ERROR);
   if (!key) {
     PRP_LOG_FN_INV_ARG_ERROR(key);
@@ -218,7 +218,7 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL PRP_HmAdd(PRP_Hm *hm, PRP_void *key,
   if (hm->elem_len == hm->layout_cap) {
     PRP_LOG_FN_CODE(
         PRP_FN_RES_EXHAUSTED_ERROR,
-        "PRP_Hm is completely filled, prev resize attempt must have failed.");
+        "DT_Hm is completely filled, prev resize attempt must have failed.");
     return PRP_FN_RES_EXHAUSTED_ERROR;
   }
 
@@ -251,7 +251,7 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL PRP_HmAdd(PRP_Hm *hm, PRP_void *key,
   return PRP_FN_SUCCESS;
 }
 
-PRP_FN_API PRP_void *PRP_FN_CALL PRP_HmGet(PRP_Hm *hm, PRP_void *key) {
+PRP_FN_API PRP_void *PRP_FN_CALL DT_HmGet(DT_Hm *hm, PRP_void *key) {
   HM_VALIDITY_CHECK(hm, PRP_null);
   if (!key) {
     PRP_LOG_FN_INV_ARG_ERROR(key);
@@ -276,7 +276,7 @@ PRP_FN_API PRP_void *PRP_FN_CALL PRP_HmGet(PRP_Hm *hm, PRP_void *key) {
   return PRP_null;
 }
 
-static PRP_FnCode FetchLayoutElemI(PRP_Hm *hm, PRP_void *key,
+static PRP_FnCode FetchLayoutElemI(DT_Hm *hm, PRP_void *key,
                                    PRP_size *pLayout_i, PRP_size *pElem_i) {
   *pLayout_i = *pElem_i = PRP_INVALID_INDEX;
 
@@ -299,7 +299,7 @@ static PRP_FnCode FetchLayoutElemI(PRP_Hm *hm, PRP_void *key,
   return PRP_FN_OOB_ERROR;
 }
 
-PRP_FN_API PRP_FnCode PRP_FN_CALL PRP_HmDelElem(PRP_Hm *hm, PRP_void *key) {
+PRP_FN_API PRP_FnCode PRP_FN_CALL DT_HmDelElem(DT_Hm *hm, PRP_void *key) {
   HM_VALIDITY_CHECK(hm, PRP_FN_INV_ARG_ERROR);
   if (!key) {
     PRP_LOG_FN_INV_ARG_ERROR(key);
@@ -331,14 +331,14 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL PRP_HmDelElem(PRP_Hm *hm, PRP_void *key) {
   return PRP_FN_SUCCESS;
 }
 
-PRP_FN_API PRP_size PRP_FN_CALL PRP_HmLen(PRP_Hm *hm) {
+PRP_FN_API PRP_size PRP_FN_CALL DT_HmLen(DT_Hm *hm) {
   HM_VALIDITY_CHECK(hm, PRP_INVALID_SIZE);
 
   return hm->elem_len;
 }
 
 PRP_FN_API PRP_FnCode PRP_FN_CALL
-PRP_HmForEach(PRP_Hm *hm, PRP_FnCode (*cb)(PRP_void *key, PRP_void *val)) {
+DT_HmForEach(DT_Hm *hm, PRP_FnCode (*cb)(PRP_void *key, PRP_void *val)) {
   HM_VALIDITY_CHECK(hm, PRP_FN_INV_ARG_ERROR);
   if (!cb) {
     PRP_LOG_FN_INV_ARG_ERROR(cb);
@@ -359,7 +359,7 @@ PRP_HmForEach(PRP_Hm *hm, PRP_FnCode (*cb)(PRP_void *key, PRP_void *val)) {
   return PRP_FN_SUCCESS;
 }
 
-PRP_FN_API PRP_FnCode PRP_FN_CALL PRP_HmReset(PRP_Hm *hm) {
+PRP_FN_API PRP_FnCode PRP_FN_CALL DT_HmReset(DT_Hm *hm) {
   HM_VALIDITY_CHECK(hm, PRP_FN_INV_ARG_ERROR);
 
   // Setting all to empty indices as memset works per byte.

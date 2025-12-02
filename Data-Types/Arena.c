@@ -16,14 +16,14 @@ struct _Arena {
     }                                                                          \
   } while (0)
 
-PRP_FN_API PRP_Arena *PRP_FN_CALL PRP_ArenaCreate(PRP_size size) {
+PRP_FN_API DT_Arena *PRP_FN_CALL DT_ArenaCreate(PRP_size size) {
   if (!size) {
     PRP_LOG_FN_CODE(PRP_FN_INV_ARG_ERROR,
-                    "PRP_Arena can't be made with size=0.");
+                    "DT_Arena can't be made with size=0.");
     return PRP_null;
   }
 
-  PRP_Arena *arena = malloc(sizeof(PRP_Arena) + size);
+  DT_Arena *arena = malloc(sizeof(DT_Arena) + size);
   if (!arena) {
     PRP_LOG_FN_MALLOC_ERROR(arena);
     return PRP_null;
@@ -34,12 +34,12 @@ PRP_FN_API PRP_Arena *PRP_FN_CALL PRP_ArenaCreate(PRP_size size) {
   return arena;
 }
 
-PRP_FN_API PRP_FnCode PRP_FN_CALL PRP_ArenaDelete(PRP_Arena **pArena) {
+PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArenaDelete(DT_Arena **pArena) {
   if (!pArena) {
     PRP_LOG_FN_INV_ARG_ERROR(pArena);
     return PRP_FN_INV_ARG_ERROR;
   }
-  PRP_Arena *arena = *pArena;
+  DT_Arena *arena = *pArena;
   ARENA_VALIDITY_CHECK(arena, PRP_FN_INV_ARG_ERROR);
 
   arena->size = arena->ofs = 0;
@@ -49,8 +49,7 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL PRP_ArenaDelete(PRP_Arena **pArena) {
   return PRP_FN_SUCCESS;
 }
 
-PRP_FN_API PRP_void *PRP_FN_CALL PRP_ArenaAlloc(PRP_Arena *arena,
-                                                PRP_size size) {
+PRP_FN_API PRP_void *PRP_FN_CALL DT_ArenaAlloc(DT_Arena *arena, PRP_size size) {
   ARENA_VALIDITY_CHECK(arena, PRP_null);
   if (!size) {
     PRP_LOG_FN_INV_ARG_ERROR(size);
@@ -69,8 +68,8 @@ PRP_FN_API PRP_void *PRP_FN_CALL PRP_ArenaAlloc(PRP_Arena *arena,
   return ptr;
 }
 
-PRP_FN_API PRP_void *PRP_FN_CALL PRP_ArenaCalloc(PRP_Arena *arena,
-                                                 PRP_size size) {
+PRP_FN_API PRP_void *PRP_FN_CALL DT_ArenaCalloc(DT_Arena *arena,
+                                                PRP_size size) {
   ARENA_VALIDITY_CHECK(arena, PRP_null);
   if (!size) {
     PRP_LOG_FN_INV_ARG_ERROR(size);
@@ -90,7 +89,7 @@ PRP_FN_API PRP_void *PRP_FN_CALL PRP_ArenaCalloc(PRP_Arena *arena,
   return ptr;
 }
 
-PRP_FN_API PRP_FnCode PRP_FN_CALL PRP_ArenaReset(PRP_Arena *arena) {
+PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArenaReset(DT_Arena *arena) {
   ARENA_VALIDITY_CHECK(arena, PRP_FN_INV_ARG_ERROR);
 
   arena->ofs = 0;
