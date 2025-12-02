@@ -58,3 +58,4 @@ dkms.conf
 ploc.py
 Makefile
 Drafts/
+.clang-format

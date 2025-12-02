@@ -31,7 +31,7 @@ PRP_FN_API PRP_void PRP_FN_CALL PRP_Log(const PRP_char *file,
  * @param fmt: The user written message, that is to be logged.
  */
 #define PRP_LOG(fmt, ...)                                                      \
-  PRP_Log(__FILE__, __func__, __LINE__, fmt, ##__VA_ARGS__)
+    PRP_Log(__FILE__, __func__, __LINE__, fmt, ##__VA_ARGS__)
 
 /* ----  CODE LOGGER  ---- */
 
@@ -66,7 +66,7 @@ PRP_FN_API PRP_void PRP_FN_CALL PRP_LogFnCode(PRP_FnCode code,
  * @param fmt: The user written message, that is to be logged.
  */
 #define PRP_LOG_FN_CODE(code, fmt, ...)                                        \
-  PRP_LogFnCode(code, __FILE__, __func__, __LINE__, fmt, ##__VA_ARGS__)
+    PRP_LogFnCode(code, __FILE__, __func__, __LINE__, fmt, ##__VA_ARGS__)
 
 /**
  * A macro that logs a null error due to the var param.
@@ -74,8 +74,8 @@ PRP_FN_API PRP_void PRP_FN_CALL PRP_LogFnCode(PRP_FnCode code,
  * @param var: The variable that caused the error.
  */
 #define PRP_LOG_FN_NULL_ERROR(var)                                             \
-  PRP_LOG_FN_CODE(PRP_FN_NULL_ERROR,                                           \
-                  "Unexpected PRP_null value: '%s' encountered.", #var)
+    PRP_LOG_FN_CODE(PRP_FN_NULL_ERROR,                                         \
+                    "Unexpected PRP_null value: '%s' encountered.", #var)
 
 /**
  * A macro that logs a malloc error due to the var param.
@@ -83,8 +83,8 @@ PRP_FN_API PRP_void PRP_FN_CALL PRP_LogFnCode(PRP_FnCode code,
  * @param var: The variable that caused the error.
  */
 #define PRP_LOG_FN_MALLOC_ERROR(var)                                           \
-  PRP_LOG_FN_CODE(PRP_FN_NULL_ERROR,                                           \
-                  "Failed to allocate mem for the var: '%s'.", #var)
+    PRP_LOG_FN_CODE(PRP_FN_NULL_ERROR,                                         \
+                    "Failed to allocate mem for the var: '%s'.", #var)
 
 /**
  * A macro that logs an UAF(Use After Free) error due to the var param.
@@ -92,8 +92,8 @@ PRP_FN_API PRP_void PRP_FN_CALL PRP_LogFnCode(PRP_FnCode code,
  * @param var: The variable that caused the error.
  */
 #define PRP_LOG_FN_UAF_ERROR(var)                                              \
-  PRP_LOG_FN_CODE(PRP_FN_NULL_ERROR,                                           \
-                  "Tried using an already freed var: '%s'.", #var)
+    PRP_LOG_FN_CODE(PRP_FN_NULL_ERROR,                                         \
+                    "Tried using an already freed var: '%s'.", #var)
 
 /**
  * A macro that logs an invalid argument error due to the var param.
@@ -101,9 +101,9 @@ PRP_FN_API PRP_void PRP_FN_CALL PRP_LogFnCode(PRP_FnCode code,
  * @param var: The variable that caused the error.
  */
 #define PRP_LOG_FN_INV_ARG_ERROR(var)                                          \
-  PRP_LOG_FN_CODE(PRP_FN_NULL_ERROR,                                           \
-                  "Invalid/Corrupted function argument: '%s' encountered.",    \
-                  #var)
+    PRP_LOG_FN_CODE(PRP_FN_NULL_ERROR,                                         \
+                    "Invalid/Corrupted function argument: '%s' encountered.",  \
+                    #var)
 
 #ifdef __cplusplus
 }

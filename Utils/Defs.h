@@ -50,8 +50,8 @@ typedef size_t PRP_size;
 #define PRP_null (NULL)
 
 typedef enum {
-  PRP_false = 0,
-  PRP_true = 1,
+    PRP_false = 0,
+    PRP_true = 1,
 } PRP_bool;
 
 /**
@@ -120,16 +120,16 @@ typedef enum {
  *                            interacting with a file fails in some way.
  */
 typedef enum {
-  PRP_FN_SUCCESS,
-  PRP_FN_WARNING,
-  PRP_FN_FAILURE,
-  PRP_FN_NULL_ERROR,
-  PRP_FN_OOB_ERROR,
-  PRP_FN_MALLOC_ERROR,
-  PRP_FN_UAF_ERROR,
-  PRP_FN_INV_ARG_ERROR,
-  PRP_FN_RES_EXHAUSTED_ERROR,
-  PRP_FN_FILE_IO_ERROR
+    PRP_FN_SUCCESS,
+    PRP_FN_WARNING,
+    PRP_FN_FAILURE,
+    PRP_FN_NULL_ERROR,
+    PRP_FN_OOB_ERROR,
+    PRP_FN_MALLOC_ERROR,
+    PRP_FN_UAF_ERROR,
+    PRP_FN_INV_ARG_ERROR,
+    PRP_FN_RES_EXHAUSTED_ERROR,
+    PRP_FN_FILE_IO_ERROR
 } PRP_FnCode;
 
 #ifdef __cplusplus
