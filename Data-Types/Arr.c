@@ -262,15 +262,19 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrRemove(DT_Arr *arr, PRP_void *dest,
     return PRP_FN_SUCCESS;
 }
 
-PRP_FN_API PRP_bool PRP_FN_CALL DT_ArrCmp(DT_Arr *arr1, DT_Arr *arr2) {
-    ARRAY_VALIDITY_CHECK(arr1, PRP_false);
-    ARRAY_VALIDITY_CHECK(arr2, PRP_false);
+PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrCmp(DT_Arr *arr1, DT_Arr *arr2,
+                                            PRP_bool *pRslt) {
+    ARRAY_VALIDITY_CHECK(arr1, PRP_FN_INV_ARG_ERROR);
+    ARRAY_VALIDITY_CHECK(arr2, PRP_FN_INV_ARG_ERROR);
 
     if (arr1->len != arr2->len || arr1->memb_size != arr2->memb_size) {
-        return PRP_false;
+        *pRslt = PRP_false;
+        return PRP_FN_SUCCESS;
     }
 
-    return memcmp(arr1->mem, arr2->mem, arr1->len * arr1->memb_size) == 0;
+    *pRslt = (memcmp(arr1->mem, arr2->mem, arr1->len * arr1->memb_size) == 0);
+
+    return PRP_FN_SUCCESS;
 }
 
 PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrExtend(DT_Arr *arr1, DT_Arr *arr2) {

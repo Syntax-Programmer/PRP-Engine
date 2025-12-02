@@ -62,6 +62,9 @@ typedef enum {
 #define PRP_BIT_TOGGLE(x, y) (x) ^= (y)
 #define PRP_BIT_IS_SET(x, y) (((x) & (y)) != 0)
 
+#define PRP_MAX(x, y) (((x) > (y)) ? (x) : (y))
+#define PRP_MIN(x, y) (((x) > (y)) ? (y) : (x))
+
 /**
  * These are added to a function to mark it as being exposed as dlls
  *

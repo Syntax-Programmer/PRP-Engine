@@ -183,7 +183,8 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrRemove(DT_Arr *arr, PRP_void *dest,
  * @return PRP_false if the arrays are dissimilar or are invalid, otherwise
  * PRP_true.
  */
-PRP_FN_API PRP_bool PRP_FN_CALL DT_ArrCmp(DT_Arr *arr1, DT_Arr *arr2);
+PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrCmp(DT_Arr *arr1, DT_Arr *arr2,
+                                            PRP_bool *pRslt);
 /**
  * Joins the content of arr2 with arr1.
  *
