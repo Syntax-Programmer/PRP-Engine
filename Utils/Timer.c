@@ -12,7 +12,7 @@ static PRP_TimeMeasure GetTimeNs();
 
 static PRP_TimeMeasure GetTimeNs() {
     static LARGE_INTEGER freq;
-    static PRP_I32 initialized = 0;
+    static PRP_i32 initialized = 0;
     LARGE_INTEGER counter;
     if (!initialized) {
         QueryPerformanceFrequency(&freq);
@@ -32,7 +32,7 @@ static PRP_TimeMeasure GetTimeNs() {
 }
 #endif
 
-static const PRP_f64 TIME_UNIT_SCALE[] = {1, 1e3, 1e6, 1e9};
+static const DT_f64 TIME_UNIT_SCALE[] = {1, 1e3, 1e6, 1e9};
 
 PRP_FN_API PRP_TimeMeasure PRP_FN_CALL PRP_TimerGetTime(PRP_TimeUnit unit) {
     if (unit < 0 || unit > PRP_TIME_S) {

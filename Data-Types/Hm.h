@@ -32,23 +32,23 @@ typedef struct _Hm DT_Hm;
  * @return The pointer to the hashmap.
  */
 PRP_FN_API DT_Hm *PRP_FN_CALL
-    DT_HmCreate(PRP_u64 (*hash_fn)(const PRP_void *key),
-                PRP_bool (*key_cmp_cb)(const PRP_void *k1, const PRP_void *k2),
-                PRP_FnCode (*key_del_cb)(PRP_void *key),
-                PRP_FnCode (*val_del_cb)(PRP_void *val));
+    DT_HmCreate(DT_u64 (*hash_fn)(const DT_void *key),
+                DT_bool (*key_cmp_cb)(const DT_void *k1, const DT_void *k2),
+                PRP_FnCode (*key_del_cb)(DT_void *key),
+                PRP_FnCode (*val_del_cb)(DT_void *val));
 /**
- * Deletes the hashmap and sets the original DT_Hm * to PRP_null to prevent use
+ * Deletes the hashmap and sets the original DT_Hm * to DT_null to prevent use
  * after free bugs.
  *
  * @param pHm: The pointer to the hashmap pointer to delete.
  *
- * @return PRP_FN_INV_ARG_ERROR if the pHm is PRP_null or the hashmap it points
+ * @return PRP_FN_INV_ARG_ERROR if the pHm is DT_null or the hashmap it points
  * to is invalid, otherwise it returns PRP_FN_SUCCESS.
  */
 PRP_FN_API PRP_FnCode PRP_FN_CALL DT_HmDelete(DT_Hm **pHm);
 /**
  * Adds a new key-value pair to the given hashmap. Given the key cannot be
- * PRP_null.
+ * DT_null.
  *
  * @param hm: The hashmap to add the key-val pair to.
  * @param key: The key of the entry used to access the value.
@@ -58,19 +58,19 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_HmDelete(DT_Hm **pHm);
  * PRP_FN_RES_EXHAUSTED_ERROR if there is no way to add more key-val pairs to
  * the hashmap, otherwise PRP_FN_SUCCESS.
  */
-PRP_FN_API PRP_FnCode PRP_FN_CALL DT_HmAdd(DT_Hm *hm, PRP_void *key,
-                                           PRP_void *val);
+PRP_FN_API PRP_FnCode PRP_FN_CALL DT_HmAdd(DT_Hm *hm, DT_void *key,
+                                           DT_void *val);
 /**
  * Fetches the value for the given key in the hashmap.
  *
  * @param hm: The hashmap to fetch the value from.
  * @param key: The key to fetch the value it maps to.
  *
- * @return PRP_null if the parameters are invalid in any way, or there is not
+ * @return DT_null if the parameters are invalid in any way, or there is not
  * matching key-val pair in the hashmap with the provided key, otherwise it
  * returns the value.
  */
-PRP_FN_API PRP_void *PRP_FN_CALL DT_HmGet(DT_Hm *hm, PRP_void *key);
+PRP_FN_API DT_void *PRP_FN_CALL DT_HmGet(DT_Hm *hm, DT_void *key);
 /**
  * Deletes the key-val pair from the given hashmap.
  *
@@ -81,7 +81,7 @@ PRP_FN_API PRP_void *PRP_FN_CALL DT_HmGet(DT_Hm *hm, PRP_void *key);
  * PRP_FN_OOB_ERROR if there is no matching key-val pair in the hashmap with the
  * provided key, otherwise PRP_FN_SUCCESS.
  */
-PRP_FN_API PRP_FnCode PRP_FN_CALL DT_HmDelElem(DT_Hm *hm, PRP_void *key);
+PRP_FN_API PRP_FnCode PRP_FN_CALL DT_HmDelElem(DT_Hm *hm, DT_void *key);
 /**
  * Fetches the number of key-val pairs the hashmap is currently holding.
  *
@@ -90,7 +90,7 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_HmDelElem(DT_Hm *hm, PRP_void *key);
  * @return PRP_INVALID_SIZE if the hashmap is invalid, otherwise the len of the
  * provided hashmap.
  */
-PRP_FN_API PRP_size PRP_FN_CALL DT_HmLen(DT_Hm *hm);
+PRP_FN_API DT_size PRP_FN_CALL DT_HmLen(DT_Hm *hm);
 /**
  * Performs a foreach operation of each of the key-val pair of the hashmap.
  * Calling cb per element.
@@ -103,8 +103,8 @@ PRP_FN_API PRP_size PRP_FN_CALL DT_HmLen(DT_Hm *hm);
  * otherwise PRP_FN_SUCCESS.
  */
 PRP_FN_API PRP_FnCode PRP_FN_CALL DT_HmForEach(DT_Hm *hm,
-                                               PRP_FnCode (*cb)(PRP_void *key,
-                                                                PRP_void *val));
+                                               PRP_FnCode (*cb)(DT_void *key,
+                                                                DT_void *val));
 /**
  * Resets the hashmap to make it like a brand new hashmap with no entries.
  *

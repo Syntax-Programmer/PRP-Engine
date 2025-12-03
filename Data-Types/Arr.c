@@ -3,10 +3,10 @@
 #include <string.h>
 
 struct _Arr {
-    PRP_size cap;
-    PRP_size len;
-    PRP_size memb_size;
-    PRP_u8 *mem;
+    DT_size cap;
+    DT_size len;
+    DT_size memb_size;
+    DT_u8 *mem;
 };
 
 #define ARRAY_VALIDITY_CHECK(arr, ret)                                         \
@@ -19,14 +19,14 @@ struct _Arr {
 
 #define DEFAULT_NEW_CAP(cap) ((cap) * 2)
 
-static PRP_FnCode ArrChangeSize(DT_Arr *arr, PRP_size new_cap);
+static PRP_FnCode ArrChangeSize(DT_Arr *arr, DT_size new_cap);
 
-static PRP_FnCode ArrChangeSize(DT_Arr *arr, PRP_size new_cap) {
+static PRP_FnCode ArrChangeSize(DT_Arr *arr, DT_size new_cap) {
     if (arr->cap == new_cap) {
         return PRP_FN_SUCCESS;
     }
 
-    PRP_u8 *mem = realloc(arr->mem, new_cap);
+    DT_u8 *mem = realloc(arr->mem, new_cap);
     if (!mem) {
         PRP_LOG_FN_MALLOC_ERROR(mem);
         return PRP_FN_MALLOC_ERROR;
@@ -38,28 +38,28 @@ static PRP_FnCode ArrChangeSize(DT_Arr *arr, PRP_size new_cap) {
     return PRP_FN_SUCCESS;
 }
 
-PRP_FN_API DT_Arr *PRP_FN_CALL DT_ArrCreate(PRP_size memb_size, PRP_size cap) {
+PRP_FN_API DT_Arr *PRP_FN_CALL DT_ArrCreate(DT_size memb_size, DT_size cap) {
     if (!memb_size) {
         PRP_LOG_FN_CODE(PRP_FN_INV_ARG_ERROR,
                         "DT_Array can't be made with memb_size=0.");
-        return PRP_null;
+        return DT_null;
     }
     if (!cap) {
         PRP_LOG_FN_CODE(PRP_FN_INV_ARG_ERROR,
                         "DT_Array can't be made with cap=0.");
-        return PRP_null;
+        return DT_null;
     }
 
     DT_Arr *arr = malloc(sizeof(DT_Arr));
     if (!arr) {
         PRP_LOG_FN_MALLOC_ERROR(arr);
-        return PRP_null;
+        return DT_null;
     }
     arr->mem = malloc(memb_size * cap);
     if (!arr->mem) {
         free(arr);
         PRP_LOG_FN_MALLOC_ERROR(arr->mem);
-        return PRP_null;
+        return DT_null;
     }
     arr->memb_size = memb_size;
     arr->cap = cap;
@@ -68,17 +68,17 @@ PRP_FN_API DT_Arr *PRP_FN_CALL DT_ArrCreate(PRP_size memb_size, PRP_size cap) {
     return arr;
 }
 
-PRP_FN_API DT_Arr *PRP_FN_CALL DT_ArrCreateDefault(PRP_size memb_size) {
+PRP_FN_API DT_Arr *PRP_FN_CALL DT_ArrCreateDefault(DT_size memb_size) {
     return DT_ArrCreate(memb_size, 16);
 }
 
 PRP_FN_API DT_Arr *PRP_FN_CALL DT_ArrClone(DT_Arr *arr) {
-    ARRAY_VALIDITY_CHECK(arr, PRP_null);
+    ARRAY_VALIDITY_CHECK(arr, DT_null);
 
     DT_Arr *cpy = DT_ArrCreate(arr->memb_size, arr->cap);
     if (!cpy) {
         PRP_LOG_FN_MALLOC_ERROR(cpy);
-        return PRP_null;
+        return DT_null;
     }
 
     cpy->len = arr->len;
@@ -97,20 +97,20 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrDelete(DT_Arr **pArr) {
 
     if (arr->mem) {
         free(arr->mem);
-        arr->mem = PRP_null;
+        arr->mem = DT_null;
     }
     arr->cap = arr->len = arr->memb_size = 0;
     free(arr);
-    *pArr = PRP_null;
+    *pArr = DT_null;
 
     return PRP_FN_SUCCESS;
 }
 
-PRP_FN_API PRP_void *PRP_FN_CALL DT_ArrRaw(DT_Arr *arr, PRP_size *pLen) {
-    ARRAY_VALIDITY_CHECK(arr, PRP_null);
+PRP_FN_API DT_void *PRP_FN_CALL DT_ArrRaw(DT_Arr *arr, DT_size *pLen) {
+    ARRAY_VALIDITY_CHECK(arr, DT_null);
     if (!pLen) {
         PRP_LOG_FN_INV_ARG_ERROR(pLen);
-        return PRP_null;
+        return DT_null;
     }
 
     *pLen = arr->len;
@@ -118,33 +118,33 @@ PRP_FN_API PRP_void *PRP_FN_CALL DT_ArrRaw(DT_Arr *arr, PRP_size *pLen) {
     return arr->mem;
 }
 
-PRP_FN_API PRP_size PRP_FN_CALL DT_ArrLen(DT_Arr *arr) {
+PRP_FN_API DT_size PRP_FN_CALL DT_ArrLen(DT_Arr *arr) {
     ARRAY_VALIDITY_CHECK(arr, PRP_INVALID_SIZE);
 
     return arr->len;
 }
 
-PRP_FN_API PRP_size PRP_FN_CALL DT_ArrCap(DT_Arr *arr) {
+PRP_FN_API DT_size PRP_FN_CALL DT_ArrCap(DT_Arr *arr) {
     ARRAY_VALIDITY_CHECK(arr, PRP_INVALID_SIZE);
 
     return arr->cap;
 }
 
-PRP_FN_API PRP_void *PRP_FN_CALL DT_ArrGet(DT_Arr *arr, PRP_size i) {
-    ARRAY_VALIDITY_CHECK(arr, PRP_null);
+PRP_FN_API DT_void *PRP_FN_CALL DT_ArrGet(DT_Arr *arr, DT_size i) {
+    ARRAY_VALIDITY_CHECK(arr, DT_null);
     if (i >= arr->len) {
         PRP_LOG_FN_CODE(
             PRP_FN_OOB_ERROR,
             "Tried accessing the array index: %zu, of an array with len: %zu",
             i, arr->len);
-        return PRP_null;
+        return DT_null;
     }
 
     return arr->mem + (i * arr->memb_size);
 }
 
-PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrSet(DT_Arr *arr, PRP_size i,
-                                            PRP_void *data) {
+PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrSet(DT_Arr *arr, DT_size i,
+                                            DT_void *data) {
     ARRAY_VALIDITY_CHECK(arr, PRP_FN_INV_ARG_ERROR);
     if (!data) {
         PRP_LOG_FN_INV_ARG_ERROR(data);
@@ -162,7 +162,7 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrSet(DT_Arr *arr, PRP_size i,
     return PRP_FN_SUCCESS;
 }
 
-PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrPush(DT_Arr *arr, PRP_void *data) {
+PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrPush(DT_Arr *arr, DT_void *data) {
     ARRAY_VALIDITY_CHECK(arr, PRP_FN_INV_ARG_ERROR);
     if (!data) {
         PRP_LOG_FN_INV_ARG_ERROR(data);
@@ -180,7 +180,7 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrPush(DT_Arr *arr, PRP_void *data) {
     return PRP_FN_SUCCESS;
 }
 
-PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrReserve(DT_Arr *arr, PRP_size count) {
+PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrReserve(DT_Arr *arr, DT_size count) {
     ARRAY_VALIDITY_CHECK(arr, PRP_FN_INV_ARG_ERROR);
     if (!count) {
         PRP_LOG_FN_CODE(PRP_FN_INV_ARG_ERROR,
@@ -195,8 +195,8 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrReserve(DT_Arr *arr, PRP_size count) {
     return ArrChangeSize(arr, arr->len + count);
 }
 
-PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrInsert(DT_Arr *arr, PRP_void *data,
-                                               PRP_size i) {
+PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrInsert(DT_Arr *arr, DT_void *data,
+                                               DT_size i) {
     ARRAY_VALIDITY_CHECK(arr, PRP_FN_INV_ARG_ERROR);
     if (!data) {
         PRP_LOG_FN_INV_ARG_ERROR(data);
@@ -224,7 +224,7 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrInsert(DT_Arr *arr, PRP_void *data,
     return PRP_FN_SUCCESS;
 }
 
-PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrPop(DT_Arr *arr, PRP_void *dest) {
+PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrPop(DT_Arr *arr, DT_void *dest) {
     ARRAY_VALIDITY_CHECK(arr, PRP_FN_INV_ARG_ERROR);
 
     if (!arr->len) {
@@ -240,8 +240,8 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrPop(DT_Arr *arr, PRP_void *dest) {
     return PRP_FN_SUCCESS;
 }
 
-PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrRemove(DT_Arr *arr, PRP_void *dest,
-                                               PRP_size i) {
+PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrRemove(DT_Arr *arr, DT_void *dest,
+                                               DT_size i) {
     ARRAY_VALIDITY_CHECK(arr, PRP_FN_INV_ARG_ERROR);
     if (i >= arr->len) {
         PRP_LOG_FN_CODE(
@@ -263,7 +263,7 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrRemove(DT_Arr *arr, PRP_void *dest,
 }
 
 PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrCmp(DT_Arr *arr1, DT_Arr *arr2,
-                                            PRP_bool *pRslt) {
+                                            DT_bool *pRslt) {
     ARRAY_VALIDITY_CHECK(arr1, PRP_FN_INV_ARG_ERROR);
     ARRAY_VALIDITY_CHECK(arr2, PRP_FN_INV_ARG_ERROR);
 
@@ -286,8 +286,8 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrExtend(DT_Arr *arr1, DT_Arr *arr2) {
         return PRP_FN_INV_ARG_ERROR;
     }
 
-    PRP_size new_cap = arr1->len + arr2->len;
-    PRP_u8 *mem = realloc(arr1->mem, new_cap * arr1->memb_size);
+    DT_size new_cap = arr1->len + arr2->len;
+    DT_u8 *mem = realloc(arr1->mem, new_cap * arr1->memb_size);
     if (mem) {
         PRP_LOG_FN_MALLOC_ERROR(mem);
         return PRP_FN_MALLOC_ERROR;
@@ -316,15 +316,15 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrShrinkFit(DT_Arr *arr) {
 }
 
 PRP_FN_API PRP_FnCode PRP_FN_CALL
-DT_ArrForEach(DT_Arr *arr, PRP_FnCode (*cb)(PRP_void *val)) {
+DT_ArrForEach(DT_Arr *arr, PRP_FnCode (*cb)(DT_void *val)) {
     ARRAY_VALIDITY_CHECK(arr, PRP_FN_INV_ARG_ERROR);
     if (!cb) {
         PRP_LOG_FN_INV_ARG_ERROR(cb);
         return PRP_FN_INV_ARG_ERROR;
     }
 
-    PRP_u8 *mem = arr->mem;
-    for (PRP_size i = 0; i < arr->len; i++) {
+    DT_u8 *mem = arr->mem;
+    for (DT_size i = 0; i < arr->len; i++) {
         if (cb(mem) != PRP_FN_SUCCESS) {
             /*
              * We don't care why the foreach was called to be terminated. There

@@ -22,14 +22,14 @@ typedef struct _Arena DT_Arena;
  *
  * @retuns The pointer to the arena.
  */
-PRP_FN_API DT_Arena *PRP_FN_CALL DT_ArenaCreate(PRP_size size);
+PRP_FN_API DT_Arena *PRP_FN_CALL DT_ArenaCreate(DT_size size);
 /**
- * Deletes the arena and sets the original DT_Arena * to PRP_null to prevent
+ * Deletes the arena and sets the original DT_Arena * to DT_null to prevent
  * use after free bugs.
  *
  * @param pArena: The pointer to the arena pointer to delete.
  *
- * @return PRP_FN_INV_ARG_ERROR if the pArena is PRP_null or the arena it points
+ * @return PRP_FN_INV_ARG_ERROR if the pArena is DT_null or the arena it points
  * to is invalid, otherwise it returns PRP_FN_SUCCESS.
  */
 PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArenaDelete(DT_Arena **pArena);
@@ -40,10 +40,10 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArenaDelete(DT_Arena **pArena);
  * @param arena: The arena to allocate the chunk of mem from.
  * @prarm size: The size of the mem chunk to allocate.
  *
- * @return PRP_null if the parameters are invalid in any way, PRP_null if size
+ * @return DT_null if the parameters are invalid in any way, DT_null if size
  * is too big for the current space left in the arena, otherwise PRP_FN_SUCCESS.
  */
-PRP_FN_API PRP_void *PRP_FN_CALL DT_ArenaAlloc(DT_Arena *arena, PRP_size size);
+PRP_FN_API DT_void *PRP_FN_CALL DT_ArenaAlloc(DT_Arena *arena, DT_size size);
 /**
  * Allocates a section of memory from the arena, the allocated region is all
  * preset to 0.
@@ -51,10 +51,10 @@ PRP_FN_API PRP_void *PRP_FN_CALL DT_ArenaAlloc(DT_Arena *arena, PRP_size size);
  * @param arena: The arena to allocate the chunk of mem from.
  * @prarm size: The size of the mem chunk to allocate.
  *
- * @return PRP_null if the parameters are invalid in any way, PRP_null if size
+ * @return DT_null if the parameters are invalid in any way, DT_null if size
  * is too big for the current space left in the arena, otherwise PRP_FN_SUCCESS.
  */
-PRP_FN_API PRP_void *PRP_FN_CALL DT_ArenaCalloc(DT_Arena *arena, PRP_size size);
+PRP_FN_API DT_void *PRP_FN_CALL DT_ArenaCalloc(DT_Arena *arena, DT_size size);
 /**
  * Resets the arena, which invalidates all existing alloations and empties the
  * entire arena.

@@ -19,9 +19,8 @@ extern "C" {
  * achieved by passing in __LINE__ as the param.
  * @param fmt: The user written message, that is to be logged.
  */
-PRP_FN_API PRP_void PRP_FN_CALL PRP_Log(const PRP_char *file,
-                                        const PRP_char *func, PRP_u32 line,
-                                        const PRP_char *fmt, ...);
+PRP_FN_API DT_void PRP_FN_CALL PRP_Log(const DT_char *file, const DT_char *func,
+                                       DT_u32 line, const DT_char *fmt, ...);
 
 /**
  * A macro that abstracts away the file, func, and line requirement of the
@@ -50,11 +49,10 @@ PRP_FN_API PRP_void PRP_FN_CALL PRP_Log(const PRP_char *file,
  * @param fmt: The user written message, that is to be logged.
  *
  */
-PRP_FN_API PRP_void PRP_FN_CALL PRP_LogFnCode(PRP_FnCode code,
-                                              const PRP_char *file,
-                                              const PRP_char *func,
-                                              PRP_u32 line, const PRP_char *fmt,
-                                              ...);
+PRP_FN_API DT_void PRP_FN_CALL PRP_LogFnCode(PRP_FnCode code,
+                                             const DT_char *file,
+                                             const DT_char *func, DT_u32 line,
+                                             const DT_char *fmt, ...);
 
 /**
  * A macro that abstracts away the file, func, and line requirement of the
@@ -75,7 +73,7 @@ PRP_FN_API PRP_void PRP_FN_CALL PRP_LogFnCode(PRP_FnCode code,
  */
 #define PRP_LOG_FN_NULL_ERROR(var)                                             \
     PRP_LOG_FN_CODE(PRP_FN_NULL_ERROR,                                         \
-                    "Unexpected PRP_null value: '%s' encountered.", #var)
+                    "Unexpected DT_null value: '%s' encountered.", #var)
 
 /**
  * A macro that logs a malloc error due to the var param.

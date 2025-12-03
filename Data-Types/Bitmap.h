@@ -23,7 +23,7 @@ extern "C" {
  * These are used in the DT_Bitmap, and can be used separately as there own
  * util.
  */
-typedef PRP_u64 DT_Bitword;
+typedef DT_u64 DT_Bitword;
 
 /**
  * Counts the trailing zeros of a bitword.
@@ -33,7 +33,7 @@ typedef PRP_u64 DT_Bitword;
  * @return PRP_INVALID_INDEX if word is 0, otherwise the zero-based index of the
  * LSB.
  */
-PRP_FN_API PRP_size PRP_FN_CALL DT_BitwordCTZ(DT_Bitword word);
+PRP_FN_API DT_size PRP_FN_CALL DT_BitwordCTZ(DT_Bitword word);
 /**
  * Counts the leading zeros of a bitword.
  *
@@ -42,7 +42,7 @@ PRP_FN_API PRP_size PRP_FN_CALL DT_BitwordCTZ(DT_Bitword word);
  * @return PRP_INVALID_INDEX if word is 0, otherwise the number of zeros after
  * the MSB.
  */
-PRP_FN_API PRP_size PRP_FN_CALL DT_BitwordCLZ(DT_Bitword word);
+PRP_FN_API DT_size PRP_FN_CALL DT_BitwordCLZ(DT_Bitword word);
 /**
  * Counts the total number of bits set in a bitword.
  *
@@ -50,7 +50,7 @@ PRP_FN_API PRP_size PRP_FN_CALL DT_BitwordCLZ(DT_Bitword word);
  *
  * @return The number of set bits in the given word.
  */
-PRP_FN_API PRP_size PRP_FN_CALL DT_BitwordPopCnt(DT_Bitword word);
+PRP_FN_API DT_size PRP_FN_CALL DT_BitwordPopCnt(DT_Bitword word);
 /**
  * Finds the first set bit of the word.
  *
@@ -60,7 +60,7 @@ PRP_FN_API PRP_size PRP_FN_CALL DT_BitwordPopCnt(DT_Bitword word);
  *
  * @note: This returns from 1-64 not 0-63. So handle accordingly.
  */
-PRP_FN_API PRP_size PRP_FN_CALL DT_BitwordFFS(DT_Bitword word);
+PRP_FN_API DT_size PRP_FN_CALL DT_BitwordFFS(DT_Bitword word);
 
 /**
  * A dynamic bitmap that stores bits and auto grows on demand.
@@ -77,13 +77,13 @@ typedef struct _Bitmap DT_Bitmap;
  *
  * @return The pointer to the bitmap.
  */
-PRP_FN_API DT_Bitmap *PRP_FN_CALL DT_BitmapCreate(PRP_size bit_cap);
+PRP_FN_API DT_Bitmap *PRP_FN_CALL DT_BitmapCreate(DT_size bit_cap);
 /**
  * Creates the bitmap with default bit cap of 64.
  *
  * @return The pointer to the bitmap.
  */
-PRP_FN_API DT_Bitmap *PRP_FN_CALL DT_BitmapCreateDefault(PRP_void);
+PRP_FN_API DT_Bitmap *PRP_FN_CALL DT_BitmapCreateDefault(DT_void);
 /**
  * Clones the bitmap into a new bitmap, preserving all the contents of the
  * bitmap too.
@@ -95,12 +95,12 @@ PRP_FN_API DT_Bitmap *PRP_FN_CALL DT_BitmapCreateDefault(PRP_void);
 PRP_FN_API DT_Bitmap *PRP_FN_CALL DT_BitmapClone(DT_Bitmap *bmp);
 
 /**
- * Deletes the bitmap and sets the original DT_Bitmap * to PRP_null to prevent
+ * Deletes the bitmap and sets the original DT_Bitmap * to DT_null to prevent
  * use after free bugs.
  *
  * @param pBmp: The pointer to the bitmap pointer to delete.
  *
- * @return PRP_FN_INV_ARG_ERROR if pBmp is PRP_null or the bitmap it points to
+ * @return PRP_FN_INV_ARG_ERROR if pBmp is DT_null or the bitmap it points to
  * is invalid, otherwise it returns PRP_FN_SUCCESS.
  */
 PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BitmapDelete(DT_Bitmap **pBmp);
@@ -115,11 +115,11 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BitmapDelete(DT_Bitmap **pBmp);
  * @param pWord_cap: Pointer to where the cap of the bitmap will be stored to be
  * used by the caller to prevent unsafe usage.
  *
- * @return PRP_null if the bitmap is invalid or pWord_cap is PRP_null, otherwise
+ * @return DT_null if the bitmap is invalid or pWord_cap is DT_null, otherwise
  * the memory pointer of the bitmap's raw memory.
  */
 PRP_FN_API DT_Bitword *PRP_FN_CALL DT_BitmapRaw(DT_Bitmap *bmp,
-                                                PRP_size *pWord_cap);
+                                                DT_size *pWord_cap);
 
 /**
  * Returns the current set count of the bitmap that is passed to it.
@@ -129,7 +129,7 @@ PRP_FN_API DT_Bitword *PRP_FN_CALL DT_BitmapRaw(DT_Bitmap *bmp,
  * @return PRP_INVALID_SIZE if the bitmap is invalid, otherwise the actual set
  * count of the bitmap.
  */
-PRP_FN_API PRP_size PRP_FN_CALL DT_BitmapSetCount(DT_Bitmap *bmp);
+PRP_FN_API DT_size PRP_FN_CALL DT_BitmapSetCount(DT_Bitmap *bmp);
 /**
  * Returns the current first set pos of the bitmap that is passed to it.
  *
@@ -138,7 +138,7 @@ PRP_FN_API PRP_size PRP_FN_CALL DT_BitmapSetCount(DT_Bitmap *bmp);
  * @return PRP_INVALID_POS if the bitmap is invalid, otherwise the actual
  * 1-based first set pos.
  */
-PRP_FN_API PRP_size PRP_FN_CALL DT_BitmapFFS(DT_Bitmap *bmp);
+PRP_FN_API DT_size PRP_FN_CALL DT_BitmapFFS(DT_Bitmap *bmp);
 
 /**
  * Sets the given index bit in the bitmap.
@@ -150,7 +150,7 @@ PRP_FN_API PRP_size PRP_FN_CALL DT_BitmapFFS(DT_Bitmap *bmp);
  * PRP_FN_RES_EXHAUSTED_ERROR if we cannot accommodate for index i, otherwise
  * PRP_FN_SUCCESS.
  */
-PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BitmapSet(DT_Bitmap *bmp, PRP_size i);
+PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BitmapSet(DT_Bitmap *bmp, DT_size i);
 /**
  * Clears the given index bit in the bitmap.
  *
@@ -161,7 +161,7 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BitmapSet(DT_Bitmap *bmp, PRP_size i);
  * PRP_FN_OOB_ERROR if i is out of bounds of the bitmap, otherwise
  * PRP_FN_SUCCESS.
  */
-PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BitmapClr(DT_Bitmap *bmp, PRP_size i);
+PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BitmapClr(DT_Bitmap *bmp, DT_size i);
 /**
  * Toggles the given index bit in the bitmap.
  *
@@ -172,7 +172,7 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BitmapClr(DT_Bitmap *bmp, PRP_size i);
  * PRP_FN_OOB_ERROR if i is out of bounds of the bitmap, otherwise
  * PRP_FN_SUCCESS.
  */
-PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BitmapToggle(DT_Bitmap *bmp, PRP_size i);
+PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BitmapToggle(DT_Bitmap *bmp, DT_size i);
 /**
  * Checks the given index bit in the bitmap is set.
  *
@@ -184,8 +184,8 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BitmapToggle(DT_Bitmap *bmp, PRP_size i);
  * PRP_FN_OOB_ERROR if i is out of bounds of the bitmap, otherwise
  * PRP_FN_SUCCESS.
  */
-PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BitmapIsSet(DT_Bitmap *bmp, PRP_size i,
-                                                 PRP_bool *pRslt);
+PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BitmapIsSet(DT_Bitmap *bmp, DT_size i,
+                                                 DT_bool *pRslt);
 /**
  * Checks the given bitmap is empty.
  *
@@ -196,7 +196,7 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BitmapIsSet(DT_Bitmap *bmp, PRP_size i,
  * PRP_FN_SUCCESS.
  */
 PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BitmapIsEmpty(DT_Bitmap *bmp,
-                                                   PRP_bool *pRslt);
+                                                   DT_bool *pRslt);
 /**
  * Checks the given bitmap is full.
  *
@@ -207,7 +207,7 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BitmapIsEmpty(DT_Bitmap *bmp,
  * PRP_FN_SUCCESS.
  */
 PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BitmapIsFull(DT_Bitmap *bmp,
-                                                  PRP_bool *pRslt);
+                                                  DT_bool *pRslt);
 
 /**
  * Inverses the bits in the given bitmap.
@@ -245,7 +245,7 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BitmapOr(DT_Bitmap *bmp1, DT_Bitmap *bmp2);
  *
  * @param bmp; The bitmap to operate on.
  *
- * @return PRP_null if the bitmap is invalid or creating of the new bitmap
+ * @return DT_null if the bitmap is invalid or creating of the new bitmap
  * failed, otherwise PRP_FN_SUCCESS.
  */
 PRP_FN_API DT_Bitmap *PRP_FN_CALL DT_BitmapNotNew(DT_Bitmap *bmp);
@@ -255,7 +255,7 @@ PRP_FN_API DT_Bitmap *PRP_FN_CALL DT_BitmapNotNew(DT_Bitmap *bmp);
  * @param bmp1: The bitmap1 of the anding.
  * @param bmp2: The bitmap2 of the anding.
  *
- * @return PRP_null if any of the two bitmaps is invalid or creating of the new
+ * @return DT_null if any of the two bitmaps is invalid or creating of the new
  * bitmap failed, otherwise PRP_FN_SUCCESS.
  */
 PRP_FN_API DT_Bitmap *PRP_FN_CALL DT_BitmapAndNew(DT_Bitmap *bmp1,
@@ -266,7 +266,7 @@ PRP_FN_API DT_Bitmap *PRP_FN_CALL DT_BitmapAndNew(DT_Bitmap *bmp1,
  * @param bmp1: The bitmap1 of the oring.
  * @param bmp2: The bitmap2 of the oring.
  *
- * @return PRP_null if any of the two bitmaps is invalid or creating of the new
+ * @return DT_null if any of the two bitmaps is invalid or creating of the new
  * bitmap failed, otherwise PRP_FN_SUCCESS.
  */
 PRP_FN_API DT_Bitmap *PRP_FN_CALL DT_BitmapOrNew(DT_Bitmap *bmp1,
@@ -284,7 +284,7 @@ PRP_FN_API DT_Bitmap *PRP_FN_CALL DT_BitmapOrNew(DT_Bitmap *bmp1,
  */
 PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BitmapHasAll(DT_Bitmap *bmp1,
                                                   DT_Bitmap *bmp2,
-                                                  PRP_bool *pRslt);
+                                                  DT_bool *pRslt);
 /**
  * Checks if bitmap1 has any of the bits of bitmap2.
  *
@@ -297,7 +297,7 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BitmapHasAll(DT_Bitmap *bmp1,
  */
 PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BitmapHasAny(DT_Bitmap *bmp1,
                                                   DT_Bitmap *bmp2,
-                                                  PRP_bool *pRslt);
+                                                  DT_bool *pRslt);
 
 /**
  * Compares the bit structure of the two bitmaps, if they are exactly equal.
@@ -310,7 +310,7 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BitmapHasAny(DT_Bitmap *bmp1,
  * otherwise PRP_FN_SUCCESS.
  */
 PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BitmapCmp(DT_Bitmap *bmp1, DT_Bitmap *bmp2,
-                                               PRP_bool *pRslt);
+                                               DT_bool *pRslt);
 /**
  * Resets the bitmap to make it behave like a brand new bitmap.
  *

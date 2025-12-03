@@ -19,7 +19,7 @@ extern "C" {
 typedef enum { PRP_TIME_NS, PRP_TIME_US, PRP_TIME_MS, PRP_TIME_S } PRP_TimeUnit;
 
 // The actual time measure that we will get in float.
-typedef PRP_f64 PRP_TimeMeasure;
+typedef DT_f64 PRP_TimeMeasure;
 #define PRP_INVALID_TIME_MEASURE (-1)
 
 /**

@@ -11,25 +11,24 @@ extern "C" {
 /**
  * Type defs to be used in the engine for consistency purposes.
  */
-typedef uint64_t PRP_u64;
-typedef int64_t PRP_i64;
+typedef uint64_t DT_u64;
+typedef int64_t DT_i64;
 
-typedef uint32_t PRP_u32;
-typedef int32_t PRP_i32;
+typedef uint32_t DT_u32;
+typedef int32_t DT_i32;
 
-typedef uint16_t PRP_u16;
-typedef int16_t PRP_i16;
+typedef uint16_t DT_u16;
+typedef int16_t DT_i16;
 
-typedef uint8_t PRP_u8;
-typedef int8_t PRP_i8;
+typedef uint8_t DT_u8;
+typedef int8_t DT_i8;
 
-typedef float PRP_f32;
-typedef double PRP_f64;
-typedef long double PRP_f128;
+typedef float DT_f32;
+typedef double DT_f64;
 
-typedef char PRP_char;
+typedef char DT_char;
 
-typedef void PRP_void;
+typedef void DT_void;
 
 /**
  * This is an system dependent type.
@@ -38,21 +37,21 @@ typedef void PRP_void;
  *
  * For 32 bit systems it is most likely 4 bytes.
  */
-typedef size_t PRP_size;
+typedef size_t DT_size;
 
-#define PRP_INVALID_SIZE ((PRP_size) - 1)
-#define PRP_INVALID_INDEX ((PRP_size) - 1)
-#define PRP_INVALID_POS ((PRP_size)0)
+#define PRP_INVALID_SIZE ((DT_size) - 1)
+#define PRP_INVALID_INDEX ((DT_size) - 1)
+#define PRP_INVALID_POS ((DT_size)0)
 
 #define PRP_POS_TO_I(pos) ((pos) - 1)
 #define PRP_I_TO_POS(i) ((i) + 1)
 
-#define PRP_null (NULL)
+#define DT_null (NULL)
 
 typedef enum {
     PRP_false = 0,
     PRP_true = 1,
-} PRP_bool;
+} DT_bool;
 
 /**
  * Basic binary ops encapsulated for user ease of use.
