@@ -35,12 +35,14 @@ PRP_FN_API DT_Pool *PRP_FN_CALL DT_PoolCreate(PRP_size memb_size,
         PRP_LOG_FN_MALLOC_ERROR(pool);
         return PRP_null;
     }
-    pool->memb_size = memb_size;
+    // Padding the memb_size to ensure the freelist can work.
+    pool->memb_size =
+        (memb_size >= sizeof(PRP_void *)) ? memb_size : sizeof(PRP_void *);
     pool->cap = cap;
     pool->free_list = PRP_null;
     PRP_u8 *curr = pool->mem;
     for (PRP_size i = 0; i < pool->cap - 1; i++) {
-        *((PRP_u8 **)curr) = curr + memb_size;
+        *((PRP_u8 **)curr) = curr + pool->memb_size;
         curr += memb_size;
     }
     *((PRP_u8 **)curr) = pool->free_list;
