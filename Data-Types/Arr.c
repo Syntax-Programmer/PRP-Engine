@@ -266,9 +266,13 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrCmp(DT_Arr *arr1, DT_Arr *arr2,
                                             DT_bool *pRslt) {
     ARRAY_VALIDITY_CHECK(arr1, PRP_FN_INV_ARG_ERROR);
     ARRAY_VALIDITY_CHECK(arr2, PRP_FN_INV_ARG_ERROR);
+    if (!pRslt) {
+        PRP_LOG_FN_INV_ARG_ERROR(pRslt);
+        return PRP_FN_INV_ARG_ERROR;
+    }
 
     if (arr1->len != arr2->len || arr1->memb_size != arr2->memb_size) {
-        *pRslt = PRP_false;
+        *pRslt = DT_false;
         return PRP_FN_SUCCESS;
     }
 

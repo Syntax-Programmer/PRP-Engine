@@ -13,17 +13,17 @@ extern "C" {
  *
  * @param file: The file from which the log originated, can be achieved by
  * passing in __FILE__ as the param.
- * @param func: The func that made the logs, can be achieved by passing in
+ * @param fn: The fn that made the logs, can be achieved by passing in
  * __func__ as the param.
  * @param line: The exact code line where the log function was called, can be
  * achieved by passing in __LINE__ as the param.
  * @param fmt: The user written message, that is to be logged.
  */
-PRP_FN_API DT_void PRP_FN_CALL PRP_Log(const DT_char *file, const DT_char *func,
+PRP_FN_API DT_void PRP_FN_CALL PRP_Log(const DT_char *file, const DT_char *fn,
                                        DT_u32 line, const DT_char *fmt, ...);
 
 /**
- * A macro that abstracts away the file, func, and line requirement of the
+ * A macro that abstracts away the file, fn, and line requirement of the
  * PRP_Log function and allows you to just write the log and not worry about
  * other stuff.
  *
@@ -42,7 +42,7 @@ PRP_FN_API DT_void PRP_FN_CALL PRP_Log(const DT_char *file, const DT_char *func,
  * displayed in your logs.
  * @param file: The file from which the log originated, can be achieved by
  * passing in __FILE__ as the param.
- * @param func: The func that made the logs, can be achieved by passing in
+ * @param fn: The fn that made the logs, can be achieved by passing in
  * __func__ as the param.
  * @param line: The exact code line where the log function was called, can be
  * achieved by passing in __LINE__ as the param.
@@ -51,11 +51,11 @@ PRP_FN_API DT_void PRP_FN_CALL PRP_Log(const DT_char *file, const DT_char *func,
  */
 PRP_FN_API DT_void PRP_FN_CALL PRP_LogFnCode(PRP_FnCode code,
                                              const DT_char *file,
-                                             const DT_char *func, DT_u32 line,
+                                             const DT_char *fn, DT_u32 line,
                                              const DT_char *fmt, ...);
 
 /**
- * A macro that abstracts away the file, func, and line requirement of the
+ * A macro that abstracts away the file, fn, and line requirement of the
  * PRP_LogFnCode function and allows you to just write the log and not worry
  * about other stuff.
  *

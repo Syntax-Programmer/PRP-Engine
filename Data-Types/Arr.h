@@ -180,8 +180,8 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrRemove(DT_Arr *arr, DT_void *dest,
  * @param arr1: The first array that is to be compared.
  * @param arr2: The other array that is to be compared.
  *
- * @return PRP_false if the arrays are dissimilar or are invalid, otherwise
- * PRP_true.
+ * @return DT_false if the arrays are dissimilar or are invalid, otherwise
+ * DT_true.
  */
 PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrCmp(DT_Arr *arr1, DT_Arr *arr2,
                                             DT_bool *pRslt);

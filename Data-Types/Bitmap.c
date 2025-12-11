@@ -521,17 +521,17 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BitmapHasAll(DT_Bitmap *bmp1,
     DT_size min_words = PRP_MIN(bmp1->word_cap, bmp2->word_cap);
     for (DT_size i = 0; i < min_words; i++) {
         if ((bmp1->words[i] & bmp2->words[i]) != bmp2->words[i]) {
-            *pRslt = PRP_false;
+            *pRslt = DT_false;
             return PRP_FN_SUCCESS;
         }
     }
     for (DT_size i = min_words; i < bmp2->word_cap; i++) {
         if (bmp2->words[i]) {
-            *pRslt = PRP_false;
+            *pRslt = DT_false;
             return PRP_FN_SUCCESS;
         }
     }
-    *pRslt = PRP_true;
+    *pRslt = DT_true;
 
     return PRP_FN_SUCCESS;
 }
@@ -549,12 +549,12 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BitmapHasAny(DT_Bitmap *bmp1,
     DT_size min_words = PRP_MIN(bmp1->word_cap, bmp2->word_cap);
     for (DT_size i = 0; i < min_words; i++) {
         if ((bmp1->words[i] & bmp2->words[i])) {
-            *pRslt = PRP_true;
+            *pRslt = DT_true;
             return PRP_FN_SUCCESS;
         }
     }
     // Not checking beyond min_words as in this case they are irrelevant.
-    *pRslt = PRP_false;
+    *pRslt = DT_false;
 
     return PRP_FN_SUCCESS;
 }
@@ -569,25 +569,25 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BitmapCmp(DT_Bitmap *bmp1, DT_Bitmap *bmp2,
     }
 
     if (bmp1->set_c != bmp2->set_c || bmp1->fs_pos != bmp2->fs_pos) {
-        *pRslt = PRP_false;
+        *pRslt = DT_false;
         return PRP_FN_SUCCESS;
     }
 
     DT_size min_words = PRP_MIN(bmp1->word_cap, bmp2->word_cap);
     DT_size max_words = PRP_MAX(bmp1->word_cap, bmp2->word_cap);
     if (memcmp(bmp1->words, bmp2->words, sizeof(DT_Bitword) * min_words) != 0) {
-        *pRslt = PRP_false;
+        *pRslt = DT_false;
         return PRP_FN_SUCCESS;
     }
     // This will not run for edge cases since loops.
     DT_Bitmap *mx_bmp = (bmp1->word_cap == max_words) ? bmp1 : bmp2;
     for (DT_size i = min_words; i < max_words; i++) {
         if (mx_bmp->words[i]) {
-            *pRslt = PRP_false;
+            *pRslt = DT_false;
             return PRP_FN_SUCCESS;
         }
     }
-    *pRslt = PRP_true;
+    *pRslt = DT_true;
 
     return PRP_FN_SUCCESS;
 }

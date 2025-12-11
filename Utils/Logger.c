@@ -10,7 +10,7 @@ static pthread_mutex_t log_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 /* ----  GENERIC LOGGER  ---- */
 
-PRP_FN_API DT_void PRP_FN_CALL PRP_Log(const DT_char *file, const DT_char *func,
+PRP_FN_API DT_void PRP_FN_CALL PRP_Log(const DT_char *file, const DT_char *fn,
                                        DT_u32 line, const DT_char *fmt, ...) {
     va_list args;
     va_start(args, fmt);
@@ -19,7 +19,7 @@ PRP_FN_API DT_void PRP_FN_CALL PRP_Log(const DT_char *file, const DT_char *func,
     va_end(args);
 
     DT_char log[512];
-    snprintf(log, sizeof(log), "%s::%d (%s): %s\n", file, line, func, bfr);
+    snprintf(log, sizeof(log), "%s::%d (%s): %s\n", file, line, fn, bfr);
 
     pthread_mutex_lock(&log_mutex);
     fputs(log, OUT_FILE);
@@ -57,7 +57,7 @@ static const DT_char *FNCodeToStr(PRP_FnCode code) {
 }
 
 PRP_FN_API DT_void PRP_FN_CALL PRP_LogCode(PRP_FnCode code, const DT_char *file,
-                                           const DT_char *func, DT_u32 line,
+                                           const DT_char *fn, DT_u32 line,
                                            const DT_char *fmt, ...) {
     va_list args;
     va_start(args, fmt);
@@ -68,5 +68,5 @@ PRP_FN_API DT_void PRP_FN_CALL PRP_LogCode(PRP_FnCode code, const DT_char *file,
     DT_char log[512];
     snprintf(log, sizeof(log), "[%s]: %s\n", FNCodeToStr(code), bfr);
 
-    PRP_Log(file, func, line, log);
+    PRP_Log(file, fn, line, log);
 }

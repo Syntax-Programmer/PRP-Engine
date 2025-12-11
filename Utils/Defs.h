@@ -39,9 +39,9 @@ typedef void DT_void;
  */
 typedef size_t DT_size;
 
-#define PRP_INVALID_SIZE ((DT_size) - 1)
-#define PRP_INVALID_INDEX ((DT_size) - 1)
-#define PRP_INVALID_POS ((DT_size)0)
+#define PRP_INVALID_SIZE ((DT_size)(-1))
+#define PRP_INVALID_INDEX ((DT_size)(-1))
+#define PRP_INVALID_POS ((DT_size)(0))
 
 #define PRP_POS_TO_I(pos) ((pos) - 1)
 #define PRP_I_TO_POS(i) ((i) + 1)
@@ -49,8 +49,8 @@ typedef size_t DT_size;
 #define DT_null (NULL)
 
 typedef enum {
-    PRP_false = 0,
-    PRP_true = 1,
+    DT_false = 0,
+    DT_true = 1,
 } DT_bool;
 
 /**
