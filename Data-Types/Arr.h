@@ -85,6 +85,15 @@ PRP_FN_API DT_size PRP_FN_CALL DT_ArrLen(DT_Arr *arr);
  * the array.
  */
 PRP_FN_API DT_size PRP_FN_CALL DT_ArrCap(DT_Arr *arr);
+/**
+ * Returns the member size of the array that is passed to it.
+ *
+ * @param arr: The array to get the memb_size of.
+ *
+ * @return PRP_INVALID_SIZE if the array is invalid, otherwise the actual
+ * memb_size of the array.
+ */
+PRP_FN_API DT_size PRP_FN_CALL DT_ArrMembSize(DT_Arr *arr);
 
 /**
  * Gets the pointer to the element of the given index of the array.
@@ -179,9 +188,11 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrRemove(DT_Arr *arr, DT_void *dest,
  *
  * @param arr1: The first array that is to be compared.
  * @param arr2: The other array that is to be compared.
+ * @param pRslt: The pointer to the variable where the boolean result will be
+ * stored.
  *
- * @return DT_false if the arrays are dissimilar or are invalid, otherwise
- * DT_true.
+ * @return PRP_FN_INV_ARG_ERROR if the parameters are invalid in any way,
+ * otherwise PRP_FN_SUCCESS.
  */
 PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrCmp(DT_Arr *arr1, DT_Arr *arr2,
                                             DT_bool *pRslt);

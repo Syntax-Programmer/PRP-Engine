@@ -21,6 +21,8 @@ struct _Bitmap {
     DT_Bitword *words;
 };
 
+#define DEFAULT_BIT_CAP (64)
+
 #define BITMAP_VALIDITY_CHECK(bmp, ret)                                        \
     do {                                                                       \
         if (!bmp) {                                                            \
@@ -124,9 +126,7 @@ PRP_FN_API DT_size PRP_FN_CALL DT_BitwordFFS(DT_Bitword word) {
 
 PRP_FN_API DT_Bitmap *PRP_FN_CALL DT_BitmapCreate(DT_size bit_cap) {
     if (!bit_cap) {
-        PRP_LOG_FN_CODE(PRP_FN_INV_ARG_ERROR,
-                        "DT_Bitmap can't be made with bit_cap=0.");
-        return DT_null;
+        bit_cap = DEFAULT_BIT_CAP;
     }
 
     DT_Bitmap *bmp = calloc(1, sizeof(DT_Bitmap));
@@ -148,7 +148,7 @@ PRP_FN_API DT_Bitmap *PRP_FN_CALL DT_BitmapCreate(DT_size bit_cap) {
 }
 
 PRP_FN_API DT_Bitmap *PRP_FN_CALL DT_BitmapCreateDefault(DT_void) {
-    return DT_BitmapCreate(64);
+    return DT_BitmapCreate(DEFAULT_BIT_CAP);
 }
 
 PRP_FN_API DT_Bitmap *PRP_FN_CALL DT_BitmapClone(DT_Bitmap *bmp) {

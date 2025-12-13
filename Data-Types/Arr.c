@@ -9,6 +9,8 @@ struct _Arr {
     DT_u8 *mem;
 };
 
+#define DEFAULT_ARR_CAP (16)
+
 #define ARRAY_VALIDITY_CHECK(arr, ret)                                         \
     do {                                                                       \
         if (!arr) {                                                            \
@@ -45,9 +47,7 @@ PRP_FN_API DT_Arr *PRP_FN_CALL DT_ArrCreate(DT_size memb_size, DT_size cap) {
         return DT_null;
     }
     if (!cap) {
-        PRP_LOG_FN_CODE(PRP_FN_INV_ARG_ERROR,
-                        "DT_Array can't be made with cap=0.");
-        return DT_null;
+        cap = DEFAULT_ARR_CAP;
     }
 
     DT_Arr *arr = malloc(sizeof(DT_Arr));
@@ -69,7 +69,7 @@ PRP_FN_API DT_Arr *PRP_FN_CALL DT_ArrCreate(DT_size memb_size, DT_size cap) {
 }
 
 PRP_FN_API DT_Arr *PRP_FN_CALL DT_ArrCreateDefault(DT_size memb_size) {
-    return DT_ArrCreate(memb_size, 16);
+    return DT_ArrCreate(memb_size, DEFAULT_ARR_CAP);
 }
 
 PRP_FN_API DT_Arr *PRP_FN_CALL DT_ArrClone(DT_Arr *arr) {
@@ -128,6 +128,12 @@ PRP_FN_API DT_size PRP_FN_CALL DT_ArrCap(DT_Arr *arr) {
     ARRAY_VALIDITY_CHECK(arr, PRP_INVALID_SIZE);
 
     return arr->cap;
+}
+
+PRP_FN_API DT_size PRP_FN_CALL DT_ArrMembSize(DT_Arr *arr) {
+    ARRAY_VALIDITY_CHECK(arr, PRP_INVALID_SIZE);
+
+    return arr->memb_size;
 }
 
 PRP_FN_API DT_void *PRP_FN_CALL DT_ArrGet(DT_Arr *arr, DT_size i) {

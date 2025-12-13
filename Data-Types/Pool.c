@@ -9,6 +9,8 @@ struct _Pool {
     DT_u8 mem[];
 };
 
+#define DEFAULT_POOL_CAP (16)
+
 #define POOL_VALIDITY_CHECK(pool, ret)                                         \
     do {                                                                       \
         if (!pool) {                                                           \
@@ -24,9 +26,7 @@ PRP_FN_API DT_Pool *PRP_FN_CALL DT_PoolCreate(DT_size memb_size, DT_size cap) {
         return DT_null;
     }
     if (!cap) {
-        PRP_LOG_FN_CODE(PRP_FN_INV_ARG_ERROR,
-                        "DT_Pool can't be made with cap=0.");
-        return DT_null;
+        cap = DEFAULT_POOL_CAP;
     }
 
     DT_Pool *pool = malloc(sizeof(DT_Pool) + (memb_size * cap));
