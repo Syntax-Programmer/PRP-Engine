@@ -29,6 +29,17 @@ PRP_FN_API DT_void PRP_FN_CALL PRP_Log(const DT_char *file, const DT_char *fn,
 
 /* ----  CODE LOGGER  ---- */
 
+/**
+ * Converts the PRP_FnCodes to their corresponding string, to be displayed in
+ * the logs.
+ *
+ * @param code: The code to get the string equivalent.
+ *
+ * @return The string equivalent of the code, if the code is invalid we get
+ * "Unknown Code"
+ */
+static const DT_char *FNCodeToStr(PRP_FnCode code);
+
 static const DT_char *FNCodeToStr(PRP_FnCode code) {
     switch (code) {
     case PRP_FN_SUCCESS:

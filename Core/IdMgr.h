@@ -7,7 +7,7 @@ extern "C" {
 #include "../Utils/Defs.h"
 
 typedef DT_u64 CORE_Id;
-#define CORE_INVALID_ID ((CORE_Id)(-1))
+#define CORE_INVALID_ID ((CORE_Id)(~0))
 
 #define CORE_INVALID_DATA_INDEX ((DT_u32)(-1))
 
@@ -33,12 +33,12 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL CORE_IdIsValid(CORE_IdMgr *id_mgr, CORE_Id id,
 PRP_FN_API CORE_Id PRP_FN_CALL CORE_IdMgrAddData(CORE_IdMgr *id_mgr,
                                                  DT_void *data);
 PRP_FN_API PRP_FnCode PRP_FN_CALL CORE_IdMgrReserve(CORE_IdMgr *id_mgr,
-                                                    DT_size count);
+                                                    DT_u32 count);
 PRP_FN_API PRP_FnCode PRP_FN_CALL CORE_IdMgrDeleteData(CORE_IdMgr *id_mgr,
                                                        CORE_Id *pId);
-PRP_FN_API PRP_FnCode PRP_FN_CALL CORE_IdMgrShrinkToFit(CORE_IdMgr *mgr);
-PRP_FN_API PRP_FnCode PRP_FN_CALL CORE_IdMgrForEach(
-    CORE_IdMgr *id_mgr, PRP_FnCode (*cb)(CORE_Id id, DT_void *val));
+PRP_FN_API PRP_FnCode PRP_FN_CALL CORE_IdMgrShrinkFit(CORE_IdMgr *id_mgr);
+PRP_FN_API PRP_FnCode PRP_FN_CALL
+CORE_IdMgrForEach(CORE_IdMgr *id_mgr, PRP_FnCode (*cb)(DT_void *val));
 
 #ifdef __cplusplus
 }

@@ -8,14 +8,6 @@ struct _Arena {
     DT_u8 mem[];
 };
 
-#define ARENA_VALIDITY_CHECK(arena, ret)                                       \
-    do {                                                                       \
-        if (!arena) {                                                          \
-            PRP_LOG_FN_INV_ARG_ERROR(arena);                                   \
-            return ret;                                                        \
-        }                                                                      \
-    } while (0)
-
 PRP_FN_API DT_Arena *PRP_FN_CALL DT_ArenaCreate(DT_size size) {
     if (!size) {
         PRP_LOG_FN_CODE(PRP_FN_INV_ARG_ERROR,
@@ -35,12 +27,9 @@ PRP_FN_API DT_Arena *PRP_FN_CALL DT_ArenaCreate(DT_size size) {
 }
 
 PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArenaDelete(DT_Arena **pArena) {
-    if (!pArena) {
-        PRP_LOG_FN_INV_ARG_ERROR(pArena);
-        return PRP_FN_INV_ARG_ERROR;
-    }
+    PRP_NULL_ARG_CHECK(pArena, PRP_FN_INV_ARG_ERROR);
     DT_Arena *arena = *pArena;
-    ARENA_VALIDITY_CHECK(arena, PRP_FN_INV_ARG_ERROR);
+    PRP_NULL_ARG_CHECK(arena, PRP_FN_INV_ARG_ERROR);
 
     arena->size = arena->ofs = 0;
     free(arena);
@@ -50,7 +39,7 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArenaDelete(DT_Arena **pArena) {
 }
 
 PRP_FN_API DT_void *PRP_FN_CALL DT_ArenaAlloc(DT_Arena *arena, DT_size size) {
-    ARENA_VALIDITY_CHECK(arena, DT_null);
+    PRP_NULL_ARG_CHECK(arena, DT_null);
     if (!size) {
         PRP_LOG_FN_INV_ARG_ERROR(size);
         return DT_null;
@@ -70,7 +59,7 @@ PRP_FN_API DT_void *PRP_FN_CALL DT_ArenaAlloc(DT_Arena *arena, DT_size size) {
 }
 
 PRP_FN_API DT_void *PRP_FN_CALL DT_ArenaCalloc(DT_Arena *arena, DT_size size) {
-    ARENA_VALIDITY_CHECK(arena, DT_null);
+    PRP_NULL_ARG_CHECK(arena, DT_null);
     if (!size) {
         PRP_LOG_FN_INV_ARG_ERROR(size);
         return DT_null;
@@ -91,7 +80,7 @@ PRP_FN_API DT_void *PRP_FN_CALL DT_ArenaCalloc(DT_Arena *arena, DT_size size) {
 }
 
 PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArenaReset(DT_Arena *arena) {
-    ARENA_VALIDITY_CHECK(arena, PRP_FN_INV_ARG_ERROR);
+    PRP_NULL_ARG_CHECK(arena, PRP_FN_INV_ARG_ERROR);
 
     arena->ofs = 0;
     memset(arena->mem, 0, arena->size);

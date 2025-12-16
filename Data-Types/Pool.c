@@ -11,14 +11,6 @@ struct _Pool {
 
 #define DEFAULT_POOL_CAP (16)
 
-#define POOL_VALIDITY_CHECK(pool, ret)                                         \
-    do {                                                                       \
-        if (!pool) {                                                           \
-            PRP_LOG_FN_INV_ARG_ERROR(pool);                                    \
-            return ret;                                                        \
-        }                                                                      \
-    } while (0)
-
 PRP_FN_API DT_Pool *PRP_FN_CALL DT_PoolCreate(DT_size memb_size, DT_size cap) {
     if (!memb_size) {
         PRP_LOG_FN_CODE(PRP_FN_INV_ARG_ERROR,
@@ -51,12 +43,9 @@ PRP_FN_API DT_Pool *PRP_FN_CALL DT_PoolCreate(DT_size memb_size, DT_size cap) {
 }
 
 PRP_FN_API PRP_FnCode PRP_FN_CALL DT_PoolDelete(DT_Pool **pPool) {
-    if (!pPool) {
-        PRP_LOG_FN_INV_ARG_ERROR(pPool);
-        return PRP_FN_INV_ARG_ERROR;
-    }
+    PRP_NULL_ARG_CHECK(pPool, PRP_FN_INV_ARG_ERROR);
     DT_Pool *pool = *pPool;
-    POOL_VALIDITY_CHECK(pool, PRP_FN_INV_ARG_ERROR);
+    PRP_NULL_ARG_CHECK(pool, PRP_FN_INV_ARG_ERROR);
 
     pool->memb_size = pool->cap = 0;
     pool->free_list = DT_null;
@@ -67,7 +56,7 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_PoolDelete(DT_Pool **pPool) {
 }
 
 PRP_FN_API DT_void *PRP_FN_CALL DT_PoolAlloc(DT_Pool *pool) {
-    POOL_VALIDITY_CHECK(pool, DT_null);
+    PRP_NULL_ARG_CHECK(pool, DT_null);
 
     if (!pool->free_list) {
         PRP_LOG_FN_CODE(PRP_FN_RES_EXHAUSTED_ERROR,
@@ -82,7 +71,7 @@ PRP_FN_API DT_void *PRP_FN_CALL DT_PoolAlloc(DT_Pool *pool) {
 }
 
 PRP_FN_API DT_void *PRP_FN_CALL DT_PoolCalloc(DT_Pool *pool) {
-    POOL_VALIDITY_CHECK(pool, DT_null);
+    PRP_NULL_ARG_CHECK(pool, DT_null);
 
     if (!pool->free_list) {
         PRP_LOG_FN_CODE(PRP_FN_RES_EXHAUSTED_ERROR,
@@ -98,11 +87,8 @@ PRP_FN_API DT_void *PRP_FN_CALL DT_PoolCalloc(DT_Pool *pool) {
 }
 
 PRP_FN_API PRP_FnCode PRP_FN_CALL DT_PoolFree(DT_Pool *pool, DT_void *ptr) {
-    POOL_VALIDITY_CHECK(pool, PRP_FN_INV_ARG_ERROR);
-    if (!ptr) {
-        PRP_LOG_FN_INV_ARG_ERROR(ptr);
-        return PRP_FN_INV_ARG_ERROR;
-    }
+    PRP_NULL_ARG_CHECK(pool, PRP_FN_INV_ARG_ERROR);
+    PRP_NULL_ARG_CHECK(ptr, PRP_FN_INV_ARG_ERROR);
 
     DT_u8 *p = ptr;
     if (p < pool->mem || p >= pool->mem + pool->cap * pool->memb_size ||
@@ -126,7 +112,7 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_PoolFree(DT_Pool *pool, DT_void *ptr) {
 }
 
 PRP_FN_API PRP_FnCode PRP_FN_CALL DT_PoolReset(DT_Pool *pool) {
-    POOL_VALIDITY_CHECK(pool, PRP_FN_INV_ARG_ERROR);
+    PRP_NULL_ARG_CHECK(pool, PRP_FN_INV_ARG_ERROR);
 
     pool->free_list = DT_null;
     DT_u8 *curr = pool->mem;

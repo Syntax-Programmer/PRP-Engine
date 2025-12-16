@@ -22,7 +22,7 @@ extern "C" {
 
 /* ----  COMP ---- */
 
-/*
+/**
  * This id also is a physical index into the component array to get that
  * comp_id's metadata.
  */
@@ -37,7 +37,7 @@ typedef DT_size FECS_CompId;
         }                                                                      \
     } while (0)
 
-/*
+/**
  * Registers the component of the given size to the FECS.
  *
  * @param comp_size: The size the comp struct is going to be.
@@ -45,7 +45,7 @@ typedef DT_size FECS_CompId;
  * @return FECS_INVALID_COMP_ID if the comp_size=0 or we can't create any more
  * components, otherwise the componenet id of the registerted component
  */
-FECS_CompId CompIdRegister(DT_size comp_size);
+FECS_CompId CompRegister(DT_size comp_size);
 
 /* ----  BEHAVIOR SET ---- */
 
@@ -84,8 +84,8 @@ PRP_FnCode BehaviorSetClear(CORE_Id b_set_id);
  * @param comp_id: The component id to attach to the behavior set.
  *
  * @return PRP_FN_INV_ARG_ERROR if the parameters are invalid in any way,
- * PRP_FN_RES_EXHAUSTED_ERROR if the behavior_set cannot accommodate anymore comp
- * id, otherwise PRP_FN_SUCCESS.
+ * PRP_FN_RES_EXHAUSTED_ERROR if the behavior_set cannot accommodate anymore
+ * comp id, otherwise PRP_FN_SUCCESS.
  */
 PRP_FnCode BehaviorSetAttachComp(CORE_Id b_set_id, FECS_CompId comp_id);
 /**
@@ -113,6 +113,16 @@ PRP_FnCode BehaviorSetDetachComp(CORE_Id b_set_id, FECS_CompId comp_id);
  */
 PRP_FnCode BehaviorSetHasComp(CORE_Id b_set_id, FECS_CompId comp_id,
                               DT_bool *pRslt);
+/**
+ * Callback for the CORE_IdMgr the behavior sets belong to so that the IdMgr can
+ * free data.
+ *
+ * @param data: The pointer to the data the IdMgr gives to us to free.
+ *
+ * @return Ideally should always return PRP_FN_SUCCESS, unless some internal
+ * corruption happened,
+ */
+PRP_FnCode BehaviorSetDelCb(DT_void *pB_set);
 
 /* ----  LAYOUT ---- */
 
@@ -138,17 +148,17 @@ typedef struct {
 
 typedef struct {
     /*
+     * A deep copy of the behavior set the layout is derieved from.
+     * We make a deep copy to prevent any chance of user modifying anything
+     * about the layout.
+     */
+    DT_Bitmap *behavior_set;
+    /*
      * Since the number of comps is decided at create time, the size of
      * comp_arr_stries will always be fixed and hence doesn't need DT_Arr which
      * is dynamic.
      */
     DT_size *comp_arr_strides;
-    /*
-     * This is equivalent to the number of components of the layout. We have
-     * this data as the set count of the comp_set, but still stored here for
-     * convenient local access.
-     */
-    DT_size comp_count;
     /*
      * Each on bits represents a chunk that has a free entity in it and is
      * available to use.
@@ -173,6 +183,14 @@ typedef struct {
     DT_size chunk_size;
 } Layout;
 
+CORE_Id LayoutCreate(CORE_Id b_set_id);
+PRP_FnCode LayoutDelete(CORE_Id *pLayout_id);
+
+PRP_FnCode LayoutDelCb(DT_void *layout);
+DT_u64 LayoutGetSlot(CORE_Id layout_id);
+PRP_FnCode LayoutFreeSlot(CORE_Id layout_id, DT_u64 entity_id);
+PRP_FnCode LayoutIsEntityIdValid(CORE_Id layout_id, DT_u64 entity_id);
+
 /* ----  ENTITY  ---- */
 
 typedef struct {
@@ -181,8 +199,9 @@ typedef struct {
      * Bit 0-31: chunk_i
      * Bit 32-39: slot
      * Bit 40-47: gen
+     * Bit 48-63: if turned on, makes the id invalid.
      */
-    DT_u64 internal_id;
+    DT_u64 entity_id;
 } FECS_EntityId;
 
 /* ----  QUERY  ---- */
@@ -192,6 +211,8 @@ typedef struct {
     DT_Bitmap *exclude_comps;
     DT_Arr *layout_matches;
 } Query;
+
+PRP_FnCode QueryDelCb(DT_void *query);
 
 /* ----  SYSTEM  ---- */
 
@@ -226,7 +247,7 @@ typedef struct {
      * These are entirely user owned and when we use them to create a layout a
      * deep copy is stored in the layout for safety.
      */
-    CORE_IdMgr *behavior_sets;
+    CORE_IdMgr *behavior_set_id_mgr;
     /*
      * Layouts are unique templates that a entity can be created from. These
      * templates are used by the caller to create entities with specific
@@ -244,9 +265,9 @@ typedef struct {
      * queries filter. They most likely execute per frame.
      */
     CORE_IdMgr *system_id_mgr;
-} State;
+} ECSState;
 
-extern State *g_state;
+extern ECSState *g_state;
 
 #ifdef __cplusplus
 }

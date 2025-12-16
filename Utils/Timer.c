@@ -1,18 +1,28 @@
 #include "Defs.h"
+
+#if !(defined(_POSIX_C_SOURCE))
 #define _POSIX_C_SOURCE 199309L // Enable clock_gettime on POSIX systems
+#endif
+
 #include "Logger.h"
 #include "Timer.h"
 
 /* ----  TIME MEASUREMENT  ---- */
 
-static PRP_TimeMeasure GetTimeNs();
+/**
+ * Get the current time in nanoseconds.
+ *
+ * @return The current time in the double f64 format of TimeMeasure.
+ */
+static PRP_TimeMeasure GetTimeNs(DT_void);
 
 #if defined(_WIN32) || defined(_WIN64)
 #include <windows.h>
 
-static PRP_TimeMeasure GetTimeNs() {
-    static LARGE_INTEGER freq;
-    static PRP_i32 initialized = 0;
+static LARGE_INTEGER freq;
+static DT_i32 initialized = 0;
+
+static PRP_TimeMeasure GetTimeNs(DT_void) {
     LARGE_INTEGER counter;
     if (!initialized) {
         QueryPerformanceFrequency(&freq);
@@ -25,7 +35,7 @@ static PRP_TimeMeasure GetTimeNs() {
 #else
 #include <time.h>
 
-static PRP_TimeMeasure GetTimeNs() {
+static PRP_TimeMeasure GetTimeNs(DT_void) {
     struct timespec ts;
     clock_gettime(CLOCK_MONOTONIC, &ts);
     return ts.tv_sec * 1e9 + ts.tv_nsec;
@@ -44,16 +54,8 @@ PRP_FN_API PRP_TimeMeasure PRP_FN_CALL PRP_TimerGetTime(PRP_TimeUnit unit) {
 
 /* ----  TIMER  ---- */
 
-#define TIMER_VALIDITY_CHECK(timer, ret)                                       \
-    do {                                                                       \
-        if (!timer) {                                                          \
-            PRP_LOG_FN_INV_ARG_ERROR(timer);                                   \
-            return ret;                                                        \
-        }                                                                      \
-    } while (0)
-
 PRP_FN_API PRP_FnCode PRP_FN_CALL PRP_TimerStart(PRP_Timer *timer) {
-    TIMER_VALIDITY_CHECK(timer, PRP_FN_INV_ARG_ERROR);
+    PRP_NULL_ARG_CHECK(timer, PRP_FN_INV_ARG_ERROR);
 
     timer->start = PRP_TimerGet(timer->unit);
 
@@ -61,14 +63,14 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL PRP_TimerStart(PRP_Timer *timer) {
 }
 
 PRP_FN_API PRP_TimeMeasure PRP_FN_CALL PRP_TimerElapsed(PRP_Timer *timer) {
-    TIMER_VALIDITY_CHECK(timer, PRP_INVALID_TIME_MEASURE);
+    PRP_NULL_ARG_CHECK(timer, PRP_INVALID_TIME_MEASURE);
 
     return PRP_TimerGetTime(timer->unit) - timer->start;
 }
 
 PRP_FN_API PRP_FnCode PRP_FN_CALL PRP_TimerChangeUnit(PRP_Timer *timer,
                                                       PRP_TimeUnit unit) {
-    TIMER_VALIDITY_CHECK(timer, PRP_FN_INV_ARG_ERROR);
+    PRP_NULL_ARG_CHECK(timer, PRP_FN_INV_ARG_ERROR);
     if (unit < 0 || unit > PRP_TIME_S) {
         unit = PRP_TIME_NS; // fallback
     }

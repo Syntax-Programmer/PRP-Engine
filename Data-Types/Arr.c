@@ -11,16 +11,17 @@ struct _Arr {
 
 #define DEFAULT_ARR_CAP (16)
 
-#define ARRAY_VALIDITY_CHECK(arr, ret)                                         \
-    do {                                                                       \
-        if (!arr) {                                                            \
-            PRP_LOG_FN_INV_ARG_ERROR(arr);                                     \
-            return ret;                                                        \
-        }                                                                      \
-    } while (0)
-
 #define DEFAULT_NEW_CAP(cap) ((cap) * 2)
 
+/**
+ * Changes the capacity of the given array to the provided new cap safely.
+ *
+ * @param arr: The array to change the cap of.
+ * @param new_cap: The new cap of the array to change to.
+ *
+ * @return PRP_FN_MALLOC_ERROR if the reallocation fails, otherwise
+ * PRP_FN_SUCCESS;
+ */
 static PRP_FnCode ArrChangeSize(DT_Arr *arr, DT_size new_cap);
 
 static PRP_FnCode ArrChangeSize(DT_Arr *arr, DT_size new_cap) {
@@ -73,7 +74,7 @@ PRP_FN_API DT_Arr *PRP_FN_CALL DT_ArrCreateDefault(DT_size memb_size) {
 }
 
 PRP_FN_API DT_Arr *PRP_FN_CALL DT_ArrClone(DT_Arr *arr) {
-    ARRAY_VALIDITY_CHECK(arr, DT_null);
+    PRP_NULL_ARG_CHECK(arr, DT_null);
 
     DT_Arr *cpy = DT_ArrCreate(arr->memb_size, arr->cap);
     if (!cpy) {
@@ -88,12 +89,9 @@ PRP_FN_API DT_Arr *PRP_FN_CALL DT_ArrClone(DT_Arr *arr) {
 }
 
 PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrDelete(DT_Arr **pArr) {
-    if (!pArr) {
-        PRP_LOG_FN_INV_ARG_ERROR(pArr);
-        return PRP_FN_INV_ARG_ERROR;
-    }
+    PRP_NULL_ARG_CHECK(pArr, PRP_FN_INV_ARG_ERROR);
     DT_Arr *arr = *pArr;
-    ARRAY_VALIDITY_CHECK(arr, PRP_FN_INV_ARG_ERROR);
+    PRP_NULL_ARG_CHECK(arr, PRP_FN_INV_ARG_ERROR);
 
     if (arr->mem) {
         free(arr->mem);
@@ -107,11 +105,8 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrDelete(DT_Arr **pArr) {
 }
 
 PRP_FN_API DT_void *PRP_FN_CALL DT_ArrRaw(DT_Arr *arr, DT_size *pLen) {
-    ARRAY_VALIDITY_CHECK(arr, DT_null);
-    if (!pLen) {
-        PRP_LOG_FN_INV_ARG_ERROR(pLen);
-        return DT_null;
-    }
+    PRP_NULL_ARG_CHECK(arr, DT_null);
+    PRP_NULL_ARG_CHECK(pLen, DT_null);
 
     *pLen = arr->len;
 
@@ -119,25 +114,25 @@ PRP_FN_API DT_void *PRP_FN_CALL DT_ArrRaw(DT_Arr *arr, DT_size *pLen) {
 }
 
 PRP_FN_API DT_size PRP_FN_CALL DT_ArrLen(DT_Arr *arr) {
-    ARRAY_VALIDITY_CHECK(arr, PRP_INVALID_SIZE);
+    PRP_NULL_ARG_CHECK(arr, PRP_INVALID_SIZE);
 
     return arr->len;
 }
 
 PRP_FN_API DT_size PRP_FN_CALL DT_ArrCap(DT_Arr *arr) {
-    ARRAY_VALIDITY_CHECK(arr, PRP_INVALID_SIZE);
+    PRP_NULL_ARG_CHECK(arr, PRP_INVALID_SIZE);
 
     return arr->cap;
 }
 
 PRP_FN_API DT_size PRP_FN_CALL DT_ArrMembSize(DT_Arr *arr) {
-    ARRAY_VALIDITY_CHECK(arr, PRP_INVALID_SIZE);
+    PRP_NULL_ARG_CHECK(arr, PRP_INVALID_SIZE);
 
     return arr->memb_size;
 }
 
 PRP_FN_API DT_void *PRP_FN_CALL DT_ArrGet(DT_Arr *arr, DT_size i) {
-    ARRAY_VALIDITY_CHECK(arr, DT_null);
+    PRP_NULL_ARG_CHECK(arr, DT_null);
     if (i >= arr->len) {
         PRP_LOG_FN_CODE(
             PRP_FN_OOB_ERROR,
@@ -151,10 +146,8 @@ PRP_FN_API DT_void *PRP_FN_CALL DT_ArrGet(DT_Arr *arr, DT_size i) {
 
 PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrSet(DT_Arr *arr, DT_size i,
                                             DT_void *data) {
-    ARRAY_VALIDITY_CHECK(arr, PRP_FN_INV_ARG_ERROR);
-    if (!data) {
-        PRP_LOG_FN_INV_ARG_ERROR(data);
-    }
+    PRP_NULL_ARG_CHECK(arr, PRP_FN_INV_ARG_ERROR);
+    PRP_NULL_ARG_CHECK(data, PRP_FN_INV_ARG_ERROR);
     if (i >= arr->len) {
         PRP_LOG_FN_CODE(
             PRP_FN_OOB_ERROR,
@@ -169,10 +162,8 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrSet(DT_Arr *arr, DT_size i,
 }
 
 PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrPush(DT_Arr *arr, DT_void *data) {
-    ARRAY_VALIDITY_CHECK(arr, PRP_FN_INV_ARG_ERROR);
-    if (!data) {
-        PRP_LOG_FN_INV_ARG_ERROR(data);
-    }
+    PRP_NULL_ARG_CHECK(arr, PRP_FN_INV_ARG_ERROR);
+    PRP_NULL_ARG_CHECK(data, PRP_FN_INV_ARG_ERROR);
 
     if (arr->len == arr->cap &&
         ArrChangeSize(arr, DEFAULT_NEW_CAP(arr->cap)) != PRP_FN_SUCCESS) {
@@ -187,7 +178,7 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrPush(DT_Arr *arr, DT_void *data) {
 }
 
 PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrReserve(DT_Arr *arr, DT_size count) {
-    ARRAY_VALIDITY_CHECK(arr, PRP_FN_INV_ARG_ERROR);
+    PRP_NULL_ARG_CHECK(arr, PRP_FN_INV_ARG_ERROR);
     if (!count) {
         PRP_LOG_FN_CODE(PRP_FN_INV_ARG_ERROR,
                         "Cannot reserve 0 members in DT_Arr.");
@@ -203,10 +194,8 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrReserve(DT_Arr *arr, DT_size count) {
 
 PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrInsert(DT_Arr *arr, DT_void *data,
                                                DT_size i) {
-    ARRAY_VALIDITY_CHECK(arr, PRP_FN_INV_ARG_ERROR);
-    if (!data) {
-        PRP_LOG_FN_INV_ARG_ERROR(data);
-    }
+    PRP_NULL_ARG_CHECK(arr, PRP_FN_INV_ARG_ERROR);
+    PRP_NULL_ARG_CHECK(data, PRP_FN_INV_ARG_ERROR);
     if (i >= arr->len) {
         PRP_LOG_FN_CODE(
             PRP_FN_OOB_ERROR,
@@ -231,7 +220,7 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrInsert(DT_Arr *arr, DT_void *data,
 }
 
 PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrPop(DT_Arr *arr, DT_void *dest) {
-    ARRAY_VALIDITY_CHECK(arr, PRP_FN_INV_ARG_ERROR);
+    PRP_NULL_ARG_CHECK(arr, PRP_FN_INV_ARG_ERROR);
 
     if (!arr->len) {
         PRP_LOG_FN_CODE(PRP_FN_RES_EXHAUSTED_ERROR,
@@ -248,7 +237,7 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrPop(DT_Arr *arr, DT_void *dest) {
 
 PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrRemove(DT_Arr *arr, DT_void *dest,
                                                DT_size i) {
-    ARRAY_VALIDITY_CHECK(arr, PRP_FN_INV_ARG_ERROR);
+    PRP_NULL_ARG_CHECK(arr, PRP_FN_INV_ARG_ERROR);
     if (i >= arr->len) {
         PRP_LOG_FN_CODE(
             PRP_FN_OOB_ERROR,
@@ -270,12 +259,9 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrRemove(DT_Arr *arr, DT_void *dest,
 
 PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrCmp(DT_Arr *arr1, DT_Arr *arr2,
                                             DT_bool *pRslt) {
-    ARRAY_VALIDITY_CHECK(arr1, PRP_FN_INV_ARG_ERROR);
-    ARRAY_VALIDITY_CHECK(arr2, PRP_FN_INV_ARG_ERROR);
-    if (!pRslt) {
-        PRP_LOG_FN_INV_ARG_ERROR(pRslt);
-        return PRP_FN_INV_ARG_ERROR;
-    }
+    PRP_NULL_ARG_CHECK(arr1, PRP_FN_INV_ARG_ERROR);
+    PRP_NULL_ARG_CHECK(arr2, PRP_FN_INV_ARG_ERROR);
+    PRP_NULL_ARG_CHECK(pRslt, PRP_FN_INV_ARG_ERROR);
 
     if (arr1->len != arr2->len || arr1->memb_size != arr2->memb_size) {
         *pRslt = DT_false;
@@ -288,8 +274,8 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrCmp(DT_Arr *arr1, DT_Arr *arr2,
 }
 
 PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrExtend(DT_Arr *arr1, DT_Arr *arr2) {
-    ARRAY_VALIDITY_CHECK(arr1, PRP_FN_INV_ARG_ERROR);
-    ARRAY_VALIDITY_CHECK(arr2, PRP_FN_INV_ARG_ERROR);
+    PRP_NULL_ARG_CHECK(arr1, PRP_FN_INV_ARG_ERROR);
+    PRP_NULL_ARG_CHECK(arr2, PRP_FN_INV_ARG_ERROR);
     if (arr1->memb_size != arr2->memb_size) {
         PRP_LOG_FN_CODE(PRP_FN_INV_ARG_ERROR,
                         "Cannot join two arrays with different memb_sizes.");
@@ -311,7 +297,7 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrExtend(DT_Arr *arr1, DT_Arr *arr2) {
 }
 
 PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrReset(DT_Arr *arr) {
-    ARRAY_VALIDITY_CHECK(arr, PRP_FN_INV_ARG_ERROR);
+    PRP_NULL_ARG_CHECK(arr, PRP_FN_INV_ARG_ERROR);
 
     arr->len = 0;
 
@@ -319,7 +305,7 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrReset(DT_Arr *arr) {
 }
 
 PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrShrinkFit(DT_Arr *arr) {
-    ARRAY_VALIDITY_CHECK(arr, PRP_FN_INV_ARG_ERROR);
+    PRP_NULL_ARG_CHECK(arr, PRP_FN_INV_ARG_ERROR);
 
     // The ternary op makes sure there is space of at-least one elem.
     return ArrChangeSize(arr, (arr->len) ? arr->len : 1);
@@ -327,11 +313,8 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrShrinkFit(DT_Arr *arr) {
 
 PRP_FN_API PRP_FnCode PRP_FN_CALL
 DT_ArrForEach(DT_Arr *arr, PRP_FnCode (*cb)(DT_void *val)) {
-    ARRAY_VALIDITY_CHECK(arr, PRP_FN_INV_ARG_ERROR);
-    if (!cb) {
-        PRP_LOG_FN_INV_ARG_ERROR(cb);
-        return PRP_FN_INV_ARG_ERROR;
-    }
+    PRP_NULL_ARG_CHECK(arr, PRP_FN_INV_ARG_ERROR);
+    PRP_NULL_ARG_CHECK(cb, PRP_FN_INV_ARG_ERROR);
 
     DT_u8 *mem = arr->mem;
     for (DT_size i = 0; i < arr->len; i++) {
