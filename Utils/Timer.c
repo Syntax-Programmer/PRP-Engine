@@ -1,11 +1,7 @@
-#include "Defs.h"
+#define _POSIX_C_SOURCE 200809L // Enable clock_gettime on POSIX systems
 
-#if !(defined(_POSIX_C_SOURCE))
-#define _POSIX_C_SOURCE 199309L // Enable clock_gettime on POSIX systems
-#endif
-
-#include "Logger.h"
 #include "Timer.h"
+#include "Logger.h"
 
 /* ----  TIME MEASUREMENT  ---- */
 

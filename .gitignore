@@ -59,3 +59,4 @@ ploc.py
 Makefile
 Drafts/
 .clang-format
+main.c

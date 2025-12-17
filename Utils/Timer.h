@@ -4,6 +4,7 @@
 extern "C" {
 #endif
 
+#include "../Data-Types/Typedefs.h"
 #include "Defs.h"
 
 /* ----  TIME MEASUREMENT  ---- */
@@ -42,7 +43,7 @@ typedef struct {
     PRP_TimeUnit unit;
 } PRP_Timer;
 
-#define PRP_TIMER(unit) ((PRP_Timer){.unit = (unit)})
+#define PRP_TIMER(time_unit) ((PRP_Timer){.unit = (time_unit)})
 
 /**
  * Starts the timer by setting the current time. To set current time to the

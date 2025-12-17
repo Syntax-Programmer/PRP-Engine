@@ -4,6 +4,7 @@
 extern "C" {
 #endif
 
+#include "../Data-Types/Typedefs.h"
 #include "Defs.h"
 
 /* ----  GENERIC LOGGER  ---- */
@@ -103,7 +104,7 @@ PRP_FN_API DT_void PRP_FN_CALL PRP_LogFnCode(PRP_FnCode code,
                     "Invalid/Corrupted function argument: '%s' encountered.",  \
                     #var)
 
-#define PRP_NULL_ARG_CHECK(arg, ret)                                               \
+#define PRP_NULL_ARG_CHECK(arg, ret)                                           \
     do {                                                                       \
         if (!arg) {                                                            \
             PRP_LOG_FN_INV_ARG_ERROR(arg);                                     \

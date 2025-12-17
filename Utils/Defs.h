@@ -8,50 +8,13 @@ extern "C" {
 #include <stdint.h>
 #include <stdlib.h>
 
-/**
- * Type defs to be used in the engine for consistency purposes.
- */
-typedef uint64_t DT_u64;
-typedef int64_t DT_i64;
-
-typedef uint32_t DT_u32;
-typedef int32_t DT_i32;
-
-typedef uint16_t DT_u16;
-typedef int16_t DT_i16;
-
-typedef uint8_t DT_u8;
-typedef int8_t DT_i8;
-
-typedef float DT_f32;
-typedef double DT_f64;
-
-typedef char DT_char;
-
-typedef void DT_void;
-
-/**
- * This is an system dependent type.
- *
- * For 64 bit systems it is most likely 8 bytes.
- *
- * For 32 bit systems it is most likely 4 bytes.
- */
-typedef size_t DT_size;
-
 #define PRP_INVALID_SIZE ((DT_size)(-1))
 #define PRP_INVALID_INDEX ((DT_size)(-1))
+// Pos is like a 1 based index.
 #define PRP_INVALID_POS ((DT_size)(0))
 
 #define PRP_POS_TO_I(pos) ((pos) - 1)
 #define PRP_I_TO_POS(i) ((i) + 1)
-
-#define DT_null (NULL)
-
-typedef enum {
-    DT_false = 0,
-    DT_true = 1,
-} DT_bool;
 
 /**
  * Basic binary ops encapsulated for user ease of use.
@@ -59,7 +22,7 @@ typedef enum {
 #define PRP_BIT_SET(x, y) (x) |= (y)
 #define PRP_BIT_CLR(x, y) (x) &= ~(y)
 #define PRP_BIT_TOGGLE(x, y) (x) ^= (y)
-#define PRP_BIT_IS_SET(x, y) (((x) & (y)) != 0)
+#define PRP_BIT_IS_SET(x, y) (((x) & (y)) == (y))
 
 #define PRP_MAX(x, y) (((x) > (y)) ? (x) : (y))
 #define PRP_MIN(x, y) (((x) > (y)) ? (y) : (x))

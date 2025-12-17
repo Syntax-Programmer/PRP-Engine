@@ -4,6 +4,7 @@
 extern "C" {
 #endif
 
+#include "../Data-Types/Typedefs.h"
 #include "../Utils/Defs.h"
 
 /**

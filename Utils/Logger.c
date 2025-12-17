@@ -67,9 +67,10 @@ static const DT_char *FNCodeToStr(PRP_FnCode code) {
     }
 }
 
-PRP_FN_API DT_void PRP_FN_CALL PRP_LogCode(PRP_FnCode code, const DT_char *file,
-                                           const DT_char *fn, DT_u32 line,
-                                           const DT_char *fmt, ...) {
+PRP_FN_API DT_void PRP_FN_CALL PRP_LogFnCode(PRP_FnCode code,
+                                             const DT_char *file,
+                                             const DT_char *fn, DT_u32 line,
+                                             const DT_char *fmt, ...) {
     va_list args;
     va_start(args, fmt);
     DT_char bfr[512];

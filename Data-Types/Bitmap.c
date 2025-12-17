@@ -126,7 +126,7 @@ PRP_FN_API DT_size PRP_FN_CALL DT_BitwordFFS(DT_Bitword word) {
         return (DT_size)(i + 1);
     return 0; // GCC semantics: 0 means no bits set
 #else
-    return (DT_size)ffsll((long long)word);
+    return word ? (DT_size)__builtin_ctzll(word) + 1 : 0;
 #endif
 }
 
