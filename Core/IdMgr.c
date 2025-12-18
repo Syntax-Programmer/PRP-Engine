@@ -1,5 +1,6 @@
 #include "IdMgr.h"
 #include "../Data-Types/Arr.h"
+#include "../Data-Types/Bffr.h"
 #include "../Data-Types/Bitmap.h"
 #include "../Utils/Logger.h"
 
@@ -16,15 +17,16 @@ struct _IdMgr {
      */
     DT_Arr *data_layer;
     /*
-     * An array of u64s that is used in a way like:
-     * The ids dispatched are index into this array. This array acts a
+     * An buffer of u64s that is used in a way like:
+     * The ids dispatched are index into this buffer. This buffer acts a
      * validation layer for the id to access the data. The data stored at the
      * index the id points to stores the index to the data we want to point at.
      *
+     * What we store in the buffer:
      * Bit 0-31: The index of the data array we point to.
      * Bit 32-63: A 32 bit gen value of the id_layer's slot.
      */
-    DT_Arr *id_layer;
+    DT_Bffr *id_layer;
     /*
      * An on bit in this bitmap corresponds to a free slot in the id_layer array
      * that can be used to dispatch the id.
@@ -66,7 +68,7 @@ PRP_FN_API CORE_IdMgr *PRP_FN_CALL CORE_IdMgrCreate(
     id_mgr->data_layer = DT_ArrCreateDefault(sizeof(DT_u32));
     ID_MGR_INIT_ERROR_CHECK(id_mgr->data_layer);
 
-    id_mgr->id_layer = DT_ArrCreateDefault(sizeof(DT_u64));
+    id_mgr->id_layer = DT_BffrCreateDefault(sizeof(DT_u64));
     ID_MGR_INIT_ERROR_CHECK(id_mgr->id_layer);
 
     id_mgr->free_id_slots = DT_BitmapCreateDefault();
@@ -92,7 +94,7 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL CORE_IdMgrDelete(CORE_IdMgr **pId_mgr) {
         DT_ArrDelete(&id_mgr->data_layer);
     }
     if (id_mgr->id_layer) {
-        DT_ArrDelete(&id_mgr->id_layer);
+        DT_BffrDelete(&id_mgr->id_layer);
     }
     if (id_mgr->free_id_slots) {
         DT_BitmapDelete(&id_mgr->free_id_slots);

@@ -34,7 +34,6 @@ static PRP_FnCode ArrChangeSize(DT_Arr *arr, DT_size new_cap) {
         PRP_LOG_FN_MALLOC_ERROR(mem);
         return PRP_FN_MALLOC_ERROR;
     }
-
     arr->mem = mem;
     arr->cap = new_cap;
 
@@ -81,7 +80,6 @@ PRP_FN_API DT_Arr *PRP_FN_CALL DT_ArrClone(DT_Arr *arr) {
         PRP_LOG_FN_MALLOC_ERROR(cpy);
         return DT_null;
     }
-
     cpy->len = arr->len;
     memcpy(cpy->mem, arr->mem, arr->memb_size * arr->len);
 
