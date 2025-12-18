@@ -201,7 +201,7 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrCmp(DT_Arr *arr1, DT_Arr *arr2,
  * Joins the content of arr2 with arr1.
  *
  * @param arr1: The first array that will contain the final extended array.
- * @param arr2: The array that is to be merged with arr2.
+ * @param arr2: The array that is to be merged with arr1.
  *
  * @return PRP_FN_INV_ARG_ERROR if the parameters are invalid in any way,
  * PRP_FN_MALLOC_ERROR if realloc failed on arr1, otherwise PRP_FN_SUCCESS.
