@@ -1,5 +1,6 @@
 #include "Bffr.h"
 #include "../Utils/Logger.h"
+#include "Typedefs.h"
 #include <string.h>
 
 struct _Bffr {
@@ -117,6 +118,50 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BffrSet(DT_Bffr *bffr, DT_size i,
     }
 
     memcpy(bffr->mem + (i * bffr->memb_size), data, bffr->memb_size);
+
+    return PRP_FN_SUCCESS;
+}
+
+PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BffrSetRange(DT_Bffr *bffr, DT_size i,
+                                                  DT_size j, DT_void *data) {
+    PRP_NULL_ARG_CHECK(bffr, PRP_FN_INV_ARG_ERROR);
+    PRP_NULL_ARG_CHECK(data, PRP_FN_INV_ARG_ERROR);
+    if (i > j) {
+        PRP_LOG_FN_CODE(PRP_FN_INV_ARG_ERROR,
+                        "i can't be greater than j for this operation.");
+        return PRP_FN_INV_ARG_ERROR;
+    }
+    if (i >= bffr->cap || j > bffr->cap) {
+        PRP_LOG_FN_CODE(PRP_FN_OOB_ERROR,
+                        "Tried accessing the buffer index: %zu-%zu, of a "
+                        "buffer with cap: %zu",
+                        i, j, bffr->cap);
+        return PRP_FN_OOB_ERROR;
+    }
+
+    DT_u8 *ptr = bffr->mem + (i * bffr->memb_size);
+    for (; i < j; i++) {
+        memcpy(ptr, data, bffr->memb_size);
+        ptr += bffr->memb_size;
+    }
+
+    return PRP_FN_SUCCESS;
+}
+
+PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BffrSetMany(DT_Bffr *bffr, DT_size i,
+                                                 DT_void *data_arr,
+                                                 DT_size len) {
+    PRP_NULL_ARG_CHECK(bffr, PRP_FN_INV_ARG_ERROR);
+    PRP_NULL_ARG_CHECK(data_arr, PRP_FN_INV_ARG_ERROR);
+    if (i >= bffr->cap || len > bffr->cap - i) {
+        PRP_LOG_FN_CODE(PRP_FN_OOB_ERROR,
+                        "Tried accessing the buffer index: %zu to fill %zu "
+                        "elements, of a buffer with cap: %zu",
+                        i, len, bffr->cap);
+        return PRP_FN_OOB_ERROR;
+    }
+
+    memcpy(bffr->mem + (i * bffr->memb_size), data_arr, bffr->memb_size * len);
 
     return PRP_FN_SUCCESS;
 }

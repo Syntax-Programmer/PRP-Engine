@@ -18,9 +18,8 @@ typedef DT_u64 CORE_Id;
  * data.
  *
  * It also manages use after free bugs and stale reference bugs by essentially
- * never dispatching the same id. (unless the dev using this is stupid and
- * managed to generate 2 ^ 8 stale refs. ...Have I given too much technical
- * details...you will never know.)
+ * never dispatching the same id. So if a old id shows up we know its used after
+ * being freed.
  */
 typedef struct _IdMgr CORE_IdMgr;
 

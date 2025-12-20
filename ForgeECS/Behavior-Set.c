@@ -9,13 +9,7 @@ CORE_Id BehaviorSetCreate(DT_void) {
     DT_Bitmap *b_set =
         DT_BitmapCreate(DT_ArrLen(g_state->comp_registry.comp_sizes));
 
-    CORE_Id id = CORE_IdMgrAddData(g_state->behavior_set_id_mgr, &b_set);
-    if (id == CORE_INVALID_ID) {
-        PRP_LOG_FN_CODE(PRP_FN_RES_EXHAUSTED_ERROR,
-                        "Cannot create anymore behavior sets.");
-    }
-
-    return id;
+    return CORE_IdMgrAddData(g_state->behavior_set_id_mgr, &b_set);
 }
 
 PRP_FnCode BehaviorSetDelete(CORE_Id *pB_set_id) {

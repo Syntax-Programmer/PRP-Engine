@@ -103,6 +103,35 @@ PRP_FN_API DT_void *PRP_FN_CALL DT_BffrGet(DT_Bffr *bffr, DT_size i);
  */
 PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BffrSet(DT_Bffr *bffr, DT_size i,
                                              DT_void *data);
+/**
+ * Sets the same element 'data' to all the indices b/w i and j excluding j.
+ *
+ * @param bffr: The buffer to operate on.
+ * @param i: The index to start from.
+ * @param j: The index to stop on.
+ * @param data: The poinbter to the data to set.
+ *
+ * @return PRP_FN_INV_ARG_ERROR if the parameters are invalid in any way or i >
+ * j, PRP_FN_OOB_ERROR if i or j is out of bounds of the buffer, otherwise
+ * PRP_FN_SUCCESS.
+ */
+PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BffrSetRange(DT_Bffr *bffr, DT_size i,
+                                                  DT_size j, DT_void *data);
+/**
+ * Sets count number of elements in order starting from index i.
+ *
+ * @param bffr: The buffer to operate on.
+ * @param i: The index to start from.
+ * @param data_arr: The array of data to set.
+ * @param len: The len of the data_arr.
+ *
+ * @return PRP_FN_INV_ARG_ERROR if the parameters are invalid in any way,
+ * PRP_FN_OOB_ERROR if i or i + len is out of bounds of the buffer, otherwise
+ * PRP_FN_SUCCESS.
+ */
+PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BffrSetMany(DT_Bffr *bffr, DT_size i,
+                                                 DT_void *data_arr,
+                                                 DT_size len);
 
 /**
  * Compares the given two buffer to see if their contents are exactly equal.

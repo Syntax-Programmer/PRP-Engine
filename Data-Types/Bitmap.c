@@ -75,7 +75,14 @@ static DT_void BitmapFFSPos(DT_Bitmap *bmp) {
         return;
     }
 
-    for (DT_size i = 0; i < bmp->word_cap; i++) {
+    /*
+     * Since this function is only used after we clear the fs bit, doing this is
+     * always valid, why?
+     * Because we are sure that there is no bit set before the fs_pos, due to
+     * the active updation we do during the bitmap operations.
+     */
+    for (DT_size i = WORD_I(PRP_POS_TO_I(bmp->fs_pos)); i < bmp->word_cap;
+         i++) {
         DT_Bitword word = bmp->words[i];
         if (!word) {
             continue;
@@ -83,6 +90,11 @@ static DT_void BitmapFFSPos(DT_Bitmap *bmp) {
         bmp->fs_pos = DT_BitwordFFS(word) + (i * BITWORD_BITS);
         return;
     }
+    /*
+     * This is just a "just in case" line because according to my intuition it
+     * will never execute ever.
+     */
+    bmp->fs_pos = PRP_INVALID_POS;
 }
 
 PRP_FN_API DT_size PRP_FN_CALL DT_BitwordCTZ(DT_Bitword word) {
@@ -254,12 +266,13 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BitmapClr(DT_Bitmap *bmp, DT_size i) {
     }
     // Clearing the bit we were told to.
     PRP_BIT_CLR(bmp->words[word_i], BIT_MASK(i));
+    // Always negate set_c before ffs calc, to prevent corrupted state.
+    bmp->set_c--;
     // i + 1 since fs_i is a one based index.
     if (bmp->fs_pos == PRP_I_TO_POS(i)) {
         // If we cleared fs_i, we recompute it.
         BitmapFFSPos(bmp);
     }
-    bmp->set_c--;
 
     return PRP_FN_SUCCESS;
 }
@@ -284,11 +297,12 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BitmapToggle(DT_Bitmap *bmp, DT_size i) {
         }
         bmp->set_c++;
     } else {
+        // Always negate set_c before ffs calc, to prevent corrupted state.
+        bmp->set_c--;
         if (bmp->fs_pos == PRP_I_TO_POS(i)) {
             // If we cleared fs_i, we recompute it.
             BitmapFFSPos(bmp);
         }
-        bmp->set_c--;
     }
 
     return PRP_FN_SUCCESS;
