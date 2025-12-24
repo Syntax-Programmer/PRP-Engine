@@ -79,10 +79,13 @@ struct _Bitmap {
  * value.
  *
  * @param bmp: The bitmap to update the first set index of.
+ * @param start: There are certain conditions where we are confirmed the first
+ * set to be beyond or equal to start index. So we take in that for easier
+ * computation.
  */
-static DT_void BitmapCalcFirstSet(DT_Bitmap *bmp);
+static DT_void BitmapCalcFirstSet(DT_Bitmap *bmp, DT_size start);
 
-static DT_void BitmapCalcFirstSet(DT_Bitmap *bmp) {
+static DT_void BitmapCalcFirstSet(DT_Bitmap *bmp, DT_size start) {
     if (!bmp->set_c) {
         bmp->first_set = PRP_INVALID_INDEX;
         return;
@@ -96,9 +99,10 @@ static DT_void BitmapCalcFirstSet(DT_Bitmap *bmp) {
      due to
      * the active updation we do during the bitmap operations.
      */
-    for (DT_size i =
-             bmp->first_set != PRP_INVALID_INDEX ? WORD_I(bmp->first_set) : 0;
-         i < bmp->word_cap; i++) {
+    DT_size i = (start != PRP_INVALID_INDEX)          ? WORD_I(start)
+                : bmp->first_set != PRP_INVALID_INDEX ? WORD_I(bmp->first_set)
+                                                      : 0;
+    for (; i < bmp->word_cap; i++) {
         DT_Bitword word = bmp->words[i];
         if (!word) {
             continue;
@@ -249,7 +253,7 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BitmapClr(DT_Bitmap *bmp, DT_size i) {
         bmp->set_c--;
         if (i == bmp->first_set) {
             // Recomputing fist set if we just cleared it.
-            BitmapCalcFirstSet(bmp);
+            BitmapCalcFirstSet(bmp, i + 1);
         }
     }
 
@@ -280,7 +284,7 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BitmapToggle(DT_Bitmap *bmp, DT_size i) {
         bmp->set_c--;
         if (i == bmp->first_set) {
             // Recomputing fist set if we just cleared it.
-            BitmapCalcFirstSet(bmp);
+            BitmapCalcFirstSet(bmp, i + 1);
         }
     }
 
@@ -408,9 +412,9 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BitmapClrRange(DT_Bitmap *bmp, DT_size i,
         }
     }
 
-    if (bmp->first_set >= i && bmp->first_set < j) {
-        BitmapCalcFirstSet(bmp);
-    }
+        if (bmp->first_set >= i && bmp->first_set < j) {
+            BitmapCalcFirstSet(bmp, j);
+        }
 
     return PRP_FN_SUCCESS;
 }
@@ -445,6 +449,13 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BitmapToggleRange(DT_Bitmap *bmp,
             bmp->words[wi] = ~bmp->words[wi];
             bmp->set_c += DT_BitwordPopCnt(bmp->words[wi]);
         }
+    }
+
+    if (bmp->first_set > i) {
+        // Since during the toggle the i(clear bit) will be turned on.
+        bmp->first_set = i;
+    } else if (bmp->first_set == i) {
+        BitmapCalcFirstSet(bmp, i + 1);
     }
 
     return PRP_FN_SUCCESS;
