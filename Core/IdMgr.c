@@ -40,6 +40,19 @@ struct _IdMgr {
     PRP_FnCode (*data_del_cb)(DT_void *data_entry);
 };
 
+#define INVALID_ID_LAYER_VAL ((DT_u64)(~0))
+
+/*
+ * We can do this because we conventionally assume that the starting gen of any
+ * new data is (DT_u32)(0). Which is fine and valid assumption. So we just
+ * typecast the DT_size indices to u64 for just conventional correctivity in 32
+ * bit systems.
+ */
+#define INIT_ID_LAYER_VAL(data_i) ((DT_u64)(data_i))
+// This will esentially isolate the Bit 32-63 of id_layer_val which is the gen.
+#define CREATE_ID(id_layer_val, id_layer_i)                                    \
+    ((0XFFFFFFFF00000000ULL & (id_layer_val)) | (id_layer_i))
+
 #define ID_MGR_INIT_ERROR_CHECK(x)                                             \
     do {                                                                       \
         if (!x) {                                                              \
@@ -68,13 +81,20 @@ PRP_FN_API CORE_IdMgr *PRP_FN_CALL CORE_IdMgrCreate(
     id_mgr->data_layer = DT_ArrCreateDefault(sizeof(DT_u32));
     ID_MGR_INIT_ERROR_CHECK(id_mgr->data_layer);
 
-    id_mgr->id_layer = DT_BffrCreateDefault(sizeof(DT_u64));
+    DT_size data_cap = DT_ArrCap(id_mgr->data);
+
+    id_mgr->id_layer = DT_BffrCreate(sizeof(DT_u64), data_cap);
     ID_MGR_INIT_ERROR_CHECK(id_mgr->id_layer);
 
-    id_mgr->free_id_slots = DT_BitmapCreateDefault();
+    id_mgr->free_id_slots = DT_BitmapCreate(data_cap);
     ID_MGR_INIT_ERROR_CHECK(id_mgr->free_id_slots);
 
     id_mgr->data_del_cb = data_del_cb;
+
+    // These can't fail.
+    DT_u64 x = INVALID_ID_LAYER_VAL;
+    DT_BffrSetRange(id_mgr->id_layer, 0, data_cap, &x);
+    DT_BitmapSetRange(id_mgr->free_id_slots, 0, data_cap);
 
     return id_mgr;
 }

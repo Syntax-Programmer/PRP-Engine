@@ -1,7 +1,5 @@
 #include "Bitmap.h"
 #include "../Utils/Logger.h"
-#include "Typedefs.h"
-#include <csetjmp>
 #include <string.h>
 
 /* ----  BITWORD UTILS ---- */
@@ -306,18 +304,233 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BitmapIsSet(DT_Bitmap *bmp, DT_size i,
     return PRP_FN_SUCCESS;
 }
 
+#define RANGE_OPS_VALIDITY_CHECK(bmp, i, j)                                    \
+    do {                                                                       \
+        PRP_NULL_ARG_CHECK(bmp, PRP_FN_INV_ARG_ERROR);                         \
+        if (i >= j) {                                                          \
+            PRP_LOG_FN_CODE(                                                   \
+                PRP_FN_INV_ARG_ERROR,                                          \
+                "i can't be greater than or equal to j for this operation.");  \
+            return PRP_FN_INV_ARG_ERROR;                                       \
+        }                                                                      \
+        if (i >= bmp->bit_cap || j > bmp->bit_cap) {                           \
+            PRP_LOG_FN_CODE(                                                   \
+                PRP_FN_OOB_ERROR,                                              \
+                "Tried accessing the bit index: %zu-%zu, of a bitmap "         \
+                "with bit cap: %zu",                                           \
+                i, j, bmp->bit_cap);                                           \
+            return PRP_FN_OOB_ERROR;                                           \
+        }                                                                      \
+    } while (0);
+
+#define MAKE_SAME_WORD_MASK(mask, i, last)                                     \
+    do {                                                                       \
+        mask = ((DT_Bitword)~0 << BIT_I(i));                                   \
+        /* This prevents UB edge case where (<< 64) is undefined. */           \
+        if (BIT_I(last) < 63) {                                                \
+            mask &= ~((DT_Bitword)~0 << (BIT_I(last) + 1));                    \
+        }                                                                      \
+    } while (0);
+
+#define MAKE_PARTIAL_FIRST_WORD_MASK(mask, i)                                  \
+    mask = ((DT_Bitword)(~0) << BIT_I(i));
+// This ternary prevents UB edge case where (<< 64) is undefined.
+#define MAKE_PARTIAL_LAST_WORD_MASK(mask, last)                                \
+    mask = (BIT_I(last) == 63) ? (DT_Bitword)~0 : (BIT_MASK(last + 1) - 1);
+
 PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BitmapSetRange(DT_Bitmap *bmp, DT_size i,
-                                                    DT_size j);
+                                                    DT_size j) {
+    RANGE_OPS_VALIDITY_CHECK(bmp, i, j);
+
+    DT_size last = j - 1;
+    DT_size wi = WORD_I(i), wj = WORD_I(last);
+    DT_Bitword mask;
+    if (wi == wj) {
+        MAKE_SAME_WORD_MASK(mask, i, last);
+        bmp->set_c +=
+            (DT_BitwordPopCnt(mask) - DT_BitwordPopCnt(bmp->words[wi] & mask));
+        bmp->words[wi] |= mask;
+    } else {
+        MAKE_PARTIAL_FIRST_WORD_MASK(mask, i);
+        bmp->set_c +=
+            DT_BitwordPopCnt(mask) - DT_BitwordPopCnt(bmp->words[wi] & mask);
+        bmp->words[wi] |= mask;
+
+        MAKE_PARTIAL_LAST_WORD_MASK(mask, last);
+        bmp->set_c +=
+            DT_BitwordPopCnt(mask) - DT_BitwordPopCnt(bmp->words[wj] & mask);
+        bmp->words[wj] |= mask;
+
+        // Full middle words.
+        // This looks cooler than simple loop.
+        for (++wi; wi < wj; wi++) {
+            bmp->set_c += BITWORD_BITS - DT_BitwordPopCnt(bmp->words[wi]);
+            bmp->words[wi] = (DT_Bitword)~0;
+        }
+    }
+
+    if (bmp->first_set == PRP_INVALID_INDEX || i < bmp->first_set) {
+        bmp->first_set = i;
+    }
+
+    return PRP_FN_SUCCESS;
+}
+
 PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BitmapClrRange(DT_Bitmap *bmp, DT_size i,
-                                                    DT_size j);
+                                                    DT_size j) {
+    RANGE_OPS_VALIDITY_CHECK(bmp, i, j);
+
+    if (!bmp->set_c) {
+        return PRP_FN_SUCCESS;
+    }
+
+    DT_size last = j - 1;
+    DT_size wi = WORD_I(i), wj = WORD_I(last);
+    DT_Bitword mask;
+    if (wi == wj) {
+        MAKE_SAME_WORD_MASK(mask, i, last);
+        bmp->set_c -= DT_BitwordPopCnt(bmp->words[wi] & mask);
+        bmp->words[wi] &= ~mask;
+    } else {
+        MAKE_PARTIAL_FIRST_WORD_MASK(mask, i);
+        bmp->set_c -= DT_BitwordPopCnt(bmp->words[wi] & mask);
+        bmp->words[wi] &= ~mask;
+
+        MAKE_PARTIAL_LAST_WORD_MASK(mask, last);
+        bmp->set_c -= DT_BitwordPopCnt(bmp->words[wj] & mask);
+        bmp->words[wj] &= ~mask;
+
+        // Full middle words.
+        // This looks cooler than simple loop.
+        for (++wi; wi < wj; wi++) {
+            bmp->set_c -= DT_BitwordPopCnt(bmp->words[wi]);
+            bmp->words[wi] = 0;
+        }
+    }
+
+    if (bmp->first_set >= i && bmp->first_set < j) {
+        BitmapCalcFirstSet(bmp);
+    }
+
+    return PRP_FN_SUCCESS;
+}
+
 PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BitmapToggleRange(DT_Bitmap *bmp,
-                                                       DT_size i, DT_size j);
+                                                       DT_size i, DT_size j) {
+    RANGE_OPS_VALIDITY_CHECK(bmp, i, j);
+
+    DT_size last = j - 1;
+    DT_size wi = WORD_I(i), wj = WORD_I(last);
+    DT_Bitword mask;
+    if (wi == wj) {
+        MAKE_SAME_WORD_MASK(mask, i, last);
+        bmp->set_c -= DT_BitwordPopCnt(bmp->words[wi] & mask);
+        bmp->words[wi] ^= mask;
+        bmp->set_c += DT_BitwordPopCnt(bmp->words[wi] & mask);
+    } else {
+        MAKE_PARTIAL_FIRST_WORD_MASK(mask, i);
+        bmp->set_c -= DT_BitwordPopCnt(bmp->words[wi] & mask);
+        bmp->words[wi] ^= mask;
+        bmp->set_c += DT_BitwordPopCnt(bmp->words[wi] & mask);
+
+        MAKE_PARTIAL_LAST_WORD_MASK(mask, last);
+        bmp->set_c -= DT_BitwordPopCnt(bmp->words[wj] & mask);
+        bmp->words[wj] ^= mask;
+        bmp->set_c += DT_BitwordPopCnt(bmp->words[wj] & mask);
+
+        // Full middle words.
+        // This looks cooler than simple loop.
+        for (++wi; wi < wj; wi++) {
+            bmp->set_c -= DT_BitwordPopCnt(bmp->words[wi]);
+            bmp->words[wi] = ~bmp->words[wi];
+            bmp->set_c += DT_BitwordPopCnt(bmp->words[wi]);
+        }
+    }
+
+    return PRP_FN_SUCCESS;
+}
+
 PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BitmapIsSetRangeAny(DT_Bitmap *bmp,
                                                          DT_size i, DT_size j,
-                                                         DT_bool *pRslt);
+                                                         DT_bool *pRslt) {
+    PRP_NULL_ARG_CHECK(pRslt, PRP_FN_INV_ARG_ERROR);
+    RANGE_OPS_VALIDITY_CHECK(bmp, i, j);
+
+    DT_size last = j - 1;
+    DT_size wi = WORD_I(i), wj = WORD_I(last);
+    DT_Bitword mask;
+    if (wi == wj) {
+        MAKE_SAME_WORD_MASK(mask, i, last);
+        *pRslt = ((bmp->words[wi] & mask) != 0);
+        return PRP_FN_SUCCESS;
+    } else {
+        MAKE_PARTIAL_FIRST_WORD_MASK(mask, i);
+        if ((bmp->words[wi] & mask) != 0) {
+            goto true_condition;
+        }
+
+        MAKE_PARTIAL_LAST_WORD_MASK(mask, last);
+        if ((bmp->words[wj] & mask) != 0) {
+            goto true_condition;
+        }
+
+        // Full middle words.
+        // This looks cooler than simple loop.
+        for (++wi; wi < wj; wi++) {
+            if (bmp->words[wi]) {
+                goto true_condition;
+            }
+        }
+    }
+    *pRslt = DT_false;
+
+    return PRP_FN_SUCCESS;
+
+true_condition:
+    *pRslt = DT_true;
+    return PRP_FN_SUCCESS;
+}
+
 PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BitmapIsSetRangeAll(DT_Bitmap *bmp,
                                                          DT_size i, DT_size j,
-                                                         DT_bool *pRslt);
+                                                         DT_bool *pRslt) {
+    PRP_NULL_ARG_CHECK(pRslt, PRP_FN_INV_ARG_ERROR);
+    RANGE_OPS_VALIDITY_CHECK(bmp, i, j);
+
+    DT_size last = j - 1;
+    DT_size wi = WORD_I(i), wj = WORD_I(last);
+    DT_Bitword mask;
+    if (wi == wj) {
+        MAKE_SAME_WORD_MASK(mask, i, last);
+        *pRslt = ((bmp->words[wi] & mask) == mask);
+        return PRP_FN_SUCCESS;
+    } else {
+        MAKE_PARTIAL_FIRST_WORD_MASK(mask, i);
+        if ((bmp->words[wi] & mask) != mask) {
+            goto false_condition;
+        }
+
+        MAKE_PARTIAL_LAST_WORD_MASK(mask, last);
+        if ((bmp->words[wj] & mask) != mask) {
+            goto false_condition;
+        }
+
+        // Full middle words.
+        // This looks cooler than simple loop.
+        for (++wi; wi < wj; wi++) {
+            if (bmp->words[wi] != (DT_Bitword)~0) {
+                goto false_condition;
+            }
+        }
+    }
+    *pRslt = DT_true;
+
+    return PRP_FN_SUCCESS;
+
+false_condition:
+    *pRslt = DT_false;
+    return PRP_FN_SUCCESS;
+}
 
 PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BitmapIsEmpty(DT_Bitmap *bmp,
                                                    DT_bool *pRslt) {
