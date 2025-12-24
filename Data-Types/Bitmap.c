@@ -792,7 +792,7 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BitmapChangeSize(DT_Bitmap *bmp,
     bmp->set_c -= set_c_neg;
     if (bmp->first_set >= bmp->bit_cap) {
         /*
-         * Bcuz if first_set inde is weeded out in the size change the set_c is
+         * Bcuz if first_set index is weeded out in the size change the set_c is
          * 0 and we can just skip the function calls entirely.
          */
         bmp->first_set = PRP_INVALID_INDEX;

@@ -114,7 +114,7 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BitmapDelete(DT_Bitmap **pBmp);
  * This function returns a non-fixed pointer to the bitmap mem. If an operation
  * is performed to the bitmap after getting the raw data, the raw data is no
  * longer guaranteed to be valid.
- * NOTE: If any kind of changes user makes without using dessignated functions
+ * NOTE: If any kind of changes user makes without using designated functions
  * will cause corruption instantly.
  *
  * @param bmp: The bitmap to get the raw mem data of.

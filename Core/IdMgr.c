@@ -40,18 +40,30 @@ struct _IdMgr {
     PRP_FnCode (*data_del_cb)(DT_void *data_entry);
 };
 
-#define INVALID_ID_LAYER_VAL ((DT_u64)(~0))
+/*
+ * Interesting point to look at:
+ * If the gen of a slot doesn't match the gen of an id, the slot is surely
+ * pointing to an index that has nothing to do with the id, so we can skip that
+ * check and similarly if the gens match the data index is surely valid.
+ */
 
 /*
- * We can do this because we conventionally assume that the starting gen of any
- * new data is (DT_u32)(0). Which is fine and valid assumption. So we just
- * typecast the DT_size indices to u64 for just conventional correctivity in 32
- * bit systems.
+ * This will be used to dismantle the ids we dispatch, and also the id_layer's
+ * val, since it is also packed in the same way.
  */
-#define INIT_ID_LAYER_VAL(data_i) ((DT_u64)(data_i))
-// This will esentially isolate the Bit 32-63 of id_layer_val which is the gen.
-#define CREATE_ID(id_layer_val, id_layer_i)                                    \
-    ((0XFFFFFFFF00000000ULL & (id_layer_val)) | (id_layer_i))
+#define UNPACK_GEN_INDEX_PACKING(packed, index, gen)                           \
+    do {                                                                       \
+        (index) = (DT_u32)((packed) & ((DT_u64)0xFFFFFFFF));                   \
+        (gen) = (DT_u32)((packed) >> 32);                                      \
+    } while (0)
+
+#define PACK_GEN_INDEX(index, gen, packed)                                     \
+    do {                                                                       \
+        (packed) = ((((DT_u64)~0 & gen) << 32) | index);                       \
+    } while (0)
+
+// By convention the gen of a new slot is 0.
+#define NEW_ID_LAYER_VAL ((DT_u64)CORE_INVALID_INDEX);
 
 #define ID_MGR_INIT_ERROR_CHECK(x)                                             \
     do {                                                                       \
@@ -61,6 +73,9 @@ struct _IdMgr {
             return DT_null;                                                    \
         }                                                                      \
     } while (0);
+
+static inline DT_bool IsIdValid(CORE_IdMgr *id_mgr, CORE_Id id,
+                                PRP_FnCode *pId_type, DT_u32 *pData_i);
 
 PRP_FN_API CORE_IdMgr *PRP_FN_CALL CORE_IdMgrCreate(
     DT_size data_size, PRP_FnCode (*data_del_cb)(DT_void *data_entry)) {
@@ -92,7 +107,7 @@ PRP_FN_API CORE_IdMgr *PRP_FN_CALL CORE_IdMgrCreate(
     id_mgr->data_del_cb = data_del_cb;
 
     // These can't fail.
-    DT_u64 x = INVALID_ID_LAYER_VAL;
+    DT_u64 x = NEW_ID_LAYER_VAL;
     DT_BffrSetRange(id_mgr->id_layer, 0, data_cap, &x);
     DT_BitmapSetRange(id_mgr->free_id_slots, 0, data_cap);
 
@@ -125,16 +140,102 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL CORE_IdMgrDelete(CORE_IdMgr **pId_mgr) {
     return PRP_FN_SUCCESS;
 }
 
-PRP_FN_API DT_u32 PRP_FN_CALL CORE_IdToIndex(CORE_IdMgr *id_mgr, CORE_Id id);
-PRP_FN_API DT_void *PRP_FN_CALL CORE_IdToData(CORE_IdMgr *id_mgr, CORE_Id id);
+static inline DT_bool IsIdValid(CORE_IdMgr *id_mgr, CORE_Id id,
+                                PRP_FnCode *pId_code, DT_u32 *pData_i) {
+    DT_u32 id_i, id_gen;
+    UNPACK_GEN_INDEX_PACKING(id, id_i, id_gen);
+    if (id_i >= DT_BffrCap(id_mgr->id_layer)) {
+        *pId_code = PRP_FN_OOB_ERROR;
+        PRP_LOG_FN_CODE(
+            *pId_code,
+            "Given id is not possible to be dispatched through valid means.");
+        return DT_false;
+    }
+
+    DT_u64 *pId_val = DT_BffrGet(id_mgr->id_layer, id_i);
+    DT_u32 slot_gen;
+    UNPACK_GEN_INDEX_PACKING(*pId_val, *pData_i, slot_gen);
+    if (id_gen != slot_gen || *pData_i >= DT_ArrLen(id_mgr->data)) {
+        *pId_code = PRP_FN_UAF_ERROR;
+        PRP_LOG_FN_CODE(*pId_code,
+                        "Given id has already been freed, stale id detected.");
+        return DT_false;
+    }
+    *pId_code = PRP_FN_SUCCESS;
+
+    return DT_true;
+}
+
+PRP_FN_API DT_u32 PRP_FN_CALL CORE_IdToIndex(CORE_IdMgr *id_mgr, CORE_Id id) {
+    PRP_NULL_ARG_CHECK(id_mgr, PRP_FN_INV_ARG_ERROR);
+    PRP_FnCode code;
+    DT_u32 data_i;
+    if (!IsIdValid(id_mgr, id, &code, &data_i)) {
+        return code;
+    }
+
+    return data_i;
+}
+
+PRP_FN_API DT_void *PRP_FN_CALL CORE_IdToData(CORE_IdMgr *id_mgr, CORE_Id id) {
+    PRP_NULL_ARG_CHECK(id_mgr, DT_null);
+    PRP_FnCode code;
+    DT_u32 data_i;
+    if (!IsIdValid(id_mgr, id, &code, &data_i)) {
+        return DT_null;
+    }
+    (void)code;
+
+    return DT_ArrGet(id_mgr->data, data_i);
+}
+
 PRP_FN_API PRP_FnCode PRP_FN_CALL CORE_IdIsValid(CORE_IdMgr *id_mgr, CORE_Id id,
-                                                 DT_bool *pRslt);
+                                                 DT_bool *pRslt) {
+    PRP_NULL_ARG_CHECK(id_mgr, PRP_FN_INV_ARG_ERROR);
+    PRP_NULL_ARG_CHECK(pRslt, PRP_FN_INV_ARG_ERROR);
+
+    PRP_FnCode code;
+    DT_u32 data_i;
+    *pRslt = IsIdValid(id_mgr, id, &code, &data_i);
+    (void)code;
+    (void)data_i;
+
+    return PRP_FN_SUCCESS;
+}
+
 PRP_FN_API CORE_Id PRP_FN_CALL CORE_IdMgrAddData(CORE_IdMgr *id_mgr,
-                                                 DT_void *data);
-PRP_FN_API PRP_FnCode PRP_FN_CALL CORE_IdMgrReserve(CORE_IdMgr *id_mgr,
-                                                    DT_u32 count);
+                                                 DT_void *data) {
+    PRP_NULL_ARG_CHECK(id_mgr, PRP_FN_INV_ARG_ERROR);
+    PRP_NULL_ARG_CHECK(data, PRP_FN_INV_ARG_ERROR);
+
+    return PRP_FN_SUCCESS;
+}
+
 PRP_FN_API PRP_FnCode PRP_FN_CALL CORE_IdMgrDeleteData(CORE_IdMgr *id_mgr,
-                                                       CORE_Id *pId);
+                                                       CORE_Id *pId) {
+    PRP_NULL_ARG_CHECK(id_mgr, PRP_FN_INV_ARG_ERROR);
+    PRP_NULL_ARG_CHECK(pId, PRP_FN_INV_ARG_ERROR);
+    CORE_Id id = *pId;
+    PRP_FnCode code;
+    DT_u32 data_i;
+    if (!IsIdValid(id_mgr, id, &code, &data_i)) {
+        return code;
+    }
+
+    return PRP_FN_SUCCESS;
+}
+
+PRP_FN_API PRP_FnCode PRP_FN_CALL CORE_IdMgrReserve(CORE_IdMgr *id_mgr,
+                                                    DT_u32 count) {
+    PRP_NULL_ARG_CHECK(id_mgr, PRP_FN_INV_ARG_ERROR);
+    if (!count) {
+        PRP_LOG_FN_CODE(PRP_FN_INV_ARG_ERROR,
+                        "Cannot reserve 0 members in CORE_IdMgr.");
+        return PRP_FN_INV_ARG_ERROR;
+    }
+
+    return PRP_FN_SUCCESS;
+}
 
 PRP_FN_API PRP_FnCode PRP_FN_CALL CORE_IdMgrShrinkFit(CORE_IdMgr *id_mgr) {
     PRP_NULL_ARG_CHECK(id_mgr, PRP_FN_INV_ARG_ERROR);
