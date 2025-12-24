@@ -237,12 +237,12 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL CORE_IdMgrReserve(CORE_IdMgr *id_mgr,
     return PRP_FN_SUCCESS;
 }
 
-PRP_FN_API PRP_FnCode PRP_FN_CALL CORE_IdMgrShrinkFit(CORE_IdMgr *id_mgr) {
-    PRP_NULL_ARG_CHECK(id_mgr, PRP_FN_INV_ARG_ERROR);
+// PRP_FN_API PRP_FnCode PRP_FN_CALL CORE_IdMgrShrinkFit(CORE_IdMgr *id_mgr) {
+//     PRP_NULL_ARG_CHECK(id_mgr, PRP_FN_INV_ARG_ERROR);
 
-    // We can do this since PRP_FN_SUCCESS is defined as 0.
-    return DT_ArrShrinkFit(id_mgr->data) || DT_ArrShrinkFit(id_mgr->data_layer);
-}
+//     // We can do this since PRP_FN_SUCCESS is defined as 0.
+//     return DT_ArrShrinkFit(id_mgr->data) || DT_ArrShrinkFit(id_mgr->data_layer);
+// }
 
 PRP_FN_API PRP_FnCode PRP_FN_CALL
 CORE_IdMgrForEach(CORE_IdMgr *id_mgr, PRP_FnCode (*cb)(DT_void *val)) {
