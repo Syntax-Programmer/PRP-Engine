@@ -48,8 +48,8 @@ struct _IdMgr {
  */
 
 /*
- * This will be used to dismantle the ids we dispatch, and also the id_layer's
- * val, since it is also packed in the same way.
+ * This will be used to pack and unpack the ids we dispatch, and also the
+ * id_layer's val, since it is also packed in the same way.
  */
 #define UNPACK_GEN_INDEX_PACKING(packed, index, gen)                           \
     do {                                                                       \
@@ -65,6 +65,30 @@ struct _IdMgr {
 // By convention the gen of a new slot is 0.
 #define NEW_ID_LAYER_VAL ((DT_u64)CORE_INVALID_INDEX);
 
+/*
+ * This is returned by the IsIdValid function that gives all the info about the
+ * id for further processing.
+ */
+typedef struct {
+    DT_u32 id_i;
+    DT_u32 id_gen;
+    DT_u32 data_i;
+    DT_u32 slot_gen;
+    // If this is not PRP_FN_SUCCESS the id is invalid.
+    PRP_FnCode validity_code;
+} IdState;
+
+/**
+ * Fetches all of the data that an id can reveal while at the same time checking
+ * if it the id is valid or not.
+ *
+ * @param id_mgr: The id_mgr that supposedly dispatched the concerned id.
+ * @param id: The id to check validity of an get data from.
+ *
+ * @return The IdState containing all the data the id can give.
+ */
+static inline IdState GetIdData(CORE_IdMgr *id_mgr, CORE_Id id
+
 #define ID_MGR_INIT_ERROR_CHECK(x)                                             \
     do {                                                                       \
         if (!x) {                                                              \
@@ -73,9 +97,16 @@ struct _IdMgr {
             return DT_null;                                                    \
         }                                                                      \
     } while (0);
+);
 
-static inline DT_bool IsIdValid(CORE_IdMgr *id_mgr, CORE_Id id,
-                                PRP_FnCode *pId_type, DT_u32 *pData_i);
+#define ID_MGR_INIT_ERROR_CHECK(x)                                             \
+    do {                                                                       \
+        if (!x) {                                                              \
+            CORE_IdMgrDelete(&id_mgr);                                         \
+            PRP_LOG_FN_MALLOC_ERROR(x);                                        \
+            return DT_null;                                                    \
+        }                                                                      \
+    } while (0);
 
 PRP_FN_API CORE_IdMgr *PRP_FN_CALL CORE_IdMgrCreate(
     DT_size data_size, PRP_FnCode (*data_del_cb)(DT_void *data_entry)) {
@@ -140,53 +171,50 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL CORE_IdMgrDelete(CORE_IdMgr **pId_mgr) {
     return PRP_FN_SUCCESS;
 }
 
-static inline DT_bool IsIdValid(CORE_IdMgr *id_mgr, CORE_Id id,
-                                PRP_FnCode *pId_code, DT_u32 *pData_i) {
-    DT_u32 id_i, id_gen;
-    UNPACK_GEN_INDEX_PACKING(id, id_i, id_gen);
-    if (id_i >= DT_BffrCap(id_mgr->id_layer)) {
-        *pId_code = PRP_FN_OOB_ERROR;
+static inline IdState GetIdData(CORE_IdMgr *id_mgr, CORE_Id id) {
+    IdState state;
+
+    UNPACK_GEN_INDEX_PACKING(id, state.id_i, state.id_gen);
+    if (state.id_i >= DT_BffrCap(id_mgr->id_layer)) {
+        state.validity_code = PRP_FN_OOB_ERROR;
         PRP_LOG_FN_CODE(
-            *pId_code,
+            state.validity_code,
             "Given id is not possible to be dispatched through valid means.");
-        return DT_false;
+        return state;
     }
 
-    DT_u64 *pId_val = DT_BffrGet(id_mgr->id_layer, id_i);
-    DT_u32 slot_gen;
-    UNPACK_GEN_INDEX_PACKING(*pId_val, *pData_i, slot_gen);
-    if (id_gen != slot_gen || *pData_i >= DT_ArrLen(id_mgr->data)) {
-        *pId_code = PRP_FN_UAF_ERROR;
-        PRP_LOG_FN_CODE(*pId_code,
+    DT_u64 id_val = *(DT_u64 *)DT_BffrGet(id_mgr->id_layer, state.id_i);
+    UNPACK_GEN_INDEX_PACKING(id_val, state.data_i, state.slot_gen);
+    if (state.id_gen != state.slot_gen ||
+        state.data_i >= DT_ArrLen(id_mgr->data)) {
+        state.validity_code = PRP_FN_UAF_ERROR;
+        PRP_LOG_FN_CODE(state.validity_code,
                         "Given id has already been freed, stale id detected.");
-        return DT_false;
+        return state;
     }
-    *pId_code = PRP_FN_SUCCESS;
+    state.validity_code = PRP_FN_SUCCESS;
 
-    return DT_true;
+    return state;
 }
 
 PRP_FN_API DT_u32 PRP_FN_CALL CORE_IdToIndex(CORE_IdMgr *id_mgr, CORE_Id id) {
     PRP_NULL_ARG_CHECK(id_mgr, PRP_FN_INV_ARG_ERROR);
-    PRP_FnCode code;
-    DT_u32 data_i;
-    if (!IsIdValid(id_mgr, id, &code, &data_i)) {
-        return code;
+    IdState state = GetIdData(id_mgr, id);
+    if (state.validity_code != PRP_FN_SUCCESS) {
+        return state.validity_code;
     }
 
-    return data_i;
+    return state.data_i;
 }
 
 PRP_FN_API DT_void *PRP_FN_CALL CORE_IdToData(CORE_IdMgr *id_mgr, CORE_Id id) {
     PRP_NULL_ARG_CHECK(id_mgr, DT_null);
-    PRP_FnCode code;
-    DT_u32 data_i;
-    if (!IsIdValid(id_mgr, id, &code, &data_i)) {
+    IdState state = GetIdData(id_mgr, id);
+    if (state.validity_code != PRP_FN_SUCCESS) {
         return DT_null;
     }
-    (void)code;
 
-    return DT_ArrGet(id_mgr->data, data_i);
+    return DT_ArrGet(id_mgr->data, state.data_i);
 }
 
 PRP_FN_API PRP_FnCode PRP_FN_CALL CORE_IdIsValid(CORE_IdMgr *id_mgr, CORE_Id id,
@@ -194,11 +222,12 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL CORE_IdIsValid(CORE_IdMgr *id_mgr, CORE_Id id,
     PRP_NULL_ARG_CHECK(id_mgr, PRP_FN_INV_ARG_ERROR);
     PRP_NULL_ARG_CHECK(pRslt, PRP_FN_INV_ARG_ERROR);
 
-    PRP_FnCode code;
-    DT_u32 data_i;
-    *pRslt = IsIdValid(id_mgr, id, &code, &data_i);
-    (void)code;
-    (void)data_i;
+    IdState state = GetIdData(id_mgr, id);
+    if (state.validity_code == PRP_FN_SUCCESS) {
+        *pRslt = DT_true;
+    } else {
+        *pRslt = DT_false;
+    }
 
     return PRP_FN_SUCCESS;
 }
@@ -215,11 +244,9 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL CORE_IdMgrDeleteData(CORE_IdMgr *id_mgr,
                                                        CORE_Id *pId) {
     PRP_NULL_ARG_CHECK(id_mgr, PRP_FN_INV_ARG_ERROR);
     PRP_NULL_ARG_CHECK(pId, PRP_FN_INV_ARG_ERROR);
-    CORE_Id id = *pId;
-    PRP_FnCode code;
-    DT_u32 data_i;
-    if (!IsIdValid(id_mgr, id, &code, &data_i)) {
-        return code;
+    IdState state = GetIdData(id_mgr, *pId);
+    if (state.validity_code != PRP_FN_SUCCESS) {
+        return state.validity_code;
     }
 
     return PRP_FN_SUCCESS;
