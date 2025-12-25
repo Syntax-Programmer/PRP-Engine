@@ -6,7 +6,7 @@
 struct _IdMgr {
     /*
      * The buffer of the data that is being represented by the id. This is a
-     * densly packed buffer and the indices are unstable in it.
+     * densely packed buffer and the indices are unstable in it.
      */
     DT_Bffr *data;
     /*
@@ -16,7 +16,7 @@ struct _IdMgr {
      */
     DT_Bffr *data_layer;
     /*
-     * This is used to densly pack the data and data_layer arrays for better
+     * This is used to densely pack the data and data_layer arrays for better
      * cache local iteration.
      */
     DT_u32 len;
@@ -45,7 +45,7 @@ struct _IdMgr {
 
     /*
      * The capacity of all the buffers and the bit cap of the bitmap is kept the
-     * same to maintain correctness of the id_mgr and its very convinent.
+     * same to maintain correctness of the id_mgr and its very convenient.
      *
      * The reason why we use bffr even for data and data_layer instead of arr
      * for dense packing is due to the need of keeping caps consistent across
@@ -60,20 +60,15 @@ struct _IdMgr {
  * check and similarly if the gens match the data index is surely valid.
  */
 
-/*
- * This will be used to pack and unpack the ids we dispatch, and also the
- * id_layer's val, since it is also packed in the same way.
- */
+#define GET_GEN_FROM_PACKED(packed) ((DT_u32)(packed >> 32))
+#define GET_INDEX_FROM_PACKED(packed) ((DT_u32)packed)
 #define UNPACK_GEN_INDEX_PACKING(packed, index, gen)                           \
     do {                                                                       \
-        (index) = (DT_u32)((packed) & ((DT_u64)0xFFFFFFFF));                   \
-        (gen) = (DT_u32)((packed) >> 32);                                      \
+        (index) = GET_INDEX_FROM_PACKED(packed);                               \
+        (gen) = GET_GEN_FROM_PACKED(packed);                                   \
     } while (0)
 
-#define PACK_GEN_INDEX(index, gen, packed)                                     \
-    do {                                                                       \
-        (packed) = (((DT_u64)(gen) << 32) | (DT_u64)(index));                  \
-    } while (0)
+#define PACK_GEN_INDEX(index, gen) (((DT_u64)(gen) << 32) | (DT_u64)(index))
 
 // By convention the gen of a new slot is 0.
 #define NEW_ID_LAYER_VAL ((DT_u64)CORE_INVALID_INDEX);
@@ -95,12 +90,21 @@ typedef struct {
  * Fetches all of the data that an id can reveal while at the same time checking
  * if it the id is valid or not.
  *
- * @param id_mgr: The id_mgr that supposedly dispatched the concerned id.
+ * @param id_mgr: The id manager that supposedly dispatched the concerned id.
  * @param id: The id to check validity of an get data from.
  *
  * @return The IdState containing all the data the id can give.
  */
-static inline IdState GetIdData(CORE_IdMgr *id_mgr, CORE_Id id
+static inline IdState GetIdData(CORE_IdMgr *id_mgr, CORE_Id id);
+/**
+ * Grows the id_mgr maintaining same cap for each bffr. Also fills initial
+ * values for the id_layer and free_id_slots.
+ *
+ * @param id_mgr: The id manager to grow.
+ *
+ * @return PRP_FN_MALLOC_ERROR if any resizing failed, otherwise PRP_FN_SUCCESS.
+ */
+static PRP_FnCode GrowIdMgr(CORE_IdMgr *id_mgr, DT_size new_cap);
 
 #define ID_MGR_INIT_ERROR_CHECK(x)                                             \
     do {                                                                       \
@@ -110,7 +114,6 @@ static inline IdState GetIdData(CORE_IdMgr *id_mgr, CORE_Id id
             return DT_null;                                                    \
         }                                                                      \
     } while (0);
-);
 
 #define ID_MGR_INIT_ERROR_CHECK(x)                                             \
     do {                                                                       \
@@ -190,6 +193,12 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL CORE_IdMgrDelete(CORE_IdMgr **pId_mgr) {
     return PRP_FN_SUCCESS;
 }
 
+PRP_FN_API DT_u32 PRP_FN_CALL CORE_IdMgrLen(CORE_IdMgr *id_mgr) {
+    PRP_NULL_ARG_CHECK(id_mgr, CORE_INVALID_SIZE);
+
+    return id_mgr->len;
+}
+
 static inline IdState GetIdData(CORE_IdMgr *id_mgr, CORE_Id id) {
     IdState state;
 
@@ -250,10 +259,14 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL CORE_IdIsValid(CORE_IdMgr *id_mgr, CORE_Id id,
     return PRP_FN_SUCCESS;
 }
 
+static PRP_FnCode GrowIdMgr(CORE_IdMgr *id_mgr, DT_size new_cap) {
+    return PRP_FN_SUCCESS;
+}
+
 PRP_FN_API CORE_Id PRP_FN_CALL CORE_IdMgrAddData(CORE_IdMgr *id_mgr,
                                                  DT_void *data) {
-    PRP_NULL_ARG_CHECK(id_mgr, PRP_FN_INV_ARG_ERROR);
-    PRP_NULL_ARG_CHECK(data, PRP_FN_INV_ARG_ERROR);
+    PRP_NULL_ARG_CHECK(id_mgr, CORE_INVALID_ID);
+    PRP_NULL_ARG_CHECK(data, CORE_INVALID_ID);
 
     if (id_mgr->len == (DT_u32)~0) {
         PRP_LOG_FN_CODE(PRP_FN_RES_EXHAUSTED_ERROR,
@@ -261,14 +274,38 @@ PRP_FN_API CORE_Id PRP_FN_CALL CORE_IdMgrAddData(CORE_IdMgr *id_mgr,
                         "has been reached.");
         return PRP_FN_RES_EXHAUSTED_ERROR;
     }
-    if (!DT_BitmapSetCount(id_mgr->free_id_slots)) {
-        // Grow the bitmap and bffr.
-        /*
-         *
-         */
+    /*
+     * Doubling the cap is the std behavior, and we can do it by the len * 2,
+     * since if set count is 0 we are sure len == cap is also true.
+     */
+    if (!DT_BitmapSetCount(id_mgr->free_id_slots) &&
+        GrowIdMgr(id_mgr, id_mgr->len * 2) != PRP_FN_SUCCESS) {
+        PRP_LOG_FN_CODE(PRP_FN_RES_EXHAUSTED_ERROR,
+                        "Cannot add any more elements to the CORE_IdMgr due to "
+                        "memory limitations.");
+        return PRP_FN_RES_EXHAUSTED_ERROR;
     }
 
-    return PRP_FN_SUCCESS;
+    // Since the grow above didn't fail, everything below can't fail ever.
+    // Get free id_layer index.
+    DT_u32 id_i = DT_BitmapFFS(id_mgr->free_id_slots);
+
+    // Mark it as in use.
+    DT_BitmapClr(id_mgr->free_id_slots, id_i);
+
+    // Update the data_i of the id_val at id_i index.
+    DT_u64 id_val = *(DT_u64 *)DT_BffrGet(id_mgr->id_layer, id_i);
+    // Data index is len++ since the data arr is densly packed.
+    DT_u32 data_i = id_mgr->len++, gen = GET_GEN_FROM_PACKED(id_val);
+    id_val = PACK_GEN_INDEX(data_i, gen);
+    DT_BffrSet(id_mgr->id_layer, id_i, &id_val);
+
+    // Sets the data and reverse indices.
+    DT_BffrSet(id_mgr->data_layer, data_i, &id_i);
+    DT_BffrSet(id_mgr->data, data_i, data);
+
+    // Crafts the id.
+    return (CORE_Id)PACK_GEN_INDEX(id_i, gen);
 }
 
 PRP_FN_API PRP_FnCode PRP_FN_CALL CORE_IdMgrDeleteData(CORE_IdMgr *id_mgr,
@@ -279,6 +316,35 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL CORE_IdMgrDeleteData(CORE_IdMgr *id_mgr,
     if (state.validity_code != PRP_FN_SUCCESS) {
         return state.validity_code;
     }
+
+    // Marking the slot to be free.
+    DT_BitmapSet(id_mgr->free_id_slots, state.id_i);
+    // Incrementing the gen and setting invalid data index to id_i.
+    DT_u64 id_val = PACK_GEN_INDEX(CORE_INVALID_INDEX, ++state.slot_gen);
+    DT_BffrSet(id_mgr->id_layer, state.id_i, &id_val);
+
+    if (id_mgr->data_del_cb) {
+        id_mgr->data_del_cb(DT_BffrGet(id_mgr->data, state.data_i));
+    }
+
+    DT_size last_i = --id_mgr->len;
+    if (state.data_i != last_i) {
+        // data of the last element in the dense buffer.
+        DT_u32 id_i = *(DT_u32 *)DT_BffrGet(id_mgr->data_layer, last_i);
+
+        // Repacking the dense buffers.
+        DT_BffrSwap(id_mgr->data, state.data_i, last_i);
+        DT_BffrSwap(id_mgr->data_layer, state.data_i, last_i);
+
+        // Updating the id_layer val of the last elemnt that was moved.
+        id_val = *(DT_u64 *)DT_BffrGet(id_mgr->id_layer, id_i);
+        DT_u32 gen = GET_GEN_FROM_PACKED(id_val);
+        id_val = PACK_GEN_INDEX(state.data_i, gen);
+        DT_BffrSet(id_mgr->id_layer, id_i, &id_val);
+    }
+
+    // Invalidating the otiginal ptr.
+    *pId = CORE_INVALID_ID;
 
     return PRP_FN_SUCCESS;
 }
@@ -292,7 +358,18 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL CORE_IdMgrReserve(CORE_IdMgr *id_mgr,
         return PRP_FN_INV_ARG_ERROR;
     }
 
-    return PRP_FN_SUCCESS;
+    if (count > ((DT_u32)~0 - id_mgr->len)) {
+        PRP_LOG_FN_CODE(PRP_FN_RES_EXHAUSTED_ERROR,
+                        "Cannot reserve %u elements into the CORE_IdMgr "
+                        "because it exceeds max capacity of CORE_IdMgr.",
+                        count);
+        return PRP_FN_RES_EXHAUSTED_ERROR;
+    }
+
+    DT_size new_cap = DT_BffrCap(id_mgr->data) +
+                      (count - DT_BitmapSetCount(id_mgr->free_id_slots));
+
+    return GrowIdMgr(id_mgr, new_cap);
 }
 
 // PRP_FN_API PRP_FnCode PRP_FN_CALL CORE_IdMgrShrinkFit(CORE_IdMgr *id_mgr) {
