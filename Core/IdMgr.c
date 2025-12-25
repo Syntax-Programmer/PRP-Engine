@@ -1,21 +1,25 @@
 #include "IdMgr.h"
-#include "../Data-Types/Arr.h"
 #include "../Data-Types/Bffr.h"
 #include "../Data-Types/Bitmap.h"
 #include "../Utils/Logger.h"
 
 struct _IdMgr {
     /*
-     * The array of the data that is being represented by the id. This is a
-     * dense array and the indices are unstable in it.
+     * The buffer of the data that is being represented by the id. This is a
+     * densly packed buffer and the indices are unstable in it.
      */
-    DT_Arr *data;
+    DT_Bffr *data;
     /*
-     * An arr of u32, in sync with the data array that tells which id_layer
+     * An buffer of u32, in sync with the data buffer that tells which id_layer
      * index manages the data index. This is reverse mapping to repack the data
-     * array after data is freed.
+     * buffer after data is freed.
      */
-    DT_Arr *data_layer;
+    DT_Bffr *data_layer;
+    /*
+     * This is used to densly pack the data and data_layer arrays for better
+     * cache local iteration.
+     */
+    DT_u32 len;
     /*
      * An buffer of u64s that is used in a way like:
      * The ids dispatched are index into this buffer. This buffer acts a
@@ -38,6 +42,15 @@ struct _IdMgr {
      * allocations.
      */
     PRP_FnCode (*data_del_cb)(DT_void *data_entry);
+
+    /*
+     * The capacity of all the buffers and the bit cap of the bitmap is kept the
+     * same to maintain correctness of the id_mgr and its very convinent.
+     *
+     * The reason why we use bffr even for data and data_layer instead of arr
+     * for dense packing is due to the need of keeping caps consistent across
+     * everything.
+     */
 };
 
 /*
@@ -121,26 +134,27 @@ PRP_FN_API CORE_IdMgr *PRP_FN_CALL CORE_IdMgrCreate(
         PRP_LOG_FN_MALLOC_ERROR(id_mgr);
         return DT_null;
     }
-    id_mgr->data = DT_ArrCreateDefault(data_size);
+    id_mgr->data = DT_BffrCreateDefault(data_size);
     ID_MGR_INIT_ERROR_CHECK(id_mgr->data);
 
-    id_mgr->data_layer = DT_ArrCreateDefault(sizeof(DT_u32));
+    id_mgr->data_layer = DT_BffrCreateDefault(sizeof(DT_u32));
     ID_MGR_INIT_ERROR_CHECK(id_mgr->data_layer);
 
-    DT_size data_cap = DT_ArrCap(id_mgr->data);
-
-    id_mgr->id_layer = DT_BffrCreate(sizeof(DT_u64), data_cap);
+    id_mgr->id_layer = DT_BffrCreateDefault(sizeof(DT_u64));
     ID_MGR_INIT_ERROR_CHECK(id_mgr->id_layer);
 
-    id_mgr->free_id_slots = DT_BitmapCreate(data_cap);
+    DT_size cap = DT_BffrCap(id_mgr->data);
+
+    id_mgr->free_id_slots = DT_BitmapCreate(cap);
     ID_MGR_INIT_ERROR_CHECK(id_mgr->free_id_slots);
 
     id_mgr->data_del_cb = data_del_cb;
+    id_mgr->len = 0;
 
     // These can't fail.
     DT_u64 x = NEW_ID_LAYER_VAL;
-    DT_BffrSetRange(id_mgr->id_layer, 0, data_cap, &x);
-    DT_BitmapSetRange(id_mgr->free_id_slots, 0, data_cap);
+    DT_BffrSetRange(id_mgr->id_layer, 0, cap, &x);
+    DT_BitmapSetRange(id_mgr->free_id_slots, 0, cap);
 
     return id_mgr;
 }
@@ -152,12 +166,17 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL CORE_IdMgrDelete(CORE_IdMgr **pId_mgr) {
 
     if (id_mgr->data) {
         if (id_mgr->data_del_cb) {
-            DT_ArrForEach(id_mgr->data, id_mgr->data_del_cb);
+            DT_size cap, memb_size = DT_BffrMembSize(id_mgr->data);
+            DT_u8 *ptr = DT_BffrRaw(id_mgr->data, &cap);
+            for (DT_size i = 0; i < cap; i++) {
+                id_mgr->data_del_cb(ptr);
+                ptr += memb_size;
+            }
         }
-        DT_ArrDelete(&id_mgr->data);
+        DT_BffrDelete(&id_mgr->data);
     }
     if (id_mgr->data_layer) {
-        DT_ArrDelete(&id_mgr->data_layer);
+        DT_BffrDelete(&id_mgr->data_layer);
     }
     if (id_mgr->id_layer) {
         DT_BffrDelete(&id_mgr->id_layer);
@@ -185,8 +204,7 @@ static inline IdState GetIdData(CORE_IdMgr *id_mgr, CORE_Id id) {
 
     DT_u64 id_val = *(DT_u64 *)DT_BffrGet(id_mgr->id_layer, state.id_i);
     UNPACK_GEN_INDEX_PACKING(id_val, state.data_i, state.slot_gen);
-    if (state.id_gen != state.slot_gen ||
-        state.data_i >= DT_ArrLen(id_mgr->data)) {
+    if (state.id_gen != state.slot_gen || state.data_i >= id_mgr->len) {
         state.validity_code = PRP_FN_UAF_ERROR;
         PRP_LOG_FN_CODE(state.validity_code,
                         "Given id has already been freed, stale id detected.");
@@ -214,7 +232,7 @@ PRP_FN_API DT_void *PRP_FN_CALL CORE_IdToData(CORE_IdMgr *id_mgr, CORE_Id id) {
         return DT_null;
     }
 
-    return DT_ArrGet(id_mgr->data, state.data_i);
+    return DT_BffrGet(id_mgr->data, state.data_i);
 }
 
 PRP_FN_API PRP_FnCode PRP_FN_CALL CORE_IdIsValid(CORE_IdMgr *id_mgr, CORE_Id id,
@@ -236,6 +254,19 @@ PRP_FN_API CORE_Id PRP_FN_CALL CORE_IdMgrAddData(CORE_IdMgr *id_mgr,
                                                  DT_void *data) {
     PRP_NULL_ARG_CHECK(id_mgr, PRP_FN_INV_ARG_ERROR);
     PRP_NULL_ARG_CHECK(data, PRP_FN_INV_ARG_ERROR);
+
+    if (id_mgr->len == (DT_u32)~0) {
+        PRP_LOG_FN_CODE(PRP_FN_RES_EXHAUSTED_ERROR,
+                        "The max capacity of elements a CORE_IdMgr can managed "
+                        "has been reached.");
+        return PRP_FN_RES_EXHAUSTED_ERROR;
+    }
+    if (!DT_BitmapSetCount(id_mgr->free_id_slots)) {
+        // Grow the bitmap and bffr.
+        /*
+         *
+         */
+    }
 
     return PRP_FN_SUCCESS;
 }
@@ -277,7 +308,12 @@ CORE_IdMgrForEach(CORE_IdMgr *id_mgr, PRP_FnCode (*cb)(DT_void *val)) {
     PRP_NULL_ARG_CHECK(id_mgr, PRP_FN_INV_ARG_ERROR);
     PRP_NULL_ARG_CHECK(cb, PRP_FN_INV_ARG_ERROR);
 
-    DT_ArrForEach(id_mgr->data, cb);
+    DT_size cap, memb_size = DT_BffrMembSize(id_mgr->data);
+    DT_u8 *ptr = DT_BffrRaw(id_mgr->data, &cap);
+    for (DT_size i = 0; i < cap; i++) {
+        cb(ptr);
+        ptr += memb_size;
+    }
 
     return PRP_FN_SUCCESS;
 }
