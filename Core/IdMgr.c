@@ -198,10 +198,10 @@ static inline IdState GetIdData(CORE_IdMgr *id_mgr, CORE_Id id) {
 }
 
 PRP_FN_API DT_u32 PRP_FN_CALL CORE_IdToIndex(CORE_IdMgr *id_mgr, CORE_Id id) {
-    PRP_NULL_ARG_CHECK(id_mgr, PRP_FN_INV_ARG_ERROR);
+    PRP_NULL_ARG_CHECK(id_mgr, CORE_INVALID_INDEX);
     IdState state = GetIdData(id_mgr, id);
     if (state.validity_code != PRP_FN_SUCCESS) {
-        return state.validity_code;
+        return CORE_INVALID_INDEX;
     }
 
     return state.data_i;
