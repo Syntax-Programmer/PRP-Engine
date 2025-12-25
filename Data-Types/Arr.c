@@ -7,6 +7,8 @@ struct _Arr {
     DT_size len;
     DT_size memb_size;
     DT_u8 *mem;
+    // A sep bffr allocated so that any misc op can use it just in case safely.
+    DT_u8 *elem_bffr;
 };
 
 #define DEFAULT_ARR_CAP (16)
@@ -61,6 +63,13 @@ PRP_FN_API DT_Arr *PRP_FN_CALL DT_ArrCreate(DT_size memb_size, DT_size cap) {
         PRP_LOG_FN_MALLOC_ERROR(arr->mem);
         return DT_null;
     }
+    arr->elem_bffr = malloc(memb_size);
+    if (!arr->elem_bffr) {
+        free(arr->mem);
+        free(arr);
+        PRP_LOG_FN_MALLOC_ERROR(arr->mem);
+        return DT_null;
+    }
     arr->memb_size = memb_size;
     arr->cap = cap;
     arr->len = 0;
@@ -94,6 +103,10 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrDelete(DT_Arr **pArr) {
     if (arr->mem) {
         free(arr->mem);
         arr->mem = DT_null;
+    }
+    if (arr->elem_bffr) {
+        free(arr->elem_bffr);
+        arr->elem_bffr = DT_null;
     }
     arr->cap = arr->len = arr->memb_size = 0;
     free(arr);
@@ -290,6 +303,29 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrExtend(DT_Arr *arr1, DT_Arr *arr2) {
            arr2->len * arr2->memb_size);
     arr1->mem = mem;
     arr1->len = arr1->cap = new_cap;
+
+    return PRP_FN_SUCCESS;
+}
+
+PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrSwap(DT_Arr *arr, DT_size i,
+                                             DT_size j) {
+    PRP_NULL_ARG_CHECK(arr, PRP_FN_INV_ARG_ERROR);
+    if (i >= arr->len || j >= arr->len) {
+        PRP_LOG_FN_CODE(PRP_FN_OOB_ERROR,
+                        "Tried accessing the array indices: %zu-%zu, of an "
+                        "array with len: %zu",
+                        i, j, arr->len);
+        return PRP_FN_OOB_ERROR;
+    }
+    if (i == j) {
+        return PRP_FN_SUCCESS;
+    }
+
+    DT_u8 *i_elem = arr->mem + (i * arr->memb_size);
+    DT_u8 *j_elem = arr->mem + (j * arr->memb_size);
+    memcpy(arr->elem_bffr, i_elem, arr->memb_size);
+    memcpy(i_elem, j_elem, arr->memb_size);
+    memcpy(j_elem, arr->elem_bffr, arr->memb_size);
 
     return PRP_FN_SUCCESS;
 }

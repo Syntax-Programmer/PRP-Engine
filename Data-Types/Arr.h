@@ -208,6 +208,17 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrCmp(DT_Arr *arr1, DT_Arr *arr2,
  */
 PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrExtend(DT_Arr *arr1, DT_Arr *arr2);
 /**
+ * Swaps the elements of the given two indices.
+ *
+ * @param arr: The array to operate on.
+ * @param i: The first index.
+ * @param j: The second index.
+ *
+ * @return PRP_FN_INV_ARG_ERROR if the parameters are invalid in any way,
+ * PRP_FN_OOB_ERROR if the indices are out of bound, otherwise PRP_FN_SUCCESS.
+ */
+PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrSwap(DT_Arr *arr, DT_size i, DT_size j);
+/**
  * Resets the array to make it behave like a brand new array.
  *
  * @param arr: The array to reset.
