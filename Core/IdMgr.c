@@ -59,7 +59,7 @@ struct _IdMgr {
 
 #define PACK_GEN_INDEX(index, gen, packed)                                     \
     do {                                                                       \
-        (packed) = ((((DT_u64)~0 & gen) << 32) | index);                       \
+        (packed) = (((DT_u64)(gen) << 32) | (DT_u64)(index));                  \
     } while (0)
 
 // By convention the gen of a new slot is 0.
@@ -241,7 +241,8 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL CORE_IdMgrReserve(CORE_IdMgr *id_mgr,
 //     PRP_NULL_ARG_CHECK(id_mgr, PRP_FN_INV_ARG_ERROR);
 
 //     // We can do this since PRP_FN_SUCCESS is defined as 0.
-//     return DT_ArrShrinkFit(id_mgr->data) || DT_ArrShrinkFit(id_mgr->data_layer);
+//     return DT_ArrShrinkFit(id_mgr->data) ||
+//     DT_ArrShrinkFit(id_mgr->data_layer);
 // }
 
 PRP_FN_API PRP_FnCode PRP_FN_CALL
