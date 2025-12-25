@@ -67,7 +67,7 @@ PRP_FN_API DT_Arr *PRP_FN_CALL DT_ArrCreate(DT_size memb_size, DT_size cap) {
     if (!arr->elem_bffr) {
         free(arr->mem);
         free(arr);
-        PRP_LOG_FN_MALLOC_ERROR(arr->mem);
+        PRP_LOG_FN_MALLOC_ERROR(arr->elem_bffr);
         return DT_null;
     }
     arr->memb_size = memb_size;

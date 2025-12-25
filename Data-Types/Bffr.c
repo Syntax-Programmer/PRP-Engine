@@ -1,11 +1,15 @@
 #include "Bffr.h"
 #include "../Utils/Logger.h"
+#include "Typedefs.h"
+#include <cstdlib>
 #include <string.h>
 
 struct _Bffr {
     DT_size cap;
     DT_size memb_size;
     DT_u8 *mem;
+    // A sep bffr allocated so that any misc op can use it just in case safely.
+    DT_u8 *elem_bffr;
 };
 
 #define DEFAULT_BFFR_CAP (16)
@@ -29,6 +33,13 @@ PRP_FN_API DT_Bffr *PRP_FN_CALL DT_BffrCreate(DT_size memb_size, DT_size cap) {
     if (!bffr->mem) {
         free(bffr);
         PRP_LOG_FN_MALLOC_ERROR(bffr->mem);
+        return DT_null;
+    }
+    bffr->elem_bffr = malloc(memb_size);
+    if (!bffr->elem_bffr) {
+        free(bffr->mem);
+        free(bffr);
+        PRP_LOG_FN_MALLOC_ERROR(bffr->elem_bffr);
         return DT_null;
     }
     bffr->memb_size = memb_size;
@@ -62,6 +73,10 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BffrDelete(DT_Bffr **pBffr) {
     if (bffr->mem) {
         free(bffr->mem);
         bffr->mem = DT_null;
+    }
+    if (bffr->elem_bffr) {
+        free(bffr->elem_bffr);
+        bffr->elem_bffr = DT_null;
     }
     bffr->memb_size = bffr->cap = 0;
     free(bffr);
@@ -202,6 +217,29 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BffrExtend(DT_Bffr *bffr1,
            bffr2->cap * bffr2->memb_size);
     bffr1->mem = mem;
     bffr1->cap += bffr2->cap;
+
+    return PRP_FN_SUCCESS;
+}
+
+PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BffrSwap(DT_Bffr *bffr, DT_size i,
+                                              DT_size j) {
+    PRP_NULL_ARG_CHECK(bffr, PRP_FN_INV_ARG_ERROR);
+    if (i >= bffr->cap || j >= bffr->cap) {
+        PRP_LOG_FN_CODE(PRP_FN_OOB_ERROR,
+                        "Tried accessing the buffer indices: %zu-%zu, of a "
+                        "buffer with cap: %zu",
+                        i, j, bffr->cap);
+        return PRP_FN_OOB_ERROR;
+    }
+    if (i == j) {
+        return PRP_FN_SUCCESS;
+    }
+
+    DT_u8 *i_elem = bffr->mem + (i * bffr->memb_size);
+    DT_u8 *j_elem = bffr->mem + (j * bffr->memb_size);
+    memcpy(bffr->elem_bffr, i_elem, bffr->memb_size);
+    memcpy(i_elem, j_elem, bffr->memb_size);
+    memcpy(j_elem, bffr->elem_bffr, bffr->memb_size);
 
     return PRP_FN_SUCCESS;
 }

@@ -157,6 +157,18 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BffrCmp(DT_Bffr *bffr1, DT_Bffr *bffr2,
  */
 PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BffrExtend(DT_Bffr *bffr1, DT_Bffr *bffr2);
 /**
+ * Swaps the elements of the given two indices.
+ *
+ * @param bffr: The buffer to operate on.
+ * @param i: The first index.
+ * @param j: The second index.
+ *
+ * @return PRP_FN_INV_ARG_ERROR if the parameters are invalid in any way,
+ * PRP_FN_OOB_ERROR if the indices are out of bound, otherwise PRP_FN_SUCCESS.
+ */
+PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BffrSwap(DT_Bffr *bffr, DT_size i,
+                                              DT_size j);
+/**
  * Clears the buffer to 0.
  *
  * @param bffr: The buffer to reset.
