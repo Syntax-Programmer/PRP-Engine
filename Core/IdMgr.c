@@ -115,15 +115,6 @@ static PRP_FnCode GrowIdMgr(CORE_IdMgr *id_mgr, DT_size new_cap);
         }                                                                      \
     } while (0);
 
-#define ID_MGR_INIT_ERROR_CHECK(x)                                             \
-    do {                                                                       \
-        if (!x) {                                                              \
-            CORE_IdMgrDelete(&id_mgr);                                         \
-            PRP_LOG_FN_MALLOC_ERROR(x);                                        \
-            return DT_null;                                                    \
-        }                                                                      \
-    } while (0);
-
 PRP_FN_API CORE_IdMgr *PRP_FN_CALL CORE_IdMgrCreate(
     DT_size data_size, PRP_FnCode (*data_del_cb)(DT_void *data_entry)) {
     if (!data_size) {
@@ -414,7 +405,13 @@ CORE_IdMgrForEach(CORE_IdMgr *id_mgr, PRP_FnCode (*cb)(DT_void *val)) {
 
     DT_size cap, memb_size = DT_BffrMembSize(id_mgr->data);
     DT_u8 *ptr = DT_BffrRaw(id_mgr->data, &cap);
-    for (DT_size i = 0; i < cap; i++) {
+    /*
+     * We discard cap and use id_mgr->len because the data array is densly
+     * packed and iterating beyond the len is undefined behavior since we be
+     * passing garbage to the callback.
+     */
+    (void)cap;
+    for (DT_size i = 0; i < id_mgr->len; i++) {
         if (cb(ptr) != PRP_FN_SUCCESS) {
             /*
              * We don't care why the foreach was called to be terminated. There

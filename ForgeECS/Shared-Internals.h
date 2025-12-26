@@ -187,22 +187,19 @@ CORE_Id LayoutCreate(CORE_Id b_set_id);
 PRP_FnCode LayoutDelete(CORE_Id *pLayout_id);
 
 PRP_FnCode LayoutDelCb(DT_void *layout);
-DT_u64 LayoutGetSlot(CORE_Id layout_id);
-PRP_FnCode LayoutFreeSlot(CORE_Id layout_id, DT_u64 entity_id);
-PRP_FnCode LayoutIsEntityIdValid(CORE_Id layout_id, DT_u64 entity_id);
+// DT_u64 LayoutGetSlot(CORE_Id layout_id);
+// PRP_FnCode LayoutFreeSlot(CORE_Id layout_id, DT_u64 entity_id);
+// PRP_FnCode LayoutIsEntityIdValid(CORE_Id layout_id, DT_u64 entity_id);
 
 /* ----  ENTITY  ---- */
 
-typedef struct {
-    CORE_Id layout_id;
-    /*
-     * Bit 0-31: chunk_i
-     * Bit 32-39: slot
-     * Bit 40-47: gen
-     * Bit 48-63: if turned on, makes the id invalid.
-     */
-    DT_u64 entity_id;
-} FECS_EntityId;
+// typedef struct {
+//     // NEW
+//     CORE_Id layout_id;
+//     DT_size chunk_i;
+//     DT_u8 slot;
+//     DT_u8 gen;
+// } FECS_EntityId;
 
 /* ----  QUERY  ---- */
 
