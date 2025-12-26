@@ -59,7 +59,7 @@ static PRP_FnCode AddLayoutChunk(Layout *layout) {
      * Essentially initializing in a single optimized call instead of manual
      * assigning.
      *
-     * This also means starting gen of any entity is 255, nbot zero which is
+     * This also means starting gen of any entity is 255, not zero which is
      * fine since int wrap around is permitted.
      *
      *  We can use sizeof(Chunk) inthis bcuz the chunk data is a flex array memb
@@ -110,11 +110,7 @@ CORE_Id LayoutCreate(CORE_Id b_set_id) {
         DT_bool rslt;
         if (DT_BitmapCmp(existing[i].b_set, b_set, &rslt) == PRP_FN_SUCCESS &&
             rslt) {
-            /*TODO: Instead of throwing error return a valid id. */
-            PRP_LOG_FN_CODE(
-                PRP_FN_INV_ARG_ERROR,
-                "Layout with the same behavior set already exists.");
-            return CORE_INVALID_ID;
+            return CORE_DataIdxToId(g_state->layout_id_mgr, i);
         }
     }
 
