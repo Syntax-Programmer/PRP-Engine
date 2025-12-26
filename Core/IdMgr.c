@@ -260,6 +260,31 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL CORE_IdIsValid(CORE_IdMgr *id_mgr, CORE_Id id,
 }
 
 static PRP_FnCode GrowIdMgr(CORE_IdMgr *id_mgr, DT_size new_cap) {
+    DT_size old_cap = DT_BffrCap(id_mgr->data);
+
+    if (DT_BitmapChangeSize(id_mgr->free_id_slots, new_cap) != PRP_FN_SUCCESS ||
+        DT_BffrChangeSize(id_mgr->id_layer, new_cap) != PRP_FN_SUCCESS ||
+        DT_BffrChangeSize(id_mgr->data_layer, new_cap) != PRP_FN_SUCCESS ||
+        DT_BffrChangeSize(id_mgr->data, new_cap) != PRP_FN_SUCCESS) {
+        /*
+         * Trying to revert to old cap if possible since we need to maintain cap
+         * sync.
+         *
+         * If the below op also fail we can't do anything to save the mem leak
+         * about to happen.
+         */
+        DT_BitmapChangeSize(id_mgr->free_id_slots, old_cap);
+        DT_BffrChangeSize(id_mgr->id_layer, old_cap);
+        DT_BffrChangeSize(id_mgr->data_layer, old_cap);
+        DT_BffrChangeSize(id_mgr->data, old_cap);
+        return PRP_FN_MALLOC_ERROR;
+    }
+
+    // These can't fail.
+    DT_u64 x = NEW_ID_LAYER_VAL;
+    DT_BffrSetRange(id_mgr->id_layer, old_cap, new_cap, &x);
+    DT_BitmapSetRange(id_mgr->free_id_slots, old_cap, new_cap);
+
     return PRP_FN_SUCCESS;
 }
 
@@ -272,18 +297,18 @@ PRP_FN_API CORE_Id PRP_FN_CALL CORE_IdMgrAddData(CORE_IdMgr *id_mgr,
         PRP_LOG_FN_CODE(PRP_FN_RES_EXHAUSTED_ERROR,
                         "The max capacity of elements a CORE_IdMgr can managed "
                         "has been reached.");
-        return PRP_FN_RES_EXHAUSTED_ERROR;
+        return CORE_INVALID_ID;
     }
     /*
      * Doubling the cap is the std behavior, and we can do it by the len * 2,
      * since if set count is 0 we are sure len == cap is also true.
      */
     if (!DT_BitmapSetCount(id_mgr->free_id_slots) &&
-        GrowIdMgr(id_mgr, id_mgr->len * 2) != PRP_FN_SUCCESS) {
+        GrowIdMgr(id_mgr, DT_BffrCap(id_mgr->data) * 2) != PRP_FN_SUCCESS) {
         PRP_LOG_FN_CODE(PRP_FN_RES_EXHAUSTED_ERROR,
                         "Cannot add any more elements to the CORE_IdMgr due to "
                         "memory limitations.");
-        return PRP_FN_RES_EXHAUSTED_ERROR;
+        return CORE_INVALID_ID;
     }
 
     // Since the grow above didn't fail, everything below can't fail ever.
@@ -295,7 +320,7 @@ PRP_FN_API CORE_Id PRP_FN_CALL CORE_IdMgrAddData(CORE_IdMgr *id_mgr,
 
     // Update the data_i of the id_val at id_i index.
     DT_u64 id_val = *(DT_u64 *)DT_BffrGet(id_mgr->id_layer, id_i);
-    // Data index is len++ since the data arr is densly packed.
+    // Data index is len++ since the data arr is densely packed.
     DT_u32 data_i = id_mgr->len++, gen = GET_GEN_FROM_PACKED(id_val);
     id_val = PACK_GEN_INDEX(data_i, gen);
     DT_BffrSet(id_mgr->id_layer, id_i, &id_val);
@@ -336,14 +361,14 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL CORE_IdMgrDeleteData(CORE_IdMgr *id_mgr,
         DT_BffrSwap(id_mgr->data, state.data_i, last_i);
         DT_BffrSwap(id_mgr->data_layer, state.data_i, last_i);
 
-        // Updating the id_layer val of the last elemnt that was moved.
+        // Updating the id_layer val of the last element that was moved.
         id_val = *(DT_u64 *)DT_BffrGet(id_mgr->id_layer, id_i);
         DT_u32 gen = GET_GEN_FROM_PACKED(id_val);
         id_val = PACK_GEN_INDEX(state.data_i, gen);
         DT_BffrSet(id_mgr->id_layer, id_i, &id_val);
     }
 
-    // Invalidating the otiginal ptr.
+    // Invalidating the original ptr.
     *pId = CORE_INVALID_ID;
 
     return PRP_FN_SUCCESS;
@@ -365,9 +390,11 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL CORE_IdMgrReserve(CORE_IdMgr *id_mgr,
                         count);
         return PRP_FN_RES_EXHAUSTED_ERROR;
     }
-
-    DT_size new_cap = DT_BffrCap(id_mgr->data) +
-                      (count - DT_BitmapSetCount(id_mgr->free_id_slots));
+    DT_size free_slots = DT_BitmapSetCount(id_mgr->free_id_slots);
+    if (count <= free_slots) {
+        return PRP_FN_SUCCESS;
+    }
+    DT_size new_cap = DT_BffrCap(id_mgr->data) + (count - free_slots);
 
     return GrowIdMgr(id_mgr, new_cap);
 }
@@ -388,7 +415,14 @@ CORE_IdMgrForEach(CORE_IdMgr *id_mgr, PRP_FnCode (*cb)(DT_void *val)) {
     DT_size cap, memb_size = DT_BffrMembSize(id_mgr->data);
     DT_u8 *ptr = DT_BffrRaw(id_mgr->data, &cap);
     for (DT_size i = 0; i < cap; i++) {
-        cb(ptr);
+        if (cb(ptr) != PRP_FN_SUCCESS) {
+            /*
+             * We don't care why the foreach was called to be terminated. There
+             * was no error from our side so even after termination it is still
+             * a success.
+             */
+            return PRP_FN_SUCCESS;
+        }
         ptr += memb_size;
     }
 
