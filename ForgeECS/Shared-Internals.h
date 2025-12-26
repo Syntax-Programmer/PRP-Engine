@@ -152,7 +152,7 @@ typedef struct {
      * We make a deep copy to prevent any chance of user modifying anything
      * about the layout.
      */
-    DT_Bitmap *behavior_set;
+    DT_Bitmap *b_set;
     /*
      * Since the number of comps is decided at create time, the size of
      * comp_arr_stries will always be fixed and hence doesn't need DT_Arr which

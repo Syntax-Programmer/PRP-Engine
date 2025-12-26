@@ -184,6 +184,19 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL CORE_IdMgrDelete(CORE_IdMgr **pId_mgr) {
     return PRP_FN_SUCCESS;
 }
 
+PRP_FN_API DT_void *PRP_FN_CALL CORE_IdMgrRaw(CORE_IdMgr *id_mgr,
+                                              DT_size *pLen) {
+    PRP_NULL_ARG_CHECK(id_mgr, DT_null);
+
+    DT_size cap;
+    DT_void *data = DT_BffrRaw(id_mgr->data, &cap);
+    // Since data arr is a bffr, but also denely packed.
+    (DT_void) cap;
+    *pLen = id_mgr->len;
+
+    return data;
+}
+
 PRP_FN_API DT_u32 PRP_FN_CALL CORE_IdMgrLen(CORE_IdMgr *id_mgr) {
     PRP_NULL_ARG_CHECK(id_mgr, CORE_INVALID_SIZE);
 

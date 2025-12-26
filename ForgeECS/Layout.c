@@ -22,8 +22,7 @@ static DT_void CalcCompArStrides(Layout *layout) {
     DT_size size_len;
     DT_size *sizes = DT_ArrRaw(g_state->comp_registry.comp_sizes, &size_len);
     DT_size word_cap, bit_cap;
-    DT_Bitword *behaviors =
-        DT_BitmapRaw(layout->behavior_set, &word_cap, &bit_cap);
+    DT_Bitword *behaviors = DT_BitmapRaw(layout->b_set, &word_cap, &bit_cap);
     DT_size stride = 0;
 
     /*
@@ -105,6 +104,20 @@ CORE_Id LayoutCreate(CORE_Id b_set_id) {
         return CORE_INVALID_ID;
     }
 
+    DT_size len;
+    Layout *existing = CORE_IdMgrRaw(g_state->layout_id_mgr, &len);
+    for (DT_size i = 0; i < len; i++) {
+        DT_bool rslt;
+        if (DT_BitmapCmp(existing[i].b_set, b_set, &rslt) == PRP_FN_SUCCESS &&
+            rslt) {
+            /*TODO: Instead of throwing error return a valid id. */
+            PRP_LOG_FN_CODE(
+                PRP_FN_INV_ARG_ERROR,
+                "Layout with the same behavior set already exists.");
+            return CORE_INVALID_ID;
+        }
+    }
+
     Layout layout = {0};
 
     // The number of components in the behavior set.
@@ -115,8 +128,8 @@ CORE_Id LayoutCreate(CORE_Id b_set_id) {
     LAYOUT_INIT_ERROR_CHECK(layout.free_chunks);
     layout.chunk_ptrs = DT_ArrCreateDefault(sizeof(Chunk *));
     LAYOUT_INIT_ERROR_CHECK(layout.chunk_ptrs);
-    layout.behavior_set = DT_BitmapClone(b_set);
-    LAYOUT_INIT_ERROR_CHECK(layout.behavior_set);
+    layout.b_set = DT_BitmapClone(b_set);
+    LAYOUT_INIT_ERROR_CHECK(layout.b_set);
 
     CalcCompArStrides(&layout);
     if (AddLayoutChunk(&layout)) {
@@ -150,8 +163,8 @@ PRP_FnCode LayoutDelCb(DT_void *layout) {
         free(l->comp_arr_strides);
         l->comp_arr_strides = DT_null;
     }
-    if (l->behavior_set) {
-        DT_BitmapDelete(&l->behavior_set);
+    if (l->b_set) {
+        DT_BitmapDelete(&l->b_set);
     }
     if (l->free_chunks) {
         DT_BitmapDelete(&l->free_chunks);

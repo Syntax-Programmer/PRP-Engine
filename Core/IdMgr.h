@@ -53,6 +53,21 @@ PRP_FN_API CORE_IdMgr *PRP_FN_CALL CORE_IdMgrCreate(
 PRP_FN_API PRP_FnCode PRP_FN_CALL CORE_IdMgrDelete(CORE_IdMgr **pId_mgr);
 
 /**
+ * Returns the raw memory pointer of the data array to the user.
+ * This function returns a non-fixed pointer to the array mem. If an operation
+ * is performed to the id_mgr after getting the raw data, the raw data is no
+ * longer guaranteed to be valid.
+ *
+ * @param id_mgr: The id manager to get the raw mem data of.
+ * @param pLen: Pointer to where the len of the data array will be stored to be
+ * used by the caller to prevent unsafe usage.
+ *
+ * @return DT_null if the id manager is invalid or pLen is DT_null, otherwise
+ * the memory pointer of the id manager's data array raw memory.
+ */
+PRP_FN_API DT_void *PRP_FN_CALL CORE_IdMgrRaw(CORE_IdMgr *id_mgr,
+                                              DT_size *pLen);
+/**
  * Returns the current number of elements the id manager is managing.
  *
  * @param id_mgr: The id manager to get the len of.
