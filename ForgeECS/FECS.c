@@ -63,6 +63,28 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL FECS_BehaviorSetHasComp(CORE_Id b_set_id,
     return BehaviorSetHasComp(b_set_id, comp_id, pRslt);
 }
 
+/* ----  SYSTEM  ---- */
+
+PRP_FN_API CORE_Id PRP_FN_CALL FECS_SystemCreate(CORE_Id query_id,
+                                                 FECS_SysFn func,
+                                                 DT_void *user_data) {
+    STATE_VALIDITY_CHECK(CORE_INVALID_ID);
+
+    return SystemCreate(query_id, func, user_data);
+}
+
+PRP_FN_API PRP_FnCode PRP_FN_CALL FECS_SystemDelete(CORE_Id *pSystem_id) {
+    STATE_VALIDITY_CHECK(PRP_FN_NULL_ERROR);
+
+    return SystemDelete(pSystem_id);
+}
+
+PRP_FN_API PRP_FnCode PRP_FN_CALL FECS_SystemExec(CORE_Id system_id) {
+    STATE_VALIDITY_CHECK(PRP_FN_NULL_ERROR);
+
+    return SystemExec(system_id);
+}
+
 /* ----  STATE  ---- */
 
 #define STATE_INIT_ERROR_CHECK(x)                                              \

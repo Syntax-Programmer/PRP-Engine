@@ -264,17 +264,17 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL CORE_IdIsValid(CORE_IdMgr *id_mgr, CORE_Id id,
 }
 
 PRP_FN_API CORE_Id PRP_FN_CALL CORE_DataIdxToId(CORE_IdMgr *id_mgr,
-                                                DT_size data_idx) {
+                                                DT_size data_i) {
     PRP_NULL_ARG_CHECK(id_mgr, CORE_INVALID_ID);
 
-    if (data_idx >= id_mgr->len) {
+    if (data_i >= id_mgr->len) {
         PRP_LOG_FN_CODE(
             PRP_FN_OOB_ERROR,
             "Tried to access data index: %zu, with id manager of len: %zu",
-            data_idx, id_mgr->len);
+            data_i, id_mgr->len);
         return CORE_INVALID_ID;
     }
-    DT_u32 id_i = *(DT_u32 *)DT_BffrGet(id_mgr->data_layer, data_idx);
+    DT_u32 id_i = *(DT_u32 *)DT_BffrGet(id_mgr->data_layer, data_i);
     DT_u64 id_val = *(DT_u64 *)DT_BffrGet(id_mgr->id_layer, id_i);
 
     return (CORE_Id)PACK_GEN_INDEX(id_i, GET_GEN_FROM_PACKED(id_val));

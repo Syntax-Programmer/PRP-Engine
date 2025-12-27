@@ -58,8 +58,8 @@ FECS_CompId CompRegister(DT_size comp_size);
  */
 CORE_Id BehaviorSetCreate(DT_void);
 /**
- * Deletes the behavior set and invalidates the original CORE_Id * to DT_null to
- * prevent use after free bugs.
+ * Deletes the behavior set and invalidates the original CORE_Id * to
+ * CORE_INVALID_ID to prevent use after free bugs.
  *
  * @param pB_set_id: The pointer to the id of the behavior set to delete.
  *
@@ -194,7 +194,6 @@ PRP_FnCode LayoutDelCb(DT_void *layout);
 /* ----  ENTITY  ---- */
 
 // typedef struct {
-//     // NEW
 //     CORE_Id layout_id;
 //     DT_size chunk_i;
 //     DT_u8 slot;
@@ -209,10 +208,19 @@ typedef struct {
     DT_Arr *layout_matches;
 } Query;
 
+CORE_Id QueryCreate(CORE_Id exclude_b_set_id, CORE_Id include_b_set_id);
+PRP_FnCode QueryDelete(CORE_Id *pQuery_id);
+
 PRP_FnCode QueryDelCb(DT_void *query);
+PRP_FnCode QueryCascadeLayoutCreate(CORE_Id layout_id);
+PRP_FnCode QueryCascadeLayoutDelete(CORE_Id layout_id);
 
 /* ----  SYSTEM  ---- */
 
+/**
+ * A system function is a function that is executed by the engine on a set of
+ * components that match a query.
+ */
 typedef DT_void (*FECS_SysFn)(DT_void *comp_arr, DT_size len,
                               DT_void *user_data, DT_u32 sys_data);
 
@@ -221,6 +229,48 @@ typedef struct {
     FECS_SysFn fn;
     CORE_Id query_id;
 } System;
+
+/**
+ * Thes macros abstract the method of iteration over the entities of matching
+ * the query of the system.
+ */
+#define FECS_SYS_DATA_LOOP(sys_data) while ((sys_data))
+#define FECS_SYS_GET_I(sys_data, i)                                            \
+    do {                                                                       \
+        DT_Bitword mask = (sys_data) & -(sys_data);                            \
+        (i) = DT_BitwordCtz(mask);                                             \
+        sys_data ^= mask;                                                      \
+    } while (0);
+
+/**
+ * Creates the system user specified function and the query it applies to.
+ *
+ * @param query_id: The id of the query the system will apply to.
+ * @param func: The function that will be executed by the system.
+ * @param user_data: The user data that will be passed to the function.
+ *
+ * @return The id of the created system.
+ */
+CORE_Id SystemCreate(CORE_Id query_id, FECS_SysFn func, DT_void *user_data);
+/**
+ * Deletes the system and invalidates the original CORE_Id * to CORE_INVALID_ID
+ * to prevent use after free bugs.
+ *
+ * @param pSystem_id: The pointer to the id of the system to delete.
+ *
+ * @return PRP_FN_INV_ARG_ERROR if pSystem_id is DT_null or the id it points to
+ * is invalid, otherwise it returns PRP_FN_SUCCESS.
+ */
+PRP_FnCode SystemDelete(CORE_Id *pSystem_id);
+/**
+ * Executes the system with the given id.
+ *
+ * @param system_id: The id of the system to execute.
+ *
+ * @return PRP_FN_INV_ARG_ERROR if system_id is invalid, otherwise it returns
+ * PRP_FN_SUCCESS.
+ */
+PRP_FnCode SystemExec(CORE_Id system_id);
 
 /* ----  STATE  ---- */
 

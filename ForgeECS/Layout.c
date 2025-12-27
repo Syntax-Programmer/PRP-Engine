@@ -66,9 +66,9 @@ static PRP_FnCode AddLayoutChunk(Layout *layout) {
      * and doesn't count in the size of struct.
      */
     memset(chunk, 0XFF, sizeof(Chunk));
-    DT_size push_idx = DT_ArrLen(layout->chunk_ptrs);
+    DT_size push_i = DT_ArrLen(layout->chunk_ptrs);
     DT_size bit_cap = DT_BitmapBitCap(layout->free_chunks);
-    if (push_idx >= bit_cap &&
+    if (push_i >= bit_cap &&
         DT_BitmapChangeSize(layout->free_chunks, bit_cap * 2) !=
             PRP_FN_SUCCESS) {
         PRP_LOG_FN_MALLOC_ERROR(layout->free_chunks);
@@ -77,7 +77,7 @@ static PRP_FnCode AddLayoutChunk(Layout *layout) {
         return PRP_FN_MALLOC_ERROR;
     }
     // Marking the new chunk as free
-    DT_BitmapSet(layout->free_chunks, push_idx);
+    DT_BitmapSet(layout->free_chunks, push_i);
 
     return PRP_FN_SUCCESS;
 }
@@ -92,11 +92,12 @@ static PRP_FnCode AddLayoutChunk(Layout *layout) {
     } while (0);
 
 CORE_Id LayoutCreate(CORE_Id b_set_id) {
-    DT_Bitmap *b_set = CORE_IdToData(g_state->behavior_set_id_mgr, b_set_id);
-    if (!b_set) {
+    DT_Bitmap **pB_set = CORE_IdToData(g_state->behavior_set_id_mgr, b_set_id);
+    if (!pB_set) {
         PRP_LOG_FN_INV_ARG_ERROR(b_set_id);
         return CORE_INVALID_ID;
     }
+    DT_Bitmap *b_set = *pB_set;
     if (!DT_BitmapSetCount(b_set)) {
         PRP_LOG_FN_CODE(PRP_FN_INV_ARG_ERROR,
                         "Attach components to the behavior set before trying "
@@ -145,8 +146,6 @@ CORE_Id LayoutCreate(CORE_Id b_set_id) {
 }
 
 PRP_FnCode LayoutDelete(CORE_Id *pLayout_id) {
-    PRP_NULL_ARG_CHECK(pLayout_id, PRP_FN_INV_ARG_ERROR);
-
     // We don't do id validation since the below function will do it anyways.
     return CORE_IdMgrDeleteData(g_state->layout_id_mgr, pLayout_id);
 }
@@ -182,3 +181,4 @@ PRP_FnCode LayoutDelCb(DT_void *layout) {
 // PRP_FnCode LayoutFreeSlot(CORE_Id layout_id, DT_size chunk_i, DT_u8 slot);
 // PRP_FnCode LayoutIsEntityIdValid(CORE_Id layout_id, DT_size chunk_i, DT_u8
 // slot, DT_u8 gen);
+// Also add a reserve entity count function.

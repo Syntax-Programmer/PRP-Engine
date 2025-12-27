@@ -114,14 +114,14 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL CORE_IdIsValid(CORE_IdMgr *id_mgr, CORE_Id id,
  * Converts a data index to an id that manages it.
  *
  * @param id_mgr: The id manager to get the data pointer from.
- * @param data_idx: The data index to convert to an id.
+ * @param data_i: The data index to convert to an id.
  *
  * @return CORE_INVALID_ID if the parameters are invalid in any way,
  * CORE_INVALID_ID if the data index is out of bounds, otherwise a valid id to
  * the data at the given index.
  */
 PRP_FN_API CORE_Id PRP_FN_CALL CORE_DataIdxToId(CORE_IdMgr *id_mgr,
-                                                DT_size data_idx);
+                                                DT_size data_i);
 
 /**
  * Pushes a new element into the given id manager, auto growing to accommodate
