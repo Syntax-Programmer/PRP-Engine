@@ -162,7 +162,8 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL CORE_IdMgrDelete(CORE_IdMgr **pId_mgr) {
         if (id_mgr->data_del_cb) {
             DT_size cap, memb_size = DT_BffrMembSize(id_mgr->data);
             DT_u8 *ptr = DT_BffrRaw(id_mgr->data, &cap);
-            for (DT_size i = 0; i < cap; i++) {
+            (void)cap;
+            for (DT_size i = 0; i < id_mgr->len; i++) {
                 id_mgr->data_del_cb(ptr);
                 ptr += memb_size;
             }
