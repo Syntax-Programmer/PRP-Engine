@@ -13,12 +13,12 @@ CORE_Id BehaviorSetCreate(DT_void) {
         return CORE_INVALID_ID;
     }
 
-    return CORE_IdMgrAddData(g_state->behavior_set_id_mgr, &b_set);
+    return CORE_IdMgrAddData(g_state->b_set_id_mgr, &b_set);
 }
 
 PRP_FnCode BehaviorSetDelete(CORE_Id *pB_set_id) {
     // We don't do id validation since the below function will do it anyways.
-    return CORE_IdMgrDeleteData(g_state->behavior_set_id_mgr, pB_set_id);
+    return CORE_IdMgrDeleteData(g_state->b_set_id_mgr, pB_set_id);
 }
 
 PRP_FnCode BehaviorSetClear(CORE_Id b_set_id) {
@@ -27,7 +27,7 @@ PRP_FnCode BehaviorSetClear(CORE_Id b_set_id) {
      * function checks for id validity we don't do redundant checks for id
      * validity.
      */
-    DT_Bitmap **pB_set = CORE_IdToData(g_state->behavior_set_id_mgr, b_set_id);
+    DT_Bitmap **pB_set = CORE_IdToData(g_state->b_set_id_mgr, b_set_id);
     if (!pB_set) {
         PRP_LOG_FN_INV_ARG_ERROR(b_set_id);
         return PRP_FN_INV_ARG_ERROR;
@@ -39,7 +39,7 @@ PRP_FnCode BehaviorSetClear(CORE_Id b_set_id) {
 }
 
 PRP_FnCode BehaviorSetAttachComp(CORE_Id b_set_id, FECS_CompId comp_id) {
-    DT_Bitmap **pB_set = CORE_IdToData(g_state->behavior_set_id_mgr, b_set_id);
+    DT_Bitmap **pB_set = CORE_IdToData(g_state->b_set_id_mgr, b_set_id);
     if (!pB_set) {
         PRP_LOG_FN_INV_ARG_ERROR(b_set_id);
         return PRP_FN_INV_ARG_ERROR;
@@ -50,7 +50,7 @@ PRP_FnCode BehaviorSetAttachComp(CORE_Id b_set_id, FECS_CompId comp_id) {
 }
 
 PRP_FnCode BehaviorSetDetachComp(CORE_Id b_set_id, FECS_CompId comp_id) {
-    DT_Bitmap **pB_set = CORE_IdToData(g_state->behavior_set_id_mgr, b_set_id);
+    DT_Bitmap **pB_set = CORE_IdToData(g_state->b_set_id_mgr, b_set_id);
     if (!pB_set) {
         PRP_LOG_FN_INV_ARG_ERROR(b_set_id);
         return PRP_FN_INV_ARG_ERROR;
@@ -62,7 +62,7 @@ PRP_FnCode BehaviorSetDetachComp(CORE_Id b_set_id, FECS_CompId comp_id) {
 
 PRP_FnCode BehaviorSetHasComp(CORE_Id b_set_id, FECS_CompId comp_id,
                               DT_bool *pRslt) {
-    DT_Bitmap **pB_set = CORE_IdToData(g_state->behavior_set_id_mgr, b_set_id);
+    DT_Bitmap **pB_set = CORE_IdToData(g_state->b_set_id_mgr, b_set_id);
     if (!pB_set) {
         PRP_LOG_FN_INV_ARG_ERROR(b_set_id);
         return PRP_FN_INV_ARG_ERROR;

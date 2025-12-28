@@ -106,9 +106,9 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL FECS_Init(DT_void) {
     g_state->comp_registry.comp_sizes = DT_ArrCreateDefault(sizeof(DT_size));
     STATE_INIT_ERROR_CHECK(g_state->comp_registry.comp_sizes);
 
-    g_state->behavior_set_id_mgr =
+    g_state->b_set_id_mgr =
         CORE_IdMgrCreate(sizeof(DT_Bitmap *), BehaviorSetDelCb);
-    STATE_INIT_ERROR_CHECK(g_state->behavior_set_id_mgr);
+    STATE_INIT_ERROR_CHECK(g_state->b_set_id_mgr);
 
     g_state->layout_id_mgr = CORE_IdMgrCreate(sizeof(Layout), LayoutDelCb);
     STATE_INIT_ERROR_CHECK(g_state->layout_id_mgr);
@@ -128,8 +128,8 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL FECS_Exit(DT_void) {
     if (g_state->comp_registry.comp_sizes) {
         DT_ArrDelete(&g_state->comp_registry.comp_sizes);
     }
-    if (g_state->behavior_set_id_mgr) {
-        CORE_IdMgrDelete(&g_state->behavior_set_id_mgr);
+    if (g_state->b_set_id_mgr) {
+        CORE_IdMgrDelete(&g_state->b_set_id_mgr);
     }
     if (g_state->layout_id_mgr) {
         CORE_IdMgrDelete(&g_state->layout_id_mgr);

@@ -65,8 +65,7 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL CORE_IdMgrDelete(CORE_IdMgr **pId_mgr);
  * @return DT_null if the id manager is invalid or pLen is DT_null, otherwise
  * the memory pointer of the id manager's data array raw memory.
  */
-PRP_FN_API DT_void *PRP_FN_CALL CORE_IdMgrRaw(CORE_IdMgr *id_mgr,
-                                              DT_size *pLen);
+PRP_FN_API DT_void *PRP_FN_CALL CORE_IdMgrRaw(CORE_IdMgr *id_mgr, DT_u32 *pLen);
 /**
  * Returns the current number of elements the id manager is managing.
  *

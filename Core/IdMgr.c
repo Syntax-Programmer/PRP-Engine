@@ -186,7 +186,7 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL CORE_IdMgrDelete(CORE_IdMgr **pId_mgr) {
 }
 
 PRP_FN_API DT_void *PRP_FN_CALL CORE_IdMgrRaw(CORE_IdMgr *id_mgr,
-                                              DT_size *pLen) {
+                                              DT_u32 *pLen) {
     PRP_NULL_ARG_CHECK(id_mgr, DT_null);
 
     DT_size cap;

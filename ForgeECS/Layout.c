@@ -92,7 +92,7 @@ static PRP_FnCode AddLayoutChunk(Layout *layout) {
     } while (0);
 
 CORE_Id LayoutCreate(CORE_Id b_set_id) {
-    DT_Bitmap **pB_set = CORE_IdToData(g_state->behavior_set_id_mgr, b_set_id);
+    DT_Bitmap **pB_set = CORE_IdToData(g_state->b_set_id_mgr, b_set_id);
     if (!pB_set) {
         PRP_LOG_FN_INV_ARG_ERROR(b_set_id);
         return CORE_INVALID_ID;
@@ -105,9 +105,9 @@ CORE_Id LayoutCreate(CORE_Id b_set_id) {
         return CORE_INVALID_ID;
     }
 
-    DT_size len;
+    DT_u32 len;
     Layout *existing = CORE_IdMgrRaw(g_state->layout_id_mgr, &len);
-    for (DT_size i = 0; i < len; i++) {
+    for (DT_u32 i = 0; i < len; i++) {
         DT_bool rslt;
         if (DT_BitmapCmp(existing[i].b_set, b_set, &rslt) == PRP_FN_SUCCESS &&
             rslt) {

@@ -294,7 +294,7 @@ typedef struct {
      * These are entirely user owned and when we use them to create a layout a
      * deep copy is stored in the layout for safety.
      */
-    CORE_IdMgr *behavior_set_id_mgr;
+    CORE_IdMgr *b_set_id_mgr;
     /*
      * Layouts are unique templates that a entity can be created from. These
      * templates are used by the caller to create entities with specific
