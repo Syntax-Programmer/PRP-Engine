@@ -1,7 +1,7 @@
 #include "Shared-Internals.h"
 
-CORE_Id SystemCreate(CORE_Id query_id, FECS_SysFn func, DT_void *user_data) {
-    PRP_NULL_ARG_CHECK(func, CORE_INVALID_ID);
+CORE_Id SystemCreate(CORE_Id query_id, FECS_SysFn fn, DT_void *user_data) {
+    PRP_NULL_ARG_CHECK(fn, CORE_INVALID_ID);
     DT_bool rslt;
     if (CORE_IdIsValid(g_state->query_id_mgr, query_id, &rslt) !=
             PRP_FN_SUCCESS ||
@@ -10,7 +10,7 @@ CORE_Id SystemCreate(CORE_Id query_id, FECS_SysFn func, DT_void *user_data) {
         return CORE_INVALID_ID;
     }
 
-    System system = {.query_id = query_id, .fn = func, .user_data = user_data};
+    System system = {.query_id = query_id, .fn = fn, .user_data = user_data};
 
     return CORE_IdMgrAddData(g_state->system_id_mgr, &system);
 }

@@ -17,6 +17,16 @@ static DT_void CalcCompArStrides(Layout *layout);
  * if the chunk arr can't hold anymore chunks, otherwise PRP_FN_SUCCESS.
  */
 static PRP_FnCode AddLayoutChunk(Layout *layout);
+/**
+ * Converts a component ID to its corresponding index in the component array.
+ *
+ * @param layout: The layout to convert the component ID for.
+ * @param comp_id: The component ID to convert.
+ *
+ * @return The index of the component stride array of the layout corresponding
+ * to the component ID.
+ */
+static DT_size CompIdToCompArrStrideI(Layout *layout, FECS_CompId comp_id);
 
 static DT_void CalcCompArStrides(Layout *layout) {
     DT_size size_len;
@@ -34,7 +44,7 @@ static DT_void CalcCompArStrides(Layout *layout) {
         DT_Bitword word = behaviors[i];
         while (word) {
             DT_Bitword mask = word & -word;
-            layout->comp_arr_strides[j++] = stride;
+            layout->comp_arr_strides[j++] = stride * CHUNK_CAP;
             stride += sizes[DT_BitwordCTZ(mask) + (i * BITWORD_BITS)];
             word ^= mask;
         }
@@ -177,8 +187,263 @@ PRP_FnCode LayoutDelCb(DT_void *layout) {
     return PRP_FN_SUCCESS;
 }
 
-// DT_u64 LayoutGetSlot(CORE_Id layout_id);
-// PRP_FnCode LayoutFreeSlot(CORE_Id layout_id, DT_size chunk_i, DT_u8 slot);
-// PRP_FnCode LayoutIsEntityIdValid(CORE_Id layout_id, DT_size chunk_i, DT_u8
-// slot, DT_u8 gen);
-// Also add a reserve entity count function.
+PRP_FnCode LayoutCreateEntity(CORE_Id layout_id, FECS_EntityId *entity_id) {
+    PRP_NULL_ARG_CHECK(entity_id, PRP_FN_INV_ARG_ERROR);
+    Layout *layout = CORE_IdToData(g_state->layout_id_mgr, layout_id);
+    if (!layout) {
+        PRP_LOG_FN_INV_ARG_ERROR(layout_id);
+        return PRP_FN_INV_ARG_ERROR;
+    }
+
+    PRP_FnCode code;
+    if (!DT_BitmapSetCount(layout->free_chunks) &&
+        (code = AddLayoutChunk(layout)) != PRP_FN_SUCCESS) {
+        return code;
+    }
+
+    entity_id->layout_id = layout_id;
+    // Since we grew the layout earlier, the below ops can't fail.
+    entity_id->chunk_i = DT_BitmapFFS(layout->free_chunks);
+    Chunk *chunk = DT_ArrGet(layout->chunk_ptrs, entity_id->chunk_i);
+
+    entity_id->slot = DT_BitwordFFS((DT_Bitword)chunk->free_slot);
+    PRP_BIT_CLR(chunk->free_slot, entity_id->slot);
+    if (!chunk->free_slot) {
+        // Removing the chunk if we just filled it up.
+        DT_BitmapClr(layout->free_chunks, entity_id->chunk_i);
+    }
+
+    entity_id->gen = chunk->gens[entity_id->slot];
+
+    return PRP_FN_SUCCESS;
+}
+
+PRP_FnCode LayoutDeleteEntity(FECS_EntityId *entity_id) {
+    PRP_NULL_ARG_CHECK(entity_id, PRP_FN_INV_ARG_ERROR);
+    if (entity_id->slot >= CHUNK_CAP) {
+        PRP_LOG_FN_INV_ARG_ERROR(entity_id->slot);
+        return PRP_FN_INV_ARG_ERROR;
+    }
+    Layout *layout =
+        CORE_IdToData(g_state->layout_id_mgr, entity_id->layout_id);
+    if (!layout) {
+        PRP_LOG_FN_INV_ARG_ERROR(entity_id->layout_id);
+        return PRP_FN_INV_ARG_ERROR;
+    }
+    if (entity_id->chunk_i >= DT_ArrLen(layout->chunk_ptrs)) {
+        PRP_LOG_FN_INV_ARG_ERROR(entity_id->chunk_i);
+        return PRP_FN_INV_ARG_ERROR;
+    }
+    Chunk *chunk = DT_ArrGet(layout->chunk_ptrs, entity_id->chunk_i);
+    if (chunk->gens[entity_id->slot] != entity_id->gen) {
+        PRP_LOG_FN_INV_ARG_ERROR(entity_id->gen);
+        return PRP_FN_INV_ARG_ERROR;
+    }
+
+    chunk->gens[entity_id->slot]++;
+    PRP_BIT_SET(chunk->free_slot, entity_id->slot);
+    DT_BitmapSet(layout->free_chunks, entity_id->chunk_i);
+    // This invalidates the entity Id.
+    memset(entity_id, 0XFF, sizeof(FECS_EntityId));
+
+    return PRP_FN_SUCCESS;
+}
+
+FECS_EntityIdBatch *LayoutCreateEntityBatch(CORE_Id layout_id, DT_size count) {
+    if (!count) {
+        PRP_LOG_FN_CODE(PRP_FN_INV_ARG_ERROR,
+                        "FECS_EntityIdBatch can't be made with count=0.");
+        return DT_null;
+    }
+    Layout *layout = CORE_IdToData(g_state->layout_id_mgr, layout_id);
+    if (!layout) {
+        PRP_LOG_FN_INV_ARG_ERROR(layout_id);
+        return DT_null;
+    }
+
+    FECS_EntityIdBatch *entity_batch = malloc(
+        sizeof(FECS_EntityIdBatch) + (sizeof(FECS_EntityBatchData) * count));
+    if (!entity_batch) {
+        PRP_LOG_FN_MALLOC_ERROR(entity_batch);
+        return DT_null;
+    }
+    entity_batch->layout_id = layout_id;
+    entity_batch->count = count;
+    for (DT_size i = 0; i < count; i++) {
+        if (!DT_BitmapSetCount(layout->free_chunks)) {
+            DT_size remaining = count - i;
+            DT_size chunks_needed = (remaining + CHUNK_CAP - 1) / CHUNK_CAP;
+            // Allocating all the needed chunk in bulk.
+            for (DT_size j = 0; j < chunks_needed; j++) {
+                if (AddLayoutChunk(layout) != PRP_FN_SUCCESS) {
+                    if (j > 0) {
+                        // Create entities of the chunks added so far.
+                        break;
+                    }
+                    /*
+                     * We don't throw an error here because going back and
+                     * refreeing each entity is expensive.
+                     */
+                    PRP_LOG_FN_CODE(
+                        PRP_FN_RES_EXHAUSTED_ERROR,
+                        "Only able to create %zu entities out of %zu. "
+                        "Partially created entity batch will be returned.",
+                        i, count);
+                    entity_batch->count = i + 1;
+                    return entity_batch;
+                }
+            }
+        }
+        DT_size chunk_i = DT_BitmapFFS(layout->free_chunks);
+        Chunk *chunk = DT_ArrGet(layout->chunk_ptrs, chunk_i);
+        DT_u8 slot = DT_BitwordFFS((DT_Bitword)chunk->free_slot);
+        PRP_BIT_CLR(chunk->free_slot, slot);
+        if (!chunk->free_slot) {
+            // Removing the chunk if we just filled it up.
+            DT_BitmapClr(layout->free_chunks, chunk_i);
+        }
+        entity_batch->entities[i].chunk_i = chunk_i;
+        entity_batch->entities[i].slot = slot;
+        entity_batch->entities[i].gen = chunk->gens[slot];
+    }
+
+    return entity_batch;
+}
+
+PRP_FnCode LayoutDeleteEntityBatch(FECS_EntityIdBatch **pEntity_batch) {
+    PRP_NULL_ARG_CHECK(pEntity_batch, PRP_FN_INV_ARG_ERROR);
+    FECS_EntityIdBatch *entity_batch = *pEntity_batch;
+    PRP_NULL_ARG_CHECK(entity_batch, PRP_FN_INV_ARG_ERROR);
+    Layout *layout =
+        CORE_IdToData(g_state->layout_id_mgr, entity_batch->layout_id);
+    if (!layout) {
+        PRP_LOG_FN_INV_ARG_ERROR(entity_batch->layout_id);
+        return PRP_FN_INV_ARG_ERROR;
+    }
+    DT_size chunks_len = DT_ArrLen(layout->chunk_ptrs);
+
+    for (DT_size i = 0; i < entity_batch->count; i++) {
+        DT_size chunk_i = entity_batch->entities[i].chunk_i;
+        DT_u8 slot = entity_batch->entities[i].slot,
+              gen = entity_batch->entities[i].gen;
+        if (slot >= CHUNK_CAP) {
+            PRP_LOG_FN_INV_ARG_ERROR(slot);
+            continue;
+        }
+        if (chunk_i >= chunks_len) {
+            PRP_LOG_FN_INV_ARG_ERROR(chunk_i);
+            continue;
+        }
+        Chunk *chunk = DT_ArrGet(layout->chunk_ptrs, chunk_i);
+        if (chunk->gens[slot] != gen) {
+            PRP_LOG_FN_INV_ARG_ERROR(gen);
+            continue;
+        }
+        chunk->gens[slot]++;
+        PRP_BIT_SET(chunk->free_slot, slot);
+        DT_BitmapSet(layout->free_chunks, chunk_i);
+    }
+    free(entity_batch);
+    *pEntity_batch = DT_null;
+
+    return PRP_FN_SUCCESS;
+}
+
+static DT_size CompIdToCompArrStrideI(Layout *layout, FECS_CompId comp_id) {
+    DT_size index = PRP_INVALID_INDEX;
+    DT_size word_cap, bit_cap;
+    DT_Bitword *b_set_raw = DT_BitmapRaw(layout->b_set, &word_cap, &bit_cap);
+
+    /*
+     * Not respecting word cap and bit cap since the below is guaranteed to be
+     * within bounds.
+     */
+    for (DT_size i = 0; i < WORD_I(comp_id); i++) {
+        index += DT_BitwordPopCnt(b_set_raw[i]);
+    }
+    // Masking out higher bits and popcnt the bits below.
+    index +=
+        DT_BitwordPopCnt(b_set_raw[WORD_I(comp_id)] & (BIT_MASK(comp_id) - 1));
+
+    return index;
+}
+
+PRP_FnCode LayoutEntityOperateComp(FECS_EntityId entity_id, FECS_CompId comp_id,
+                                   PRP_FnCode (*fn)(DT_void *data,
+                                                    DT_void *user_data),
+                                   DT_void *user_data) {
+    PRP_NULL_ARG_CHECK(fn, PRP_FN_INV_ARG_ERROR);
+    COMP_ID_VALIDITY_CHECK(comp_id, PRP_FN_INV_ARG_ERROR);
+    if (entity_id.slot >= CHUNK_CAP) {
+        PRP_LOG_FN_INV_ARG_ERROR(entity_id.slot);
+        return PRP_FN_INV_ARG_ERROR;
+    }
+    Layout *layout = CORE_IdToData(g_state->layout_id_mgr, entity_id.layout_id);
+    if (!layout) {
+        PRP_LOG_FN_INV_ARG_ERROR(entity_id.layout_id);
+        return PRP_FN_INV_ARG_ERROR;
+    }
+    if (entity_id.chunk_i >= DT_ArrLen(layout->chunk_ptrs)) {
+        PRP_LOG_FN_INV_ARG_ERROR(entity_id.chunk_i);
+        return PRP_FN_INV_ARG_ERROR;
+    }
+    Chunk *chunk = DT_ArrGet(layout->chunk_ptrs, entity_id.chunk_i);
+    if (chunk->gens[entity_id.slot] != entity_id.gen) {
+        PRP_LOG_FN_INV_ARG_ERROR(entity_id.gen);
+        return PRP_FN_INV_ARG_ERROR;
+    }
+
+    DT_size comp_arr_stride =
+        layout->comp_arr_strides[CompIdToCompArrStrideI(layout, comp_id)];
+    DT_size comp_size =
+        *(DT_size *)DT_ArrGet(g_state->comp_registry.comp_sizes, comp_id);
+    DT_u8 *chunk_comp_arr = chunk->data + comp_arr_stride;
+    DT_void *data = chunk_comp_arr + (entity_id.slot * comp_size);
+
+    return fn(data, user_data);
+}
+
+PRP_FnCode LayoutEntityBatchOperateComp(
+    FECS_EntityIdBatch *entity_batch, FECS_CompId comp_id,
+    PRP_FnCode (*fn)(DT_void *data, DT_void *user_data), DT_void *user_data) {
+    PRP_NULL_ARG_CHECK(fn, PRP_FN_INV_ARG_ERROR);
+    COMP_ID_VALIDITY_CHECK(comp_id, PRP_FN_INV_ARG_ERROR);
+    PRP_NULL_ARG_CHECK(entity_batch, PRP_FN_INV_ARG_ERROR);
+    Layout *layout =
+        CORE_IdToData(g_state->layout_id_mgr, entity_batch->layout_id);
+    if (!layout) {
+        PRP_LOG_FN_INV_ARG_ERROR(entity_batch->layout_id);
+        return PRP_FN_INV_ARG_ERROR;
+    }
+
+    DT_size chunks_len = DT_ArrLen(layout->chunk_ptrs);
+    DT_size comp_arr_stride =
+        layout->comp_arr_strides[CompIdToCompArrStrideI(layout, comp_id)];
+    DT_size comp_size =
+        *(DT_size *)DT_ArrGet(g_state->comp_registry.comp_sizes, comp_id);
+
+    for (DT_size i = 0; i < entity_batch->count; i++) {
+        DT_size chunk_i = entity_batch->entities[i].chunk_i;
+        DT_u8 slot = entity_batch->entities[i].slot,
+              gen = entity_batch->entities[i].gen;
+        if (slot >= CHUNK_CAP) {
+            PRP_LOG_FN_INV_ARG_ERROR(slot);
+            continue;
+        }
+        if (chunk_i >= chunks_len) {
+            PRP_LOG_FN_INV_ARG_ERROR(chunk_i);
+            continue;
+        }
+        Chunk *chunk = DT_ArrGet(layout->chunk_ptrs, chunk_i);
+        if (chunk->gens[slot] != gen) {
+            PRP_LOG_FN_INV_ARG_ERROR(gen);
+            continue;
+        }
+
+        DT_u8 *chunk_comp_arr = chunk->data + comp_arr_stride;
+        DT_void *data = chunk_comp_arr + (slot * comp_size);
+        fn(data, user_data);
+    }
+
+    return PRP_FN_SUCCESS;
+}

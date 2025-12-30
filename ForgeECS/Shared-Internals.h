@@ -4,10 +4,10 @@
 extern "C" {
 #endif
 
-#include "../Core/IdMgr.h"
 #include "../Data-Types/Arr.h"
 #include "../Data-Types/Bitmap.h"
 #include "../Utils/Logger.h"
+#include "Shared-Defs.h"
 
 /**
  * This file contains the shared internals amongst every file.
@@ -21,13 +21,6 @@ extern "C" {
  */
 
 /* ----  COMP ---- */
-
-/**
- * This id also is a physical index into the component array to get that
- * comp_id's metadata.
- */
-typedef DT_size FECS_CompId;
-#define FECS_INVALID_COMP_ID ((FECS_CompId)(-1))
 
 #define COMP_ID_VALIDITY_CHECK(comp_id, ret)                                   \
     do {                                                                       \
@@ -146,6 +139,10 @@ typedef struct {
     DT_u8 data[];
 } Chunk;
 
+/**
+ * Layout are containers for entities. Created with behavior sets defining the
+ * behavior of the entities within the layout.
+ */
 typedef struct {
     /*
      * A deep copy of the behavior set the layout is derieved from.
@@ -183,22 +180,114 @@ typedef struct {
     DT_size chunk_size;
 } Layout;
 
+/**
+ * Creates an empty la with the user specified behavior set and returns an id to
+ * it.
+ *
+ * @param b_set_id : The id of the behavior set that determines the layout's
+ * entities' behavior.
+ *
+ * @return The id of layout created.
+ */
 CORE_Id LayoutCreate(CORE_Id b_set_id);
+/**
+ * Deletes the layout and invalidates the original CORE_Id * to
+ * CORE_INVALID_ID to prevent use after free bugs.
+ *
+ * @param pLayout_id: The pointer to the id of the layout to delete.
+ *
+ * @return PRP_FN_INV_ARG_ERROR if pLayout_id is DT_null or the id it points to
+ * is invalid, otherwise it returns PRP_FN_SUCCESS.
+ */
 PRP_FnCode LayoutDelete(CORE_Id *pLayout_id);
-
+/**
+ * Callback for the CORE_IdMgr the layout belong to so that the IdMgr can
+ * free data.
+ *
+ * @param layout: The pointer to the layout the IdMgr gives to us to free.
+ *
+ * @return Ideally should always return PRP_FN_SUCCESS, unless some internal
+ * corruption happened,
+ */
 PRP_FnCode LayoutDelCb(DT_void *layout);
-// DT_u64 LayoutGetSlot(CORE_Id layout_id);
-// PRP_FnCode LayoutFreeSlot(CORE_Id layout_id, DT_u64 entity_id);
-// PRP_FnCode LayoutIsEntityIdValid(CORE_Id layout_id, DT_u64 entity_id);
 
-/* ----  ENTITY  ---- */
-
-// typedef struct {
-//     CORE_Id layout_id;
-//     DT_size chunk_i;
-//     DT_u8 slot;
-//     DT_u8 gen;
-// } FECS_EntityId;
+/**
+ * Create a new entity in the layout.
+ *
+ * @param layout_id: The id of the layout from which to create the entity.
+ * @param entity_id: The storage for the new entity.
+ *
+ * @return PRP_FN_INV_ARG_ERROR if the parameters are invalid in any way,
+ * PRP_FN_MALLOC_ERROR/PRP_FN_RES_EXHAUSTED_ERROR if the layout can't allocate
+ * any more entities, otherwise PRP_FN_SUCCESS.
+ */
+PRP_FnCode LayoutCreateEntity(CORE_Id layout_id, FECS_EntityId *entity_id);
+/**
+ * Deletes the entity corresponding to the given id.
+ *
+ * @param entity_id: The id of the entity to delete.
+ *
+ * @return PRP_FN_INV_ARG_ERROR if the entity id is invalid, otherwise
+ * PRP_FN_SUCCESS.
+ */
+PRP_FnCode LayoutDeleteEntity(FECS_EntityId *entity_id);
+/**
+ * Creates a batch of entities in the layout.
+ *
+ * @param layout_id: The id of the layout from which to create the entities.
+ * @param count: The number of entities to create.
+ *
+ * @return DT_NULL if the parameter is invalid in any way, otherwise a pointer
+ * to the created entity batch.
+ *
+ * @note If count number of slots cannot be allocated, but some entities are
+ * already allocated, the function will return a batch with only the allocated
+ * entities.
+ */
+FECS_EntityIdBatch *LayoutCreateEntityBatch(CORE_Id layout_id, DT_size count);
+/**
+ * Deletes the entity batch and sets the original FECS_EntityIdBatch * to
+ * DT_null to prevent use after free bugs.
+ *
+ * @param pEntity_batch: The pointer to the entity batch pointer to delete.
+ *
+ * @return PRP_FN_INV_ARG_ERROR if pEntity_batch is DT_null or the entity batch
+ * it points to is invalid, otherwise it returns PRP_FN_SUCCESS.
+ *
+ * @note If any entity in the batch is deemed invalid, the function will just
+ * skip over it. LIKE A BOSS.
+ */
+PRP_FnCode LayoutDeleteEntityBatch(FECS_EntityIdBatch **pEntity_batch);
+/**
+ * Provides the comp id's data of the entity to the fn for usage.
+ *
+ * @param entity_id: The entity id to operate on.
+ * @param comp_id: The comp id to operate on.
+ * @param fn: The function that will be called with the comp id's data.
+ * @param user_data: The user data to pass to the function.
+ *
+ * @return PRP_FN_INV_ARG_ERROR if the parameters are invalid in any way,
+ * otherwise it returns PRP_FN_SUCCESS.
+ */
+PRP_FnCode LayoutEntityOperateComp(FECS_EntityId entity_id, FECS_CompId comp_id,
+                                   PRP_FnCode (*fn)(DT_void *data,
+                                                    DT_void *user_data),
+                                   DT_void *user_data);
+/**
+ * Provides the comp id's data of the each entity in the entity batch to the fn
+ * for usage.
+ *
+ * @param entity_batch: The entity batch to operate on.
+ * @param comp_id: The comp id to operate on.
+ * @param fn: The function that will be called with the comp id's data.
+ * @param user_data: The user data to pass to the function.
+ *
+ * @return PRP_FN_INV_ARG_ERROR if the parameters are invalid in any way,
+ * otherwise it returns PRP_FN_SUCCESS.
+ */
+PRP_FnCode LayoutEntityBatchOperateComp(
+    FECS_EntityIdBatch *entity_batch, FECS_CompId comp_id,
+    PRP_FnCode (*fn)(DT_void *data, DT_void *user_data), DT_void *user_data);
 
 /* ----  QUERY  ---- */
 
@@ -216,13 +305,6 @@ PRP_FnCode QueryCascadeLayoutCreate(CORE_Id layout_id);
 PRP_FnCode QueryCascadeLayoutDelete(CORE_Id layout_id);
 
 /* ----  SYSTEM  ---- */
-
-/**
- * A system function is a function that is executed by the engine on a set of
- * components that match a query.
- */
-typedef DT_void (*FECS_SysFn)(DT_void *comp_arr, DT_size len,
-                              DT_void *user_data, DT_u32 sys_data);
 
 typedef struct {
     DT_void *user_data;
@@ -246,12 +328,12 @@ typedef struct {
  * Creates the system user specified function and the query it applies to.
  *
  * @param query_id: The id of the query the system will apply to.
- * @param func: The function that will be executed by the system.
+ * @param fn: The function that will be executed by the system.
  * @param user_data: The user data that will be passed to the function.
  *
  * @return The id of the created system.
  */
-CORE_Id SystemCreate(CORE_Id query_id, FECS_SysFn func, DT_void *user_data);
+CORE_Id SystemCreate(CORE_Id query_id, FECS_SysFn fn, DT_void *user_data);
 /**
  * Deletes the system and invalidates the original CORE_Id * to CORE_INVALID_ID
  * to prevent use after free bugs.

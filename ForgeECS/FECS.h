@@ -4,8 +4,7 @@
 extern "C" {
 #endif
 
-#include "../Core/IdMgr.h"
-#include "../Utils/Defs.h"
+#include "Shared-Defs.h"
 
 /* ----  COMP ---- */
 
@@ -28,7 +27,7 @@ PRP_FN_API FECS_CompId PRP_FN_CALL FECS_CompRegister(DT_size comp_size);
 /* ----  BEHAVIOR SET ---- */
 
 /**
- * Creates an empty behavior set and returns an id to its.
+ * Creates an empty behavior set and returns an id to it.
  *
  * @return The id of the behavior set.
  */
@@ -93,6 +92,124 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL FECS_BehaviorSetHasComp(CORE_Id b_set_id,
                                                           FECS_CompId comp_id,
                                                           DT_bool *pRslt);
 
+/* ----  LAYOUT ---- */
+
+/**
+ * Creates an empty la with the user specified behavior set and returns an id to
+ * it.
+ *
+ * @param b_set_id : The id of the behavior set that determines the layout's
+ * entities' behavior.
+ *
+ * @return The id of layout created.
+ */
+PRP_FN_API CORE_Id PRP_FN_CALL FECS_LayoutCreate(CORE_Id b_set_id);
+/**
+ * Deletes the layout and invalidates the original CORE_Id * to
+ * CORE_INVALID_ID to prevent use after free bugs.
+ *
+ * @param pLayout_id: The pointer to the id of the layout to delete.
+ *
+ * @return PRP_FN_INV_ARG_ERROR if pLayout_id is DT_null or the id it points to
+ * is invalid, otherwise it returns PRP_FN_SUCCESS.
+ */
+PRP_FN_API PRP_FnCode PRP_FN_CALL FECS_LayoutDelete(CORE_Id *pLayout_id);
+
+/**
+ * Create a new entity in the layout.
+ *
+ * @param layout_id: The id of the layout from which to create the entity.
+ * @param entity_id: The storage for the new entity.
+ *
+ * @return PRP_FN_INV_ARG_ERROR if the parameters are invalid in any way,
+ * PRP_FN_MALLOC_ERROR/PRP_FN_RES_EXHAUSTED_ERROR if the layout can't allocate
+ * any more entities, otherwise PRP_FN_SUCCESS.
+ */
+PRP_FN_API PRP_FnCode PRP_FN_CALL
+FECS_LayoutCreateEntity(CORE_Id layout_id, FECS_EntityId *entity_id);
+/**
+ * Deletes the entity corresponding to the given id.
+ *
+ * @param entity_id: The id of the entity to delete.
+ *
+ * @return PRP_FN_INV_ARG_ERROR if the entity id is invalid, otherwise
+ * PRP_FN_SUCCESS.
+ */
+PRP_FN_API PRP_FnCode PRP_FN_CALL
+FECS_LayoutDeleteEntity(FECS_EntityId *entity_id);
+/**
+ * Creates a batch of entities in the layout.
+ *
+ * @param layout_id: The id of the layout from which to create the entities.
+ * @param count: The number of entities to create.
+ *
+ * @return DT_NULL if the parameter is invalid in any way, otherwise a pointer
+ * to the created entity batch.
+ *
+ * @note If count number of slots cannot be allocated, but some entities are
+ * already allocated, the function will return a batch with only the allocated
+ * entities.
+ */
+PRP_FN_API FECS_EntityIdBatch *PRP_FN_CALL
+FECS_LayoutCreateEntityBatch(CORE_Id layout_id, DT_size count);
+/**
+ * Deletes the entity batch and sets the original FECS_EntityIdBatch * to
+ * DT_null to prevent use after free bugs.
+ *
+ * @param pEntity_batch: The pointer to the entity batch pointer to delete.
+ *
+ * @return PRP_FN_INV_ARG_ERROR if pEntity_batch is DT_null or the entity batch
+ * it points to is invalid, otherwise it returns PRP_FN_SUCCESS.
+ *
+ * @note If any entity in the batch is deemed invalid, the function will just
+ * skip over it. LIKE A BOSS.
+ */
+PRP_FN_API PRP_FnCode PRP_FN_CALL
+FECS_LayoutDeleteEntityBatch(FECS_EntityIdBatch **pEntity_batch);
+/**
+ * Deletes the entity batch and sets the original FECS_EntityIdBatch * to
+ * DT_null to prevent use after free bugs.
+ *
+ * @param pEntity_batch: The pointer to the entity batch pointer to delete.
+ *
+ * @return PRP_FN_INV_ARG_ERROR if pEntity_batch is DT_null or the entity batch
+ * it points to is invalid, otherwise it returns PRP_FN_SUCCESS.
+ *
+ * @note If any entity in the batch is deemed invalid, the function will just
+ * skip over it. LIKE A BOSS.
+ */
+PRP_FN_API PRP_FnCode PRP_FN_CALL
+FECS_LayoutDeleteEntityBatch(FECS_EntityIdBatch **pEntity_batch);
+/**
+ * Provides the comp id's data of the entity to the fn for usage.
+ *
+ * @param entity_id: The entity id to operate on.
+ * @param comp_id: The comp id to operate on.
+ * @param fn: The function that will be called with the comp id's data.
+ * @param user_data: The user data to pass to the function.
+ *
+ * @return PRP_FN_INV_ARG_ERROR if the parameters are invalid in any way,
+ * otherwise it returns PRP_FN_SUCCESS.
+ */
+PRP_FN_API PRP_FnCode PRP_FN_CALL FECS_LayoutEntityOperateComp(
+    FECS_EntityId entity_id, FECS_CompId comp_id,
+    PRP_FnCode (*fn)(DT_void *data, DT_void *user_data), DT_void *user_data);
+/**
+ * Provides the comp id's data of the each entity in the entity batch to the fn
+ * for usage.
+ *
+ * @param entity_batch: The entity batch to operate on.
+ * @param comp_id: The comp id to operate on.
+ * @param fn: The function that will be called with the comp id's data.
+ * @param user_data: The user data to pass to the function.
+ *
+ * @return PRP_FN_INV_ARG_ERROR if the parameters are invalid in any way,
+ * otherwise it returns PRP_FN_SUCCESS.
+ */
+PRP_FN_API PRP_FnCode PRP_FN_CALL FECS_LayoutEntityBatchOperateComp(
+    FECS_EntityIdBatch *entity_batch, FECS_CompId comp_id,
+    PRP_FnCode (*fn)(DT_void *data, DT_void *user_data), DT_void *user_data);
+
 /* ----  SYSTEM  ---- */
 
 /**
@@ -118,13 +235,13 @@ typedef DT_void (*FECS_SysFn)(DT_void *comp_arr, DT_size len,
  * Creates the system user specified function and the query it applies to.
  *
  * @param query_id: The id of the query the system will apply to.
- * @param func: The function that will be executed by the system.
+ * @param fn: The function that will be executed by the system.
  * @param user_data: The user data that will be passed to the function.
  *
  * @return The id of the created system.
  */
 PRP_FN_API CORE_Id PRP_FN_CALL FECS_SystemCreate(CORE_Id query_id,
-                                                 FECS_SysFn func,
+                                                 FECS_SysFn fn,
                                                  DT_void *user_data);
 /**
  * Deletes the system and invalidates the original CORE_Id * to CORE_INVALID_ID

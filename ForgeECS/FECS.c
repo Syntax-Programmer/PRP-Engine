@@ -63,14 +63,72 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL FECS_BehaviorSetHasComp(CORE_Id b_set_id,
     return BehaviorSetHasComp(b_set_id, comp_id, pRslt);
 }
 
+/* ----  LAYOUT ---- */
+
+PRP_FN_API CORE_Id PRP_FN_CALL FECS_LayoutCreate(CORE_Id b_set_id) {
+    STATE_VALIDITY_CHECK(CORE_INVALID_ID);
+
+    return LayoutCreate(b_set_id);
+}
+
+PRP_FN_API PRP_FnCode PRP_FN_CALL FECS_LayoutDelete(CORE_Id *pLayout_id) {
+    STATE_VALIDITY_CHECK(PRP_FN_NULL_ERROR);
+
+    return LayoutDelete(pLayout_id);
+}
+
+PRP_FN_API PRP_FnCode PRP_FN_CALL
+FECS_LayoutCreateEntity(CORE_Id layout_id, FECS_EntityId *entity_id) {
+    STATE_VALIDITY_CHECK(PRP_FN_NULL_ERROR);
+
+    return LayoutCreateEntity(layout_id, entity_id);
+}
+
+PRP_FN_API PRP_FnCode PRP_FN_CALL
+FECS_LayoutDeleteEntity(FECS_EntityId *entity_id) {
+    STATE_VALIDITY_CHECK(PRP_FN_NULL_ERROR);
+
+    return LayoutDeleteEntity(entity_id);
+}
+
+PRP_FN_API FECS_EntityIdBatch *PRP_FN_CALL
+FECS_LayoutCreateEntityBatch(CORE_Id layout_id, DT_size count) {
+    STATE_VALIDITY_CHECK(DT_null);
+
+    return LayoutCreateEntityBatch(layout_id, count);
+}
+
+PRP_FN_API PRP_FnCode PRP_FN_CALL
+FECS_LayoutDeleteEntityBatch(FECS_EntityIdBatch **pEntity_batch) {
+    STATE_VALIDITY_CHECK(PRP_FN_NULL_ERROR);
+
+    return LayoutDeleteEntityBatch(pEntity_batch);
+}
+
+PRP_FN_API PRP_FnCode PRP_FN_CALL FECS_LayoutEntityOperateComp(
+    FECS_EntityId entity_id, FECS_CompId comp_id,
+    PRP_FnCode (*fn)(DT_void *data, DT_void *user_data), DT_void *user_data) {
+    STATE_VALIDITY_CHECK(PRP_FN_NULL_ERROR);
+
+    return LayoutEntityOperateComp(entity_id, comp_id, fn, user_data);
+}
+
+PRP_FN_API PRP_FnCode PRP_FN_CALL FECS_LayoutEntityBatchOperateComp(
+    FECS_EntityIdBatch *entity_batch, FECS_CompId comp_id,
+    PRP_FnCode (*fn)(DT_void *data, DT_void *user_data), DT_void *user_data) {
+    STATE_VALIDITY_CHECK(PRP_FN_NULL_ERROR);
+
+    return LayoutEntityBatchOperateComp(entity_batch, comp_id, fn, user_data);
+}
+
 /* ----  SYSTEM  ---- */
 
 PRP_FN_API CORE_Id PRP_FN_CALL FECS_SystemCreate(CORE_Id query_id,
-                                                 FECS_SysFn func,
+                                                 FECS_SysFn fn,
                                                  DT_void *user_data) {
     STATE_VALIDITY_CHECK(CORE_INVALID_ID);
 
-    return SystemCreate(query_id, func, user_data);
+    return SystemCreate(query_id, fn, user_data);
 }
 
 PRP_FN_API PRP_FnCode PRP_FN_CALL FECS_SystemDelete(CORE_Id *pSystem_id) {
