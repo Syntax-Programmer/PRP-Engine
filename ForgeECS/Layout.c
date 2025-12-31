@@ -176,7 +176,7 @@ PRP_FnCode LayoutDelCb(DT_void *layout) {
     }
     if (l->chunk_ptrs) {
         DT_size len;
-        DT_void **chunks = DT_ArrRaw(l->chunk_ptrs, &len);
+        Chunk **chunks = DT_ArrRaw(l->chunk_ptrs, &len);
         for (DT_size i = 0; i < len; i++) {
             free(chunks[i]);
         }
