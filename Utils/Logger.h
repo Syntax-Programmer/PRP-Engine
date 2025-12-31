@@ -82,7 +82,7 @@ PRP_FN_API DT_void PRP_FN_CALL PRP_LogFnCode(PRP_FnCode code,
  * @param var: The variable that caused the error.
  */
 #define PRP_LOG_FN_MALLOC_ERROR(var)                                           \
-    PRP_LOG_FN_CODE(PRP_FN_NULL_ERROR,                                         \
+    PRP_LOG_FN_CODE(PRP_FN_MALLOC_ERROR,                                       \
                     "Failed to allocate mem for the var: '%s'.", #var)
 
 /**
@@ -91,7 +91,7 @@ PRP_FN_API DT_void PRP_FN_CALL PRP_LogFnCode(PRP_FnCode code,
  * @param var: The variable that caused the error.
  */
 #define PRP_LOG_FN_UAF_ERROR(var)                                              \
-    PRP_LOG_FN_CODE(PRP_FN_NULL_ERROR,                                         \
+    PRP_LOG_FN_CODE(PRP_FN_UAF_ERROR,                                          \
                     "Tried using an already freed var: '%s'.", #var)
 
 /**
@@ -100,7 +100,7 @@ PRP_FN_API DT_void PRP_FN_CALL PRP_LogFnCode(PRP_FnCode code,
  * @param var: The variable that caused the error.
  */
 #define PRP_LOG_FN_INV_ARG_ERROR(var)                                          \
-    PRP_LOG_FN_CODE(PRP_FN_NULL_ERROR,                                         \
+    PRP_LOG_FN_CODE(PRP_FN_INV_ARG_ERROR,                                      \
                     "Invalid/Corrupted function argument: '%s' encountered.",  \
                     #var)
 

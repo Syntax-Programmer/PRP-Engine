@@ -298,6 +298,19 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BitmapIsEmpty(DT_Bitmap *bmp,
  */
 PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BitmapIsFull(DT_Bitmap *bmp,
                                                   DT_bool *pRslt);
+/**
+ * Finds if the first bitmap is a subset of the second bitmap.
+ *
+ * @param bmp1: The first bitmap.
+ * @param bmp2: The second bitmap.
+ * @param pRslt: The pointer that will store the boolean result of IsSubset.
+ *
+ * @return PRP_FN_INV_ARG_ERROR if the parameters are invalid in any way,
+ * otherwise PRP_FN_SUCCESS.
+ */
+PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BitmapIsSubset(DT_Bitmap *bmp1,
+                                                    DT_Bitmap *bmp2,
+                                                    DT_bool *pRslt);
 
 /**
  * Inverses the bits in the given bitmap.

@@ -35,7 +35,8 @@ typedef struct _IdMgr CORE_IdMgr;
  * @param data_size: The size of the members of the array to manage.
  * @param data_del_cb: The callback that will free the memory of the element
  * correctly and safely when we delete the id manager, or remove an element from
- * the id manager.
+ * the id manager. This can be DT_null if the data doesn't have internal
+ * allocations.
  *
  * @return The pointer of the id manager.
  */
@@ -119,8 +120,8 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL CORE_IdIsValid(CORE_IdMgr *id_mgr, CORE_Id id,
  * CORE_INVALID_ID if the data index is out of bounds, otherwise a valid id to
  * the data at the given index.
  */
-PRP_FN_API CORE_Id PRP_FN_CALL CORE_DataIdxToId(CORE_IdMgr *id_mgr,
-                                                DT_size data_i);
+PRP_FN_API CORE_Id PRP_FN_CALL CORE_DataIToId(CORE_IdMgr *id_mgr,
+                                              DT_size data_i);
 
 /**
  * Pushes a new element into the given id manager, auto growing to accommodate

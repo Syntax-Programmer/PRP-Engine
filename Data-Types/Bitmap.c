@@ -412,9 +412,9 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BitmapClrRange(DT_Bitmap *bmp, DT_size i,
         }
     }
 
-        if (bmp->first_set >= i && bmp->first_set < j) {
-            BitmapCalcFirstSet(bmp, j);
-        }
+    if (bmp->first_set >= i && bmp->first_set < j) {
+        BitmapCalcFirstSet(bmp, j);
+    }
 
     return PRP_FN_SUCCESS;
 }
@@ -559,6 +559,31 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BitmapIsFull(DT_Bitmap *bmp,
     PRP_NULL_ARG_CHECK(pRslt, PRP_FN_INV_ARG_ERROR);
 
     *pRslt = (bmp->set_c == bmp->bit_cap);
+
+    return PRP_FN_SUCCESS;
+}
+
+PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BitmapIsSubset(DT_Bitmap *bmp1,
+                                                    DT_Bitmap *bmp2,
+                                                    DT_bool *pRslt) {
+    PRP_NULL_ARG_CHECK(bmp1, PRP_FN_INV_ARG_ERROR);
+    PRP_NULL_ARG_CHECK(bmp2, PRP_FN_INV_ARG_ERROR);
+    PRP_NULL_ARG_CHECK(pRslt, PRP_FN_INV_ARG_ERROR);
+
+    DT_size min_cap = PRP_MIN(bmp1->word_cap, bmp2->word_cap);
+    for (DT_size i = 0; i < min_cap; i++) {
+        if ((bmp1->words[i] & bmp2->words[i]) != bmp2->words[i]) {
+            *pRslt = DT_false;
+            return PRP_FN_SUCCESS;
+        }
+    }
+    for (DT_size i = min_cap; i < bmp2->word_cap; i++) {
+        if (bmp2->words[i]) {
+            *pRslt = DT_false;
+            return PRP_FN_SUCCESS;
+        }
+    }
+    *pRslt = DT_true;
 
     return PRP_FN_SUCCESS;
 }

@@ -264,8 +264,8 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL CORE_IdIsValid(CORE_IdMgr *id_mgr, CORE_Id id,
     return PRP_FN_SUCCESS;
 }
 
-PRP_FN_API CORE_Id PRP_FN_CALL CORE_DataIdxToId(CORE_IdMgr *id_mgr,
-                                                DT_size data_i) {
+PRP_FN_API CORE_Id PRP_FN_CALL CORE_DataIToId(CORE_IdMgr *id_mgr,
+                                              DT_size data_i) {
     PRP_NULL_ARG_CHECK(id_mgr, CORE_INVALID_ID);
 
     if (data_i >= id_mgr->len) {

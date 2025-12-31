@@ -58,7 +58,7 @@ static PRP_FnCode AddLayoutChunk(Layout *layout) {
         PRP_LOG_FN_MALLOC_ERROR(chunk);
         return PRP_FN_MALLOC_ERROR;
     }
-    if (DT_ArrPush(layout->chunk_ptrs, &chunk)) {
+    if (DT_ArrPush(layout->chunk_ptrs, &chunk) != PRP_FN_SUCCESS) {
         PRP_LOG_FN_CODE(PRP_FN_RES_EXHAUSTED_ERROR,
                         "Cannot accommodate a new slot for the new chunk.");
         free(chunk);
@@ -76,7 +76,7 @@ static PRP_FnCode AddLayoutChunk(Layout *layout) {
      * and doesn't count in the size of struct.
      */
     memset(chunk, 0XFF, sizeof(Chunk));
-    DT_size push_i = DT_ArrLen(layout->chunk_ptrs);
+    DT_size push_i = DT_ArrLen(layout->chunk_ptrs) - 1;
     DT_size bit_cap = DT_BitmapBitCap(layout->free_chunks);
     if (push_i >= bit_cap &&
         DT_BitmapChangeSize(layout->free_chunks, bit_cap * 2) !=
@@ -121,7 +121,7 @@ CORE_Id LayoutCreate(CORE_Id b_set_id) {
         DT_bool rslt;
         if (DT_BitmapCmp(existing[i].b_set, b_set, &rslt) == PRP_FN_SUCCESS &&
             rslt) {
-            return CORE_DataIdxToId(g_state->layout_id_mgr, i);
+            return CORE_DataIToId(g_state->layout_id_mgr, i);
         }
     }
 

@@ -210,6 +210,33 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL FECS_LayoutEntityBatchOperateComp(
     FECS_EntityIdBatch *entity_batch, FECS_CompId comp_id,
     PRP_FnCode (*fn)(DT_void *data, DT_void *user_data), DT_void *user_data);
 
+/* ----  QUERY  ---- */
+
+/**
+ * Creates a query with the user specified behavior set and returns an id to
+ * it.
+ *
+ * @param exclude_b_set_id : The set of components to avoid in layout filtering,
+ * if any match is found the layout is excluded.
+ * @param include_b_set_id : The set of components to include in layout
+ * filtering, if all the components are found in a layout, the layout is
+ * included.
+ *
+ * @return The id of query created.
+ */
+PRP_FN_API CORE_Id PRP_FN_CALL FECS_QueryCreate(CORE_Id exclude_b_set_id,
+                                                CORE_Id include_b_set_id);
+/**
+ * Deletes the layout and invalidates the original CORE_Id * to
+ * CORE_INVALID_ID to prevent use after free bugs.
+ *
+ * @param pQuery_id: The pointer to the id of the query to delete.
+ *
+ * @return PRP_FN_INV_ARG_ERROR if pQuery_id is DT_null or the id it points to
+ * is invalid, otherwise it returns PRP_FN_SUCCESS.
+ */
+PRP_FN_API PRP_FnCode PRP_FN_CALL FECS_QueryDelete(CORE_Id *pQuery_id);
+
 /* ----  SYSTEM  ---- */
 
 /**

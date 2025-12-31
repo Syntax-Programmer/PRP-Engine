@@ -68,11 +68,20 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL FECS_BehaviorSetHasComp(CORE_Id b_set_id,
 PRP_FN_API CORE_Id PRP_FN_CALL FECS_LayoutCreate(CORE_Id b_set_id) {
     STATE_VALIDITY_CHECK(CORE_INVALID_ID);
 
-    return LayoutCreate(b_set_id);
+    CORE_Id layout_id = LayoutCreate(b_set_id);
+    if (layout_id != CORE_INVALID_ID) {
+        QueryCascadeLayoutCreate(layout_id);
+    }
+
+    return layout_id;
 }
 
 PRP_FN_API PRP_FnCode PRP_FN_CALL FECS_LayoutDelete(CORE_Id *pLayout_id) {
     STATE_VALIDITY_CHECK(PRP_FN_NULL_ERROR);
+
+    if (pLayout_id && *pLayout_id != CORE_INVALID_ID) {
+        QueryCascadeLayoutCreate(*pLayout_id);
+    }
 
     return LayoutDelete(pLayout_id);
 }
@@ -119,6 +128,21 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL FECS_LayoutEntityBatchOperateComp(
     STATE_VALIDITY_CHECK(PRP_FN_NULL_ERROR);
 
     return LayoutEntityBatchOperateComp(entity_batch, comp_id, fn, user_data);
+}
+
+/* ----  QUERY  ---- */
+
+PRP_FN_API CORE_Id PRP_FN_CALL FECS_QueryCreate(CORE_Id exclude_b_set_id,
+                                                CORE_Id include_b_set_id) {
+    STATE_VALIDITY_CHECK(CORE_INVALID_ID);
+
+    return QueryCreate(exclude_b_set_id, include_b_set_id);
+}
+
+PRP_FN_API PRP_FnCode PRP_FN_CALL FECS_QueryDelete(CORE_Id *pQuery_id) {
+    STATE_VALIDITY_CHECK(PRP_FN_NULL_ERROR);
+
+    return QueryDelete(pQuery_id);
 }
 
 /* ----  SYSTEM  ---- */
