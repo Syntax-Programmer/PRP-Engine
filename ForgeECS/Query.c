@@ -41,6 +41,9 @@ CORE_Id QueryCreate(CORE_Id exclude_b_set_id, CORE_Id include_b_set_id) {
         DT_bool rslt1, rslt2 = !query.exclude_comps;
         // These below can't fail.
         DT_BitmapIsSubset(layouts[i].b_set, query.include_comps, &rslt1);
+        if (!rslt1) {
+            continue;
+        }
         if (!rslt2) {
             DT_BitmapHasAny(layouts[i].b_set, query.exclude_comps, &rslt2);
         }
@@ -92,6 +95,9 @@ PRP_FnCode QueryCascadeLayoutCreate(CORE_Id layout_id) {
         DT_bool rslt1, rslt2 = !queries[i].exclude_comps;
         // These below can't fail.
         DT_BitmapIsSubset(layout->b_set, queries[i].include_comps, &rslt1);
+        if (!rslt1) {
+            continue;
+        }
         if (!rslt2) {
             DT_BitmapHasAny(layout->b_set, queries[i].exclude_comps, &rslt2);
         }
