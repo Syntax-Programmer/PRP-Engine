@@ -210,7 +210,7 @@ PRP_FnCode LayoutCreateEntity(CORE_Id layout_id, FECS_EntityId *entity_id) {
         *(Chunk **)(DT_ArrGet(layout->chunk_ptrs, entity_id->chunk_i));
 
     entity_id->slot = DT_BitwordFFS((DT_Bitword)chunk->free_slot);
-    PRP_BIT_CLR(chunk->free_slot, entity_id->slot);
+    PRP_BIT_CLR(chunk->free_slot, (1U << entity_id->slot));
     if (!chunk->free_slot) {
         // Removing the chunk if we just filled it up.
         DT_BitmapClr(layout->free_chunks, entity_id->chunk_i);
@@ -244,7 +244,7 @@ PRP_FnCode LayoutDeleteEntity(FECS_EntityId *entity_id) {
     }
 
     chunk->gens[entity_id->slot]++;
-    PRP_BIT_SET(chunk->free_slot, entity_id->slot);
+    PRP_BIT_SET(chunk->free_slot, (1U << entity_id->slot));
     DT_BitmapSet(layout->free_chunks, entity_id->chunk_i);
     // This invalidates the entity Id.
     memset(entity_id, 0XFF, sizeof(FECS_EntityId));
@@ -300,7 +300,7 @@ FECS_EntityIdBatch *LayoutCreateEntityBatch(CORE_Id layout_id, DT_size count) {
         DT_size chunk_i = DT_BitmapFFS(layout->free_chunks);
         Chunk *chunk = *(Chunk **)DT_ArrGet(layout->chunk_ptrs, chunk_i);
         DT_u8 slot = DT_BitwordFFS((DT_Bitword)chunk->free_slot);
-        PRP_BIT_CLR(chunk->free_slot, slot);
+        PRP_BIT_CLR(chunk->free_slot, (1U << slot));
         if (!chunk->free_slot) {
             // Removing the chunk if we just filled it up.
             DT_BitmapClr(layout->free_chunks, chunk_i);
@@ -343,7 +343,7 @@ PRP_FnCode LayoutDeleteEntityBatch(FECS_EntityIdBatch **pEntity_batch) {
             continue;
         }
         chunk->gens[slot]++;
-        PRP_BIT_SET(chunk->free_slot, slot);
+        PRP_BIT_SET(chunk->free_slot, (1U << slot));
         DT_BitmapSet(layout->free_chunks, chunk_i);
     }
     free(entity_batch);

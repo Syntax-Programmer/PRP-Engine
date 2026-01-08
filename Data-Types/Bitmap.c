@@ -42,10 +42,10 @@ PRP_FN_API DT_size PRP_FN_CALL DT_BitwordFFS(DT_Bitword word) {
 #ifdef _MSC_VER
     unsigned long i;
     if (_BitScanForward64(&i, word))
-        return (DT_size)(i + 1);
+        return (DT_size)(i);
     return 0; // GCC semantics: 0 means no bits set
 #else
-    return word ? (DT_size)__builtin_ctzll(word) + 1 : 0;
+    return word ? (DT_size)__builtin_ctzll(word) : PRP_INVALID_INDEX;
 #endif
 }
 
