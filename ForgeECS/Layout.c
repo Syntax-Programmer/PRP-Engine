@@ -1,4 +1,5 @@
 #include "Shared-Internals.h"
+#include <stdio.h>
 #include <string.h>
 
 /**
@@ -139,7 +140,7 @@ CORE_Id LayoutCreate(CORE_Id b_set_id) {
     LAYOUT_INIT_ERROR_CHECK(layout.b_set);
 
     CalcCompArStrides(&layout);
-    if (AddLayoutChunk(&layout)) {
+    if (AddLayoutChunk(&layout) != PRP_FN_SUCCESS) {
         PRP_LOG_FN_CODE(PRP_FN_MALLOC_ERROR,
                         "Cannot add initial first chunk to the layout.");
         LayoutDelCb(&layout);
@@ -178,7 +179,8 @@ PRP_FnCode LayoutDelCb(DT_void *layout) {
         DT_size len;
         Chunk **chunks = DT_ArrRaw(l->chunk_ptrs, &len);
         for (DT_size i = 0; i < len; i++) {
-            free(chunks[i]);
+            Chunk *chunk = chunks[i];
+            free(chunk);
         }
         DT_ArrDelete(&l->chunk_ptrs);
     }
@@ -204,7 +206,8 @@ PRP_FnCode LayoutCreateEntity(CORE_Id layout_id, FECS_EntityId *entity_id) {
     entity_id->layout_id = layout_id;
     // Since we grew the layout earlier, the below ops can't fail.
     entity_id->chunk_i = DT_BitmapFFS(layout->free_chunks);
-    Chunk *chunk = DT_ArrGet(layout->chunk_ptrs, entity_id->chunk_i);
+    Chunk *chunk =
+        *(Chunk **)(DT_ArrGet(layout->chunk_ptrs, entity_id->chunk_i));
 
     entity_id->slot = DT_BitwordFFS((DT_Bitword)chunk->free_slot);
     PRP_BIT_CLR(chunk->free_slot, entity_id->slot);
@@ -234,7 +237,7 @@ PRP_FnCode LayoutDeleteEntity(FECS_EntityId *entity_id) {
         PRP_LOG_FN_INV_ARG_ERROR(entity_id->chunk_i);
         return PRP_FN_INV_ARG_ERROR;
     }
-    Chunk *chunk = DT_ArrGet(layout->chunk_ptrs, entity_id->chunk_i);
+    Chunk *chunk = *(Chunk **)DT_ArrGet(layout->chunk_ptrs, entity_id->chunk_i);
     if (chunk->gens[entity_id->slot] != entity_id->gen) {
         PRP_LOG_FN_INV_ARG_ERROR(entity_id->gen);
         return PRP_FN_INV_ARG_ERROR;
@@ -295,7 +298,7 @@ FECS_EntityIdBatch *LayoutCreateEntityBatch(CORE_Id layout_id, DT_size count) {
             }
         }
         DT_size chunk_i = DT_BitmapFFS(layout->free_chunks);
-        Chunk *chunk = DT_ArrGet(layout->chunk_ptrs, chunk_i);
+        Chunk *chunk = *(Chunk **)DT_ArrGet(layout->chunk_ptrs, chunk_i);
         DT_u8 slot = DT_BitwordFFS((DT_Bitword)chunk->free_slot);
         PRP_BIT_CLR(chunk->free_slot, slot);
         if (!chunk->free_slot) {
@@ -334,7 +337,7 @@ PRP_FnCode LayoutDeleteEntityBatch(FECS_EntityIdBatch **pEntity_batch) {
             PRP_LOG_FN_INV_ARG_ERROR(chunk_i);
             continue;
         }
-        Chunk *chunk = DT_ArrGet(layout->chunk_ptrs, chunk_i);
+        Chunk *chunk = *(Chunk **)DT_ArrGet(layout->chunk_ptrs, chunk_i);
         if (chunk->gens[slot] != gen) {
             PRP_LOG_FN_INV_ARG_ERROR(gen);
             continue;
@@ -387,7 +390,7 @@ PRP_FnCode LayoutEntityOperateComp(FECS_EntityId entity_id, FECS_CompId comp_id,
         PRP_LOG_FN_INV_ARG_ERROR(entity_id.chunk_i);
         return PRP_FN_INV_ARG_ERROR;
     }
-    Chunk *chunk = DT_ArrGet(layout->chunk_ptrs, entity_id.chunk_i);
+    Chunk *chunk = *(Chunk **)DT_ArrGet(layout->chunk_ptrs, entity_id.chunk_i);
     if (chunk->gens[entity_id.slot] != entity_id.gen) {
         PRP_LOG_FN_INV_ARG_ERROR(entity_id.gen);
         return PRP_FN_INV_ARG_ERROR;
@@ -434,7 +437,7 @@ PRP_FnCode LayoutEntityBatchOperateComp(
             PRP_LOG_FN_INV_ARG_ERROR(chunk_i);
             continue;
         }
-        Chunk *chunk = DT_ArrGet(layout->chunk_ptrs, chunk_i);
+        Chunk *chunk = *(Chunk **)DT_ArrGet(layout->chunk_ptrs, chunk_i);
         if (chunk->gens[slot] != gen) {
             PRP_LOG_FN_INV_ARG_ERROR(gen);
             continue;
