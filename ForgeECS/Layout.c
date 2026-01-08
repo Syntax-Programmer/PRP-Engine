@@ -1,5 +1,4 @@
 #include "Shared-Internals.h"
-#include <stdio.h>
 #include <string.h>
 
 /**
