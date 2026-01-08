@@ -31,7 +31,7 @@ static PRP_FnCode ArrChangeSize(DT_Arr *arr, DT_size new_cap) {
         return PRP_FN_SUCCESS;
     }
 
-    DT_u8 *mem = realloc(arr->mem, new_cap);
+    DT_u8 *mem = realloc(arr->mem, new_cap * arr->memb_size);
     if (!mem) {
         PRP_LOG_FN_MALLOC_ERROR(mem);
         return PRP_FN_MALLOC_ERROR;
