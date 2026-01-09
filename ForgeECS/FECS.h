@@ -4,6 +4,7 @@
 extern "C" {
 #endif
 
+#include "../Data-Types/Bitmap.h"
 #include "Shared-Defs.h"
 
 /* ----  COMP ---- */
@@ -240,13 +241,6 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL FECS_QueryDelete(CORE_Id *pQuery_id);
 /* ----  SYSTEM  ---- */
 
 /**
- * A system function is a function that is executed by the engine on a set of
- * components that match a query.
- */
-typedef DT_void (*FECS_SysFn)(DT_void *comp_arr, DT_size len,
-                              DT_void *user_data, DT_u32 sys_data);
-
-/**
  * Thes macros abstract the method of iteration over the entities of matching
  * the query of the system.
  */
@@ -254,7 +248,7 @@ typedef DT_void (*FECS_SysFn)(DT_void *comp_arr, DT_size len,
 #define FECS_SYS_GET_I(sys_data, i)                                            \
     do {                                                                       \
         DT_Bitword mask = (sys_data) & -(sys_data);                            \
-        (i) = DT_BitwordCtz(mask);                                             \
+        (i) = DT_BitwordCTZ(mask);                                             \
         sys_data ^= mask;                                                      \
     } while (0);
 

@@ -46,13 +46,10 @@ PRP_FnCode SystemExec(CORE_Id system_id) {
         Chunk **chunks = DT_ArrRaw(layout->chunk_ptrs, &chunks_len);
 
         for (DT_size j = 0; j < chunks_len; j++) {
-            DT_bool rslt;
-            // Can't really fail.
-            DT_BitmapIsSet(layout->free_chunks, j, &rslt);
-            if (!rslt) {
+            Chunk *chunk = chunks[j];
+            if (!(~chunk->free_slot)) {
                 continue;
             }
-            Chunk *chunk = chunks[j];
             for (DT_size k = 0; k < comp_arr_c; k++) {
                 fn_arr[k] = chunk->data + layout->comp_arr_strides[k];
             }

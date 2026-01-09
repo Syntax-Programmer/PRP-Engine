@@ -359,18 +359,6 @@ typedef struct {
 } System;
 
 /**
- * Thes macros abstract the method of iteration over the entities of matching
- * the query of the system.
- */
-#define FECS_SYS_DATA_LOOP(sys_data) while ((sys_data))
-#define FECS_SYS_GET_I(sys_data, i)                                            \
-    do {                                                                       \
-        DT_Bitword mask = (sys_data) & -(sys_data);                            \
-        (i) = DT_BitwordCtz(mask);                                             \
-        sys_data ^= mask;                                                      \
-    } while (0);
-
-/**
  * Creates the system user specified function and the query it applies to.
  *
  * @param query_id: The id of the query the system will apply to.

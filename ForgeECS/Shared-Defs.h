@@ -50,7 +50,7 @@ typedef struct {
  * A system function is a function that is executed by the engine on a set of
  * components that match a query.
  */
-typedef DT_void (*FECS_SysFn)(DT_void *comp_arr, DT_size len,
+typedef DT_void (*FECS_SysFn)(DT_void **comp_arr, DT_size len,
                               DT_void *user_data, DT_u32 sys_data);
 
 #ifdef __cplusplus
