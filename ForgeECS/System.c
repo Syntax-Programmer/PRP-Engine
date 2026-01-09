@@ -30,7 +30,6 @@ PRP_FnCode SystemExec(CORE_Id system_id) {
      * manipulated FECS internal data. If that is the case we can just give up.
      */
     Query *query = CORE_IdToData(g_state->query_id_mgr, system->query_id);
-
     DT_size layout_ids_len;
     CORE_Id *layout_ids = DT_ArrRaw(query->layout_matches, &layout_ids_len);
 

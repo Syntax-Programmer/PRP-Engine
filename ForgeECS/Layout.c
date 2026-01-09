@@ -101,7 +101,7 @@ static PRP_FnCode AddLayoutChunk(Layout *layout) {
         }                                                                      \
     } while (0);
 
-CORE_Id LayoutCreate(CORE_Id b_set_id) {
+CORE_Id LayoutCreate(CORE_Id b_set_id, DT_bool *pIsDuplicate) {
     DT_Bitmap **pB_set = CORE_IdToData(g_state->b_set_id_mgr, b_set_id);
     if (!pB_set) {
         PRP_LOG_FN_INV_ARG_ERROR(b_set_id);
@@ -115,12 +115,15 @@ CORE_Id LayoutCreate(CORE_Id b_set_id) {
         return CORE_INVALID_ID;
     }
 
+    *pIsDuplicate = DT_false;
     DT_u32 len;
     Layout *existing = CORE_IdMgrRaw(g_state->layout_id_mgr, &len);
     for (DT_u32 i = 0; i < len; i++) {
         DT_bool rslt;
         if (DT_BitmapCmp(existing[i].b_set, b_set, &rslt) == PRP_FN_SUCCESS &&
             rslt) {
+            *pIsDuplicate = DT_true;
+
             return CORE_DataIToId(g_state->layout_id_mgr, i);
         }
     }

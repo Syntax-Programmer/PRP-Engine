@@ -189,7 +189,7 @@ typedef struct {
  *
  * @return The id of layout created.
  */
-CORE_Id LayoutCreate(CORE_Id b_set_id);
+CORE_Id LayoutCreate(CORE_Id b_set_id, DT_bool *pIsDuplicate);
 /**
  * Deletes the layout and invalidates the original CORE_Id * to
  * CORE_INVALID_ID to prevent use after free bugs.

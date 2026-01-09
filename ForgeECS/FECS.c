@@ -68,8 +68,9 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL FECS_BehaviorSetHasComp(CORE_Id b_set_id,
 PRP_FN_API CORE_Id PRP_FN_CALL FECS_LayoutCreate(CORE_Id b_set_id) {
     STATE_VALIDITY_CHECK(CORE_INVALID_ID);
 
-    CORE_Id layout_id = LayoutCreate(b_set_id);
-    if (layout_id != CORE_INVALID_ID) {
+    DT_bool is_duplicate;
+    CORE_Id layout_id = LayoutCreate(b_set_id, &is_duplicate);
+    if (layout_id != CORE_INVALID_ID && !is_duplicate) {
         QueryCascadeLayoutCreate(layout_id);
     }
 
