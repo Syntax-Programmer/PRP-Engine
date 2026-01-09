@@ -27,12 +27,22 @@ static PRP_FnCode AddLayoutChunk(Layout *layout);
  * to the component ID.
  */
 static DT_size CompIdToCompArrStrideI(Layout *layout, FECS_CompId comp_id);
+/**
+ * Just a callback to free chunks pointers stored inside the layout.
+ *
+ * @param data: The arr should ideally give it Chunk **.
+ *
+ * @return PRP_FN_SUCCESS.
+ */
+static inline PRP_FnCode FreeChunkPtrs(DT_void *data);
 
 static DT_void CalcCompArStrides(Layout *layout) {
     DT_size size_len;
-    DT_size *sizes = DT_ArrRaw(g_state->comp_registry.comp_sizes, &size_len);
+    const DT_size *sizes =
+        DT_ArrRaw(g_state->comp_registry.comp_sizes, &size_len);
     DT_size word_cap, bit_cap;
-    DT_Bitword *behaviors = DT_BitmapRaw(layout->b_set, &word_cap, &bit_cap);
+    const DT_Bitword *behaviors =
+        DT_BitmapRaw(layout->b_set, &word_cap, &bit_cap);
     DT_size stride = 0;
 
     /*
@@ -117,7 +127,7 @@ CORE_Id LayoutCreate(CORE_Id b_set_id, DT_bool *pIsDuplicate) {
 
     *pIsDuplicate = DT_false;
     DT_u32 len;
-    Layout *existing = CORE_IdMgrRaw(g_state->layout_id_mgr, &len);
+    const Layout *existing = CORE_IdMgrRaw(g_state->layout_id_mgr, &len);
     for (DT_u32 i = 0; i < len; i++) {
         DT_bool rslt;
         if (DT_BitmapCmp(existing[i].b_set, b_set, &rslt) == PRP_FN_SUCCESS &&
@@ -163,6 +173,13 @@ PRP_FnCode LayoutDelete(CORE_Id *pLayout_id) {
     return CORE_IdMgrDeleteData(g_state->layout_id_mgr, pLayout_id);
 }
 
+static inline PRP_FnCode FreeChunkPtrs(DT_void *data) {
+    Chunk **pChunk_ptr = data;
+    free(*pChunk_ptr);
+
+    return PRP_FN_SUCCESS;
+}
+
 PRP_FnCode LayoutDelCb(DT_void *layout) {
     PRP_NULL_ARG_CHECK(layout, PRP_FN_INV_ARG_ERROR);
 
@@ -178,11 +195,7 @@ PRP_FnCode LayoutDelCb(DT_void *layout) {
         DT_BitmapDelete(&l->free_chunks);
     }
     if (l->chunk_ptrs) {
-        DT_size len;
-        Chunk **chunks = DT_ArrRaw(l->chunk_ptrs, &len);
-        for (DT_size i = 0; i < len; i++) {
-            free(chunks[i]);
-        }
+        DT_ArrForEach(l->chunk_ptrs, FreeChunkPtrs);
         DT_ArrDelete(&l->chunk_ptrs);
     }
     l->chunk_size = 0;
@@ -360,7 +373,8 @@ PRP_FnCode LayoutDeleteEntityBatch(FECS_EntityIdBatch **pEntity_batch) {
 static DT_size CompIdToCompArrStrideI(Layout *layout, FECS_CompId comp_id) {
     DT_size index = PRP_INVALID_INDEX;
     DT_size word_cap, bit_cap;
-    DT_Bitword *b_set_raw = DT_BitmapRaw(layout->b_set, &word_cap, &bit_cap);
+    const DT_Bitword *b_set_raw =
+        DT_BitmapRaw(layout->b_set, &word_cap, &bit_cap);
 
     /*
      * Not respecting word cap and bit cap since the below is guaranteed to be

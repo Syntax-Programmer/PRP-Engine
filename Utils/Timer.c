@@ -58,7 +58,8 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL PRP_TimerStart(PRP_Timer *timer) {
     return PRP_FN_SUCCESS;
 }
 
-PRP_FN_API PRP_TimeMeasure PRP_FN_CALL PRP_TimerElapsed(PRP_Timer *timer) {
+PRP_FN_API PRP_TimeMeasure PRP_FN_CALL
+PRP_TimerElapsed(const PRP_Timer *timer) {
     PRP_NULL_ARG_CHECK(timer, PRP_INVALID_TIME_MEASURE);
 
     return PRP_TimerGetTime(timer->unit) - timer->start;

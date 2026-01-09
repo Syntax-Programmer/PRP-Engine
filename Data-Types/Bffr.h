@@ -60,7 +60,8 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BffrDelete(DT_Bffr **pBffr);
  * @return DT_null if the array is invalid or pCap is DT_null, otherwise the
  * memory pointer of the buffer's raw memory.
  */
-PRP_FN_API DT_void *PRP_FN_CALL DT_BffrRaw(DT_Bffr *bffr, DT_size *pCap);
+PRP_FN_API const DT_void *PRP_FN_CALL DT_BffrRaw(const DT_Bffr *bffr,
+                                                 DT_size *pCap);
 /**
  * Returns the current allocated cap of the buffer that is passed to it.
  *
@@ -69,7 +70,7 @@ PRP_FN_API DT_void *PRP_FN_CALL DT_BffrRaw(DT_Bffr *bffr, DT_size *pCap);
  * @return PRP_INVALID_SIZE if buffer is invalid, otherwise the actual cap of
  * the buffer.
  */
-PRP_FN_API DT_size PRP_FN_CALL DT_BffrCap(DT_Bffr *bffr);
+PRP_FN_API DT_size PRP_FN_CALL DT_BffrCap(const DT_Bffr *bffr);
 /**
  * Returns the member size of the buffer that is passed to it.
  *
@@ -78,7 +79,7 @@ PRP_FN_API DT_size PRP_FN_CALL DT_BffrCap(DT_Bffr *bffr);
  * @return PRP_INVALID_SIZE if buffer is invalid, otherwise the actual memb_size
  * of the buffer.
  */
-PRP_FN_API DT_size PRP_FN_CALL DT_BffrMembSize(DT_Bffr *bffr);
+PRP_FN_API DT_size PRP_FN_CALL DT_BffrMembSize(const DT_Bffr *bffr);
 
 /**
  * Gets the pointer to the element of the given index of the buffer.
@@ -89,7 +90,7 @@ PRP_FN_API DT_size PRP_FN_CALL DT_BffrMembSize(DT_Bffr *bffr);
  * @return DT_null if buffer is invalid or the i is out of bound, otherwise the
  * pointer of the requested index.
  */
-PRP_FN_API DT_void *PRP_FN_CALL DT_BffrGet(DT_Bffr *bffr, DT_size i);
+PRP_FN_API DT_void *PRP_FN_CALL DT_BffrGet(const DT_Bffr *bffr, DT_size i);
 /**
  * Sets the given index of the buffer with the given data.
  *
@@ -102,7 +103,7 @@ PRP_FN_API DT_void *PRP_FN_CALL DT_BffrGet(DT_Bffr *bffr, DT_size i);
  * PRP_FN_SUCCESS.
  */
 PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BffrSet(DT_Bffr *bffr, DT_size i,
-                                             DT_void *data);
+                                             const DT_void *data);
 /**
  * Sets the same element 'data' to all the indices b/w i and j excluding j.
  *
@@ -116,7 +117,8 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BffrSet(DT_Bffr *bffr, DT_size i,
  * PRP_FN_SUCCESS.
  */
 PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BffrSetRange(DT_Bffr *bffr, DT_size i,
-                                                  DT_size j, DT_void *data);
+                                                  DT_size j,
+                                                  const DT_void *data);
 /**
  * Sets count number of elements in order starting from index i.
  *
@@ -130,7 +132,7 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BffrSetRange(DT_Bffr *bffr, DT_size i,
  * PRP_FN_SUCCESS.
  */
 PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BffrSetMany(DT_Bffr *bffr, DT_size i,
-                                                 DT_void *data_arr,
+                                                 const DT_void *data_arr,
                                                  DT_size len);
 
 /**
@@ -144,7 +146,8 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BffrSetMany(DT_Bffr *bffr, DT_size i,
  * @return PRP_FN_INV_ARG_ERROR if the parameters are invalid in any way,
  * otherwise PRP_FN_SUCCESS.
  */
-PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BffrCmp(DT_Bffr *bffr1, DT_Bffr *bffr2,
+PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BffrCmp(const DT_Bffr *bffr1,
+                                             const DT_Bffr *bffr2,
                                              DT_bool *pRslt);
 /**
  * Joins the content of bffr2 with bffr1.
@@ -155,7 +158,8 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BffrCmp(DT_Bffr *bffr1, DT_Bffr *bffr2,
  * @return PRP_FN_INV_ARG_ERROR if the parameters are invalid in any way,
  * PRP_FN_MALLOC_ERROR if realloc failed on bffr1, otherwise PRP_FN_SUCCESS.
  */
-PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BffrExtend(DT_Bffr *bffr1, DT_Bffr *bffr2);
+PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BffrExtend(DT_Bffr *bffr1,
+                                                const DT_Bffr *bffr2);
 /**
  * Swaps the elements of the given two indices.
  *

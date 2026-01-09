@@ -95,7 +95,7 @@ typedef struct {
  *
  * @return The IdState containing all the data the id can give.
  */
-static inline IdState GetIdData(CORE_IdMgr *id_mgr, CORE_Id id);
+static inline IdState GetIdData(const CORE_IdMgr *id_mgr, CORE_Id id);
 /**
  * Grows the id_mgr maintaining same cap for each bffr. Also fills initial
  * values for the id_layer and free_id_slots.
@@ -153,6 +153,12 @@ PRP_FN_API CORE_IdMgr *PRP_FN_CALL CORE_IdMgrCreate(
     return id_mgr;
 }
 
+// static inline PRP_FnCode FreeData(DT_void *data) {
+//     free(data);
+
+//     return PRP_FN_SUCCESS;
+// }
+
 PRP_FN_API PRP_FnCode PRP_FN_CALL CORE_IdMgrDelete(CORE_IdMgr **pId_mgr) {
     PRP_NULL_ARG_CHECK(pId_mgr, PRP_FN_INV_ARG_ERROR);
     CORE_IdMgr *id_mgr = *pId_mgr;
@@ -161,7 +167,12 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL CORE_IdMgrDelete(CORE_IdMgr **pId_mgr) {
     if (id_mgr->data) {
         if (id_mgr->data_del_cb) {
             DT_size cap, memb_size = DT_BffrMembSize(id_mgr->data);
-            DT_u8 *ptr = DT_BffrRaw(id_mgr->data, &cap);
+            /*
+             * Intentionally discarding const qualifier.
+             * We have to do it since bffr doesn't have a foreach implementation
+             * yet that would make sense to its semantics.
+             */
+            DT_u8 *ptr = (DT_u8 *)DT_BffrRaw(id_mgr->data, &cap);
             (void)cap;
             for (DT_size i = 0; i < id_mgr->len; i++) {
                 id_mgr->data_del_cb(ptr);
@@ -185,12 +196,12 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL CORE_IdMgrDelete(CORE_IdMgr **pId_mgr) {
     return PRP_FN_SUCCESS;
 }
 
-PRP_FN_API DT_void *PRP_FN_CALL CORE_IdMgrRaw(CORE_IdMgr *id_mgr,
-                                              DT_u32 *pLen) {
+PRP_FN_API const DT_void *PRP_FN_CALL CORE_IdMgrRaw(const CORE_IdMgr *id_mgr,
+                                                    DT_u32 *pLen) {
     PRP_NULL_ARG_CHECK(id_mgr, DT_null);
 
     DT_size cap;
-    DT_void *data = DT_BffrRaw(id_mgr->data, &cap);
+    const DT_void *data = DT_BffrRaw(id_mgr->data, &cap);
     // Since data arr is a bffr, but also denely packed.
     (DT_void) cap;
     *pLen = id_mgr->len;
@@ -198,13 +209,13 @@ PRP_FN_API DT_void *PRP_FN_CALL CORE_IdMgrRaw(CORE_IdMgr *id_mgr,
     return data;
 }
 
-PRP_FN_API DT_u32 PRP_FN_CALL CORE_IdMgrLen(CORE_IdMgr *id_mgr) {
+PRP_FN_API DT_u32 PRP_FN_CALL CORE_IdMgrLen(const CORE_IdMgr *id_mgr) {
     PRP_NULL_ARG_CHECK(id_mgr, CORE_INVALID_SIZE);
 
     return id_mgr->len;
 }
 
-static inline IdState GetIdData(CORE_IdMgr *id_mgr, CORE_Id id) {
+static inline IdState GetIdData(const CORE_IdMgr *id_mgr, CORE_Id id) {
     IdState state;
 
     UNPACK_GEN_INDEX_PACKING(id, state.id_i, state.id_gen);
@@ -229,7 +240,8 @@ static inline IdState GetIdData(CORE_IdMgr *id_mgr, CORE_Id id) {
     return state;
 }
 
-PRP_FN_API DT_u32 PRP_FN_CALL CORE_IdToIndex(CORE_IdMgr *id_mgr, CORE_Id id) {
+PRP_FN_API DT_u32 PRP_FN_CALL CORE_IdToIndex(const CORE_IdMgr *id_mgr,
+                                             CORE_Id id) {
     PRP_NULL_ARG_CHECK(id_mgr, CORE_INVALID_INDEX);
     IdState state = GetIdData(id_mgr, id);
     if (state.validity_code != PRP_FN_SUCCESS) {
@@ -239,7 +251,8 @@ PRP_FN_API DT_u32 PRP_FN_CALL CORE_IdToIndex(CORE_IdMgr *id_mgr, CORE_Id id) {
     return state.data_i;
 }
 
-PRP_FN_API DT_void *PRP_FN_CALL CORE_IdToData(CORE_IdMgr *id_mgr, CORE_Id id) {
+PRP_FN_API DT_void *PRP_FN_CALL CORE_IdToData(const CORE_IdMgr *id_mgr,
+                                              CORE_Id id) {
     PRP_NULL_ARG_CHECK(id_mgr, DT_null);
     IdState state = GetIdData(id_mgr, id);
     if (state.validity_code != PRP_FN_SUCCESS) {
@@ -249,8 +262,8 @@ PRP_FN_API DT_void *PRP_FN_CALL CORE_IdToData(CORE_IdMgr *id_mgr, CORE_Id id) {
     return DT_BffrGet(id_mgr->data, state.data_i);
 }
 
-PRP_FN_API PRP_FnCode PRP_FN_CALL CORE_IdIsValid(CORE_IdMgr *id_mgr, CORE_Id id,
-                                                 DT_bool *pRslt) {
+PRP_FN_API PRP_FnCode PRP_FN_CALL CORE_IdIsValid(const CORE_IdMgr *id_mgr,
+                                                 CORE_Id id, DT_bool *pRslt) {
     PRP_NULL_ARG_CHECK(id_mgr, PRP_FN_INV_ARG_ERROR);
     PRP_NULL_ARG_CHECK(pRslt, PRP_FN_INV_ARG_ERROR);
 
@@ -264,7 +277,7 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL CORE_IdIsValid(CORE_IdMgr *id_mgr, CORE_Id id,
     return PRP_FN_SUCCESS;
 }
 
-PRP_FN_API CORE_Id PRP_FN_CALL CORE_DataIToId(CORE_IdMgr *id_mgr,
+PRP_FN_API CORE_Id PRP_FN_CALL CORE_DataIToId(const CORE_IdMgr *id_mgr,
                                               DT_size data_i) {
     PRP_NULL_ARG_CHECK(id_mgr, CORE_INVALID_ID);
 
@@ -311,7 +324,7 @@ static PRP_FnCode GrowIdMgr(CORE_IdMgr *id_mgr, DT_size new_cap) {
 }
 
 PRP_FN_API CORE_Id PRP_FN_CALL CORE_IdMgrAddData(CORE_IdMgr *id_mgr,
-                                                 DT_void *data) {
+                                                 const DT_void *data) {
     PRP_NULL_ARG_CHECK(id_mgr, CORE_INVALID_ID);
     PRP_NULL_ARG_CHECK(data, CORE_INVALID_ID);
 
@@ -435,7 +448,7 @@ CORE_IdMgrForEach(CORE_IdMgr *id_mgr, PRP_FnCode (*cb)(DT_void *val)) {
     PRP_NULL_ARG_CHECK(cb, PRP_FN_INV_ARG_ERROR);
 
     DT_size cap, memb_size = DT_BffrMembSize(id_mgr->data);
-    DT_u8 *ptr = DT_BffrRaw(id_mgr->data, &cap);
+    DT_u8 *ptr = (DT_u8 *)DT_BffrRaw(id_mgr->data, &cap);
     /*
      * We discard cap and use id_mgr->len because the data array is densly
      * packed and iterating beyond the len is undefined behavior since we be

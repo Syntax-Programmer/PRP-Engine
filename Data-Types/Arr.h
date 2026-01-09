@@ -67,7 +67,8 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrDelete(DT_Arr **pArr);
  * @return DT_null if the array is invalid or pLen is DT_null, otherwise the
  * memory pointer of the array's raw memory.
  */
-PRP_FN_API DT_void *PRP_FN_CALL DT_ArrRaw(DT_Arr *arr, DT_size *pLen);
+PRP_FN_API const DT_void *PRP_FN_CALL DT_ArrRaw(const DT_Arr *arr,
+                                                DT_size *pLen);
 /**
  * Returns the current len of the array that is passed to it.
  *
@@ -76,7 +77,7 @@ PRP_FN_API DT_void *PRP_FN_CALL DT_ArrRaw(DT_Arr *arr, DT_size *pLen);
  * @return PRP_INVALID_SIZE if the array is invalid, otherwise the actual len of
  * the array.
  */
-PRP_FN_API DT_size PRP_FN_CALL DT_ArrLen(DT_Arr *arr);
+PRP_FN_API DT_size PRP_FN_CALL DT_ArrLen(const DT_Arr *arr);
 /**
  * Returns the current allocated cap of the array that is passed to it.
  *
@@ -85,7 +86,7 @@ PRP_FN_API DT_size PRP_FN_CALL DT_ArrLen(DT_Arr *arr);
  * @return PRP_INVALID_SIZE if the array is invalid, otherwise the actual cap of
  * the array.
  */
-PRP_FN_API DT_size PRP_FN_CALL DT_ArrCap(DT_Arr *arr);
+PRP_FN_API DT_size PRP_FN_CALL DT_ArrCap(const DT_Arr *arr);
 /**
  * Returns the member size of the array that is passed to it.
  *
@@ -94,7 +95,7 @@ PRP_FN_API DT_size PRP_FN_CALL DT_ArrCap(DT_Arr *arr);
  * @return PRP_INVALID_SIZE if the array is invalid, otherwise the actual
  * memb_size of the array.
  */
-PRP_FN_API DT_size PRP_FN_CALL DT_ArrMembSize(DT_Arr *arr);
+PRP_FN_API DT_size PRP_FN_CALL DT_ArrMembSize(const DT_Arr *arr);
 
 /**
  * Gets the pointer to the element of the given index of the array.
@@ -105,7 +106,7 @@ PRP_FN_API DT_size PRP_FN_CALL DT_ArrMembSize(DT_Arr *arr);
  * @return DT_null if array is invalid or the i is out of bound, otherwise the
  * pointer of the requested index.
  */
-PRP_FN_API DT_void *PRP_FN_CALL DT_ArrGet(DT_Arr *arr, DT_size i);
+PRP_FN_API DT_void *PRP_FN_CALL DT_ArrGet(const DT_Arr *arr, DT_size i);
 /**
  * Sets the given index of the array with the given data.
  *
@@ -118,7 +119,7 @@ PRP_FN_API DT_void *PRP_FN_CALL DT_ArrGet(DT_Arr *arr, DT_size i);
  * PRP_FN_SUCCESS.
  */
 PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrSet(DT_Arr *arr, DT_size i,
-                                            DT_void *data);
+                                            const DT_void *data);
 
 /**
  * Pushes a new element into the given array, auto growing to accommodate for
@@ -131,7 +132,7 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrSet(DT_Arr *arr, DT_size i,
  * PRP_FN_RES_EXHAUSTED_ERROR if pushing into the array is not possible,
  * otherwise PRP_FN_SUCCESS.
  */
-PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrPush(DT_Arr *arr, DT_void *data);
+PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrPush(DT_Arr *arr, const DT_void *data);
 /**
  * Reserves <count> number of elements in the array.
  *
@@ -155,7 +156,7 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrReserve(DT_Arr *arr, DT_size count);
  * PRP_FN_RES_EXHAUSTED_ERROR if accommodating an insert op is not possible,
  * otherwise PRP_FN_SUCCESS.
  */
-PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrInsert(DT_Arr *arr, DT_void *data,
+PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrInsert(DT_Arr *arr, const DT_void *data,
                                                DT_size i);
 
 /**
@@ -195,8 +196,8 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrRemove(DT_Arr *arr, DT_void *dest,
  * @return PRP_FN_INV_ARG_ERROR if the parameters are invalid in any way,
  * otherwise PRP_FN_SUCCESS.
  */
-PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrCmp(DT_Arr *arr1, DT_Arr *arr2,
-                                            DT_bool *pRslt);
+PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrCmp(const DT_Arr *arr1,
+                                            const DT_Arr *arr2, DT_bool *pRslt);
 /**
  * Joins the content of arr2 with arr1.
  *
@@ -206,7 +207,8 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrCmp(DT_Arr *arr1, DT_Arr *arr2,
  * @return PRP_FN_INV_ARG_ERROR if the parameters are invalid in any way,
  * PRP_FN_MALLOC_ERROR if realloc failed on arr1, otherwise PRP_FN_SUCCESS.
  */
-PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrExtend(DT_Arr *arr1, DT_Arr *arr2);
+PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrExtend(DT_Arr *arr1,
+                                               const DT_Arr *arr2);
 /**
  * Swaps the elements of the given two indices.
  *

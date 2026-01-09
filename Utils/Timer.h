@@ -64,7 +64,7 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL PRP_TimerStart(PRP_Timer *timer);
  * @return PRP_INVALID_TIME_MEASURE if the timer is invalid, otherwise the
  * elapsed time in the timer's units.
  */
-PRP_FN_API PRP_TimeMeasure PRP_FN_CALL PRP_TimerElapsed(PRP_Timer *timer);
+PRP_FN_API PRP_TimeMeasure PRP_FN_CALL PRP_TimerElapsed(const PRP_Timer *timer);
 /**
  * Changes the unit of the timer and updates the currently set time safely.
  *

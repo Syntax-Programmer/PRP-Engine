@@ -36,7 +36,7 @@ CORE_Id QueryCreate(CORE_Id exclude_b_set_id, CORE_Id include_b_set_id) {
     QUERY_INIT_ERROR_CHECK(query.layout_matches);
 
     DT_u32 len;
-    Layout *layouts = CORE_IdMgrRaw(g_state->layout_id_mgr, &len);
+    const Layout *layouts = CORE_IdMgrRaw(g_state->layout_id_mgr, &len);
     for (DT_u32 i = 0; i < len; i++) {
         DT_bool rslt1;
         DT_BitmapIsSubset(layouts[i].b_set, query.include_comps, &rslt1);
@@ -90,7 +90,7 @@ PRP_FnCode QueryCascadeLayoutCreate(CORE_Id layout_id) {
     }
 
     DT_u32 len;
-    Query *queries = CORE_IdMgrRaw(g_state->query_id_mgr, &len);
+    const Query *queries = CORE_IdMgrRaw(g_state->query_id_mgr, &len);
     for (DT_u32 i = 0; i < len; i++) {
         DT_bool rslt1;
         DT_BitmapIsSubset(layout->b_set, queries[i].include_comps, &rslt1);
@@ -122,10 +122,11 @@ PRP_FnCode QueryCascadeLayoutDelete(CORE_Id layout_id) {
     }
 
     DT_u32 len;
-    Query *queries = CORE_IdMgrRaw(g_state->query_id_mgr, &len);
+    const Query *queries = CORE_IdMgrRaw(g_state->query_id_mgr, &len);
     for (DT_u32 i = 0; i < len; i++) {
         DT_size ids_len;
-        CORE_Id *layout_ids = DT_ArrRaw(queries[i].layout_matches, &ids_len);
+        const CORE_Id *layout_ids =
+            DT_ArrRaw(queries[i].layout_matches, &ids_len);
         for (DT_size j = 0; j < ids_len; j++) {
             if (layout_ids[j] == layout_id) {
                 // Since the layout matches are unordered we can do this.

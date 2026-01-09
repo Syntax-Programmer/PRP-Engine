@@ -66,7 +66,8 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL CORE_IdMgrDelete(CORE_IdMgr **pId_mgr);
  * @return DT_null if the id manager is invalid or pLen is DT_null, otherwise
  * the memory pointer of the id manager's data array raw memory.
  */
-PRP_FN_API DT_void *PRP_FN_CALL CORE_IdMgrRaw(CORE_IdMgr *id_mgr, DT_u32 *pLen);
+PRP_FN_API const DT_void *PRP_FN_CALL CORE_IdMgrRaw(const CORE_IdMgr *id_mgr,
+                                                    DT_u32 *pLen);
 /**
  * Returns the current number of elements the id manager is managing.
  *
@@ -75,7 +76,7 @@ PRP_FN_API DT_void *PRP_FN_CALL CORE_IdMgrRaw(CORE_IdMgr *id_mgr, DT_u32 *pLen);
  * @return CORE_INVALID_SIZE if the id manager is invalid, otherwise the actual
  * len of the id manager.
  */
-PRP_FN_API DT_u32 PRP_FN_CALL CORE_IdMgrLen(CORE_IdMgr *id_mgr);
+PRP_FN_API DT_u32 PRP_FN_CALL CORE_IdMgrLen(const CORE_IdMgr *id_mgr);
 
 /**
  * Returns the index of where the actual data lives of the data id points to.
@@ -86,7 +87,8 @@ PRP_FN_API DT_u32 PRP_FN_CALL CORE_IdMgrLen(CORE_IdMgr *id_mgr);
  * @return CORE_INVALID_INDEX if the id manager is invalid or the id is invalid
  * in some way, otherwise the actual index from the id manager of the id.
  */
-PRP_FN_API DT_u32 PRP_FN_CALL CORE_IdToIndex(CORE_IdMgr *id_mgr, CORE_Id id);
+PRP_FN_API DT_u32 PRP_FN_CALL CORE_IdToIndex(const CORE_IdMgr *id_mgr,
+                                             CORE_Id id);
 /**
  * Returns the data pointer of the actual data id points to.
  *
@@ -96,7 +98,8 @@ PRP_FN_API DT_u32 PRP_FN_CALL CORE_IdToIndex(CORE_IdMgr *id_mgr, CORE_Id id);
  * @return CORE_INVALID_INDEX if the id manager is invalid or the id is invalid
  * in some way, otherwise the actual data pointer from the id manager of the id.
  */
-PRP_FN_API DT_void *PRP_FN_CALL CORE_IdToData(CORE_IdMgr *id_mgr, CORE_Id id);
+PRP_FN_API DT_void *PRP_FN_CALL CORE_IdToData(const CORE_IdMgr *id_mgr,
+                                              CORE_Id id);
 /**
  * Checks if the given id is valid id dispatched from id_mgr.
  *
@@ -108,8 +111,8 @@ PRP_FN_API DT_void *PRP_FN_CALL CORE_IdToData(CORE_IdMgr *id_mgr, CORE_Id id);
  * @return PRP_FN_INV_ARG_ERROR if the parameters are invalid in any way,
  * otherwise PRP_FN_SUCCESS.
  */
-PRP_FN_API PRP_FnCode PRP_FN_CALL CORE_IdIsValid(CORE_IdMgr *id_mgr, CORE_Id id,
-                                                 DT_bool *pRslt);
+PRP_FN_API PRP_FnCode PRP_FN_CALL CORE_IdIsValid(const CORE_IdMgr *id_mgr,
+                                                 CORE_Id id, DT_bool *pRslt);
 /**
  * Converts a data index to an id that manages it.
  *
@@ -120,7 +123,7 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL CORE_IdIsValid(CORE_IdMgr *id_mgr, CORE_Id id,
  * CORE_INVALID_ID if the data index is out of bounds, otherwise a valid id to
  * the data at the given index.
  */
-PRP_FN_API CORE_Id PRP_FN_CALL CORE_DataIToId(CORE_IdMgr *id_mgr,
+PRP_FN_API CORE_Id PRP_FN_CALL CORE_DataIToId(const CORE_IdMgr *id_mgr,
                                               DT_size data_i);
 
 /**
@@ -135,7 +138,7 @@ PRP_FN_API CORE_Id PRP_FN_CALL CORE_DataIToId(CORE_IdMgr *id_mgr,
  * otherwise a valid id to the new data.
  */
 PRP_FN_API CORE_Id PRP_FN_CALL CORE_IdMgrAddData(CORE_IdMgr *id_mgr,
-                                                 DT_void *data);
+                                                 const DT_void *data);
 /**
  * Deletes the data the given id points to and invalidate any copies of the id
  * passed.

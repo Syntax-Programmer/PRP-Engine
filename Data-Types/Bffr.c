@@ -84,7 +84,8 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BffrDelete(DT_Bffr **pBffr) {
     return PRP_FN_SUCCESS;
 }
 
-PRP_FN_API DT_void *PRP_FN_CALL DT_BffrRaw(DT_Bffr *bffr, DT_size *pCap) {
+PRP_FN_API const DT_void *PRP_FN_CALL DT_BffrRaw(const DT_Bffr *bffr,
+                                                 DT_size *pCap) {
     PRP_NULL_ARG_CHECK(bffr, DT_null);
     PRP_NULL_ARG_CHECK(pCap, DT_null);
 
@@ -93,19 +94,19 @@ PRP_FN_API DT_void *PRP_FN_CALL DT_BffrRaw(DT_Bffr *bffr, DT_size *pCap) {
     return bffr->mem;
 }
 
-PRP_FN_API DT_size PRP_FN_CALL DT_BffrCap(DT_Bffr *bffr) {
+PRP_FN_API DT_size PRP_FN_CALL DT_BffrCap(const DT_Bffr *bffr) {
     PRP_NULL_ARG_CHECK(bffr, PRP_INVALID_SIZE);
 
     return bffr->cap;
 }
 
-PRP_FN_API DT_size PRP_FN_CALL DT_BffrMembSize(DT_Bffr *bffr) {
+PRP_FN_API DT_size PRP_FN_CALL DT_BffrMembSize(const DT_Bffr *bffr) {
     PRP_NULL_ARG_CHECK(bffr, PRP_INVALID_SIZE);
 
     return bffr->memb_size;
 }
 
-PRP_FN_API DT_void *PRP_FN_CALL DT_BffrGet(DT_Bffr *bffr, DT_size i) {
+PRP_FN_API DT_void *PRP_FN_CALL DT_BffrGet(const DT_Bffr *bffr, DT_size i) {
     PRP_NULL_ARG_CHECK(bffr, DT_null);
     if (i >= bffr->cap) {
         PRP_LOG_FN_CODE(
@@ -119,7 +120,7 @@ PRP_FN_API DT_void *PRP_FN_CALL DT_BffrGet(DT_Bffr *bffr, DT_size i) {
 }
 
 PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BffrSet(DT_Bffr *bffr, DT_size i,
-                                             DT_void *data) {
+                                             const DT_void *data) {
     PRP_NULL_ARG_CHECK(bffr, PRP_FN_INV_ARG_ERROR);
     PRP_NULL_ARG_CHECK(data, PRP_FN_INV_ARG_ERROR);
     if (i >= bffr->cap) {
@@ -136,7 +137,8 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BffrSet(DT_Bffr *bffr, DT_size i,
 }
 
 PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BffrSetRange(DT_Bffr *bffr, DT_size i,
-                                                  DT_size j, DT_void *data) {
+                                                  DT_size j,
+                                                  const DT_void *data) {
     PRP_NULL_ARG_CHECK(bffr, PRP_FN_INV_ARG_ERROR);
     PRP_NULL_ARG_CHECK(data, PRP_FN_INV_ARG_ERROR);
     if (i > j) {
@@ -162,7 +164,7 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BffrSetRange(DT_Bffr *bffr, DT_size i,
 }
 
 PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BffrSetMany(DT_Bffr *bffr, DT_size i,
-                                                 DT_void *data_arr,
+                                                 const DT_void *data_arr,
                                                  DT_size len) {
     PRP_NULL_ARG_CHECK(bffr, PRP_FN_INV_ARG_ERROR);
     PRP_NULL_ARG_CHECK(data_arr, PRP_FN_INV_ARG_ERROR);
@@ -179,7 +181,8 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BffrSetMany(DT_Bffr *bffr, DT_size i,
     return PRP_FN_SUCCESS;
 }
 
-PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BffrCmp(DT_Bffr *bffr1, DT_Bffr *bffr2,
+PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BffrCmp(const DT_Bffr *bffr1,
+                                             const DT_Bffr *bffr2,
                                              DT_bool *pRslt) {
     PRP_NULL_ARG_CHECK(bffr1, PRP_FN_INV_ARG_ERROR);
     PRP_NULL_ARG_CHECK(bffr2, PRP_FN_INV_ARG_ERROR);
@@ -197,7 +200,7 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BffrCmp(DT_Bffr *bffr1, DT_Bffr *bffr2,
 }
 
 PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BffrExtend(DT_Bffr *bffr1,
-                                                DT_Bffr *bffr2) {
+                                                const DT_Bffr *bffr2) {
     PRP_NULL_ARG_CHECK(bffr1, PRP_FN_INV_ARG_ERROR);
     PRP_NULL_ARG_CHECK(bffr2, PRP_FN_INV_ARG_ERROR);
     if (bffr1->memb_size != bffr2->memb_size) {

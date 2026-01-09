@@ -31,7 +31,8 @@ PRP_FnCode SystemExec(CORE_Id system_id) {
      */
     Query *query = CORE_IdToData(g_state->query_id_mgr, system->query_id);
     DT_size layout_ids_len;
-    CORE_Id *layout_ids = DT_ArrRaw(query->layout_matches, &layout_ids_len);
+    const CORE_Id *layout_ids =
+        DT_ArrRaw(query->layout_matches, &layout_ids_len);
 
     for (DT_size i = 0; i < layout_ids_len; i++) {
         Layout *layout = CORE_IdToData(g_state->layout_id_mgr, layout_ids[i]);
@@ -42,7 +43,13 @@ PRP_FnCode SystemExec(CORE_Id system_id) {
         DT_void *fn_arr[comp_arr_c];
 
         DT_size chunks_len;
-        Chunk **chunks = DT_ArrRaw(layout->chunk_ptrs, &chunks_len);
+        /*
+         * Purposefully discarding const qualifier since it was worth the
+         * function call overhead will affect perf. Since we are
+         * still treating it as const, just that the compiler will not scream at
+         * us.
+         */
+        Chunk **chunks = (Chunk **)DT_ArrRaw(layout->chunk_ptrs, &chunks_len);
 
         for (DT_size j = 0; j < chunks_len; j++) {
             Chunk *chunk = chunks[j];
