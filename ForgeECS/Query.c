@@ -1,5 +1,4 @@
 #include "Shared-Internals.h"
-#include <stdio.h>
 
 #define QUERY_INIT_ERROR_CHECK(x)                                              \
     do {                                                                       \
@@ -48,15 +47,12 @@ CORE_Id QueryCreate(CORE_Id exclude_b_set_id, CORE_Id include_b_set_id) {
         if (rslt2) {
             DT_BitmapHasAny(layouts[i].b_set, query.exclude_comps, &rslt2);
         }
-        printf("%u %u\n", rslt1, rslt2);
         if (rslt1 && !rslt2) {
             // This is also guaranteed.
             CORE_Id layout_id = CORE_DataIToId(g_state->layout_id_mgr, i);
             DT_ArrPush(query.layout_matches, &layout_id);
         }
     }
-
-    printf("Query len: %zu\n", DT_ArrLen(query.layout_matches));
 
     return CORE_IdMgrAddData(g_state->query_id_mgr, &query);
 }
@@ -96,13 +92,13 @@ PRP_FnCode QueryCascadeLayoutCreate(CORE_Id layout_id) {
     DT_u32 len;
     Query *queries = CORE_IdMgrRaw(g_state->query_id_mgr, &len);
     for (DT_u32 i = 0; i < len; i++) {
-        DT_bool rslt1, rslt2 = !queries[i].exclude_comps;
-        // These below can't fail.
+        DT_bool rslt1;
         DT_BitmapIsSubset(layout->b_set, queries[i].include_comps, &rslt1);
         if (!rslt1) {
             continue;
         }
-        if (!rslt2) {
+        DT_bool rslt2 = (queries[i].exclude_comps) ? DT_true : DT_false;
+        if (rslt2) {
             DT_BitmapHasAny(layout->b_set, queries[i].exclude_comps, &rslt2);
         }
         if (rslt1 && !rslt2) {

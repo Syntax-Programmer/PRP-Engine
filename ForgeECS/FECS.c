@@ -80,7 +80,7 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL FECS_LayoutDelete(CORE_Id *pLayout_id) {
     STATE_VALIDITY_CHECK(PRP_FN_NULL_ERROR);
 
     if (pLayout_id && *pLayout_id != CORE_INVALID_ID) {
-        QueryCascadeLayoutCreate(*pLayout_id);
+        QueryCascadeLayoutDelete(*pLayout_id);
     }
 
     return LayoutDelete(pLayout_id);
