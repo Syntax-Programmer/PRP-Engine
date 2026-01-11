@@ -1,25 +1,21 @@
 #include "IdMgr.h"
+#include "../Data-Types/Arr.h"
 #include "../Data-Types/Bffr.h"
 #include "../Data-Types/Bitmap.h"
 #include "../Utils/Logger.h"
 
 struct _IdMgr {
     /*
-     * The buffer of the data that is being represented by the id. This is a
-     * densely packed buffer and the indices are unstable in it.
+     * The data array that is being represented by the id. This is a
+     * densely packed array at all times and the indices are unstable in it.
      */
-    DT_Bffr *data;
+    DT_Arr *data;
     /*
-     * An buffer of u32, in sync with the data buffer that tells which id_layer
+     * An array of u32, in sync with the data array that tells which id_layer
      * index manages the data index. This is reverse mapping to repack the data
-     * buffer after data is freed.
+     * array after data is freed.
      */
-    DT_Bffr *data_layer;
-    /*
-     * This is used to densely pack the data and data_layer arrays for better
-     * cache local iteration.
-     */
-    DT_u32 len;
+    DT_Arr *data_layer;
     /*
      * An buffer of u64s that is used in a way like:
      * The ids dispatched are index into this buffer. This buffer acts a
@@ -31,6 +27,7 @@ struct _IdMgr {
      * Bit 32-63: A 32 bit gen value of the id_layer's slot.
      */
     DT_Bffr *id_layer;
+    DT_Bffr *id_gen;
     /*
      * An on bit in this bitmap corresponds to a free slot in the id_layer array
      * that can be used to dispatch the id.
@@ -42,15 +39,6 @@ struct _IdMgr {
      * allocations.
      */
     PRP_FnCode (*data_del_cb)(DT_void *data_entry);
-
-    /*
-     * The capacity of all the buffers and the bit cap of the bitmap is kept the
-     * same to maintain correctness of the id_mgr and its very convenient.
-     *
-     * The reason why we use bffr even for data and data_layer instead of arr
-     * for dense packing is due to the need of keeping caps consistent across
-     * everything.
-     */
 };
 
 /*
@@ -128,22 +116,20 @@ PRP_FN_API CORE_IdMgr *PRP_FN_CALL CORE_IdMgrCreate(
         PRP_LOG_FN_MALLOC_ERROR(id_mgr);
         return DT_null;
     }
-    id_mgr->data = DT_BffrCreateDefault(data_size);
+    id_mgr->data = DT_ArrCreateDefault(data_size);
     ID_MGR_INIT_ERROR_CHECK(id_mgr->data);
 
-    id_mgr->data_layer = DT_BffrCreateDefault(sizeof(DT_u32));
+    id_mgr->data_layer = DT_ArrCreateDefault(sizeof(DT_u32));
     ID_MGR_INIT_ERROR_CHECK(id_mgr->data_layer);
 
     id_mgr->id_layer = DT_BffrCreateDefault(sizeof(DT_u64));
     ID_MGR_INIT_ERROR_CHECK(id_mgr->id_layer);
 
-    DT_size cap = DT_BffrCap(id_mgr->data);
-
+    DT_size cap = DT_BffrCap(id_mgr->id_layer);
     id_mgr->free_id_slots = DT_BitmapCreate(cap);
     ID_MGR_INIT_ERROR_CHECK(id_mgr->free_id_slots);
 
     id_mgr->data_del_cb = data_del_cb;
-    id_mgr->len = 0;
 
     // These can't fail.
     DT_u64 x = NEW_ID_LAYER_VAL;
@@ -166,23 +152,12 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL CORE_IdMgrDelete(CORE_IdMgr **pId_mgr) {
 
     if (id_mgr->data) {
         if (id_mgr->data_del_cb) {
-            DT_size cap, memb_size = DT_BffrMembSize(id_mgr->data);
-            /*
-             * Intentionally discarding const qualifier.
-             * We have to do it since bffr doesn't have a foreach implementation
-             * yet that would make sense to its semantics.
-             */
-            DT_u8 *ptr = (DT_u8 *)DT_BffrRaw(id_mgr->data, &cap);
-            (void)cap;
-            for (DT_size i = 0; i < id_mgr->len; i++) {
-                id_mgr->data_del_cb(ptr);
-                ptr += memb_size;
-            }
+            DT_ArrForEach(id_mgr->data, id_mgr->data_del_cb);
         }
-        DT_BffrDelete(&id_mgr->data);
+        DT_ArrDelete(&id_mgr->data);
     }
     if (id_mgr->data_layer) {
-        DT_BffrDelete(&id_mgr->data_layer);
+        DT_ArrDelete(&id_mgr->data_layer);
     }
     if (id_mgr->id_layer) {
         DT_BffrDelete(&id_mgr->id_layer);
@@ -200,11 +175,9 @@ PRP_FN_API const DT_void *PRP_FN_CALL CORE_IdMgrRaw(const CORE_IdMgr *id_mgr,
                                                     DT_u32 *pLen) {
     PRP_NULL_ARG_CHECK(id_mgr, DT_null);
 
-    DT_size cap;
-    const DT_void *data = DT_BffrRaw(id_mgr->data, &cap);
-    // Since data arr is a bffr, but also denely packed.
-    (DT_void) cap;
-    *pLen = id_mgr->len;
+    DT_size len;
+    const DT_void *data = DT_ArrRaw(id_mgr->data, &len);
+    *pLen = (DT_u32)len;
 
     return data;
 }
@@ -212,7 +185,9 @@ PRP_FN_API const DT_void *PRP_FN_CALL CORE_IdMgrRaw(const CORE_IdMgr *id_mgr,
 PRP_FN_API DT_u32 PRP_FN_CALL CORE_IdMgrLen(const CORE_IdMgr *id_mgr) {
     PRP_NULL_ARG_CHECK(id_mgr, CORE_INVALID_SIZE);
 
-    return id_mgr->len;
+    DT_size len = DT_ArrLen(id_mgr->data);
+
+    return (DT_u32)len;
 }
 
 static inline IdState GetIdData(const CORE_IdMgr *id_mgr, CORE_Id id) {
@@ -229,7 +204,9 @@ static inline IdState GetIdData(const CORE_IdMgr *id_mgr, CORE_Id id) {
 
     DT_u64 id_val = *(DT_u64 *)DT_BffrGet(id_mgr->id_layer, state.id_i);
     UNPACK_GEN_INDEX_PACKING(id_val, state.data_i, state.slot_gen);
-    if (state.id_gen != state.slot_gen || state.data_i >= id_mgr->len) {
+    DT_size len = DT_ArrLen(id_mgr->data);
+
+    if (state.id_gen != state.slot_gen || state.data_i >= (DT_u32)len) {
         state.validity_code = PRP_FN_UAF_ERROR;
         PRP_LOG_FN_CODE(state.validity_code,
                         "Given id has already been freed, stale id detected.");
@@ -259,7 +236,7 @@ PRP_FN_API DT_void *PRP_FN_CALL CORE_IdToData(const CORE_IdMgr *id_mgr,
         return DT_null;
     }
 
-    return DT_BffrGet(id_mgr->data, state.data_i);
+    return DT_ArrGet(id_mgr->data, state.data_i);
 }
 
 PRP_FN_API PRP_FnCode PRP_FN_CALL CORE_IdIsValid(const CORE_IdMgr *id_mgr,
@@ -281,44 +258,51 @@ PRP_FN_API CORE_Id PRP_FN_CALL CORE_DataIToId(const CORE_IdMgr *id_mgr,
                                               DT_size data_i) {
     PRP_NULL_ARG_CHECK(id_mgr, CORE_INVALID_ID);
 
-    if (data_i >= id_mgr->len) {
+    DT_size len = DT_ArrLen(id_mgr->data);
+    if (data_i >= (DT_u32)len) {
         PRP_LOG_FN_CODE(
             PRP_FN_OOB_ERROR,
             "Tried to access data index: %zu, with id manager of len: %zu",
-            data_i, id_mgr->len);
+            data_i, (DT_u32)len);
         return CORE_INVALID_ID;
     }
-    DT_u32 id_i = *(DT_u32 *)DT_BffrGet(id_mgr->data_layer, data_i);
+    DT_u32 id_i = *(DT_u32 *)DT_ArrGet(id_mgr->data_layer, data_i);
     DT_u64 id_val = *(DT_u64 *)DT_BffrGet(id_mgr->id_layer, id_i);
 
     return (CORE_Id)PACK_GEN_INDEX(id_i, GET_GEN_FROM_PACKED(id_val));
 }
 
 static PRP_FnCode GrowIdMgr(CORE_IdMgr *id_mgr, DT_size new_cap) {
-    DT_size old_cap = DT_BffrCap(id_mgr->data);
+    DT_size id_layer_old_cap = DT_BffrCap(id_mgr->id_layer);
 
     if (DT_BitmapChangeSize(id_mgr->free_id_slots, new_cap) != PRP_FN_SUCCESS ||
-        DT_BffrChangeSize(id_mgr->id_layer, new_cap) != PRP_FN_SUCCESS ||
-        DT_BffrChangeSize(id_mgr->data_layer, new_cap) != PRP_FN_SUCCESS ||
-        DT_BffrChangeSize(id_mgr->data, new_cap) != PRP_FN_SUCCESS) {
+        DT_BffrChangeSize(id_mgr->id_layer, new_cap) != PRP_FN_SUCCESS) {
         /*
          * Trying to revert to old cap if possible since we need to maintain cap
          * sync.
-         *
          * If the below op also fail we can't do anything to save the mem leak
          * about to happen.
          */
-        DT_BitmapChangeSize(id_mgr->free_id_slots, old_cap);
-        DT_BffrChangeSize(id_mgr->id_layer, old_cap);
-        DT_BffrChangeSize(id_mgr->data_layer, old_cap);
-        DT_BffrChangeSize(id_mgr->data, old_cap);
+        DT_BitmapChangeSize(id_mgr->free_id_slots, id_layer_old_cap);
+        DT_BffrChangeSize(id_mgr->id_layer, id_layer_old_cap);
         return PRP_FN_MALLOC_ERROR;
     }
-
     // These can't fail.
     DT_u64 x = NEW_ID_LAYER_VAL;
-    DT_BffrSetRange(id_mgr->id_layer, old_cap, new_cap, &x);
-    DT_BitmapSetRange(id_mgr->free_id_slots, old_cap, new_cap);
+    DT_BffrSetRange(id_mgr->id_layer, id_layer_old_cap, new_cap, &x);
+    DT_BitmapSetRange(id_mgr->free_id_slots, id_layer_old_cap, new_cap);
+
+    DT_size reserve_count = new_cap - DT_ArrCap(id_mgr->data);
+    if (DT_ArrReserve(id_mgr->data, reserve_count) != PRP_FN_SUCCESS ||
+        DT_ArrReserve(id_mgr->data_layer, reserve_count) != PRP_FN_SUCCESS) {
+        /*
+         * By the nature of the invariants, if these fail the push ops will also
+         * fail in the future the caps of these two arrays might go out of sync.
+         * This is fine and not a UB, but we can't continue adding to the
+         * id_mgr.
+         */
+        return PRP_FN_MALLOC_ERROR;
+    }
 
     return PRP_FN_SUCCESS;
 }
@@ -328,7 +312,8 @@ PRP_FN_API CORE_Id PRP_FN_CALL CORE_IdMgrAddData(CORE_IdMgr *id_mgr,
     PRP_NULL_ARG_CHECK(id_mgr, CORE_INVALID_ID);
     PRP_NULL_ARG_CHECK(data, CORE_INVALID_ID);
 
-    if (id_mgr->len == (DT_u32)~0) {
+    DT_size len = DT_ArrLen(id_mgr->data);
+    if ((DT_u32)len == (DT_u32)~0) {
         PRP_LOG_FN_CODE(PRP_FN_RES_EXHAUSTED_ERROR,
                         "The max capacity of elements a CORE_IdMgr can managed "
                         "has been reached.");
@@ -339,7 +324,7 @@ PRP_FN_API CORE_Id PRP_FN_CALL CORE_IdMgrAddData(CORE_IdMgr *id_mgr,
      * since if set count is 0 we are sure len == cap is also true.
      */
     if (!DT_BitmapSetCount(id_mgr->free_id_slots) &&
-        GrowIdMgr(id_mgr, DT_BffrCap(id_mgr->data) * 2) != PRP_FN_SUCCESS) {
+        GrowIdMgr(id_mgr, DT_BffrCap(id_mgr->id_layer) * 2) != PRP_FN_SUCCESS) {
         PRP_LOG_FN_CODE(PRP_FN_RES_EXHAUSTED_ERROR,
                         "Cannot add any more elements to the CORE_IdMgr due to "
                         "memory limitations.");
@@ -356,13 +341,14 @@ PRP_FN_API CORE_Id PRP_FN_CALL CORE_IdMgrAddData(CORE_IdMgr *id_mgr,
     // Update the data_i of the id_val at id_i index.
     DT_u64 id_val = *(DT_u64 *)DT_BffrGet(id_mgr->id_layer, id_i);
     // Data index is len++ since the data arr is densely packed.
-    DT_u32 data_i = id_mgr->len++, gen = GET_GEN_FROM_PACKED(id_val);
+    DT_u32 data_i = (DT_u32)DT_ArrLen(id_mgr->data),
+           gen = GET_GEN_FROM_PACKED(id_val);
     id_val = PACK_GEN_INDEX(data_i, gen);
     DT_BffrSet(id_mgr->id_layer, id_i, &id_val);
 
     // Sets the data and reverse indices.
-    DT_BffrSet(id_mgr->data_layer, data_i, &id_i);
-    DT_BffrSet(id_mgr->data, data_i, data);
+    DT_ArrPush(id_mgr->data_layer, &id_i);
+    DT_ArrPush(id_mgr->data, data);
 
     // Crafts the id.
     return (CORE_Id)PACK_GEN_INDEX(id_i, gen);
@@ -384,17 +370,17 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL CORE_IdMgrDeleteData(CORE_IdMgr *id_mgr,
     DT_BffrSet(id_mgr->id_layer, state.id_i, &id_val);
 
     if (id_mgr->data_del_cb) {
-        id_mgr->data_del_cb(DT_BffrGet(id_mgr->data, state.data_i));
+        id_mgr->data_del_cb(DT_ArrGet(id_mgr->data, state.data_i));
     }
 
-    DT_size last_i = --id_mgr->len;
+    DT_size last_i = DT_ArrLen(id_mgr->data) - 1;
     if (state.data_i != last_i) {
         // data of the last element in the dense buffer.
-        DT_u32 id_i = *(DT_u32 *)DT_BffrGet(id_mgr->data_layer, last_i);
+        DT_u32 id_i = *(DT_u32 *)DT_ArrGet(id_mgr->data_layer, last_i);
 
         // Repacking the dense buffers.
-        DT_BffrSwap(id_mgr->data, state.data_i, last_i);
-        DT_BffrSwap(id_mgr->data_layer, state.data_i, last_i);
+        DT_ArrSwap(id_mgr->data, state.data_i, last_i);
+        DT_ArrSwap(id_mgr->data_layer, state.data_i, last_i);
 
         // Updating the id_layer val of the last element that was moved.
         id_val = *(DT_u64 *)DT_BffrGet(id_mgr->id_layer, id_i);
@@ -402,7 +388,6 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL CORE_IdMgrDeleteData(CORE_IdMgr *id_mgr,
         id_val = PACK_GEN_INDEX(state.data_i, gen);
         DT_BffrSet(id_mgr->id_layer, id_i, &id_val);
     }
-
     // Invalidating the original ptr.
     *pId = CORE_INVALID_ID;
 
@@ -418,7 +403,7 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL CORE_IdMgrReserve(CORE_IdMgr *id_mgr,
         return PRP_FN_INV_ARG_ERROR;
     }
 
-    if (count > ((DT_u32)~0 - id_mgr->len)) {
+    if (count > ((DT_u32)~0 - (DT_u32)(DT_ArrLen(id_mgr->data)))) {
         PRP_LOG_FN_CODE(PRP_FN_RES_EXHAUSTED_ERROR,
                         "Cannot reserve %u elements into the CORE_IdMgr "
                         "because it exceeds max capacity of CORE_IdMgr.",
@@ -429,7 +414,7 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL CORE_IdMgrReserve(CORE_IdMgr *id_mgr,
     if (count <= free_slots) {
         return PRP_FN_SUCCESS;
     }
-    DT_size new_cap = DT_BffrCap(id_mgr->data) + (count - free_slots);
+    DT_size new_cap = DT_BffrCap(id_mgr->id_layer) + (count - free_slots);
 
     return GrowIdMgr(id_mgr, new_cap);
 }
@@ -445,27 +430,6 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL CORE_IdMgrReserve(CORE_IdMgr *id_mgr,
 PRP_FN_API PRP_FnCode PRP_FN_CALL
 CORE_IdMgrForEach(CORE_IdMgr *id_mgr, PRP_FnCode (*cb)(DT_void *val)) {
     PRP_NULL_ARG_CHECK(id_mgr, PRP_FN_INV_ARG_ERROR);
-    PRP_NULL_ARG_CHECK(cb, PRP_FN_INV_ARG_ERROR);
 
-    DT_size cap, memb_size = DT_BffrMembSize(id_mgr->data);
-    DT_u8 *ptr = (DT_u8 *)DT_BffrRaw(id_mgr->data, &cap);
-    /*
-     * We discard cap and use id_mgr->len because the data array is densly
-     * packed and iterating beyond the len is undefined behavior since we be
-     * passing garbage to the callback.
-     */
-    (void)cap;
-    for (DT_size i = 0; i < id_mgr->len; i++) {
-        if (cb(ptr) != PRP_FN_SUCCESS) {
-            /*
-             * We don't care why the foreach was called to be terminated. There
-             * was no error from our side so even after termination it is still
-             * a success.
-             */
-            return PRP_FN_SUCCESS;
-        }
-        ptr += memb_size;
-    }
-
-    return PRP_FN_SUCCESS;
+    return DT_ArrForEach(id_mgr->data, cb);
 }
