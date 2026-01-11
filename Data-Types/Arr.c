@@ -157,9 +157,9 @@ PRP_FN_API DT_void *PRP_FN_CALL DT_ArrGet(const DT_Arr *arr, DT_size i) {
 }
 
 PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrSet(DT_Arr *arr, DT_size i,
-                                            const DT_void *data) {
+                                            const DT_void *pData) {
     PRP_NULL_ARG_CHECK(arr, PRP_FN_INV_ARG_ERROR);
-    PRP_NULL_ARG_CHECK(data, PRP_FN_INV_ARG_ERROR);
+    PRP_NULL_ARG_CHECK(pData, PRP_FN_INV_ARG_ERROR);
     if (i >= arr->len) {
         PRP_LOG_FN_CODE(
             PRP_FN_OOB_ERROR,
@@ -168,14 +168,15 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrSet(DT_Arr *arr, DT_size i,
         return PRP_FN_OOB_ERROR;
     }
 
-    memcpy(arr->mem + (i * arr->memb_size), data, arr->memb_size);
+    memcpy(arr->mem + (i * arr->memb_size), pData, arr->memb_size);
 
     return PRP_FN_SUCCESS;
 }
 
-PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrPush(DT_Arr *arr, const DT_void *data) {
+PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrPush(DT_Arr *arr,
+                                             const DT_void *pData) {
     PRP_NULL_ARG_CHECK(arr, PRP_FN_INV_ARG_ERROR);
-    PRP_NULL_ARG_CHECK(data, PRP_FN_INV_ARG_ERROR);
+    PRP_NULL_ARG_CHECK(pData, PRP_FN_INV_ARG_ERROR);
 
     if (arr->len == arr->cap &&
         ArrChangeSize(arr, DEFAULT_NEW_CAP(arr->cap)) != PRP_FN_SUCCESS) {
@@ -184,7 +185,7 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrPush(DT_Arr *arr, const DT_void *data) {
             "Cannot push more elements to the array. Array is full.");
         return PRP_FN_RES_EXHAUSTED_ERROR;
     }
-    memcpy(arr->mem + ((arr->len++) * arr->memb_size), data, arr->memb_size);
+    memcpy(arr->mem + ((arr->len++) * arr->memb_size), pData, arr->memb_size);
 
     return PRP_FN_SUCCESS;
 }
@@ -204,10 +205,11 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrReserve(DT_Arr *arr, DT_size count) {
     return ArrChangeSize(arr, arr->len + count);
 }
 
-PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrInsert(DT_Arr *arr, const DT_void *data,
+PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrInsert(DT_Arr *arr,
+                                               const DT_void *pData,
                                                DT_size i) {
     PRP_NULL_ARG_CHECK(arr, PRP_FN_INV_ARG_ERROR);
-    PRP_NULL_ARG_CHECK(data, PRP_FN_INV_ARG_ERROR);
+    PRP_NULL_ARG_CHECK(pData, PRP_FN_INV_ARG_ERROR);
     if (i >= arr->len) {
         PRP_LOG_FN_CODE(
             PRP_FN_OOB_ERROR,
@@ -225,13 +227,13 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrInsert(DT_Arr *arr, const DT_void *data,
     }
     memmove(arr->mem + ((i + 1) * arr->memb_size),
             arr->mem + (i * arr->memb_size), (arr->len - i) * arr->memb_size);
-    memcpy(arr->mem + (i * arr->memb_size), data, arr->memb_size);
+    memcpy(arr->mem + (i * arr->memb_size), pData, arr->memb_size);
     arr->len++;
 
     return PRP_FN_SUCCESS;
 }
 
-PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrPop(DT_Arr *arr, DT_void *dest) {
+PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrPop(DT_Arr *arr, DT_void *pDest) {
     PRP_NULL_ARG_CHECK(arr, PRP_FN_INV_ARG_ERROR);
 
     if (!arr->len) {
@@ -240,14 +242,14 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrPop(DT_Arr *arr, DT_void *dest) {
         return PRP_FN_RES_EXHAUSTED_ERROR;
     }
     arr->len--;
-    if (dest) {
-        memcpy(dest, arr->mem + (arr->len * arr->memb_size), arr->memb_size);
+    if (pDest) {
+        memcpy(pDest, arr->mem + (arr->len * arr->memb_size), arr->memb_size);
     }
 
     return PRP_FN_SUCCESS;
 }
 
-PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrRemove(DT_Arr *arr, DT_void *dest,
+PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrRemove(DT_Arr *arr, DT_void *pDest,
                                                DT_size i) {
     PRP_NULL_ARG_CHECK(arr, PRP_FN_INV_ARG_ERROR);
     if (i >= arr->len) {
@@ -258,8 +260,8 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrRemove(DT_Arr *arr, DT_void *dest,
         return PRP_FN_OOB_ERROR;
     }
 
-    if (dest) {
-        memcpy(dest, arr->mem + (i * arr->memb_size), arr->memb_size);
+    if (pDest) {
+        memcpy(pDest, arr->mem + (i * arr->memb_size), arr->memb_size);
     }
     memmove(arr->mem + (i * arr->memb_size),
             arr->mem + ((i + 1) * arr->memb_size),
@@ -349,13 +351,14 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrShrinkFit(DT_Arr *arr) {
 }
 
 PRP_FN_API PRP_FnCode PRP_FN_CALL
-DT_ArrForEach(DT_Arr *arr, PRP_FnCode (*cb)(DT_void *val)) {
+DT_ArrForEach(DT_Arr *arr, PRP_FnCode (*cb)(DT_void *pVal, DT_void *user_data),
+              DT_void *user_data) {
     PRP_NULL_ARG_CHECK(arr, PRP_FN_INV_ARG_ERROR);
     PRP_NULL_ARG_CHECK(cb, PRP_FN_INV_ARG_ERROR);
 
     DT_u8 *mem = arr->mem;
     for (DT_size i = 0; i < arr->len; i++) {
-        if (cb(mem) != PRP_FN_SUCCESS) {
+        if (cb(mem, user_data) != PRP_FN_SUCCESS) {
             /*
              * We don't care why the foreach was called to be terminated. There
              * was no error from our side so even after termination it is still

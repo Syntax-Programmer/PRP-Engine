@@ -120,9 +120,9 @@ PRP_FN_API DT_void *PRP_FN_CALL DT_BffrGet(const DT_Bffr *bffr, DT_size i) {
 }
 
 PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BffrSet(DT_Bffr *bffr, DT_size i,
-                                             const DT_void *data) {
+                                             const DT_void *pData) {
     PRP_NULL_ARG_CHECK(bffr, PRP_FN_INV_ARG_ERROR);
-    PRP_NULL_ARG_CHECK(data, PRP_FN_INV_ARG_ERROR);
+    PRP_NULL_ARG_CHECK(pData, PRP_FN_INV_ARG_ERROR);
     if (i >= bffr->cap) {
         PRP_LOG_FN_CODE(
             PRP_FN_OOB_ERROR,
@@ -131,16 +131,16 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BffrSet(DT_Bffr *bffr, DT_size i,
         return PRP_FN_OOB_ERROR;
     }
 
-    memcpy(bffr->mem + (i * bffr->memb_size), data, bffr->memb_size);
+    memcpy(bffr->mem + (i * bffr->memb_size), pData, bffr->memb_size);
 
     return PRP_FN_SUCCESS;
 }
 
 PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BffrSetRange(DT_Bffr *bffr, DT_size i,
                                                   DT_size j,
-                                                  const DT_void *data) {
+                                                  const DT_void *pData) {
     PRP_NULL_ARG_CHECK(bffr, PRP_FN_INV_ARG_ERROR);
-    PRP_NULL_ARG_CHECK(data, PRP_FN_INV_ARG_ERROR);
+    PRP_NULL_ARG_CHECK(pData, PRP_FN_INV_ARG_ERROR);
     if (i > j) {
         PRP_LOG_FN_CODE(PRP_FN_INV_ARG_ERROR,
                         "i can't be greater than j for this operation.");
@@ -156,7 +156,7 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BffrSetRange(DT_Bffr *bffr, DT_size i,
 
     DT_u8 *ptr = bffr->mem + (i * bffr->memb_size);
     for (; i < j; i++) {
-        memcpy(ptr, data, bffr->memb_size);
+        memcpy(ptr, pData, bffr->memb_size);
         ptr += bffr->memb_size;
     }
 

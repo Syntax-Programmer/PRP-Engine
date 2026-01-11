@@ -131,14 +131,14 @@ PRP_FN_API CORE_Id PRP_FN_CALL CORE_DataIToId(const CORE_IdMgr *id_mgr,
  * for new elements.
  *
  * @param id_mgr: The id manager to push data into.
- * @param data: The pointer to the data to be pushed into the id manager.
+ * @param pData: The pointer to the data to be pushed into the id manager.
  *
  * @return CORE_INVALID_ID if the parameters are invalid in any way,
  * CORE_INVALID_ID if pushing into the id manager is not possible,
  * otherwise a valid id to the new data.
  */
 PRP_FN_API CORE_Id PRP_FN_CALL CORE_IdMgrAddData(CORE_IdMgr *id_mgr,
-                                                 const DT_void *data);
+                                                 const DT_void *pData);
 /**
  * Deletes the data the given id points to and invalidate any copies of the id
  * passed.
@@ -175,12 +175,14 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL CORE_IdMgrReserve(CORE_IdMgr *id_mgr,
  * @param id_mgr: The id manager on which the foreach will happen.
  * @param cb: The callback to be called per element. If this doesn't return
  * PRP_FN_SUCCESS, further execution will be halted.
+ * @param user_data: Additional data needed for the foreach execution.
  *
  * @return PRP_FN_INV_ARG_ERROR if the parameters are invalid in some way,
  * otherwise PRP_FN_SUCCESS.
  */
-PRP_FN_API PRP_FnCode PRP_FN_CALL
-CORE_IdMgrForEach(CORE_IdMgr *id_mgr, PRP_FnCode (*cb)(DT_void *val));
+PRP_FN_API PRP_FnCode PRP_FN_CALL CORE_IdMgrForEach(
+    CORE_IdMgr *id_mgr, PRP_FnCode (*cb)(DT_void *pVal, DT_void *user_data),
+    DT_void *user_data);
 
 #ifdef __cplusplus
 }

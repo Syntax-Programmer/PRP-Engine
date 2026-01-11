@@ -96,21 +96,21 @@ PRP_FN_API DT_void *PRP_FN_CALL DT_BffrGet(const DT_Bffr *bffr, DT_size i);
  *
  * @param bffr: The buffer to operate on.
  * @param i: The index to set the value of.
- * @param data: The pointer to the data that will be set.
+ * @param pData: The pointer to the data that will be set.
  *
  * @return PRP_FN_INV_ARG_ERROR if the parameters are invalid in any way,
  * PRP_FN_OOB_ERROR if i is out of bounds of the buffer, otherwise
  * PRP_FN_SUCCESS.
  */
 PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BffrSet(DT_Bffr *bffr, DT_size i,
-                                             const DT_void *data);
+                                             const DT_void *pData);
 /**
  * Sets the same element 'data' to all the indices b/w i and j excluding j.
  *
  * @param bffr: The buffer to operate on.
  * @param i: The index to start from.
  * @param j: The index to stop on.
- * @param data: The poinbter to the data to set.
+ * @param pData: The poinbter to the data to set.
  *
  * @return PRP_FN_INV_ARG_ERROR if the parameters are invalid in any way or i >
  * j, PRP_FN_OOB_ERROR if i or j is out of bounds of the buffer, otherwise
@@ -118,7 +118,7 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BffrSet(DT_Bffr *bffr, DT_size i,
  */
 PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BffrSetRange(DT_Bffr *bffr, DT_size i,
                                                   DT_size j,
-                                                  const DT_void *data);
+                                                  const DT_void *pData);
 /**
  * Sets count number of elements in order starting from index i.
  *

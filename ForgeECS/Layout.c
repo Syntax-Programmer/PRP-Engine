@@ -30,11 +30,11 @@ static DT_size CompIdToCompArrStrideI(Layout *layout, FECS_CompId comp_id);
 /**
  * Just a callback to free chunks pointers stored inside the layout.
  *
- * @param data: The arr should ideally give it Chunk **.
+ * @param pData: The arr should ideally give it Chunk **.
  *
  * @return PRP_FN_SUCCESS.
  */
-static inline PRP_FnCode FreeChunkPtrs(DT_void *data);
+static inline PRP_FnCode FreeChunkPtrs(DT_void *pData, DT_void *user_data);
 
 static DT_void CalcCompArStrides(Layout *layout) {
     DT_size size_len;
@@ -173,8 +173,9 @@ PRP_FnCode LayoutDelete(CORE_Id *pLayout_id) {
     return CORE_IdMgrDeleteData(g_state->layout_id_mgr, pLayout_id);
 }
 
-static inline PRP_FnCode FreeChunkPtrs(DT_void *data) {
-    Chunk **pChunk_ptr = data;
+static inline PRP_FnCode FreeChunkPtrs(DT_void *pVal, DT_void *user_data) {
+    (DT_void) user_data;
+    Chunk **pChunk_ptr = pVal;
     free(*pChunk_ptr);
 
     return PRP_FN_SUCCESS;
@@ -195,7 +196,7 @@ PRP_FnCode LayoutDelCb(DT_void *layout) {
         DT_BitmapDelete(&l->free_chunks);
     }
     if (l->chunk_ptrs) {
-        DT_ArrForEach(l->chunk_ptrs, FreeChunkPtrs);
+        DT_ArrForEach(l->chunk_ptrs, FreeChunkPtrs, DT_null);
         DT_ArrDelete(&l->chunk_ptrs);
     }
     l->chunk_size = 0;

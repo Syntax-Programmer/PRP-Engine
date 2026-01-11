@@ -35,10 +35,10 @@ struct _IdMgr {
     DT_Bitmap *free_id_slots;
     /*
      * The callback used to free internal allocations of the elements of the
-     * array. This can be DT_null if the array elements don't have internal
-     * allocations.
+     * data we store in the data array. This can be DT_null if the array
+     * elements don't have internal allocations.
      */
-    PRP_FnCode (*data_del_cb)(DT_void *data_entry);
+    PRP_FnCode (*data_del_cb)(DT_void *pData_entry);
 };
 
 /*
@@ -74,6 +74,18 @@ typedef struct {
     PRP_FnCode validity_code;
 } IdState;
 
+/**
+ * This acts as a api layer b/w the data del function that shouldn't have a user
+ * data, and the arr api requirements.
+ *
+ * @param pVal: The pointer to the value to delete.
+ * @param user_data: This will be the actual delete callback we will pass
+ * through.
+ *
+ * @return Whatever the data_del func will return.
+ */
+static inline PRP_FnCode DataDelForEachWrapper(DT_void *pVal,
+                                               DT_void *user_data);
 /**
  * Fetches all of the data that an id can reveal while at the same time checking
  * if it the id is valid or not.
@@ -139,11 +151,12 @@ PRP_FN_API CORE_IdMgr *PRP_FN_CALL CORE_IdMgrCreate(
     return id_mgr;
 }
 
-// static inline PRP_FnCode FreeData(DT_void *data) {
-//     free(data);
+static inline PRP_FnCode DataDelForEachWrapper(DT_void *pVal,
+                                               DT_void *user_data) {
+    PRP_FnCode (*data_del_cb)(DT_void *) = (PRP_FnCode (*)(DT_void *))user_data;
 
-//     return PRP_FN_SUCCESS;
-// }
+    return data_del_cb(pVal);
+}
 
 PRP_FN_API PRP_FnCode PRP_FN_CALL CORE_IdMgrDelete(CORE_IdMgr **pId_mgr) {
     PRP_NULL_ARG_CHECK(pId_mgr, PRP_FN_INV_ARG_ERROR);
@@ -152,7 +165,8 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL CORE_IdMgrDelete(CORE_IdMgr **pId_mgr) {
 
     if (id_mgr->data) {
         if (id_mgr->data_del_cb) {
-            DT_ArrForEach(id_mgr->data, id_mgr->data_del_cb);
+            DT_ArrForEach(id_mgr->data, DataDelForEachWrapper,
+                          id_mgr->data_del_cb);
         }
         DT_ArrDelete(&id_mgr->data);
     }
@@ -308,9 +322,9 @@ static PRP_FnCode GrowIdMgr(CORE_IdMgr *id_mgr, DT_size new_cap) {
 }
 
 PRP_FN_API CORE_Id PRP_FN_CALL CORE_IdMgrAddData(CORE_IdMgr *id_mgr,
-                                                 const DT_void *data) {
+                                                 const DT_void *pData) {
     PRP_NULL_ARG_CHECK(id_mgr, CORE_INVALID_ID);
-    PRP_NULL_ARG_CHECK(data, CORE_INVALID_ID);
+    PRP_NULL_ARG_CHECK(pData, CORE_INVALID_ID);
 
     DT_size len = DT_ArrLen(id_mgr->data);
     if ((DT_u32)len == (DT_u32)~0) {
@@ -348,7 +362,7 @@ PRP_FN_API CORE_Id PRP_FN_CALL CORE_IdMgrAddData(CORE_IdMgr *id_mgr,
 
     // Sets the data and reverse indices.
     DT_ArrPush(id_mgr->data_layer, &id_i);
-    DT_ArrPush(id_mgr->data, data);
+    DT_ArrPush(id_mgr->data, pData);
 
     // Crafts the id.
     return (CORE_Id)PACK_GEN_INDEX(id_i, gen);
@@ -427,9 +441,10 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL CORE_IdMgrReserve(CORE_IdMgr *id_mgr,
 //     DT_ArrShrinkFit(id_mgr->data_layer);
 // }
 
-PRP_FN_API PRP_FnCode PRP_FN_CALL
-CORE_IdMgrForEach(CORE_IdMgr *id_mgr, PRP_FnCode (*cb)(DT_void *val)) {
+PRP_FN_API PRP_FnCode PRP_FN_CALL CORE_IdMgrForEach(
+    CORE_IdMgr *id_mgr, PRP_FnCode (*cb)(DT_void *pVal, DT_void *user_data),
+    DT_void *user_data) {
     PRP_NULL_ARG_CHECK(id_mgr, PRP_FN_INV_ARG_ERROR);
 
-    return DT_ArrForEach(id_mgr->data, cb);
+    return DT_ArrForEach(id_mgr->data, cb, user_data);
 }
