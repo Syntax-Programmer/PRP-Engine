@@ -83,6 +83,9 @@ extern "C" {
  *                                  cannot further create it.
  *   7) PRP_FN_FILE_IO_ERROR: FILE_IO(File input-output) error is thrown when
  *                            interacting with a file fails in some way.
+ *   8) PRP_FN_INT_OVERFLOW_ERROR: INT_OVERFLOW error is thrown when some
+ *                                 calculation results in overflow of the int's
+ *                                 max cap.
  */
 typedef enum {
     PRP_FN_SUCCESS,
@@ -94,7 +97,8 @@ typedef enum {
     PRP_FN_UAF_ERROR,
     PRP_FN_INV_ARG_ERROR,
     PRP_FN_RES_EXHAUSTED_ERROR,
-    PRP_FN_FILE_IO_ERROR
+    PRP_FN_FILE_IO_ERROR,
+    PRP_FN_INT_OVERFLOW_ERROR,
 } PRP_FnCode;
 
 #ifdef __cplusplus

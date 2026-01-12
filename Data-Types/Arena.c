@@ -8,10 +8,18 @@ struct _Arena {
     DT_u8 mem[];
 };
 
+#define MAX_ALLOCABLE_SIZE (DT_SIZE_MAX - sizeof(DT_Arena))
+
 PRP_FN_API DT_Arena *PRP_FN_CALL DT_ArenaCreate(DT_size size) {
     if (!size) {
         PRP_LOG_FN_CODE(PRP_FN_INV_ARG_ERROR,
                         "DT_Arena can't be made with size=0.");
+        return DT_null;
+    }
+    if (size > MAX_ALLOCABLE_SIZE) {
+        PRP_LOG_FN_CODE(PRP_FN_INT_OVERFLOW_ERROR,
+                        "DT_Arena can only with the max size of: %zu bytes",
+                        MAX_ALLOCABLE_SIZE);
         return DT_null;
     }
 
@@ -45,11 +53,12 @@ PRP_FN_API DT_void *PRP_FN_CALL DT_ArenaAlloc(DT_Arena *arena, DT_size size) {
         return DT_null;
     }
 
-    if (arena->ofs + size > arena->size) {
+    if (size > arena->size - arena->ofs) {
         PRP_LOG_FN_CODE(
             PRP_FN_RES_EXHAUSTED_ERROR,
             "Arena has %zu bytes memory left. Cannot allocate memory "
-            "of size: %zu bytes.");
+            "of size: %zu bytes.",
+            arena->size - arena->ofs, size);
         return DT_null;
     }
     DT_void *ptr = arena->mem + arena->ofs;
@@ -65,11 +74,12 @@ PRP_FN_API DT_void *PRP_FN_CALL DT_ArenaCalloc(DT_Arena *arena, DT_size size) {
         return DT_null;
     }
 
-    if (arena->ofs + size > arena->size) {
+    if (size > arena->size - arena->ofs) {
         PRP_LOG_FN_CODE(
             PRP_FN_RES_EXHAUSTED_ERROR,
             "Arena has %zu bytes memory left. Cannot allocate memory "
-            "of size: %zu bytes.");
+            "of size: %zu bytes.",
+            arena->size - arena->ofs, size);
         return DT_null;
     }
     DT_void *ptr = arena->mem + arena->ofs;

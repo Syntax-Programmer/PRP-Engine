@@ -321,13 +321,22 @@ static PRP_FnCode GrowIdMgr(CORE_IdMgr *id_mgr, DT_size new_cap) {
     return PRP_FN_SUCCESS;
 }
 
+/*
+ * This hard cap is defined due to the constraints of packing index and gen into
+ * a single u64. Which in turn needs to be done for various reasons.
+ *
+ * 1. To prevent users from accidently mutating the id and it still being valid.
+ * 2. A 8 byte struct may have 2 mem load ops rather than one. Which is no no.
+ */
+#define MAX_ID_MGR_CAP ((DT_u32)~0)
+
 PRP_FN_API CORE_Id PRP_FN_CALL CORE_IdMgrAddData(CORE_IdMgr *id_mgr,
                                                  const DT_void *pData) {
     PRP_NULL_ARG_CHECK(id_mgr, CORE_INVALID_ID);
     PRP_NULL_ARG_CHECK(pData, CORE_INVALID_ID);
 
     DT_size len = DT_ArrLen(id_mgr->data);
-    if ((DT_u32)len == (DT_u32)~0) {
+    if ((DT_u32)len == MAX_ID_MGR_CAP) {
         PRP_LOG_FN_CODE(PRP_FN_RES_EXHAUSTED_ERROR,
                         "The max capacity of elements a CORE_IdMgr can managed "
                         "has been reached.");
@@ -355,8 +364,7 @@ PRP_FN_API CORE_Id PRP_FN_CALL CORE_IdMgrAddData(CORE_IdMgr *id_mgr,
     // Update the data_i of the id_val at id_i index.
     DT_u64 id_val = *(DT_u64 *)DT_BffrGet(id_mgr->id_layer, id_i);
     // Data index is len++ since the data arr is densely packed.
-    DT_u32 data_i = (DT_u32)DT_ArrLen(id_mgr->data),
-           gen = GET_GEN_FROM_PACKED(id_val);
+    DT_u32 data_i = (DT_u32)len, gen = GET_GEN_FROM_PACKED(id_val);
     id_val = PACK_GEN_INDEX(data_i, gen);
     DT_BffrSet(id_mgr->id_layer, id_i, &id_val);
 

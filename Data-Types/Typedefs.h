@@ -37,6 +37,7 @@ typedef void DT_void;
  * For 32 bit systems it is most likely 4 bytes.
  */
 typedef size_t DT_size;
+#define DT_SIZE_MAX (SIZE_MAX)
 
 #define DT_null (NULL)
 

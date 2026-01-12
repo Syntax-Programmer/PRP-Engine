@@ -36,12 +36,10 @@ PRP_FnCode SystemExec(CORE_Id system_id) {
 
     for (DT_size i = 0; i < layout_ids_len; i++) {
         Layout *layout = CORE_IdToData(g_state->layout_id_mgr, layout_ids[i]);
-
         DT_size comp_arr_c = DT_BitmapSetCount(layout->b_set);
         /*********TODO: The below can cause stack overflow please fix.
          * :TODO***********/
         DT_void *fn_arr[comp_arr_c];
-
         DT_size chunks_len;
         /*
          * Purposefully discarding const qualifier since it was worth the

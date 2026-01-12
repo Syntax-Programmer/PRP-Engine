@@ -1,5 +1,6 @@
 #include "Arr.h"
 #include "../Utils/Logger.h"
+#include "Typedefs.h"
 #include <string.h>
 
 struct _Arr {
@@ -347,7 +348,7 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrShrinkFit(DT_Arr *arr) {
     PRP_NULL_ARG_CHECK(arr, PRP_FN_INV_ARG_ERROR);
 
     // The ternary op makes sure there is space of at-least one elem.
-    return ArrChangeSize(arr, (arr->len) ? arr->len : 1);
+    return ArrChangeSize(arr, (arr->len) ? arr->len : DEFAULT_ARR_CAP);
 }
 
 PRP_FN_API PRP_FnCode PRP_FN_CALL

@@ -62,6 +62,8 @@ static const DT_char *FNCodeToStr(PRP_FnCode code) {
         return "Resources Exhausted Error";
     case PRP_FN_FILE_IO_ERROR:
         return "File I/O Error";
+    case PRP_FN_INT_OVERFLOW_ERROR:
+        return "Integer Overflow Error";
     default:
         return "Unknown Code";
     }
