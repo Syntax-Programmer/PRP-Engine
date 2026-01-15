@@ -5,9 +5,9 @@
 // If 67% of the layout is filled, it is grown.
 #define LOAD_FACTOR (0.67)
 // Sentinel for a free index in the layout.
-#define EMPTY_I ((DT_size) - 1)
+#define EMPTY_I ((DT_size)(-1))
 // Sentinel for a currently free, previously occupied index in the layout.
-#define DEAD_I ((DT_size) - 2)
+#define DEAD_I ((DT_size)(-2))
 
 // These helps in finding new indices when hash collision occurs.
 #define PERTURB_CONST (5)
@@ -66,6 +66,9 @@ struct _Hm {
     PRP_FnCode (*val_del_cb)(DT_void *val);
 };
 
+#define MAX_LAYOUT_CAP (DT_SIZE_MAX / sizeof(DT_size))
+#define MAX_ELEM_CAP (DT_SIZE_MAX / sizeof(Elem))
+
 /**
  * Grows the elem array of the hashmap safely.
  *
@@ -81,10 +84,11 @@ static PRP_FnCode GrowHmElems(DT_Hm *hm);
  *
  * @param hm: the hashmap to grow the layout array of.
  *
- * @return PRP_FN_MALLOC_ERROR if the reallocation fails, otherwise
- * PRP_FN_SUCCESS;
+ * @note: If this fails its no issue there is still cap in the hashmap, just
+ * that we don't return anything since whatever it returns is ignored based on
+ * the assumption that there is still free space in the hashmap.
  */
-static PRP_FnCode GrowHmLayout(DT_Hm *hm);
+static DT_void GrowHmLayout(DT_Hm *hm);
 /**
  * Fetchs the layout and elem index of the given key.
  *
@@ -171,25 +175,45 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_HmDelete(DT_Hm **pHm) {
 }
 
 static PRP_FnCode GrowHmElems(DT_Hm *hm) {
-    Elem *elems = realloc(hm->elems, sizeof(Elem) * hm->elem_cap * 2);
+    if (hm->elem_cap == MAX_ELEM_CAP) {
+        PRP_LOG_FN_CODE(
+            PRP_FN_RES_EXHAUSTED_ERROR,
+            "Cannot allocate more memory for the hashmap, hashmap is filled.");
+        return PRP_FN_RES_EXHAUSTED_ERROR;
+    }
+    DT_size new_cap = hm->elem_cap * 2;
+    if (new_cap > MAX_ELEM_CAP) {
+        new_cap = MAX_ELEM_CAP;
+    }
+    Elem *elems = realloc(hm->elems, sizeof(Elem) * new_cap);
     if (!elems) {
         PRP_LOG_FN_MALLOC_ERROR(elems);
         return PRP_FN_MALLOC_ERROR;
     }
     hm->elems = elems;
-    hm->elem_cap *= 2;
+    hm->elem_cap = new_cap;
 
     return PRP_FN_SUCCESS;
 }
 
-static PRP_FnCode GrowHmLayout(DT_Hm *hm) {
-    DT_size *layout = realloc(hm->layout, sizeof(DT_size) * hm->layout_cap * 2);
+static DT_void GrowHmLayout(DT_Hm *hm) {
+    if (hm->layout_cap == MAX_LAYOUT_CAP) {
+        PRP_LOG_FN_CODE(
+            PRP_FN_RES_EXHAUSTED_ERROR,
+            "Cannot allocate more memory for the hashmap, hashmap is filled.");
+        return;
+    }
+    DT_size new_cap = hm->layout_cap * 2;
+    if (new_cap > MAX_LAYOUT_CAP) {
+        new_cap = MAX_LAYOUT_CAP;
+    }
+    DT_size *layout = realloc(hm->layout, sizeof(DT_size) * new_cap);
     if (!layout) {
         PRP_LOG_FN_MALLOC_ERROR(layout);
-        return PRP_FN_MALLOC_ERROR;
+        return;
     }
     hm->layout = layout;
-    hm->layout_cap *= 2;
+    hm->layout_cap = new_cap;
 
     memset(hm->layout, LAYOUT_EMPTYING_MASK, sizeof(DT_size) * hm->layout_cap);
     // Rehashing and deleting all the dead slots.
@@ -203,7 +227,7 @@ static PRP_FnCode GrowHmLayout(DT_Hm *hm) {
         hm->layout[j] = i;
     }
 
-    return PRP_FN_SUCCESS;
+    return;
 }
 
 PRP_FN_API PRP_FnCode PRP_FN_CALL DT_HmAdd(DT_Hm *hm, DT_void *key,
@@ -212,7 +236,13 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_HmAdd(DT_Hm *hm, DT_void *key,
     PRP_NULL_ARG_CHECK(key, PRP_FN_INV_ARG_ERROR);
 
     if (hm->elem_len == hm->elem_cap && GrowHmElems(hm) != PRP_FN_SUCCESS) {
-        return PRP_FN_RES_EXHAUSTED_ERROR;
+        PRP_FnCode code = GrowHmElems(hm);
+        if (code != PRP_FN_SUCCESS) {
+            PRP_LOG_FN_CODE(PRP_FN_RES_EXHAUSTED_ERROR,
+                            "Cannot add anymore elements to the hashmap, "
+                            "hashmap is filled.");
+            return code;
+        }
     }
     if (hm->elem_len >= hm->layout_cap * LOAD_FACTOR) {
         // This doesn't fail, as there is still space in layout.
@@ -221,8 +251,8 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_HmAdd(DT_Hm *hm, DT_void *key,
     // Don't check for hm->elem_len == hm->elem_cap as it is handled above.
     if (hm->elem_len == hm->layout_cap) {
         PRP_LOG_FN_CODE(PRP_FN_RES_EXHAUSTED_ERROR,
-                        "DT_Hm is completely filled, prev resize attempt must "
-                        "have failed.");
+                        "Cannot add anymore elements to the hashmap, "
+                        "hashmap is filled.");
         return PRP_FN_RES_EXHAUSTED_ERROR;
     }
 
@@ -337,21 +367,19 @@ PRP_FN_API DT_size PRP_FN_CALL DT_HmLen(DT_Hm *hm) {
     return hm->elem_len;
 }
 
-PRP_FN_API PRP_FnCode PRP_FN_CALL DT_HmForEach(DT_Hm *hm,
-                                               PRP_FnCode (*cb)(DT_void *key,
-                                                                DT_void *val)) {
+PRP_FN_API DT_size PRP_FN_CALL DT_HmMaxCap(DT_void) { return MAX_ELEM_CAP; }
+
+PRP_FN_API PRP_FnCode PRP_FN_CALL DT_HmForEach(
+    DT_Hm *hm, PRP_FnCode (*cb)(DT_void *key, DT_void *val, DT_void *user_data),
+    DT_void *user_data) {
     PRP_NULL_ARG_CHECK(hm, PRP_FN_INV_ARG_ERROR);
     PRP_NULL_ARG_CHECK(cb, PRP_FN_INV_ARG_ERROR);
 
     for (DT_size i = 0; i < hm->elem_len; i++) {
         Elem elem = hm->elems[i];
-        if (cb(elem.key, elem.val) != PRP_FN_SUCCESS) {
-            /*
-             * We don't care why the foreach was called to be terminated. There
-             * was no error from our side so even after termination it is still
-             * a success.
-             */
-            return PRP_FN_SUCCESS;
+        PRP_FnCode code = cb(elem.key, elem.val, user_data);
+        if (code != PRP_FN_SUCCESS) {
+            return code;
         }
     }
 

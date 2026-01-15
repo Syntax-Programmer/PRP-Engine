@@ -1,6 +1,5 @@
 #include "Arr.h"
 #include "../Utils/Logger.h"
-#include "Typedefs.h"
 #include <string.h>
 
 struct _Arr {
@@ -15,6 +14,7 @@ struct _Arr {
 #define DEFAULT_ARR_CAP (16)
 
 #define DEFAULT_NEW_CAP(cap) ((cap) * 2)
+#define MAX_CAP(memb_size) (DT_SIZE_MAX / memb_size)
 
 /**
  * Changes the capacity of the given array to the provided new cap safely.
@@ -28,6 +28,16 @@ struct _Arr {
 static PRP_FnCode ArrChangeSize(DT_Arr *arr, DT_size new_cap);
 
 static PRP_FnCode ArrChangeSize(DT_Arr *arr, DT_size new_cap) {
+    if (new_cap == MAX_CAP(arr->memb_size)) {
+        PRP_LOG_FN_CODE(
+            PRP_FN_RES_EXHAUSTED_ERROR,
+            "Max capacity of the array reach, cannot grow further.");
+        return PRP_FN_RES_EXHAUSTED_ERROR;
+    }
+    if (new_cap > MAX_CAP(arr->memb_size)) {
+        // We can saturate here since the array is len based not cap based.
+        new_cap = MAX_CAP(arr->memb_size);
+    }
     if (arr->cap == new_cap) {
         return PRP_FN_SUCCESS;
     }
@@ -46,11 +56,18 @@ static PRP_FnCode ArrChangeSize(DT_Arr *arr, DT_size new_cap) {
 PRP_FN_API DT_Arr *PRP_FN_CALL DT_ArrCreate(DT_size memb_size, DT_size cap) {
     if (!memb_size) {
         PRP_LOG_FN_CODE(PRP_FN_INV_ARG_ERROR,
-                        "DT_Array can't be made with memb_size=0.");
+                        "DT_Arr can't be made with memb_size=0.");
         return DT_null;
     }
     if (!cap) {
         cap = DEFAULT_ARR_CAP;
+    }
+    if (cap > MAX_CAP(memb_size)) {
+        PRP_LOG_FN_CODE(PRP_FN_RES_EXHAUSTED_ERROR,
+                        "DT_Arr create capcity too big to accomodate. Max "
+                        "capacity of array with memb_size=%zu is %zu",
+                        memb_size, MAX_CAP(memb_size));
+        return DT_null;
     }
 
     DT_Arr *arr = malloc(sizeof(DT_Arr));
@@ -144,6 +161,12 @@ PRP_FN_API DT_size PRP_FN_CALL DT_ArrMembSize(const DT_Arr *arr) {
     return arr->memb_size;
 }
 
+PRP_FN_API DT_size PRP_FN_CALL DT_ArrMaxCap(const DT_Arr *arr) {
+    PRP_NULL_ARG_CHECK(arr, PRP_INVALID_SIZE);
+
+    return MAX_CAP(arr->memb_size);
+}
+
 PRP_FN_API DT_void *PRP_FN_CALL DT_ArrGet(const DT_Arr *arr, DT_size i) {
     PRP_NULL_ARG_CHECK(arr, DT_null);
     if (i >= arr->len) {
@@ -179,12 +202,14 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrPush(DT_Arr *arr,
     PRP_NULL_ARG_CHECK(arr, PRP_FN_INV_ARG_ERROR);
     PRP_NULL_ARG_CHECK(pData, PRP_FN_INV_ARG_ERROR);
 
-    if (arr->len == arr->cap &&
-        ArrChangeSize(arr, DEFAULT_NEW_CAP(arr->cap)) != PRP_FN_SUCCESS) {
-        PRP_LOG_FN_CODE(
-            PRP_FN_RES_EXHAUSTED_ERROR,
-            "Cannot push more elements to the array. Array is full.");
-        return PRP_FN_RES_EXHAUSTED_ERROR;
+    if (arr->len == arr->cap) {
+        PRP_FnCode code = ArrChangeSize(arr, DEFAULT_NEW_CAP(arr->cap));
+        if (code != PRP_FN_SUCCESS) {
+            PRP_LOG_FN_CODE(
+                code,
+                "Cannot push more elements into the array. The array is full.");
+            return code;
+        }
     }
     memcpy(arr->mem + ((arr->len++) * arr->memb_size), pData, arr->memb_size);
 
@@ -203,7 +228,14 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrReserve(DT_Arr *arr, DT_size count) {
         return PRP_FN_SUCCESS;
     }
 
-    return ArrChangeSize(arr, arr->len + count);
+    PRP_FnCode code = ArrChangeSize(arr, arr->len + count);
+    if (code != PRP_FN_SUCCESS) {
+        PRP_LOG_FN_CODE(
+            code, "Cannot reserve %zu more elements into the array.", count);
+        return code;
+    }
+
+    return PRP_FN_SUCCESS;
 }
 
 PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrInsert(DT_Arr *arr,
@@ -219,12 +251,13 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrInsert(DT_Arr *arr,
         return PRP_FN_OOB_ERROR;
     }
 
-    if (arr->len == arr->cap &&
-        ArrChangeSize(arr, DEFAULT_NEW_CAP(arr->cap)) != PRP_FN_SUCCESS) {
-        PRP_LOG_FN_CODE(
-            PRP_FN_RES_EXHAUSTED_ERROR,
-            "Cannot insert more elements to the array. Array is full.");
-        return PRP_FN_RES_EXHAUSTED_ERROR;
+    if (arr->len == arr->cap) {
+        PRP_FnCode code = ArrChangeSize(arr, DEFAULT_NEW_CAP(arr->cap));
+        if (code != PRP_FN_SUCCESS) {
+            PRP_LOG_FN_CODE(code, "Cannot insert more elements into the array. "
+                                  "The array is full.");
+            return code;
+        }
     }
     memmove(arr->mem + ((i + 1) * arr->memb_size),
             arr->mem + (i * arr->memb_size), (arr->len - i) * arr->memb_size);
@@ -299,6 +332,12 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrExtend(DT_Arr *arr1,
         return PRP_FN_INV_ARG_ERROR;
     }
 
+    if (arr1->len > MAX_CAP(arr1->memb_size) - arr2->len) {
+        PRP_LOG_FN_CODE(
+            PRP_FN_RES_EXHAUSTED_ERROR,
+            "Combined capacity of arr1 exceeds max array capacity of %zu",
+            MAX_CAP(arr1->memb_size));
+    }
     DT_size new_cap = arr1->len + arr2->len;
     DT_u8 *mem = realloc(arr1->mem, new_cap * arr1->memb_size);
     if (mem) {
@@ -347,8 +386,14 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrReset(DT_Arr *arr) {
 PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrShrinkFit(DT_Arr *arr) {
     PRP_NULL_ARG_CHECK(arr, PRP_FN_INV_ARG_ERROR);
 
-    // The ternary op makes sure there is space of at-least one elem.
-    return ArrChangeSize(arr, (arr->len) ? arr->len : DEFAULT_ARR_CAP);
+    PRP_FnCode code =
+        ArrChangeSize(arr, (arr->len) ? arr->len : DEFAULT_ARR_CAP);
+    if (code != PRP_FN_SUCCESS) {
+        PRP_LOG_FN_CODE(code, "Cannot shrink fit the given array.");
+        return code;
+    }
+
+    return PRP_FN_SUCCESS;
 }
 
 PRP_FN_API PRP_FnCode PRP_FN_CALL
@@ -359,13 +404,9 @@ DT_ArrForEach(DT_Arr *arr, PRP_FnCode (*cb)(DT_void *pVal, DT_void *user_data),
 
     DT_u8 *mem = arr->mem;
     for (DT_size i = 0; i < arr->len; i++) {
-        if (cb(mem, user_data) != PRP_FN_SUCCESS) {
-            /*
-             * We don't care why the foreach was called to be terminated. There
-             * was no error from our side so even after termination it is still
-             * a success.
-             */
-            return PRP_FN_SUCCESS;
+        PRP_FnCode code = cb(mem, user_data);
+        if (code != PRP_FN_SUCCESS) {
+            return code;
         }
         mem += arr->memb_size;
     }

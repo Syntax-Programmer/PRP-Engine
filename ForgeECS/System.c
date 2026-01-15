@@ -3,6 +3,7 @@
 CORE_Id SystemCreate(CORE_Id query_id, FECS_SysFn fn, DT_void *user_data) {
     PRP_NULL_ARG_CHECK(fn, CORE_INVALID_ID);
     DT_bool rslt;
+
     if (CORE_IdIsValid(g_state->query_id_mgr, query_id, &rslt) !=
             PRP_FN_SUCCESS ||
         !rslt) {
@@ -12,11 +13,22 @@ CORE_Id SystemCreate(CORE_Id query_id, FECS_SysFn fn, DT_void *user_data) {
 
     System system = {.query_id = query_id, .fn = fn, .user_data = user_data};
 
-    return CORE_IdMgrAddData(g_state->system_id_mgr, &system);
+    CORE_Id system_id = CORE_IdMgrAddData(g_state->system_id_mgr, &system);
+    if (system_id == CORE_INVALID_ID) {
+        PRP_LOG_FN_CODE(PRP_FN_FAILURE, "Cannot create id for the system.");
+    }
+
+    return system_id;
 }
 
 PRP_FnCode SystemDelete(CORE_Id *pSystem_id) {
-    return CORE_IdMgrDeleteData(g_state->system_id_mgr, pSystem_id);
+    PRP_FnCode code = CORE_IdMgrDeleteData(g_state->system_id_mgr, pSystem_id);
+    if (code != PRP_FN_SUCCESS) {
+        PRP_LOG_FN_CODE(code, "Cannot delete the given system id.");
+        return code;
+    }
+
+    return PRP_FN_SUCCESS;
 }
 
 PRP_FnCode SystemExec(CORE_Id system_id) {

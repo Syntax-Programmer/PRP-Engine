@@ -10,6 +10,10 @@ struct _Arena {
 
 #define MAX_ALLOCABLE_SIZE (DT_SIZE_MAX - sizeof(DT_Arena))
 
+PRP_FN_API DT_size PRP_FN_CALL DT_ArenaMaxSize(DT_void) {
+    return MAX_ALLOCABLE_SIZE;
+}
+
 PRP_FN_API DT_Arena *PRP_FN_CALL DT_ArenaCreate(DT_size size) {
     if (!size) {
         PRP_LOG_FN_CODE(PRP_FN_INV_ARG_ERROR,
@@ -17,7 +21,7 @@ PRP_FN_API DT_Arena *PRP_FN_CALL DT_ArenaCreate(DT_size size) {
         return DT_null;
     }
     if (size > MAX_ALLOCABLE_SIZE) {
-        PRP_LOG_FN_CODE(PRP_FN_INT_OVERFLOW_ERROR,
+        PRP_LOG_FN_CODE(PRP_FN_RES_EXHAUSTED_ERROR,
                         "DT_Arena can only with the max size of: %zu bytes",
                         MAX_ALLOCABLE_SIZE);
         return DT_null;

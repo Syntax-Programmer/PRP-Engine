@@ -93,19 +93,26 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_HmDelElem(DT_Hm *hm, DT_void *key);
  */
 PRP_FN_API DT_size PRP_FN_CALL DT_HmLen(DT_Hm *hm);
 /**
+ * Returns the max cap that a hashmap can have.
+ *
+ * @return The max cap that a hashmap can have.
+ */
+PRP_FN_API DT_size PRP_FN_CALL DT_HmMaxCap(DT_void);
+/**
  * Performs a foreach operation of each of the key-val pair of the hashmap.
  * Calling cb per element.
  *
  * @param hm: The hashmap on which the foreach will happen.
- * @param cb: The callback tho be called per key-val pair. If this doesn't
+ * @param cb: The callback will be called per key-val pair. If this doesn't
  * return PRP_FN_SUCCESS, further execution will be halted.
+ * @param user_data: The data user wants to pass in as additional context.
  *
  * @return PRP_FN_INV_ARG_ERROR if the parameters are invalid in any way,
- * otherwise PRP_FN_SUCCESS.
+ * otherwise PRP_FN_SUCCESS, or the callback error code.
  */
-PRP_FN_API PRP_FnCode PRP_FN_CALL DT_HmForEach(DT_Hm *hm,
-                                               PRP_FnCode (*cb)(DT_void *key,
-                                                                DT_void *val));
+PRP_FN_API PRP_FnCode PRP_FN_CALL DT_HmForEach(
+    DT_Hm *hm, PRP_FnCode (*cb)(DT_void *key, DT_void *val, DT_void *user_data),
+    DT_void *user_data);
 /**
  * Resets the hashmap to make it like a brand new hashmap with no entries.
  *

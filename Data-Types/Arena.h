@@ -17,6 +17,12 @@ extern "C" {
 typedef struct _Arena DT_Arena;
 
 /**
+ * Returns the max size that an arena can have.
+ *
+ * @return The max size that an arena can have.
+ */
+PRP_FN_API DT_size PRP_FN_CALL DT_ArenaMaxSize(DT_void);
+/**
  * Creates the arena with the given size.
  *
  * @param size: The max size(in bytes) of the arena.

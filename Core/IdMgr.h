@@ -77,6 +77,16 @@ PRP_FN_API const DT_void *PRP_FN_CALL CORE_IdMgrRaw(const CORE_IdMgr *id_mgr,
  * len of the id manager.
  */
 PRP_FN_API DT_u32 PRP_FN_CALL CORE_IdMgrLen(const CORE_IdMgr *id_mgr);
+/**
+ * Returns the max capacity of the id manager that is passed to it based on the
+ * data it holds.
+ *
+ * @param arr: The id manager to get the max capacity of.
+ *
+ * @return PRP_INVALID_SIZE if the id manager is invalid, otherwise the actual
+ * max capacity of the id manager.
+ */
+PRP_FN_API DT_u32 PRP_FN_CALL CORE_IdMgrMaxCap(const CORE_IdMgr *id_mgr);
 
 /**
  * Returns the index of where the actual data lives of the data id points to.

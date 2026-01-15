@@ -54,11 +54,23 @@ CORE_Id QueryCreate(CORE_Id exclude_b_set_id, CORE_Id include_b_set_id) {
         }
     }
 
-    return CORE_IdMgrAddData(g_state->query_id_mgr, &query);
+    PRP_FnCode code = CORE_IdMgrAddData(g_state->query_id_mgr, &query);
+    if (code != PRP_FN_SUCCESS) {
+        PRP_LOG_FN_CODE(code, "Cannot create id for the query.");
+        return code;
+    }
+
+    return PRP_FN_SUCCESS;
 }
 
 PRP_FnCode QueryDelete(CORE_Id *pQuery_id) {
-    return CORE_IdMgrDeleteData(g_state->query_id_mgr, pQuery_id);
+    PRP_FnCode code = CORE_IdMgrDeleteData(g_state->query_id_mgr, pQuery_id);
+    if (code != PRP_FN_SUCCESS) {
+        PRP_LOG_FN_CODE(code, "Cannot delete the given query id.");
+        return code;
+    }
+
+    return PRP_FN_SUCCESS;
 }
 
 PRP_FnCode QueryDelCb(DT_void *query) {

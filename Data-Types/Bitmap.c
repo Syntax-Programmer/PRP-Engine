@@ -72,6 +72,8 @@ struct _Bitmap {
     DT_Bitword *words;
 };
 
+#define MAX_BITMAP_BIT_CAP ((DT_SIZE_MAX / 8))
+
 #define DEFAULT_BIT_CAP (64)
 
 /**
@@ -119,6 +121,12 @@ static DT_void BitmapCalcFirstSet(DT_Bitmap *bmp, DT_size start) {
 }
 
 PRP_FN_API DT_Bitmap *PRP_FN_CALL DT_BitmapCreate(DT_size bit_cap) {
+    if (bit_cap > MAX_BITMAP_BIT_CAP) {
+        PRP_LOG_FN_CODE(PRP_FN_RES_EXHAUSTED_ERROR,
+                        "The bit_cap=%zu has exceeed the max bit cap of %zu",
+                        bit_cap, MAX_BITMAP_BIT_CAP);
+        return DT_null;
+    }
     if (!bit_cap) {
         bit_cap = DEFAULT_BIT_CAP;
     }
@@ -209,6 +217,10 @@ PRP_FN_API DT_size PRP_FN_CALL DT_BitmapBitCap(const DT_Bitmap *bmp) {
     PRP_NULL_ARG_CHECK(bmp, PRP_INVALID_SIZE);
 
     return bmp->bit_cap;
+}
+
+PRP_FN_API DT_size PRP_FN_CALL DT_BitmapMaxBitCap(DT_void) {
+    return MAX_BITMAP_BIT_CAP;
 }
 
 PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BitmapSet(DT_Bitmap *bmp, DT_size i) {
@@ -776,9 +788,15 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BitmapChangeSize(DT_Bitmap *bmp,
                                                       DT_size new_bit_cap) {
     PRP_NULL_ARG_CHECK(bmp, PRP_FN_INV_ARG_ERROR);
     if (!new_bit_cap) {
-        PRP_LOG_FN_CODE(PRP_FN_INV_ARG_ERROR,
-                        "Cannot change size of the bitmap to 0 bits.");
+        PRP_LOG_FN_CODE(PRP_FN_INV_ARG_ERROR, "Cannot set new bit cap to 0.",
+                        MAX_BITMAP_BIT_CAP);
         return PRP_FN_INV_ARG_ERROR;
+    }
+    if (new_bit_cap > MAX_BITMAP_BIT_CAP) {
+        PRP_LOG_FN_CODE(PRP_FN_RES_EXHAUSTED_ERROR,
+                        "Cannot set new bit cap to: %zu, max bit cap is %zu",
+                        new_bit_cap, MAX_BITMAP_BIT_CAP);
+        return PRP_FN_RES_EXHAUSTED_ERROR;
     }
 
     DT_size new_word_i = WORD_I(new_bit_cap);

@@ -152,9 +152,9 @@ CORE_Id LayoutCreate(CORE_Id b_set_id, DT_bool *pIsDuplicate) {
     LAYOUT_INIT_ERROR_CHECK(layout.b_set);
 
     CalcCompArStrides(&layout);
-    if (AddLayoutChunk(&layout) != PRP_FN_SUCCESS) {
-        PRP_LOG_FN_CODE(PRP_FN_MALLOC_ERROR,
-                        "Cannot add initial first chunk to the layout.");
+    PRP_FnCode code = AddLayoutChunk(&layout);
+    if (code != PRP_FN_SUCCESS) {
+        PRP_LOG_FN_CODE(code, "Cannot add initial first chunk to the layout.");
         LayoutDelCb(&layout);
         return CORE_INVALID_ID;
     }
@@ -162,6 +162,7 @@ CORE_Id LayoutCreate(CORE_Id b_set_id, DT_bool *pIsDuplicate) {
     CORE_Id layout_id = CORE_IdMgrAddData(g_state->layout_id_mgr, &layout);
     if (layout_id == CORE_INVALID_ID) {
         LayoutDelCb(&layout);
+        PRP_LOG_FN_CODE(PRP_FN_FAILURE, "Cannot create id for the layout.");
         return CORE_INVALID_ID;
     }
 
@@ -170,7 +171,13 @@ CORE_Id LayoutCreate(CORE_Id b_set_id, DT_bool *pIsDuplicate) {
 
 PRP_FnCode LayoutDelete(CORE_Id *pLayout_id) {
     // We don't do id validation since the below function will do it anyways.
-    return CORE_IdMgrDeleteData(g_state->layout_id_mgr, pLayout_id);
+    PRP_FnCode code = CORE_IdMgrDeleteData(g_state->layout_id_mgr, pLayout_id);
+    if (code != PRP_FN_SUCCESS) {
+        PRP_LOG_FN_CODE(code, "Cannot delete the given behavior set id.");
+        return code;
+    }
+
+    return PRP_FN_SUCCESS;
 }
 
 static inline PRP_FnCode FreeChunkPtrs(DT_void *pVal, DT_void *user_data) {
@@ -217,10 +224,13 @@ PRP_FnCode LayoutCreateEntity(CORE_Id layout_id, FECS_EntityId *entity_id) {
         return PRP_FN_INV_ARG_ERROR;
     }
 
-    PRP_FnCode code;
-    if (!DT_BitmapSetCount(layout->free_chunks) &&
-        (code = AddLayoutChunk(layout)) != PRP_FN_SUCCESS) {
-        return code;
+    if (!DT_BitmapSetCount(layout->free_chunks)) {
+        PRP_FnCode code = AddLayoutChunk(layout);
+        if (code != PRP_FN_SUCCESS) {
+            PRP_LOG_FN_CODE(code,
+                            "Cannot create new entity. No space available.");
+            return code;
+        }
     }
 
     entity_id->layout_id = layout_id;
@@ -297,7 +307,8 @@ FECS_EntityIdBatch *LayoutCreateEntityBatch(CORE_Id layout_id, DT_size count) {
             DT_size chunks_needed = (remaining + CHUNK_CAP - 1) / CHUNK_CAP;
             // Allocating all the needed chunk in bulk.
             for (DT_size j = 0; j < chunks_needed; j++) {
-                if (AddLayoutChunk(layout) != PRP_FN_SUCCESS) {
+                PRP_FnCode code = AddLayoutChunk(layout);
+                if (code != PRP_FN_SUCCESS) {
                     if (j > 0) {
                         // Create entities of the chunks added so far.
                         break;
@@ -307,7 +318,7 @@ FECS_EntityIdBatch *LayoutCreateEntityBatch(CORE_Id layout_id, DT_size count) {
                      * refreeing each entity is expensive.
                      */
                     PRP_LOG_FN_CODE(
-                        PRP_FN_RES_EXHAUSTED_ERROR,
+                        code,
                         "Only able to create %zu entities out of %zu. "
                         "Partially created entity batch will be returned.",
                         i, count);

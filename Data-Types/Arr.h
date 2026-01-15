@@ -96,6 +96,16 @@ PRP_FN_API DT_size PRP_FN_CALL DT_ArrCap(const DT_Arr *arr);
  * memb_size of the array.
  */
 PRP_FN_API DT_size PRP_FN_CALL DT_ArrMembSize(const DT_Arr *arr);
+/**
+ * Returns the max capacity of the array that is passed to it based on its
+ * memb_size.
+ *
+ * @param arr: The array to get the max capacity of.
+ *
+ * @return PRP_INVALID_SIZE if the array is invalid, otherwise the actual
+ * max capacity of the array.
+ */
+PRP_FN_API DT_size PRP_FN_CALL DT_ArrMaxCap(const DT_Arr *arr);
 
 /**
  * Gets the pointer to the element of the given index of the array.
@@ -245,9 +255,10 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrShrinkFit(DT_Arr *arr);
  * @param arr: The array on which the foreach will happen.
  * @param cb: The callback to be called per element. If this doesn't return
  * PRP_FN_SUCCESS, further execution will be halted.
+ * @param user_data: The data user wants to pass in as additional context.
  *
  * @return PRP_FN_INV_ARG_ERROR if the parameters are invalid in some way,
- * otherwise PRP_FN_SUCCESS.
+ * otherwise PRP_FN_SUCCESS, or the callback error code.
  */
 PRP_FN_API PRP_FnCode PRP_FN_CALL
 DT_ArrForEach(DT_Arr *arr, PRP_FnCode (*cb)(DT_void *pVal, DT_void *user_data),

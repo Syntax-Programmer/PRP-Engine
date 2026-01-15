@@ -1,6 +1,5 @@
 #include "Bffr.h"
 #include "../Utils/Logger.h"
-#include "Typedefs.h"
 #include <string.h>
 
 struct _Bffr {
@@ -12,8 +11,25 @@ struct _Bffr {
 };
 
 #define DEFAULT_BFFR_CAP (16)
+#define MAX_CAP(memb_size) (DT_SIZE_MAX / memb_size)
 
 PRP_FN_API DT_Bffr *PRP_FN_CALL DT_BffrCreate(DT_size memb_size, DT_size cap) {
+    if (!memb_size) {
+        PRP_LOG_FN_CODE(PRP_FN_INV_ARG_ERROR,
+                        "DT_Bffr can't be made with memb_size=0.");
+        return DT_null;
+    }
+    if (!cap) {
+        cap = DEFAULT_BFFR_CAP;
+    }
+    if (cap > MAX_CAP(memb_size)) {
+        PRP_LOG_FN_CODE(PRP_FN_RES_EXHAUSTED_ERROR,
+                        "DT_Bffr create capcity too big to accomodate. Max "
+                        "capacity of buffer with memb_size=%zu is %zu",
+                        memb_size, MAX_CAP(memb_size));
+        return DT_null;
+    }
+
     if (!memb_size) {
         PRP_LOG_FN_CODE(PRP_FN_INV_ARG_ERROR,
                         "DT_Bffr can't be made with memb_size=0.");
@@ -104,6 +120,12 @@ PRP_FN_API DT_size PRP_FN_CALL DT_BffrMembSize(const DT_Bffr *bffr) {
     PRP_NULL_ARG_CHECK(bffr, PRP_INVALID_SIZE);
 
     return bffr->memb_size;
+}
+
+PRP_FN_API DT_size PRP_FN_CALL DT_BffrMaxCap(const DT_Bffr *bffr) {
+    PRP_NULL_ARG_CHECK(bffr, PRP_INVALID_SIZE);
+
+    return MAX_CAP(bffr->memb_size);
 }
 
 PRP_FN_API DT_void *PRP_FN_CALL DT_BffrGet(const DT_Bffr *bffr, DT_size i) {
@@ -209,6 +231,12 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BffrExtend(DT_Bffr *bffr1,
         return PRP_FN_INV_ARG_ERROR;
     }
 
+    if (bffr1->cap > MAX_CAP(bffr1->memb_size) - bffr2->cap) {
+        PRP_LOG_FN_CODE(
+            PRP_FN_RES_EXHAUSTED_ERROR,
+            "Combined capacity of bffr1 exceeds max buffer capacity of %zu",
+            MAX_CAP(bffr1->memb_size));
+    }
     DT_size new_cap = bffr1->cap + bffr2->cap;
     DT_u8 *mem = realloc(bffr1->mem, new_cap * bffr1->memb_size);
     if (!mem) {
@@ -261,6 +289,13 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BffrChangeSize(DT_Bffr *bffr,
         PRP_LOG_FN_CODE(PRP_FN_INV_ARG_ERROR,
                         "Cannot change size of the buffer to 0 elements.");
         return PRP_FN_INV_ARG_ERROR;
+    }
+    if (new_cap > MAX_CAP(bffr->memb_size)) {
+        PRP_LOG_FN_CODE(
+            PRP_FN_RES_EXHAUSTED_ERROR,
+            "Cannot change cap of buffer to %zu, max cap of the buffer is %zu",
+            new_cap, MAX_CAP(bffr->memb_size));
+        return PRP_FN_RES_EXHAUSTED_ERROR;
     }
 
     if (bffr->cap == new_cap) {

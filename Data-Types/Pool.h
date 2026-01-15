@@ -65,6 +65,34 @@ PRP_FN_API DT_void *PRP_FN_CALL DT_PoolCalloc(DT_Pool *pool);
  */
 PRP_FN_API PRP_FnCode PRP_FN_CALL DT_PoolFree(DT_Pool *pool, DT_void *ptr);
 /**
+ * Returns the current allocated cap of the pool that is passed to it.
+ *
+ * @param pool: The pool to get the cap of.
+ *
+ * @return PRP_INVALID_SIZE if the pool is invalid, otherwise the actual cap of
+ * the pool.
+ */
+PRP_FN_API DT_size PRP_FN_CALL DT_PoolCap(const DT_Pool *pool);
+/**
+ * Returns the member size of the pool that is passed to it.
+ *
+ * @param pool: The pool to get the memb_size of.
+ *
+ * @return PRP_INVALID_SIZE if the pool is invalid, otherwise the actual
+ * memb_size of the pool.
+ */
+PRP_FN_API DT_size PRP_FN_CALL DT_PoolMembSize(const DT_Pool *pool);
+/**
+ * Returns the max capacity of the pool that is passed to it based on its
+ * memb_size.
+ *
+ * @param pool: The pool to get the max capacity of.
+ *
+ * @return PRP_INVALID_SIZE if the pool is invalid, otherwise the actual
+ * max capacity of the pool.
+ */
+PRP_FN_API DT_size PRP_FN_CALL DT_PoolMaxCap(const DT_Pool *pool);
+/**
  * Resets the pool, which invalidates all existing alloations and empties the
  * entire pool.
  *

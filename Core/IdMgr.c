@@ -17,6 +17,11 @@ struct _IdMgr {
      */
     DT_Arr *data_layer;
     /*
+     * Max cap of an id manager is hardcapped at u32 max. It can be even lower
+     * if the DT_Arr *data's max cap is lower.
+     */
+    DT_u32 max_cap;
+    /*
      * An buffer of u64s that is used in a way like:
      * The ids dispatched are index into this buffer. This buffer acts a
      * validation layer for the id to access the data. The data stored at the
@@ -101,6 +106,7 @@ static inline IdState GetIdData(const CORE_IdMgr *id_mgr, CORE_Id id);
  * values for the id_layer and free_id_slots.
  *
  * @param id_mgr: The id manager to grow.
+ * @param new_cap: The new cap the id manager wants to set.
  *
  * @return PRP_FN_MALLOC_ERROR if any resizing failed, otherwise PRP_FN_SUCCESS.
  */
@@ -142,6 +148,9 @@ PRP_FN_API CORE_IdMgr *PRP_FN_CALL CORE_IdMgrCreate(
     ID_MGR_INIT_ERROR_CHECK(id_mgr->free_id_slots);
 
     id_mgr->data_del_cb = data_del_cb;
+    DT_size max_data_cap = DT_ArrMaxCap(id_mgr->data);
+    // Hard constraint of 32 bit max due to packing of data.
+    id_mgr->max_cap = (max_data_cap > (DT_u32)~0) ? (DT_u32)~0 : max_data_cap;
 
     // These can't fail.
     DT_u64 x = NEW_ID_LAYER_VAL;
@@ -204,8 +213,14 @@ PRP_FN_API DT_u32 PRP_FN_CALL CORE_IdMgrLen(const CORE_IdMgr *id_mgr) {
     return (DT_u32)len;
 }
 
+PRP_FN_API DT_u32 PRP_FN_CALL CORE_IdMgrMaxCap(const CORE_IdMgr *id_mgr) {
+    PRP_NULL_ARG_CHECK(id_mgr, CORE_INVALID_SIZE);
+
+    return id_mgr->max_cap;
+}
+
 static inline IdState GetIdData(const CORE_IdMgr *id_mgr, CORE_Id id) {
-    IdState state;
+    IdState state = {0};
 
     UNPACK_GEN_INDEX_PACKING(id, state.id_i, state.id_gen);
     if (state.id_i >= DT_BffrCap(id_mgr->id_layer)) {
@@ -287,7 +302,7 @@ PRP_FN_API CORE_Id PRP_FN_CALL CORE_DataIToId(const CORE_IdMgr *id_mgr,
 }
 
 static PRP_FnCode GrowIdMgr(CORE_IdMgr *id_mgr, DT_size new_cap) {
-    DT_size id_layer_old_cap = DT_BffrCap(id_mgr->id_layer);
+    DT_size old_cap = DT_BffrCap(id_mgr->id_layer);
 
     if (DT_BitmapChangeSize(id_mgr->free_id_slots, new_cap) != PRP_FN_SUCCESS ||
         DT_BffrChangeSize(id_mgr->id_layer, new_cap) != PRP_FN_SUCCESS) {
@@ -297,14 +312,14 @@ static PRP_FnCode GrowIdMgr(CORE_IdMgr *id_mgr, DT_size new_cap) {
          * If the below op also fail we can't do anything to save the mem leak
          * about to happen.
          */
-        DT_BitmapChangeSize(id_mgr->free_id_slots, id_layer_old_cap);
-        DT_BffrChangeSize(id_mgr->id_layer, id_layer_old_cap);
+        DT_BitmapChangeSize(id_mgr->free_id_slots, old_cap);
+        DT_BffrChangeSize(id_mgr->id_layer, old_cap);
         return PRP_FN_MALLOC_ERROR;
     }
     // These can't fail.
     DT_u64 x = NEW_ID_LAYER_VAL;
-    DT_BffrSetRange(id_mgr->id_layer, id_layer_old_cap, new_cap, &x);
-    DT_BitmapSetRange(id_mgr->free_id_slots, id_layer_old_cap, new_cap);
+    DT_BffrSetRange(id_mgr->id_layer, old_cap, new_cap, &x);
+    DT_BitmapSetRange(id_mgr->free_id_slots, old_cap, new_cap);
 
     DT_size reserve_count = new_cap - DT_ArrCap(id_mgr->data);
     if (DT_ArrReserve(id_mgr->data, reserve_count) != PRP_FN_SUCCESS ||
@@ -321,37 +336,33 @@ static PRP_FnCode GrowIdMgr(CORE_IdMgr *id_mgr, DT_size new_cap) {
     return PRP_FN_SUCCESS;
 }
 
-/*
- * This hard cap is defined due to the constraints of packing index and gen into
- * a single u64. Which in turn needs to be done for various reasons.
- *
- * 1. To prevent users from accidently mutating the id and it still being valid.
- * 2. A 8 byte struct may have 2 mem load ops rather than one. Which is no no.
- */
-#define MAX_ID_MGR_CAP ((DT_u32)~0)
-
 PRP_FN_API CORE_Id PRP_FN_CALL CORE_IdMgrAddData(CORE_IdMgr *id_mgr,
                                                  const DT_void *pData) {
     PRP_NULL_ARG_CHECK(id_mgr, CORE_INVALID_ID);
     PRP_NULL_ARG_CHECK(pData, CORE_INVALID_ID);
 
     DT_size len = DT_ArrLen(id_mgr->data);
-    if ((DT_u32)len == MAX_ID_MGR_CAP) {
+    if ((DT_u32)len == id_mgr->max_cap) {
         PRP_LOG_FN_CODE(PRP_FN_RES_EXHAUSTED_ERROR,
                         "The max capacity of elements a CORE_IdMgr can managed "
                         "has been reached.");
         return CORE_INVALID_ID;
     }
-    /*
-     * Doubling the cap is the std behavior, and we can do it by the len * 2,
-     * since if set count is 0 we are sure len == cap is also true.
-     */
-    if (!DT_BitmapSetCount(id_mgr->free_id_slots) &&
-        GrowIdMgr(id_mgr, DT_BffrCap(id_mgr->id_layer) * 2) != PRP_FN_SUCCESS) {
-        PRP_LOG_FN_CODE(PRP_FN_RES_EXHAUSTED_ERROR,
-                        "Cannot add any more elements to the CORE_IdMgr due to "
-                        "memory limitations.");
-        return CORE_INVALID_ID;
+    if (!DT_BitmapSetCount(id_mgr->free_id_slots)) {
+        /*
+         * The bffr_Cap * 2 can't overflow since the max cap of the id layer
+         * array is wayyyyyy bigger than the max cap of the id manager and the
+         * above condition will stop us wayyyy before we even come close to
+         * overflowing.
+         */
+        DT_size new_cap = DT_BffrCap(id_mgr->id_layer) * 2;
+        PRP_FnCode code = GrowIdMgr(id_mgr, new_cap);
+        if (code != PRP_FN_SUCCESS) {
+            PRP_LOG_FN_CODE(
+                code, "Cannot add any more elements to the CORE_IdMgr due to "
+                      "memory limitations.");
+            return CORE_INVALID_ID;
+        }
     }
 
     // Since the grow above didn't fail, everything below can't fail ever.
@@ -425,7 +436,7 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL CORE_IdMgrReserve(CORE_IdMgr *id_mgr,
         return PRP_FN_INV_ARG_ERROR;
     }
 
-    if (count > ((DT_u32)~0 - (DT_u32)(DT_ArrLen(id_mgr->data)))) {
+    if (count > (id_mgr->max_cap - (DT_u32)(DT_ArrLen(id_mgr->data)))) {
         PRP_LOG_FN_CODE(PRP_FN_RES_EXHAUSTED_ERROR,
                         "Cannot reserve %u elements into the CORE_IdMgr "
                         "because it exceeds max capacity of CORE_IdMgr.",
@@ -438,7 +449,15 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL CORE_IdMgrReserve(CORE_IdMgr *id_mgr,
     }
     DT_size new_cap = DT_BffrCap(id_mgr->id_layer) + (count - free_slots);
 
-    return GrowIdMgr(id_mgr, new_cap);
+    PRP_FnCode code = GrowIdMgr(id_mgr, new_cap);
+    if (code != PRP_FN_SUCCESS) {
+        PRP_LOG_FN_CODE(code,
+                        "Cannot add any more elements to the CORE_IdMgr due to "
+                        "memory limitations.");
+        return code;
+    }
+
+    return PRP_FN_SUCCESS;
 }
 
 // PRP_FN_API PRP_FnCode PRP_FN_CALL CORE_IdMgrShrinkFit(CORE_IdMgr *id_mgr) {

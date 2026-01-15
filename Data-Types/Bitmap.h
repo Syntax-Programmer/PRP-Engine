@@ -156,6 +156,12 @@ PRP_FN_API DT_size PRP_FN_CALL DT_BitmapFFS(const DT_Bitmap *bmp);
  * cap of the bitmap.
  */
 PRP_FN_API DT_size PRP_FN_CALL DT_BitmapBitCap(const DT_Bitmap *bmp);
+/**
+ * Returns the max bit cap that a bitmap can have.
+ *
+ * @return The max bit cap that a bitmap can have.
+ */
+PRP_FN_API DT_size PRP_FN_CALL DT_BitmapMaxBitCap(DT_void);
 
 /**
  * Sets the given index bit in the bitmap.

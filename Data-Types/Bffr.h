@@ -80,6 +80,16 @@ PRP_FN_API DT_size PRP_FN_CALL DT_BffrCap(const DT_Bffr *bffr);
  * of the buffer.
  */
 PRP_FN_API DT_size PRP_FN_CALL DT_BffrMembSize(const DT_Bffr *bffr);
+/**
+ * Returns the max capacity of the buffer that is passed to it based on its
+ * memb_size.
+ *
+ * @param bffr: The buffer to get the max capacity of.
+ *
+ * @return PRP_INVALID_SIZE if the buffer is invalid, otherwise the actual
+ * max capacity of the buffer.
+ */
+PRP_FN_API DT_size PRP_FN_CALL DT_BffrMaxCap(const DT_Bffr *bffr);
 
 /**
  * Gets the pointer to the element of the given index of the buffer.
