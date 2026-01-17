@@ -10,14 +10,15 @@ struct _Pool {
 };
 
 #define DEFAULT_POOL_CAP (16)
-#define MAX_ALLOCABLE_SIZE (DT_SIZE_MAX - sizeof(DT_Pool))
+#define MAX_ALLOCABLE_SIZE (DT_SIZE_MAX - sizeof(MEM_Pool))
 // Define it with max size so no extra checks for that.
 #define MAX_CAP(memb_size) (MAX_ALLOCABLE_SIZE / memb_size)
 
-PRP_FN_API DT_Pool *PRP_FN_CALL DT_PoolCreate(DT_size memb_size, DT_size cap) {
+PRP_FN_API MEM_Pool *PRP_FN_CALL MEM_PoolCreate(DT_size memb_size,
+                                                DT_size cap) {
     if (!memb_size) {
         PRP_LOG_FN_CODE(PRP_FN_INV_ARG_ERROR,
-                        "DT_Pool can't be made with memb_size=0.");
+                        "MEM_Pool can't be made with memb_size=0.");
         return DT_null;
     }
     if (!cap) {
@@ -25,13 +26,13 @@ PRP_FN_API DT_Pool *PRP_FN_CALL DT_PoolCreate(DT_size memb_size, DT_size cap) {
     }
     if (cap > MAX_CAP(memb_size)) {
         PRP_LOG_FN_CODE(PRP_FN_RES_EXHAUSTED_ERROR,
-                        "DT_Pool create capcity too big to accomodate. Max "
+                        "MEM_Pool create capcity too big to accomodate. Max "
                         "capacity of pool with memb_size=%zu is %zu",
                         memb_size, MAX_CAP(memb_size));
         return DT_null;
     }
 
-    DT_Pool *pool = malloc(sizeof(DT_Pool) + (memb_size * cap));
+    MEM_Pool *pool = malloc(sizeof(MEM_Pool) + (memb_size * cap));
     if (!pool) {
         PRP_LOG_FN_MALLOC_ERROR(pool);
         return DT_null;
@@ -52,9 +53,9 @@ PRP_FN_API DT_Pool *PRP_FN_CALL DT_PoolCreate(DT_size memb_size, DT_size cap) {
     return pool;
 }
 
-PRP_FN_API PRP_FnCode PRP_FN_CALL DT_PoolDelete(DT_Pool **pPool) {
+PRP_FN_API PRP_FnCode PRP_FN_CALL MEM_PoolDelete(MEM_Pool **pPool) {
     PRP_NULL_ARG_CHECK(pPool, PRP_FN_INV_ARG_ERROR);
-    DT_Pool *pool = *pPool;
+    MEM_Pool *pool = *pPool;
     PRP_NULL_ARG_CHECK(pool, PRP_FN_INV_ARG_ERROR);
 
     pool->memb_size = pool->cap = 0;
@@ -65,7 +66,7 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_PoolDelete(DT_Pool **pPool) {
     return PRP_FN_SUCCESS;
 }
 
-PRP_FN_API DT_void *PRP_FN_CALL DT_PoolAlloc(DT_Pool *pool) {
+PRP_FN_API DT_void *PRP_FN_CALL MEM_PoolAlloc(MEM_Pool *pool) {
     PRP_NULL_ARG_CHECK(pool, DT_null);
 
     if (!pool->free_list) {
@@ -80,7 +81,7 @@ PRP_FN_API DT_void *PRP_FN_CALL DT_PoolAlloc(DT_Pool *pool) {
     return ptr;
 }
 
-PRP_FN_API DT_void *PRP_FN_CALL DT_PoolCalloc(DT_Pool *pool) {
+PRP_FN_API DT_void *PRP_FN_CALL MEM_PoolCalloc(MEM_Pool *pool) {
     PRP_NULL_ARG_CHECK(pool, DT_null);
 
     if (!pool->free_list) {
@@ -96,7 +97,7 @@ PRP_FN_API DT_void *PRP_FN_CALL DT_PoolCalloc(DT_Pool *pool) {
     return ptr;
 }
 
-PRP_FN_API PRP_FnCode PRP_FN_CALL DT_PoolFree(DT_Pool *pool, DT_void *ptr) {
+PRP_FN_API PRP_FnCode PRP_FN_CALL MEM_PoolFree(MEM_Pool *pool, DT_void *ptr) {
     PRP_NULL_ARG_CHECK(pool, PRP_FN_INV_ARG_ERROR);
     PRP_NULL_ARG_CHECK(ptr, PRP_FN_INV_ARG_ERROR);
 
@@ -121,25 +122,25 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_PoolFree(DT_Pool *pool, DT_void *ptr) {
     return PRP_FN_SUCCESS;
 }
 
-PRP_FN_API DT_size PRP_FN_CALL DT_PoolCap(const DT_Pool *pool) {
+PRP_FN_API DT_size PRP_FN_CALL MEM_PoolCap(const MEM_Pool *pool) {
     PRP_NULL_ARG_CHECK(pool, PRP_INVALID_SIZE);
 
     return pool->cap;
 }
 
-PRP_FN_API DT_size PRP_FN_CALL DT_PoolMembSize(const DT_Pool *pool) {
+PRP_FN_API DT_size PRP_FN_CALL MEM_PoolMembSize(const MEM_Pool *pool) {
     PRP_NULL_ARG_CHECK(pool, PRP_INVALID_SIZE);
 
     return pool->memb_size;
 }
 
-PRP_FN_API DT_size PRP_FN_CALL DT_PoolMaxCap(const DT_Pool *pool) {
+PRP_FN_API DT_size PRP_FN_CALL MEM_PoolMaxCap(const MEM_Pool *pool) {
     PRP_NULL_ARG_CHECK(pool, PRP_INVALID_SIZE);
 
     return MAX_CAP(pool->memb_size);
 }
 
-PRP_FN_API PRP_FnCode PRP_FN_CALL DT_PoolReset(DT_Pool *pool) {
+PRP_FN_API PRP_FnCode PRP_FN_CALL MEM_PoolReset(MEM_Pool *pool) {
     PRP_NULL_ARG_CHECK(pool, PRP_FN_INV_ARG_ERROR);
 
     pool->free_list = DT_null;

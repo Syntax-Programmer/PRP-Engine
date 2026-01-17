@@ -8,26 +8,26 @@ struct _Arena {
     DT_u8 mem[];
 };
 
-#define MAX_ALLOCABLE_SIZE (DT_SIZE_MAX - sizeof(DT_Arena))
+#define MAX_ALLOCABLE_SIZE (DT_SIZE_MAX - sizeof(MEM_Arena))
 
-PRP_FN_API DT_size PRP_FN_CALL DT_ArenaMaxSize(DT_void) {
+PRP_FN_API DT_size PRP_FN_CALL MEM_ArenaMaxSize(DT_void) {
     return MAX_ALLOCABLE_SIZE;
 }
 
-PRP_FN_API DT_Arena *PRP_FN_CALL DT_ArenaCreate(DT_size size) {
+PRP_FN_API MEM_Arena *PRP_FN_CALL MEM_ArenaCreate(DT_size size) {
     if (!size) {
         PRP_LOG_FN_CODE(PRP_FN_INV_ARG_ERROR,
-                        "DT_Arena can't be made with size=0.");
+                        "MEM_Arena can't be made with size=0.");
         return DT_null;
     }
     if (size > MAX_ALLOCABLE_SIZE) {
         PRP_LOG_FN_CODE(PRP_FN_RES_EXHAUSTED_ERROR,
-                        "DT_Arena can only with the max size of: %zu bytes",
+                        "MEM_Arena can only with the max size of: %zu bytes",
                         MAX_ALLOCABLE_SIZE);
         return DT_null;
     }
 
-    DT_Arena *arena = malloc(sizeof(DT_Arena) + size);
+    MEM_Arena *arena = malloc(sizeof(MEM_Arena) + size);
     if (!arena) {
         PRP_LOG_FN_MALLOC_ERROR(arena);
         return DT_null;
@@ -38,9 +38,9 @@ PRP_FN_API DT_Arena *PRP_FN_CALL DT_ArenaCreate(DT_size size) {
     return arena;
 }
 
-PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArenaDelete(DT_Arena **pArena) {
+PRP_FN_API PRP_FnCode PRP_FN_CALL MEM_ArenaDelete(MEM_Arena **pArena) {
     PRP_NULL_ARG_CHECK(pArena, PRP_FN_INV_ARG_ERROR);
-    DT_Arena *arena = *pArena;
+    MEM_Arena *arena = *pArena;
     PRP_NULL_ARG_CHECK(arena, PRP_FN_INV_ARG_ERROR);
 
     arena->size = arena->ofs = 0;
@@ -50,7 +50,7 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArenaDelete(DT_Arena **pArena) {
     return PRP_FN_SUCCESS;
 }
 
-PRP_FN_API DT_void *PRP_FN_CALL DT_ArenaAlloc(DT_Arena *arena, DT_size size) {
+PRP_FN_API DT_void *PRP_FN_CALL MEM_ArenaAlloc(MEM_Arena *arena, DT_size size) {
     PRP_NULL_ARG_CHECK(arena, DT_null);
     if (!size) {
         PRP_LOG_FN_INV_ARG_ERROR(size);
@@ -71,7 +71,8 @@ PRP_FN_API DT_void *PRP_FN_CALL DT_ArenaAlloc(DT_Arena *arena, DT_size size) {
     return ptr;
 }
 
-PRP_FN_API DT_void *PRP_FN_CALL DT_ArenaCalloc(DT_Arena *arena, DT_size size) {
+PRP_FN_API DT_void *PRP_FN_CALL MEM_ArenaCalloc(MEM_Arena *arena,
+                                                DT_size size) {
     PRP_NULL_ARG_CHECK(arena, DT_null);
     if (!size) {
         PRP_LOG_FN_INV_ARG_ERROR(size);
@@ -93,7 +94,7 @@ PRP_FN_API DT_void *PRP_FN_CALL DT_ArenaCalloc(DT_Arena *arena, DT_size size) {
     return ptr;
 }
 
-PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArenaReset(DT_Arena *arena) {
+PRP_FN_API PRP_FnCode PRP_FN_CALL MEM_ArenaReset(MEM_Arena *arena) {
     PRP_NULL_ARG_CHECK(arena, PRP_FN_INV_ARG_ERROR);
 
     arena->ofs = 0;
