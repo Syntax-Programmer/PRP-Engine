@@ -5,7 +5,6 @@ extern "C" {
 #endif
 
 #include <stddef.h>
-#include <stdint.h>
 #include <stdlib.h>
 
 #define PRP_INVALID_SIZE ((DT_size)(-1))
@@ -100,6 +99,23 @@ typedef enum {
     PRP_FN_FILE_IO_ERROR,
     PRP_FN_INT_OVERFLOW_ERROR,
 } PRP_FnCode;
+
+typedef enum {
+    PRP_OK = 0,
+    PRP_ERR_INV_ARG,
+    PRP_ERR_INV_STATE,
+    PRP_ERR_UNSUPPORTED,
+    PRP_ERR_OOM,
+    PRP_ERR_RES_EXHAUSTED,
+    PRP_ERR_NOT_FOUND,
+    PRP_ERR_ALREADY_EXISTS,
+    PRP_ERR_IO,
+    PRP_ERR_PARSE,
+    PRP_ERR_CORRUPTED,
+    PRP_ERR_BUSY,
+    PRP_ERR_TIMEOUT,
+    PRP_ERR_INTERNAL,
+} PRP_Result;
 
 #ifdef __cplusplus
 }

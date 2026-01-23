@@ -38,8 +38,7 @@ PRP_FN_API MEM_Pool *PRP_FN_CALL MEM_PoolCreate(DT_size memb_size,
         return DT_null;
     }
     // Padding the memb_size to ensure the freelist can work.
-    pool->memb_size =
-        (memb_size >= sizeof(DT_void *)) ? memb_size : sizeof(DT_void *);
+    pool->memb_size = PRP_MAX(memb_size, sizeof(DT_void *));
     pool->cap = cap;
     pool->free_list = DT_null;
     DT_u8 *curr = pool->mem;

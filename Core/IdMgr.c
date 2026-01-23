@@ -32,7 +32,6 @@ struct _IdMgr {
      * Bit 32-63: A 32 bit gen value of the id_layer's slot.
      */
     DT_Bffr *id_layer;
-    DT_Bffr *id_gen;
     /*
      * An on bit in this bitmap corresponds to a free slot in the id_layer array
      * that can be used to dispatch the id.
@@ -150,7 +149,7 @@ PRP_FN_API CORE_IdMgr *PRP_FN_CALL CORE_IdMgrCreate(
     id_mgr->data_del_cb = data_del_cb;
     DT_size max_data_cap = DT_ArrMaxCap(id_mgr->data);
     // Hard constraint of 32 bit max due to packing of data.
-    id_mgr->max_cap = (max_data_cap > (DT_u32)~0) ? (DT_u32)~0 : max_data_cap;
+    id_mgr->max_cap = PRP_MIN(max_data_cap, (DT_u32)~0);
 
     // These can't fail.
     DT_u64 x = NEW_ID_LAYER_VAL;
