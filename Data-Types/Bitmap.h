@@ -104,10 +104,10 @@ PRP_FN_API DT_Bitmap *PRP_FN_CALL DT_BitmapClone(DT_Bitmap *bmp);
  *
  * @param pBmp: The pointer to the bitmap pointer to delete.
  *
- * @return PRP_FN_INV_ARG_ERROR if pBmp is DT_null or the bitmap it points to
- * is invalid, otherwise it returns PRP_FN_SUCCESS.
+ * @return PRP_ERR_INV_ARG if the pBmp or *pBmp is DT_null, otherwise it
+ * returns PRP_OK.
  */
-PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BitmapDelete(DT_Bitmap **pBmp);
+PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapDelete(DT_Bitmap **pBmp);
 
 /**
  * Returns the raw memory pointer of the bitmap to the user.
@@ -169,33 +169,30 @@ PRP_FN_API DT_size PRP_FN_CALL DT_BitmapMaxBitCap(DT_void);
  * @param bmp: The bitmap to operate on.
  * @param i: The index to set.
  *
- * @return PRP_FN_INV_ARG_ERROR if the parameters are invalid in any way,
- * PRP_FN_OOB_ERROR i is bigger or equal to btimap's bit cap, otherwise
- * PRP_FN_SUCCESS.
+ * @return PRP_ERR_INV_ARG if the parameters are invalid in any way,
+ * PRP_ERR_OOB i is bigger or equal to btimap's bit cap, otherwise PRP_OK.
  */
-PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BitmapSet(DT_Bitmap *bmp, DT_size i);
+PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapSet(DT_Bitmap *bmp, DT_size i);
 /**
  * Clears the given index bit in the bitmap.
  *
  * @param bmp: The bitmap to operate on.
  * @param i: The index to set.
  *
- * @return PRP_FN_INV_ARG_ERROR if the parameters are invalid in any way,
- * PRP_FN_OOB_ERROR i is bigger or equal to btimap's bit cap, otherwise
- * PRP_FN_SUCCESS.
+ * @return PRP_ERR_INV_ARG if the parameters are invalid in any way,
+ * PRP_ERR_OOB i is bigger or equal to btimap's bit cap, otherwise PRP_OK.
  */
-PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BitmapClr(DT_Bitmap *bmp, DT_size i);
+PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapClr(DT_Bitmap *bmp, DT_size i);
 /**
  * Toggles the given index bit in the bitmap.
  *
  * @param bmp: The bitmap to operate on.
  * @param i: The index to set.
  *
- * @return PRP_FN_INV_ARG_ERROR if the parameters are invalid in any way,
- * PRP_FN_OOB_ERROR i is bigger or equal to btimap's bit cap, otherwise
- * PRP_FN_SUCCESS.
+ * @return PRP_ERR_INV_ARG if the parameters are invalid in any way,
+ * PRP_ERR_OOB i is bigger or equal to btimap's bit cap, otherwise PRP_OK.
  */
-PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BitmapToggle(DT_Bitmap *bmp, DT_size i);
+PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapToggle(DT_Bitmap *bmp, DT_size i);
 /**
  * Checks the given index bit in the bitmap is set.
  *
@@ -203,11 +200,10 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BitmapToggle(DT_Bitmap *bmp, DT_size i);
  * @param i: The index to check for.
  * @param pRslt: The pointer that will store the boolean result of IsSet.
  *
- * @return PRP_FN_INV_ARG_ERROR if the parameters are invalid in any way,
- * PRP_FN_OOB_ERROR i is bigger or equal to btimap's bit cap, otherwise
- * PRP_FN_SUCCESS.
+ * @return PRP_ERR_INV_ARG if the parameters are invalid in any way,
+ * PRP_ERR_OOB i is bigger or equal to btimap's bit cap, otherwise PRP_OK.
  */
-PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BitmapIsSet(const DT_Bitmap *bmp,
+PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapIsSet(const DT_Bitmap *bmp,
                                                  DT_size i, DT_bool *pRslt);
 
 /**
@@ -217,11 +213,10 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BitmapIsSet(const DT_Bitmap *bmp,
  * @param i: The index to start from.
  * @param j: The index to end at.
  *
- * @return PRP_FN_INV_ARG_ERROR if the parameters are invalid in any way,
- * PRP_FN_OOB_ERROR i or j are bigger or equal to btimap's bit cap, otherwise
- * PRP_FN_SUCCESS.
+ * @return PRP_ERR_INV_ARG if the parameters are invalid in any way,
+ * PRP_ERR_OOB i or j are bigger or equal to btimap's bit cap, otherwise PRP_OK.
  */
-PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BitmapSetRange(DT_Bitmap *bmp, DT_size i,
+PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapSetRange(DT_Bitmap *bmp, DT_size i,
                                                     DT_size j);
 /**
  * Clears the given range of bits in the bitmap. From i to j excluding j.
@@ -230,11 +225,10 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BitmapSetRange(DT_Bitmap *bmp, DT_size i,
  * @param i: The index to start from.
  * @param j: The index to end at.
  *
- * @return PRP_FN_INV_ARG_ERROR if the parameters are invalid in any way,
- * PRP_FN_OOB_ERROR i or j are bigger or equal to btimap's bit cap, otherwise
- * PRP_FN_SUCCESS.
+ * @return PRP_ERR_INV_ARG if the parameters are invalid in any way,
+ * PRP_ERR_OOB i or j are bigger or equal to btimap's bit cap, otherwise PRP_OK.
  */
-PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BitmapClrRange(DT_Bitmap *bmp, DT_size i,
+PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapClrRange(DT_Bitmap *bmp, DT_size i,
                                                     DT_size j);
 /**
  * Toggles the given range of bits in the bitmap. From i to j excluding j.
@@ -243,11 +237,10 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BitmapClrRange(DT_Bitmap *bmp, DT_size i,
  * @param i: The index to start from.
  * @param j: The index to end at.
  *
- * @return PRP_FN_INV_ARG_ERROR if the parameters are invalid in any way,
- * PRP_FN_OOB_ERROR i or j are bigger or equal to btimap's bit cap, otherwise
- * PRP_FN_SUCCESS.
+ * @return PRP_ERR_INV_ARG if the parameters are invalid in any way,
+ * PRP_ERR_OOB i or j are bigger or equal to btimap's bit cap, otherwise PRP_OK.
  */
-PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BitmapToggleRange(DT_Bitmap *bmp,
+PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapToggleRange(DT_Bitmap *bmp,
                                                        DT_size i, DT_size j);
 /**
  * Checks if in the given range of indices in the bitmap any bit is set.
@@ -258,11 +251,10 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BitmapToggleRange(DT_Bitmap *bmp,
  * @param pRslt: The pointer that will store the boolean result of the
  * operation.
  *
- * @return PRP_FN_INV_ARG_ERROR if the parameters are invalid in any way,
- * PRP_FN_OOB_ERROR i or j are bigger or equal to btimap's bit cap, otherwise
- * PRP_FN_SUCCESS.
+ * @return PRP_ERR_INV_ARG if the parameters are invalid in any way,
+ * PRP_ERR_OOB i or j are bigger or equal to btimap's bit cap, otherwise PRP_OK.
  */
-PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BitmapIsSetRangeAny(const DT_Bitmap *bmp,
+PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapIsSetRangeAny(const DT_Bitmap *bmp,
                                                          DT_size i, DT_size j,
                                                          DT_bool *pRslt);
 /**
@@ -274,11 +266,10 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BitmapIsSetRangeAny(const DT_Bitmap *bmp,
  * @param pRslt: The pointer that will store the boolean result of the
  * operation.
  *
- * @return PRP_FN_INV_ARG_ERROR if the parameters are invalid in any way,
- * PRP_FN_OOB_ERROR i or j are bigger or equal to btimap's bit cap, otherwise
- * PRP_FN_SUCCESS.
+ * @return PRP_ERR_INV_ARG if the parameters are invalid in any way,
+ * PRP_ERR_OOB i or j are bigger or equal to btimap's bit cap, otherwise PRP_OK.
  */
-PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BitmapIsSetRangeAll(const DT_Bitmap *bmp,
+PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapIsSetRangeAll(const DT_Bitmap *bmp,
                                                          DT_size i, DT_size j,
                                                          DT_bool *pRslt);
 
@@ -288,10 +279,10 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BitmapIsSetRangeAll(const DT_Bitmap *bmp,
  * @param bmp: The bitmap to check for.
  * @param pRslt: The pointer that will store the boolean result of IsEmpty.
  *
- * @return PRP_FN_INV_ARG_ERROR if the bitmap is invalid, otherwise
- * PRP_FN_SUCCESS.
+ * @return PRP_ERR_INV_ARG if the parameters are invalid in any way,
+ * otherwise PRP_OK.
  */
-PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BitmapIsEmpty(const DT_Bitmap *bmp,
+PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapIsEmpty(const DT_Bitmap *bmp,
                                                    DT_bool *pRslt);
 /**
  * Checks the given bitmap is full.
@@ -299,10 +290,10 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BitmapIsEmpty(const DT_Bitmap *bmp,
  * @param bmp: The bitmap to check for.
  * @param pRslt: The pointer that will store the boolean result of IsFull.
  *
- * @return PRP_FN_INV_ARG_ERROR if the bitmap is invalid, otherwise
- * PRP_FN_SUCCESS.
+ * @return PRP_ERR_INV_ARG if the parameters are invalid in any way,
+ * otherwise PRP_OK.
  */
-PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BitmapIsFull(const DT_Bitmap *bmp,
+PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapIsFull(const DT_Bitmap *bmp,
                                                   DT_bool *pRslt);
 /**
  * Finds if the first bitmap is a subset of the second bitmap.
@@ -311,10 +302,10 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BitmapIsFull(const DT_Bitmap *bmp,
  * @param bmp2: The second bitmap.
  * @param pRslt: The pointer that will store the boolean result of IsSubset.
  *
- * @return PRP_FN_INV_ARG_ERROR if the parameters are invalid in any way,
- * otherwise PRP_FN_SUCCESS.
+ * @return PRP_ERR_INV_ARG if the parameters are invalid in any way,
+ * otherwise PRP_OK.
  */
-PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BitmapIsSubset(const DT_Bitmap *bmp1,
+PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapIsSubset(const DT_Bitmap *bmp1,
                                                     const DT_Bitmap *bmp2,
                                                     DT_bool *pRslt);
 
@@ -323,20 +314,19 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BitmapIsSubset(const DT_Bitmap *bmp1,
  *
  * @param bmp; The bitmap to operate on.
  *
- * @return PRP_FN_INV_ARG_ERROR if the bitmap is invalid, otherwise
- * PRP_FN_SUCCESS.
+ * @return PRP_ERR_INV_ARG if the bitmap is invalid, otherwise PRP_OK.
  */
-PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BitmapNot(DT_Bitmap *bmp);
+PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapNot(DT_Bitmap *bmp);
 /**
  * ANDs b/w bitmap1 and bitmap2 and stores the result in bmp1.
  *
  * @param bmp1: The bitmap1 of the anding, and will store the result also.
  * @param bmp2: The bitmap2 of the anding.
  *
- * @return PRP_FN_INV_ARG_ERROR if any of the two bitmaps is invalid, otherwise
- * PRP_FN_SUCCESS.
+ * @return PRP_ERR_INV_ARG if any of the two bitmaps is invalid, otherwise
+ * PRP_OK.
  */
-PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BitmapAnd(DT_Bitmap *bmp1,
+PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapAnd(DT_Bitmap *bmp1,
                                                const DT_Bitmap *bmp2);
 /**
  * ORs b/w bitmap1 and bitmap2 and stores the result in bmp1.
@@ -344,10 +334,10 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BitmapAnd(DT_Bitmap *bmp1,
  * @param bmp1: The bitmap1 of the oring, and will store the result also.
  * @param bmp2: The bitmap2 of the oring.
  *
- * @return PRP_FN_INV_ARG_ERROR if any of the two bitmaps is invalid, otherwise
- * PRP_FN_SUCCESS.
+ * @return PRP_ERR_INV_ARG if any of the two bitmaps is invalid, otherwise
+ * PRP_OK.
  */
-PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BitmapOr(DT_Bitmap *bmp1,
+PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapOr(DT_Bitmap *bmp1,
                                               const DT_Bitmap *bmp2);
 
 /**
@@ -357,10 +347,10 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BitmapOr(DT_Bitmap *bmp1,
  * @param bmp2: The bitmap against which bmp1 will be checked.
  * @param pRslt: The pointer that will store the boolean result of HasAll.
  *
- * @return PRP_FN_INV_ARG_ERROR if the parameters are invalid in any way,
- * otherwise PRP_FN_SUCCESS.
+ * @return PRP_ERR_INV_ARG if the parameters are invalid in any way, otherwise
+ * PRP_OK.
  */
-PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BitmapHasAll(const DT_Bitmap *bmp1,
+PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapHasAll(const DT_Bitmap *bmp1,
                                                   const DT_Bitmap *bmp2,
                                                   DT_bool *pRslt);
 /**
@@ -370,10 +360,10 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BitmapHasAll(const DT_Bitmap *bmp1,
  * @param bmp2: The bitmap against which bmp1 will be checked.
  * @param pRslt: The pointer that will store the boolean result of HasAny.
  *
- * @return PRP_FN_INV_ARG_ERROR if the parameters are invalid in any way,
- * otherwise PRP_FN_SUCCESS.
+ * @return PRP_ERR_INV_ARG if the parameters are invalid in any way, otherwise
+ * PRP_OK.
  */
-PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BitmapHasAny(const DT_Bitmap *bmp1,
+PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapHasAny(const DT_Bitmap *bmp1,
                                                   const DT_Bitmap *bmp2,
                                                   DT_bool *pRslt);
 
@@ -384,10 +374,10 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BitmapHasAny(const DT_Bitmap *bmp1,
  * @param bmp2: Second bitmap.
  * @param pRslt: The pointer that will store the boolean result of Cmp.
  *
- * @return PRP_FN_INV_ARG_ERROR if the parameters are invalid in any way,
- * otherwise PRP_FN_SUCCESS.
+ * @return PRP_ERR_INV_ARG if the parameters are invalid in any way, otherwise
+ * PRP_OK.
  */
-PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BitmapCmp(const DT_Bitmap *bmp1,
+PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapCmp(const DT_Bitmap *bmp1,
                                                const DT_Bitmap *bmp2,
                                                DT_bool *pRslt);
 /**
@@ -395,29 +385,30 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BitmapCmp(const DT_Bitmap *bmp1,
  *
  * @param bmp: The bitmap to reset.
  *
- * @return PRP_FN_INV_ARG_ERROR if the bitmap is invalid, otherwise
- * PRP_FN_SUCCESS.
+ * @return PRP_ERR_INV_ARG if the bitmap is invalid, otherwise PRP_OK.
  */
-PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BitmapReset(DT_Bitmap *bmp);
+PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapReset(DT_Bitmap *bmp);
 /**
  * Shrinks the bitmap to its MSB word.
  *
  * @param bmp: The bitmap to shrink fit.
  *
- * @return PRP_FN_INV_ARG_ERROR if the bitmap is invalid, PRP_FN_MALLOC_ERROR if
- * realloc failed on bitmap, otherwise PRP_FN_SUCCESS.
+ * @return PRP_ERR_INV_ARF if the bitmap is invalid,
+ * PRP_ERR_RES_EXHAUSTED/PRP_ERR_OOM if we can't accomodate the shrinking,
+ * otherwise PRP_OK.
  */
-PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BitmapShrinkFit(DT_Bitmap *bmp);
+PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapShrinkFit(DT_Bitmap *bmp);
 /**
  * Changes the bit cap of the given bitmap to the provided new cap safely.
  *
  * @param bitmap: The bitmap to change the cap of.
  * @param new_bit_cap: The new bit cap of the bitmap to change to.
  *
- * @return PRP_FN_INV_ARG_ERROR if the parameters are invalid in any way
- * PRP_FN_MALLOC_ERROR if the reallocation fails, otherwise PRP_FN_SUCCESS;
+ * @return PRP_ERR_INV_ARG if the parameters are invalid in any way, PRP_ERR_OOM
+ * if the reallocation fails, PRP_ERR_RES_EXHAUSTED if bffr cap reaches a max,
+ * otherwise PRP_OK.
  */
-PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BitmapChangeSize(DT_Bitmap *bmp,
+PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapChangeSize(DT_Bitmap *bmp,
                                                       DT_size new_bit_cap);
 
 #ifdef __cplusplus

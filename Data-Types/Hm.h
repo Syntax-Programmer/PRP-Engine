@@ -43,10 +43,10 @@ PRP_FN_API DT_Hm *PRP_FN_CALL
  *
  * @param pHm: The pointer to the hashmap pointer to delete.
  *
- * @return PRP_FN_INV_ARG_ERROR if the pHm is DT_null or the hashmap it points
- * to is invalid, otherwise it returns PRP_FN_SUCCESS.
+ * @return PRP_ERR_INV_ARG if the pArr or *pArr is DT_null, otherwise it
+ * returns PRP_OK.
  */
-PRP_FN_API PRP_FnCode PRP_FN_CALL DT_HmDelete(DT_Hm **pHm);
+PRP_FN_API PRP_Result PRP_FN_CALL DT_HmDelete(DT_Hm **pHm);
 /**
  * Adds a new key-value pair to the given hashmap. Given the key cannot be
  * DT_null.
@@ -55,11 +55,11 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_HmDelete(DT_Hm **pHm);
  * @param key: The key of the entry used to access the value.
  * @param val: The value the key maps to.
  *
- * @return PRP_FN_INV_ARG_ERROR if the parameters are invalid in any way,
- * PRP_FN_RES_EXHAUSTED_ERROR if there is no way to add more key-val pairs to
- * the hashmap, otherwise PRP_FN_SUCCESS.
+ * @return PRP_ERR_INV_ARG if the parameters are invalid in any way,
+ * PRP_ERR_RES_EXHAUSTED/PRP_ERR_OOM if there is no way to add more key-val
+ * pairs to the hashmap, otherwise PRP_OK.
  */
-PRP_FN_API PRP_FnCode PRP_FN_CALL DT_HmAdd(DT_Hm *hm, DT_void *key,
+PRP_FN_API PRP_Result PRP_FN_CALL DT_HmAdd(DT_Hm *hm, DT_void *key,
                                            DT_void *val);
 /**
  * Fetches the value for the given key in the hashmap.
@@ -78,11 +78,11 @@ PRP_FN_API DT_void *PRP_FN_CALL DT_HmGet(DT_Hm *hm, DT_void *key);
  * @param hm: The hashmap to delete the key-val pair from.
  * @param key: The key identifying which key-val pair to delete.
  *
- * @return PRP_FN_INV_ARG_ERROR if the parameters are invalid in any way,
- * PRP_FN_OOB_ERROR if there is no matching key-val pair in the hashmap with the
- * provided key, otherwise PRP_FN_SUCCESS.
+ * @return PRP_ERR_INV_ARG if the parameters are invalid in any way, PRP_ERR_OOB
+ * if there is no matching key-val pair in the hashmap with the provided key,
+ * otherwise PRP_OK.
  */
-PRP_FN_API PRP_FnCode PRP_FN_CALL DT_HmDelElem(DT_Hm *hm, DT_void *key);
+PRP_FN_API PRP_Result PRP_FN_CALL DT_HmDelElem(DT_Hm *hm, DT_void *key);
 /**
  * Fetches the number of key-val pairs the hashmap is currently holding.
  *
@@ -104,24 +104,24 @@ PRP_FN_API DT_size PRP_FN_CALL DT_HmMaxCap(DT_void);
  *
  * @param hm: The hashmap on which the foreach will happen.
  * @param cb: The callback will be called per key-val pair. If this doesn't
- * return PRP_FN_SUCCESS, further execution will be halted.
+ * return PRP_OK, further execution will be halted.
  * @param user_data: The data user wants to pass in as additional context.
  *
- * @return PRP_FN_INV_ARG_ERROR if the parameters are invalid in any way,
- * otherwise PRP_FN_SUCCESS, or the callback error code.
+ * @return PRP_ERR_INV_ARG if the parameters are invalid in any way, otherwise
+ * PRP_OK, or the callback error code.
  */
-PRP_FN_API PRP_FnCode PRP_FN_CALL DT_HmForEach(
-    DT_Hm *hm, PRP_FnCode (*cb)(DT_void *key, DT_void *val, DT_void *user_data),
+PRP_FN_API PRP_Result PRP_FN_CALL DT_HmForEach(
+    DT_Hm *hm, PRP_Result (*cb)(DT_void *key, DT_void *val, DT_void *user_data),
     DT_void *user_data);
 /**
  * Resets the hashmap to make it like a brand new hashmap with no entries.
  *
  * @param hm: The hashmap to reset.
  *
- * @return PRP_FN_INV_ARG_ERROR if the hashmap is invalid in some way, otherwise
- * PRP_FN_SUCCESS.
+ * @return PRP_ERR_INV_ARG if the hashmap is invalid in some way, otherwise
+ * PRP_OK.
  */
-PRP_FN_API PRP_FnCode PRP_FN_CALL DT_HmReset(DT_Hm *hm);
+PRP_FN_API PRP_Result PRP_FN_CALL DT_HmReset(DT_Hm *hm);
 
 #ifdef __cplusplus
 }

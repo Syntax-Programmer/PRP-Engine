@@ -117,7 +117,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrSetRange(DT_Bffr *bffr, DT_size i,
                                                   const DT_void *pData) {
     DIAG_GUARD(bffr != DT_null, PRP_ERR_INV_ARG);
     DIAG_GUARD(pData != DT_null, PRP_ERR_INV_ARG);
-    DIAG_GUARD(i < bffr->cap || j < bffr->cap, PRP_ERR_OOB);
+    DIAG_GUARD(i < bffr->cap || j <= bffr->cap, PRP_ERR_OOB);
     DIAG_GUARD(i < j, PRP_ERR_INV_ARG);
 
     DT_u8 *ptr = bffr->mem + (i * bffr->memb_size);
@@ -134,7 +134,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrSetMany(DT_Bffr *bffr, DT_size i,
                                                  DT_size len) {
     DIAG_GUARD(bffr != DT_null, PRP_ERR_INV_ARG);
     DIAG_GUARD(data_arr != DT_null, PRP_ERR_INV_ARG);
-    DIAG_GUARD(i < bffr->cap && bffr->cap - i > len, PRP_ERR_OOB);
+    DIAG_GUARD(i < bffr->cap && bffr->cap - i >= len, PRP_ERR_OOB);
 
     memcpy(bffr->mem + (i * bffr->memb_size), data_arr, bffr->memb_size * len);
 
@@ -171,15 +171,13 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrExtend(DT_Bffr *bffr1,
     if (bffr1->cap > MAX_CAP(bffr1->memb_size) - bffr2->cap) {
         return PRP_ERR_RES_EXHAUSTED;
     }
-    DT_size new_cap = bffr1->cap + bffr2->cap;
-    DT_u8 *mem = realloc(bffr1->mem, new_cap * bffr1->memb_size);
-    if (!mem) {
-        return PRP_ERR_OOM;
+    DT_size new_cap = bffr1->cap + bffr2->cap, old_cap = bffr1->cap;
+    PRP_Result code = DT_BffrChangeSize(bffr1, new_cap);
+    if (code != PRP_OK) {
+        return code;
     }
-    memcpy(mem + (bffr1->cap * bffr1->memb_size), bffr2->mem,
+    memcpy(bffr1->mem + (old_cap * bffr1->memb_size), bffr2->mem,
            bffr2->cap * bffr2->memb_size);
-    bffr1->mem = mem;
-    bffr1->cap += bffr2->cap;
 
     return PRP_OK;
 }

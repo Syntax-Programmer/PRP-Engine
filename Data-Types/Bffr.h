@@ -198,8 +198,9 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrClear(DT_Bffr *bffr);
  * @param bffr: The buffer to change the cap of.
  * @param new_cap: The new cap of the buffer to change to.
  *
- * @return PRP_ERR_OOM if the reallocation fails, PRP_ERR_RES_EXHAUSTED if arr
- * cap reaches a max, otherwise PRP_OK.
+ * @return PRP_ERR_INV_ARG if the parameters are invalid in any way, PRP_ERR_OOM
+ * if the reallocation fails, PRP_ERR_RES_EXHAUSTED if bffr cap reaches a max,
+ * otherwise PRP_OK.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrChangeSize(DT_Bffr *bffr,
                                                     DT_size new_cap);
