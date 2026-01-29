@@ -36,10 +36,10 @@ PRP_FN_API MEM_Arena *PRP_FN_CALL MEM_ArenaCreate(DT_size size);
  *
  * @param pArena: The pointer to the arena pointer to delete.
  *
- * @return PRP_FN_INV_ARG_ERROR if the pArena is DT_null or the arena it points
- * to is invalid, otherwise it returns PRP_FN_SUCCESS.
+ * @return PRP_ERR_INV_ARG if the pArena or *pArena is DT_null, otherwise it
+ * returns PRP_OK.
  */
-PRP_FN_API PRP_FnCode PRP_FN_CALL MEM_ArenaDelete(MEM_Arena **pArena);
+PRP_FN_API PRP_Result PRP_FN_CALL MEM_ArenaDelete(MEM_Arena **pArena);
 /**
  * Allocates a section of memory from the arena, the allocated chunk may contain
  * junk data, so caution is adviced.
@@ -68,10 +68,9 @@ PRP_FN_API DT_void *PRP_FN_CALL MEM_ArenaCalloc(MEM_Arena *arena, DT_size size);
  *
  * @param arena: The arena to reset.
  *
- * @return PRP_FN_INV_ARG_ERROR if the arena is invalid, otherwise
- * PRP_FN_SUCCESS.
+ * @return PRP_ERR_INV_ARG if the arena is invalid, otherwise PRP_OK.
  */
-PRP_FN_API PRP_FnCode PRP_FN_CALL MEM_ArenaReset(MEM_Arena *arena);
+PRP_FN_API PRP_Result PRP_FN_CALL MEM_ArenaReset(MEM_Arena *arena);
 
 #ifdef __cplusplus
 }

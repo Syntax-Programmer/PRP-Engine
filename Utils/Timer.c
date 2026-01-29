@@ -1,7 +1,8 @@
+#include "Defs.h"
 #define _POSIX_C_SOURCE 200809L // Enable clock_gettime on POSIX systems
 
+#include "../Diagnostics/Assert.h"
 #include "Timer.h"
-#include "Logger.h"
 
 /* ----  TIME MEASUREMENT  ---- */
 
@@ -50,24 +51,25 @@ PRP_FN_API PRP_TimeMeasure PRP_FN_CALL PRP_TimerGetTime(PRP_TimeUnit unit) {
 
 /* ----  TIMER  ---- */
 
-PRP_FN_API PRP_FnCode PRP_FN_CALL PRP_TimerStart(PRP_Timer *timer) {
-    PRP_NULL_ARG_CHECK(timer, PRP_FN_INV_ARG_ERROR);
+PRP_FN_API PRP_Result PRP_FN_CALL PRP_TimerStart(PRP_Timer *timer) {
+    DIAG_GUARD(timer != DT_null, PRP_ERR_INV_ARG);
 
     timer->start = PRP_TimerGetTime(timer->unit);
 
-    return PRP_FN_SUCCESS;
+    return PRP_OK;
 }
 
 PRP_FN_API PRP_TimeMeasure PRP_FN_CALL
 PRP_TimerElapsed(const PRP_Timer *timer) {
-    PRP_NULL_ARG_CHECK(timer, PRP_INVALID_TIME_MEASURE);
+    DIAG_GUARD(timer != DT_null, PRP_INVALID_TIME_MEASURE);
 
     return PRP_TimerGetTime(timer->unit) - timer->start;
 }
 
-PRP_FN_API PRP_FnCode PRP_FN_CALL PRP_TimerChangeUnit(PRP_Timer *timer,
+PRP_FN_API PRP_Result PRP_FN_CALL PRP_TimerChangeUnit(PRP_Timer *timer,
                                                       PRP_TimeUnit unit) {
-    PRP_NULL_ARG_CHECK(timer, PRP_FN_INV_ARG_ERROR);
+    DIAG_GUARD(timer != DT_null, PRP_ERR_INV_ARG);
+
     if (unit < 0 || unit > PRP_TIME_S) {
         unit = PRP_TIME_NS; // fallback
     }
@@ -75,5 +77,5 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL PRP_TimerChangeUnit(PRP_Timer *timer,
     timer->unit = unit;
     timer->start = PRP_TimerGetTime(timer->unit);
 
-    return PRP_FN_SUCCESS;
+    return PRP_OK;
 }

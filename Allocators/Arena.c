@@ -1,5 +1,5 @@
 #include "Arena.h"
-#include "../Utils/Logger.h"
+#include "../Diagnostics/Assert.h"
 #include <string.h>
 
 struct _Arena {
@@ -15,21 +15,10 @@ PRP_FN_API DT_size PRP_FN_CALL MEM_ArenaMaxSize(DT_void) {
 }
 
 PRP_FN_API MEM_Arena *PRP_FN_CALL MEM_ArenaCreate(DT_size size) {
-    if (!size) {
-        PRP_LOG_FN_CODE(PRP_FN_INV_ARG_ERROR,
-                        "MEM_Arena can't be made with size=0.");
-        return DT_null;
-    }
-    if (size > MAX_ALLOCABLE_SIZE) {
-        PRP_LOG_FN_CODE(PRP_FN_RES_EXHAUSTED_ERROR,
-                        "MEM_Arena can only with the max size of: %zu bytes",
-                        MAX_ALLOCABLE_SIZE);
-        return DT_null;
-    }
+    DIAG_GUARD(size > 0 && size <= MAX_ALLOCABLE_SIZE, DT_null);
 
     MEM_Arena *arena = malloc(sizeof(MEM_Arena) + size);
     if (!arena) {
-        PRP_LOG_FN_MALLOC_ERROR(arena);
         return DT_null;
     }
     arena->size = size;
@@ -38,33 +27,25 @@ PRP_FN_API MEM_Arena *PRP_FN_CALL MEM_ArenaCreate(DT_size size) {
     return arena;
 }
 
-PRP_FN_API PRP_FnCode PRP_FN_CALL MEM_ArenaDelete(MEM_Arena **pArena) {
-    PRP_NULL_ARG_CHECK(pArena, PRP_FN_INV_ARG_ERROR);
-    MEM_Arena *arena = *pArena;
-    PRP_NULL_ARG_CHECK(arena, PRP_FN_INV_ARG_ERROR);
+PRP_FN_API PRP_Result PRP_FN_CALL MEM_ArenaDelete(MEM_Arena **pArena) {
+    DIAG_GUARD(pArena != DT_null, PRP_ERR_INV_ARG);
+    DIAG_GUARD(*pArena != DT_null, PRP_ERR_INV_ARG);
 
-    arena->size = arena->ofs = 0;
+    MEM_Arena *arena = *pArena;
     free(arena);
     *pArena = DT_null;
 
-    return PRP_FN_SUCCESS;
+    return PRP_OK;
 }
 
 PRP_FN_API DT_void *PRP_FN_CALL MEM_ArenaAlloc(MEM_Arena *arena, DT_size size) {
-    PRP_NULL_ARG_CHECK(arena, DT_null);
-    if (!size) {
-        PRP_LOG_FN_INV_ARG_ERROR(size);
+    DIAG_GUARD(arena != DT_null, DT_null);
+    DIAG_GUARD(size > 0, DT_null);
+
+    if (size > arena->size - arena->ofs) {
         return DT_null;
     }
 
-    if (size > arena->size - arena->ofs) {
-        PRP_LOG_FN_CODE(
-            PRP_FN_RES_EXHAUSTED_ERROR,
-            "Arena has %zu bytes memory left. Cannot allocate memory "
-            "of size: %zu bytes.",
-            arena->size - arena->ofs, size);
-        return DT_null;
-    }
     DT_void *ptr = arena->mem + arena->ofs;
     arena->ofs += size;
 
@@ -73,20 +54,13 @@ PRP_FN_API DT_void *PRP_FN_CALL MEM_ArenaAlloc(MEM_Arena *arena, DT_size size) {
 
 PRP_FN_API DT_void *PRP_FN_CALL MEM_ArenaCalloc(MEM_Arena *arena,
                                                 DT_size size) {
-    PRP_NULL_ARG_CHECK(arena, DT_null);
-    if (!size) {
-        PRP_LOG_FN_INV_ARG_ERROR(size);
+    DIAG_GUARD(arena != DT_null, DT_null);
+    DIAG_GUARD(size > 0, DT_null);
+
+    if (size > arena->size - arena->ofs) {
         return DT_null;
     }
 
-    if (size > arena->size - arena->ofs) {
-        PRP_LOG_FN_CODE(
-            PRP_FN_RES_EXHAUSTED_ERROR,
-            "Arena has %zu bytes memory left. Cannot allocate memory "
-            "of size: %zu bytes.",
-            arena->size - arena->ofs, size);
-        return DT_null;
-    }
     DT_void *ptr = arena->mem + arena->ofs;
     arena->ofs += size;
     memset(ptr, 0, size);
@@ -94,11 +68,13 @@ PRP_FN_API DT_void *PRP_FN_CALL MEM_ArenaCalloc(MEM_Arena *arena,
     return ptr;
 }
 
-PRP_FN_API PRP_FnCode PRP_FN_CALL MEM_ArenaReset(MEM_Arena *arena) {
-    PRP_NULL_ARG_CHECK(arena, PRP_FN_INV_ARG_ERROR);
+PRP_FN_API PRP_Result PRP_FN_CALL MEM_ArenaReset(MEM_Arena *arena) {
+    DIAG_GUARD(arena != DT_null, PRP_ERR_INV_ARG);
 
     arena->ofs = 0;
+#if !defined(PRP_NDEBUG)
     memset(arena->mem, 0, arena->size);
+#endif
 
-    return PRP_FN_SUCCESS;
+    return PRP_OK;
 }

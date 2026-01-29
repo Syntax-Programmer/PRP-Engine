@@ -30,10 +30,10 @@ PRP_FN_API MEM_Pool *PRP_FN_CALL MEM_PoolCreate(DT_size memb_size, DT_size cap);
  *
  * @param pPool: The pointer to the pool pointer to delete.
  *
- * @return PRP_FN_INV_ARG_ERROR if the pPool is DT_null or the pool it points
- * to is invalid, otherwise it returns PRP_FN_SUCCESS.
+ * @return PRP_ERR_INV_ARG if the pPool or *pPool is DT_null, otherwise it
+ * returns PRP_OK.
  */
-PRP_FN_API PRP_FnCode PRP_FN_CALL MEM_PoolDelete(MEM_Pool **pPool);
+PRP_FN_API PRP_Result PRP_FN_CALL MEM_PoolDelete(MEM_Pool **pPool);
 /**
  * Allocates an element the pool, the allocated element may contain junk data,
  * so caution is adviced.
@@ -60,10 +60,9 @@ PRP_FN_API DT_void *PRP_FN_CALL MEM_PoolCalloc(MEM_Pool *pool);
  * @param pool: The pool to free mem to.
  * @param ptr: The ptr to free in the pool.
  *
- * @return PRP_FN_INV_ARG_ERROR if the pool is invalid, otherwise
- * PRP_FN_SUCCESS.
+ * @return PRP_ERR_INV_ARG if the pool or the ptr is invalid, otherwise PRP_OK.
  */
-PRP_FN_API PRP_FnCode PRP_FN_CALL MEM_PoolFree(MEM_Pool *pool, DT_void *ptr);
+PRP_FN_API PRP_Result PRP_FN_CALL MEM_PoolFree(MEM_Pool *pool, DT_void *ptr);
 /**
  * Returns the current allocated cap of the pool that is passed to it.
  *
@@ -98,10 +97,9 @@ PRP_FN_API DT_size PRP_FN_CALL MEM_PoolMaxCap(const MEM_Pool *pool);
  *
  * @param pool: The pool to reset.
  *
- * @return PRP_FN_INV_ARG_ERROR if the pool is invalid, otherwise
- * PRP_FN_SUCCESS.
+ * @return PRP_ERR_INV_ARG if the pool is invalid, otherwise PRP_OK.
  */
-PRP_FN_API PRP_FnCode PRP_FN_CALL MEM_PoolReset(MEM_Pool *pool);
+PRP_FN_API PRP_Result PRP_FN_CALL MEM_PoolReset(MEM_Pool *pool);
 
 #ifdef __cplusplus
 }

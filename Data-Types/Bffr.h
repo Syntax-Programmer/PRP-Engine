@@ -42,10 +42,10 @@ PRP_FN_API DT_Bffr *PRP_FN_CALL DT_BffrClone(DT_Bffr *bffr);
  *
  * @param pBffr: The pointer to the buffer pointer to delete.
  *
- * @return PRP_FN_INV_ARG_ERROR if pBffr is DT_null or the array it points to is
- * invalid, otherwise it returns PRP_FN_SUCCESS.
+ * @return PRP_ERR_INV_ARG if the pBffr or *pBffr is DT_null, otherwise it
+ * returns PRP_OK.
  */
-PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BffrDelete(DT_Bffr **pBffr);
+PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrDelete(DT_Bffr **pBffr);
 
 /**
  * Returns the raw memory pointer of the buffer to the user.
@@ -108,11 +108,10 @@ PRP_FN_API DT_void *PRP_FN_CALL DT_BffrGet(const DT_Bffr *bffr, DT_size i);
  * @param i: The index to set the value of.
  * @param pData: The pointer to the data that will be set.
  *
- * @return PRP_FN_INV_ARG_ERROR if the parameters are invalid in any way,
- * PRP_FN_OOB_ERROR if i is out of bounds of the buffer, otherwise
- * PRP_FN_SUCCESS.
+ * @return PRP_ERR_INV_ARG if the parameters are invalid in any way, PRP_ERR_OOB
+ * if i is out of bounds of the buffer, otherwise PRP_OK.
  */
-PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BffrSet(DT_Bffr *bffr, DT_size i,
+PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrSet(DT_Bffr *bffr, DT_size i,
                                              const DT_void *pData);
 /**
  * Sets the same element 'data' to all the indices b/w i and j excluding j.
@@ -122,11 +121,11 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BffrSet(DT_Bffr *bffr, DT_size i,
  * @param j: The index to stop on.
  * @param pData: The poinbter to the data to set.
  *
- * @return PRP_FN_INV_ARG_ERROR if the parameters are invalid in any way or i >
- * j, PRP_FN_OOB_ERROR if i or j is out of bounds of the buffer, otherwise
- * PRP_FN_SUCCESS.
+ * @return PRP_ERR_INV_ARG if the parameters are invalid in any way or i >
+ * j, PRP_ERR_OOB if i or j is out of bounds of the buffer, otherwise
+ * PRP_OK.
  */
-PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BffrSetRange(DT_Bffr *bffr, DT_size i,
+PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrSetRange(DT_Bffr *bffr, DT_size i,
                                                   DT_size j,
                                                   const DT_void *pData);
 /**
@@ -137,11 +136,10 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BffrSetRange(DT_Bffr *bffr, DT_size i,
  * @param data_arr: The array of data to set.
  * @param len: The len of the data_arr.
  *
- * @return PRP_FN_INV_ARG_ERROR if the parameters are invalid in any way,
- * PRP_FN_OOB_ERROR if i or i + len is out of bounds of the buffer, otherwise
- * PRP_FN_SUCCESS.
+ * @return PRP_ERR_INV_ARG if the parameters are invalid in any way,
+ * PRP_ERR_OOB if i or i + len is out of bounds of the buffer, otherwise PRP_OK.
  */
-PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BffrSetMany(DT_Bffr *bffr, DT_size i,
+PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrSetMany(DT_Bffr *bffr, DT_size i,
                                                  const DT_void *data_arr,
                                                  DT_size len);
 
@@ -153,10 +151,10 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BffrSetMany(DT_Bffr *bffr, DT_size i,
  * @param pRslt: The pointer to the variable where the boolean result will be
  * stored.
  *
- * @return PRP_FN_INV_ARG_ERROR if the parameters are invalid in any way,
- * otherwise PRP_FN_SUCCESS.
+ * @return PRP_ERR_INV_ARG if the parameters are invalid in any way,
+ * otherwise PRP_OK.
  */
-PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BffrCmp(const DT_Bffr *bffr1,
+PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrCmp(const DT_Bffr *bffr1,
                                              const DT_Bffr *bffr2,
                                              DT_bool *pRslt);
 /**
@@ -165,10 +163,11 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BffrCmp(const DT_Bffr *bffr1,
  * @param bffr1: The first buffer that will contain the final extended buffer.
  * @param bffr2: The buffer that is to be merged with bffr1.
  *
- * @return PRP_FN_INV_ARG_ERROR if the parameters are invalid in any way,
- * PRP_FN_MALLOC_ERROR if realloc failed on bffr1, otherwise PRP_FN_SUCCESS.
+ * @return PRP_ERR_INV_ARG if the parameters are invalid in any way,
+ * PRP_ERR_RES_EXHAUSTED if the combined size exceeds the max cap of the buffer,
+ * PRP_ERR_OOM if realloc failed on bffr1, otherwise PRP_OK.
  */
-PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BffrExtend(DT_Bffr *bffr1,
+PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrExtend(DT_Bffr *bffr1,
                                                 const DT_Bffr *bffr2);
 /**
  * Swaps the elements of the given two indices.
@@ -176,31 +175,33 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BffrExtend(DT_Bffr *bffr1,
  * @param bffr: The buffer to operate on.
  * @param i: The first index.
  * @param j: The second index.
+ * @param swap_bffr: A buffer which will hold temp data tell the swap is
+ * happening. its size = memb_size.
  *
- * @return PRP_FN_INV_ARG_ERROR if the parameters are invalid in any way,
+ * @return PRP_ERR_INV_ARG if the parameters are invalid in any way,
  * PRP_FN_OOB_ERROR if the indices are out of bound, otherwise PRP_FN_SUCCESS.
  */
-PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BffrSwap(DT_Bffr *bffr, DT_size i,
-                                              DT_size j);
+PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrSwap(DT_Bffr *bffr, DT_size i,
+                                              DT_size j, DT_void *swap_bffr);
 /**
  * Clears the buffer to 0.
  *
  * @param bffr: The buffer to reset.
  *
- * @return PRP_FN_INV_ARG_ERROR if the buffer is invalid in some way, otherwise
- * PRP_FN_SUCCESS.
+ * @return PRP_ERR_INV_ARG if the array is invalid in some way, otherwise
+ * PRP_OK.
  */
-PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BffrClear(DT_Bffr *bffr);
+PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrClear(DT_Bffr *bffr);
 /**
  * Changes the capacity of the given buffer to the provided new cap safely.
  *
  * @param bffr: The buffer to change the cap of.
  * @param new_cap: The new cap of the buffer to change to.
  *
- * @return PRP_FN_MALLOC_ERROR if the reallocation fails, otherwise
- * PRP_FN_SUCCESS;
+ * @return PRP_ERR_OOM if the reallocation fails, PRP_ERR_RES_EXHAUSTED if arr
+ * cap reaches a max, otherwise PRP_OK.
  */
-PRP_FN_API PRP_FnCode PRP_FN_CALL DT_BffrChangeSize(DT_Bffr *bffr,
+PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrChangeSize(DT_Bffr *bffr,
                                                     DT_size new_cap);
 
 #ifdef __cplusplus

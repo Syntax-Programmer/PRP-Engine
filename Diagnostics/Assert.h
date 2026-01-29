@@ -70,7 +70,19 @@ extern "C" {
 
 /* ----  DEBUG ONLY ASSERTS ---- */
 
-#if defined(PRP_DEBUG)
+#if defined(PRP_NDEBUG)
+
+#define DIAG_ASSERT(expr) ((DT_void)0)
+#define DIAG_ASSERT_MSG(e, msg) ((DT_void)0)
+
+#define DIAG_GUARD(expr, ret)                                                  \
+    do {                                                                       \
+        if (!(expr)) {                                                         \
+            return (ret)                                                       \
+        }                                                                      \
+    } while (0);
+
+#else
 
 #define DIAG_ASSERT(expr)                                                      \
     do {                                                                       \
@@ -90,10 +102,7 @@ extern "C" {
         }                                                                      \
     } while (0)
 
-#else
-
-#define DIAG_ASSERT(expr) ((DT_void)0)
-#define DIAG_ASSERT_MSG(e, msg) ((DT_void)0)
+#define DIAG_GUARD(expr, ret) DIAG_ASSERT(expr)
 
 #endif
 

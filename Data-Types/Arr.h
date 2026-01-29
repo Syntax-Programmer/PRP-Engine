@@ -49,10 +49,10 @@ PRP_FN_API DT_Arr *PRP_FN_CALL DT_ArrClone(DT_Arr *arr);
  *
  * @param pArr: The pointer to the array pointer to delete.
  *
- * @return PRP_FN_INV_ARG_ERROR if pArr is DT_null or the array it points to is
- * invalid, otherwise it returns PRP_FN_SUCCESS.
+ * @return PRP_ERR_INV_ARG if the pArr or *pArr is DT_null, otherwise it
+ * returns PRP_OK.
  */
-PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrDelete(DT_Arr **pArr);
+PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrDelete(DT_Arr **pArr);
 
 /**
  * Returns the raw memory pointer of the array to the user.
@@ -124,11 +124,10 @@ PRP_FN_API DT_void *PRP_FN_CALL DT_ArrGet(const DT_Arr *arr, DT_size i);
  * @param i: The index to set the value of.
  * @param pData: The pointer to the data that will be set.
  *
- * @return PRP_FN_INV_ARG_ERROR if the parameters are invalid in any way,
- * PRP_FN_OOB_ERROR if i is out of bounds of the array, otherwise
- * PRP_FN_SUCCESS.
+ * @return PRP_ERR_INV_ARG if the parameters are invalid in any way, PRP_ERR_OOB
+ * if i is out of bounds of the array, otherwise PRP_OK.
  */
-PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrSet(DT_Arr *arr, DT_size i,
+PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrSet(DT_Arr *arr, DT_size i,
                                             const DT_void *pData);
 
 /**
@@ -138,22 +137,22 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrSet(DT_Arr *arr, DT_size i,
  * @param arr: The array to push the element into.
  * @param pData: The pointer to the data to be pushed into the array.
  *
- * @return PRP_FN_INV_ARG_ERROR if the parameters are invalid in any way,
- * PRP_FN_RES_EXHAUSTED_ERROR if pushing into the array is not possible,
- * otherwise PRP_FN_SUCCESS.
+ * @return PRP_INV_ARG_ERR if the parameters are invalid in any way,
+ * PRP_ERR_RES_EXHAUSTED/PRP_ERR_OOM if pushing into the array is not possible,
+ * otherwise PRP_OK.
  */
-PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrPush(DT_Arr *arr, const DT_void *pData);
+PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrPush(DT_Arr *arr, const DT_void *pData);
 /**
  * Reserves <count> number of elements in the array.
  *
  * @param arr: The array to reserve into.
  * @param count: The number of elements to reserve.
  *
- * @return PRP_FN_INV_ARG_ERROR if the parameters are invalid in any way,
- * PRP_FN_MALLOC_ERROR if reserving failed due to realloc failure, otherwise
- * PRP_FN_SUCCESS.
+ * @return PRP_INV_ARG_ERR if the parameters are invalid in any way,
+ * PRP_ERR_RES_EXHAUSTED/PRP_ERR_OOM if reserving <count> elements into the
+ * array is not possible, otherwise PRP_OK.
  */
-PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrReserve(DT_Arr *arr, DT_size count);
+PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrReserve(DT_Arr *arr, DT_size count);
 /**
  * Inserts the given data into index <i> of the array.
  *
@@ -161,12 +160,11 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrReserve(DT_Arr *arr, DT_size count);
  * @param pData: The pointer to the data to insert.
  * @param i: The index to insert the data into.
  *
- * @return PRP_FN_INV_ARG_ERROR if the parameters are invalid in any way,
- * PRP_FN_OOB_ERROR if i is out of bounds of the array,
- * PRP_FN_RES_EXHAUSTED_ERROR if accommodating an insert op is not possible,
- * otherwise PRP_FN_SUCCESS.
+ * @return PRP_ERR_INV_ARG if the parameters are invalid in any way, PRP_ERR_OOB
+ * if i is out of bounds of the array, PRP_ERR_RES_EXHAUSTED/PRP_ERR_OOM if
+ * pushing into the array is not possible, otherwise PRP_OK.
  */
-PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrInsert(DT_Arr *arr,
+PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrInsert(DT_Arr *arr,
                                                const DT_void *pData, DT_size i);
 
 /**
@@ -176,11 +174,10 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrInsert(DT_Arr *arr,
  * @param arr: The array to pop data from.
  * @param pDest: If not DT_null, the popped data is copied into it.
  *
- * @return PRP_FN_INV_ARG_ERROR if the parameters are invalid in any way,
- * PRP_FN_RES_EXHAUSTED_ERROR if no elements remain to pop, otherwise
- * PRP_FN_SUCCESS.
+ * @return PRP_ERR_INV_ARG if the parameters are invalid in any way,
+ * PRP_ERR_RES_EXHAUSTED if no elements remain to pop, otherwise PRP_OK.
  */
-PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrPop(DT_Arr *arr, DT_void *pDest);
+PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrPop(DT_Arr *arr, DT_void *pDest);
 /**
  * Removes the given index from the array and repacks the array.
  *
@@ -188,11 +185,11 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrPop(DT_Arr *arr, DT_void *pDest);
  * @param pDest: If not DT_null, the removed data is copied into it.
  * @param i: The index that is to be removed from the array.
  *
- * @return PRP_FN_INV_ARG_ERROR if the parameters are invalid in any way,
- * PRP_FN_OOB_ERROR if the given index is out of bounds of the array, otherwise
- * PRP_FN_SUCCESS.
+ * @return PRP_ERR_INV_ARG if the parameters are invalid in any way,
+ * PRP_ERR_OOB if the given index is out of bounds of the array, otherwise
+ * PRP_OK.
  */
-PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrRemove(DT_Arr *arr, DT_void *pDest,
+PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrRemove(DT_Arr *arr, DT_void *pDest,
                                                DT_size i);
 
 /**
@@ -203,10 +200,10 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrRemove(DT_Arr *arr, DT_void *pDest,
  * @param pRslt: The pointer to the variable where the boolean result will be
  * stored.
  *
- * @return PRP_FN_INV_ARG_ERROR if the parameters are invalid in any way,
- * otherwise PRP_FN_SUCCESS.
+ * @return PRP_ERR_INV_ARG if the parameters are invalid in any way, otherwise
+ * PRP_OK.
  */
-PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrCmp(const DT_Arr *arr1,
+PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrCmp(const DT_Arr *arr1,
                                             const DT_Arr *arr2, DT_bool *pRslt);
 /**
  * Joins the content of arr2 with arr1.
@@ -214,10 +211,11 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrCmp(const DT_Arr *arr1,
  * @param arr1: The first array that will contain the final extended array.
  * @param arr2: The array that is to be merged with arr1.
  *
- * @return PRP_FN_INV_ARG_ERROR if the parameters are invalid in any way,
- * PRP_FN_MALLOC_ERROR if realloc failed on arr1, otherwise PRP_FN_SUCCESS.
+ * @return PRP_ERR_INV_ARG if the parameters are invalid in any way,
+ * PRP_ERR_RES_EXHAUSTED if the combined size exceeds the max cap of the array,
+ * PRP_ERR_OOM if realloc failed on arr1, otherwise PRP_OK.
  */
-PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrExtend(DT_Arr *arr1,
+PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrExtend(DT_Arr *arr1,
                                                const DT_Arr *arr2);
 /**
  * Swaps the elements of the given two indices.
@@ -225,43 +223,47 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrExtend(DT_Arr *arr1,
  * @param arr: The array to operate on.
  * @param i: The first index.
  * @param j: The second index.
+ * @param swap_bffr: A buffer which will hold temp data tell the swap is
+ * happening. its size = memb_size.
  *
- * @return PRP_FN_INV_ARG_ERROR if the parameters are invalid in any way,
- * PRP_FN_OOB_ERROR if the indices are out of bound, otherwise PRP_FN_SUCCESS.
+ * @return PRP_ERR_INV_ARG if the parameters are invalid in any way,
+ * PRP_ERR_OOB if the indices are out of bound, otherwise PRP_OK.
  */
-PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrSwap(DT_Arr *arr, DT_size i, DT_size j);
+PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrSwap(DT_Arr *arr, DT_size i, DT_size j,
+                                             DT_void *swap_bffr);
 /**
  * Resets the array to make it behave like a brand new array.
  *
  * @param arr: The array to reset.
  *
- * @return PRP_FN_INV_ARG_ERROR if the array is invalid in some way, otherwise
- * PRP_FN_SUCCESS.
+ * @return PRP_ERR_INV_ARG if the array is invalid in some way, otherwise
+ * PRP_OK.
  */
-PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrReset(DT_Arr *arr);
+PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrReset(DT_Arr *arr);
 /**
- * Shrinks the array to make its cap = its len.
+ * Shrinks the array to make its cap = len.
  *
  * @param arr: The array to shrink fit.
  *
- * @return PRP_FN_INV_ARG_ERROR if the array is invalid in some way,
- * PRP_FN_MALLOC_ERROR if realloc failed on arr, otherwise PRP_FN_SUCCESS.
+ * @return PRP_INV_ARG_ERR if the parameters are invalid in any way,
+ * PRP_ERR_RES_EXHAUSTED/PRP_ERR_OOM if shrinking the array is not possible,
+ * otherwise PRP_OK.
  */
-PRP_FN_API PRP_FnCode PRP_FN_CALL DT_ArrShrinkFit(DT_Arr *arr);
+PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrShrinkFit(DT_Arr *arr);
 /**
  * Performs a foreach operation of each of the element of the array. Calling cb
  * per element.
  *
  * @param arr: The array on which the foreach will happen.
  * @param cb: The callback to be called per element. If this doesn't return
- * PRP_FN_SUCCESS, further execution will be halted.
+ * PRP_OK, further execution will be halted.
  * @param user_data: The data user wants to pass in as additional context.
  *
- * @return PRP_FN_INV_ARG_ERROR if the parameters are invalid in some way,
- * otherwise PRP_FN_SUCCESS, or the callback error code.
+ * @return PRP_ERR_INV_ARG if the parameters are invalid in some way,
+ * otherwise PRP_OK, or the callback error code.
  */
-PRP_FN_API PRP_FnCode PRP_FN_CALL
-DT_ArrForEach(DT_Arr *arr, PRP_FnCode (*cb)(DT_void *pVal, DT_void *user_data),
+PRP_FN_API PRP_Result PRP_FN_CALL
+DT_ArrForEach(DT_Arr *arr, PRP_Result (*cb)(DT_void *pVal, DT_void *user_data),
               DT_void *user_data);
 
 #ifdef __cplusplus
