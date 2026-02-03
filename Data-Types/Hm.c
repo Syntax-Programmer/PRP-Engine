@@ -61,9 +61,9 @@ struct _Hm {
      */
     DT_bool (*key_cmp_cb)(const DT_void *k1, const DT_void *k2);
     // Frees the memory of the key during the entry/hashmap deletion.
-    PRP_FnCode (*key_del_cb)(DT_void *key);
+    PRP_Result (*key_del_cb)(DT_void *key);
     // Frees the memory of the val during the entry/hashmap deletion.
-    PRP_FnCode (*val_del_cb)(DT_void *val);
+    PRP_Result (*val_del_cb)(DT_void *val);
 };
 
 #define MAX_LAYOUT_CAP (DT_SIZE_MAX / sizeof(DT_size))
@@ -106,8 +106,8 @@ static PRP_Result FetchLayoutElemI(DT_Hm *hm, DT_void *key, DT_size *pLayout_i,
 PRP_FN_API DT_Hm *PRP_FN_CALL
 DT_HmCreate(DT_u64 (*hash_fn)(const DT_void *key),
             DT_bool (*key_cmp_cb)(const DT_void *k1, const DT_void *k2),
-            PRP_FnCode (*key_del_cb)(DT_void *key),
-            PRP_FnCode (*val_del_cb)(DT_void *val)) {
+            PRP_Result (*key_del_cb)(DT_void *key),
+            PRP_Result (*val_del_cb)(DT_void *val)) {
     DIAG_GUARD(hash_fn != DT_null, DT_null);
     DIAG_GUARD(key_cmp_cb != DT_null, DT_null);
     DIAG_GUARD(key_del_cb != DT_null, DT_null);

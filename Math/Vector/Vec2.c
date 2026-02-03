@@ -1,5 +1,5 @@
 #include "Vec2.h"
-#include "../../Utils/Logger.h"
+#include "../../Diagnostics/Assert.h"
 #include <math.h>
 
 #define MATH_EPSILON_F32 1e-6f
@@ -15,29 +15,29 @@ PRP_FN_API MATH_Vec2 PRP_FN_CALL MATH_Vec2FromPolar(DT_f32 r, DT_f32 theta) {
 }
 
 PRP_FN_API MATH_Vec2 PRP_FN_CALL MATH_Vec2FromArray(const DT_f32 arr[2]) {
-    PRP_NULL_ARG_CHECK(arr, (MATH_Vec2){0});
+    DIAG_GUARD(arr != DT_null, (MATH_Vec2){0});
 
     return (MATH_Vec2){.x = arr[0], .y = arr[1]};
 }
 
-PRP_FN_API PRP_FnCode PRP_FN_CALL MATH_Vec2ToArray(MATH_Vec2 v, DT_f32 out[2]) {
-    PRP_NULL_ARG_CHECK(out, PRP_FN_INV_ARG_ERROR);
+PRP_FN_API PRP_Result PRP_FN_CALL MATH_Vec2ToArray(MATH_Vec2 v, DT_f32 out[2]) {
+    DIAG_GUARD(out != DT_null, PRP_ERR_INV_ARG);
 
     out[0] = v.x;
     out[1] = v.y;
 
-    return PRP_FN_SUCCESS;
+    return PRP_OK;
 }
 
-PRP_FN_API PRP_FnCode PRP_FN_CALL MATH_Vec2ToPolar(MATH_Vec2 v, DT_f32 *pR,
+PRP_FN_API PRP_Result PRP_FN_CALL MATH_Vec2ToPolar(MATH_Vec2 v, DT_f32 *pR,
                                                    DT_f32 *pTheta) {
-    PRP_NULL_ARG_CHECK(pR, PRP_FN_INV_ARG_ERROR);
-    PRP_NULL_ARG_CHECK(pTheta, PRP_FN_INV_ARG_ERROR);
+    DIAG_GUARD(pR != DT_null, PRP_ERR_INV_ARG);
+    DIAG_GUARD(pTheta != DT_null, PRP_ERR_INV_ARG);
 
     *pR = sqrtf((v.x * v.x) + (v.y * v.y));
     *pTheta = atan2f(v.y, v.x);
 
-    return PRP_FN_SUCCESS;
+    return PRP_OK;
 }
 
 /* ----  VEC-VEC MATH ---- */

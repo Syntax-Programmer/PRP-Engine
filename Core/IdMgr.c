@@ -2,7 +2,7 @@
 #include "../Data-Types/Arr.h"
 #include "../Data-Types/Bffr.h"
 #include "../Data-Types/Bitmap.h"
-#include "../Utils/Logger.h"
+#include "../Diagnostics/Assert.h"
 
 struct _IdMgr {
     /*
@@ -42,7 +42,7 @@ struct _IdMgr {
      * data we store in the data array. This can be DT_null if the array
      * elements don't have internal allocations.
      */
-    PRP_FnCode (*data_del_cb)(DT_void *pData_entry);
+    PRP_Result (*data_del_cb)(DT_void *pData_entry);
 };
 
 /*
@@ -74,8 +74,8 @@ typedef struct {
     DT_u32 id_gen;
     DT_u32 data_i;
     DT_u32 slot_gen;
-    // If this is not PRP_FN_SUCCESS the id is invalid.
-    PRP_FnCode validity_code;
+    // If this is not PRP_OK the id is invalid.
+    PRP_Result validity_code;
 } IdState;
 
 /**
@@ -88,7 +88,7 @@ typedef struct {
  *
  * @return Whatever the data_del func will return.
  */
-static inline PRP_FnCode DataDelForEachWrapper(DT_void *pVal,
+static inline PRP_Result DataDelForEachWrapper(DT_void *pVal,
                                                DT_void *user_data);
 /**
  * Fetches all of the data that an id can reveal while at the same time checking
@@ -107,30 +107,24 @@ static inline IdState GetIdData(const CORE_IdMgr *id_mgr, CORE_Id id);
  * @param id_mgr: The id manager to grow.
  * @param new_cap: The new cap the id manager wants to set.
  *
- * @return PRP_FN_MALLOC_ERROR if any resizing failed, otherwise PRP_FN_SUCCESS.
+ * @return PRP_ERR_OOM if any resizing failed, otherwise PRP_OK.
  */
-static PRP_FnCode GrowIdMgr(CORE_IdMgr *id_mgr, DT_size new_cap);
+static PRP_Result GrowIdMgr(CORE_IdMgr *id_mgr, DT_size new_cap);
 
 #define ID_MGR_INIT_ERROR_CHECK(x)                                             \
     do {                                                                       \
         if (!x) {                                                              \
             CORE_IdMgrDelete(&id_mgr);                                         \
-            PRP_LOG_FN_MALLOC_ERROR(x);                                        \
             return DT_null;                                                    \
         }                                                                      \
     } while (0);
 
 PRP_FN_API CORE_IdMgr *PRP_FN_CALL CORE_IdMgrCreate(
-    DT_size data_size, PRP_FnCode (*data_del_cb)(DT_void *data_entry)) {
-    if (!data_size) {
-        PRP_LOG_FN_CODE(PRP_FN_INV_ARG_ERROR,
-                        "CORE_IdMgr can't be made with data_size=0.");
-        return DT_null;
-    }
+    DT_size data_size, PRP_Result (*data_del_cb)(DT_void *data_entry)) {
+    DIAG_GUARD(data_size > 0, DT_null);
 
     CORE_IdMgr *id_mgr = malloc(sizeof(CORE_IdMgr));
     if (!id_mgr) {
-        PRP_LOG_FN_MALLOC_ERROR(id_mgr);
         return DT_null;
     }
     id_mgr->data = DT_ArrCreateDefault(data_size);
@@ -159,17 +153,18 @@ PRP_FN_API CORE_IdMgr *PRP_FN_CALL CORE_IdMgrCreate(
     return id_mgr;
 }
 
-static inline PRP_FnCode DataDelForEachWrapper(DT_void *pVal,
+static inline PRP_Result DataDelForEachWrapper(DT_void *pVal,
                                                DT_void *user_data) {
-    PRP_FnCode (*data_del_cb)(DT_void *) = (PRP_FnCode (*)(DT_void *))user_data;
+    PRP_Result (*data_del_cb)(DT_void *) = (PRP_Result (*)(DT_void *))user_data;
 
     return data_del_cb(pVal);
 }
 
-PRP_FN_API PRP_FnCode PRP_FN_CALL CORE_IdMgrDelete(CORE_IdMgr **pId_mgr) {
-    PRP_NULL_ARG_CHECK(pId_mgr, PRP_FN_INV_ARG_ERROR);
+PRP_FN_API PRP_Result CORE_IdMgrDelete(CORE_IdMgr **pId_mgr) {
+    DIAG_GUARD(pId_mgr != DT_null, PRP_ERR_INV_ARG);
+    DIAG_GUARD(*pId_mgr != DT_null, PRP_ERR_INV_ARG);
+
     CORE_IdMgr *id_mgr = *pId_mgr;
-    PRP_NULL_ARG_CHECK(id_mgr, PRP_FN_INV_ARG_ERROR);
 
     if (id_mgr->data) {
         if (id_mgr->data_del_cb) {
@@ -190,12 +185,13 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL CORE_IdMgrDelete(CORE_IdMgr **pId_mgr) {
     free(id_mgr);
     *pId_mgr = DT_null;
 
-    return PRP_FN_SUCCESS;
+    return PRP_OK;
 }
 
 PRP_FN_API const DT_void *PRP_FN_CALL CORE_IdMgrRaw(const CORE_IdMgr *id_mgr,
                                                     DT_u32 *pLen) {
-    PRP_NULL_ARG_CHECK(id_mgr, DT_null);
+    DIAG_GUARD(id_mgr != DT_null, DT_null);
+    DIAG_GUARD(pLen != DT_null, DT_null);
 
     DT_size len;
     const DT_void *data = DT_ArrRaw(id_mgr->data, &len);
@@ -205,7 +201,7 @@ PRP_FN_API const DT_void *PRP_FN_CALL CORE_IdMgrRaw(const CORE_IdMgr *id_mgr,
 }
 
 PRP_FN_API DT_u32 PRP_FN_CALL CORE_IdMgrLen(const CORE_IdMgr *id_mgr) {
-    PRP_NULL_ARG_CHECK(id_mgr, CORE_INVALID_SIZE);
+    DIAG_GUARD(id_mgr != DT_null, CORE_INVALID_SIZE);
 
     DT_size len = DT_ArrLen(id_mgr->data);
 
@@ -213,20 +209,19 @@ PRP_FN_API DT_u32 PRP_FN_CALL CORE_IdMgrLen(const CORE_IdMgr *id_mgr) {
 }
 
 PRP_FN_API DT_u32 PRP_FN_CALL CORE_IdMgrMaxCap(const CORE_IdMgr *id_mgr) {
-    PRP_NULL_ARG_CHECK(id_mgr, CORE_INVALID_SIZE);
+    DIAG_GUARD(id_mgr != DT_null, CORE_INVALID_SIZE);
 
     return id_mgr->max_cap;
 }
 
 static inline IdState GetIdData(const CORE_IdMgr *id_mgr, CORE_Id id) {
+    DIAG_ASSERT(id_mgr != DT_null);
+
     IdState state = {0};
 
     UNPACK_GEN_INDEX_PACKING(id, state.id_i, state.id_gen);
     if (state.id_i >= DT_BffrCap(id_mgr->id_layer)) {
-        state.validity_code = PRP_FN_OOB_ERROR;
-        PRP_LOG_FN_CODE(
-            state.validity_code,
-            "Given id is not possible to be dispatched through valid means.");
+        state.validity_code = PRP_ERR_OOB;
         return state;
     }
 
@@ -235,21 +230,20 @@ static inline IdState GetIdData(const CORE_IdMgr *id_mgr, CORE_Id id) {
     DT_size len = DT_ArrLen(id_mgr->data);
 
     if (state.id_gen != state.slot_gen || state.data_i >= (DT_u32)len) {
-        state.validity_code = PRP_FN_UAF_ERROR;
-        PRP_LOG_FN_CODE(state.validity_code,
-                        "Given id has already been freed, stale id detected.");
+        state.validity_code = PRP_ERR_INV_STATE;
         return state;
     }
-    state.validity_code = PRP_FN_SUCCESS;
+    state.validity_code = PRP_OK;
 
     return state;
 }
 
 PRP_FN_API DT_u32 PRP_FN_CALL CORE_IdToIndex(const CORE_IdMgr *id_mgr,
                                              CORE_Id id) {
-    PRP_NULL_ARG_CHECK(id_mgr, CORE_INVALID_INDEX);
+    DIAG_GUARD(id_mgr != DT_null, CORE_INVALID_INDEX);
+
     IdState state = GetIdData(id_mgr, id);
-    if (state.validity_code != PRP_FN_SUCCESS) {
+    if (state.validity_code != PRP_OK) {
         return CORE_INVALID_INDEX;
     }
 
@@ -258,40 +252,33 @@ PRP_FN_API DT_u32 PRP_FN_CALL CORE_IdToIndex(const CORE_IdMgr *id_mgr,
 
 PRP_FN_API DT_void *PRP_FN_CALL CORE_IdToData(const CORE_IdMgr *id_mgr,
                                               CORE_Id id) {
-    PRP_NULL_ARG_CHECK(id_mgr, DT_null);
+    DIAG_GUARD(id_mgr != DT_null, DT_null);
+
     IdState state = GetIdData(id_mgr, id);
-    if (state.validity_code != PRP_FN_SUCCESS) {
+    if (state.validity_code != PRP_OK) {
         return DT_null;
     }
 
     return DT_ArrGet(id_mgr->data, state.data_i);
 }
 
-PRP_FN_API PRP_FnCode PRP_FN_CALL CORE_IdIsValid(const CORE_IdMgr *id_mgr,
+PRP_FN_API PRP_Result PRP_FN_CALL CORE_IdIsValid(const CORE_IdMgr *id_mgr,
                                                  CORE_Id id, DT_bool *pRslt) {
-    PRP_NULL_ARG_CHECK(id_mgr, PRP_FN_INV_ARG_ERROR);
-    PRP_NULL_ARG_CHECK(pRslt, PRP_FN_INV_ARG_ERROR);
+    DIAG_GUARD(id_mgr != DT_null, PRP_ERR_INV_ARG);
+    DIAG_GUARD(pRslt != DT_null, PRP_ERR_INV_ARG);
 
     IdState state = GetIdData(id_mgr, id);
-    if (state.validity_code == PRP_FN_SUCCESS) {
-        *pRslt = DT_true;
-    } else {
-        *pRslt = DT_false;
-    }
+    *pRslt = (state.validity_code == PRP_OK) ? DT_true : DT_false;
 
-    return PRP_FN_SUCCESS;
+    return PRP_OK;
 }
 
 PRP_FN_API CORE_Id PRP_FN_CALL CORE_DataIToId(const CORE_IdMgr *id_mgr,
                                               DT_size data_i) {
-    PRP_NULL_ARG_CHECK(id_mgr, CORE_INVALID_ID);
+    DIAG_GUARD(id_mgr != DT_null, CORE_INVALID_ID);
 
     DT_size len = DT_ArrLen(id_mgr->data);
     if (data_i >= (DT_u32)len) {
-        PRP_LOG_FN_CODE(
-            PRP_FN_OOB_ERROR,
-            "Tried to access data index: %zu, with id manager of len: %zu",
-            data_i, (DT_u32)len);
         return CORE_INVALID_ID;
     }
     DT_u32 id_i = *(DT_u32 *)DT_ArrGet(id_mgr->data_layer, data_i);
@@ -300,11 +287,13 @@ PRP_FN_API CORE_Id PRP_FN_CALL CORE_DataIToId(const CORE_IdMgr *id_mgr,
     return (CORE_Id)PACK_GEN_INDEX(id_i, GET_GEN_FROM_PACKED(id_val));
 }
 
-static PRP_FnCode GrowIdMgr(CORE_IdMgr *id_mgr, DT_size new_cap) {
+static PRP_Result GrowIdMgr(CORE_IdMgr *id_mgr, DT_size new_cap) {
+    DIAG_ASSERT(id_mgr != DT_null);
+
     DT_size old_cap = DT_BffrCap(id_mgr->id_layer);
 
-    if (DT_BitmapChangeSize(id_mgr->free_id_slots, new_cap) != PRP_FN_SUCCESS ||
-        DT_BffrChangeSize(id_mgr->id_layer, new_cap) != PRP_FN_SUCCESS) {
+    if (DT_BitmapChangeSize(id_mgr->free_id_slots, new_cap) != PRP_OK ||
+        DT_BffrChangeSize(id_mgr->id_layer, new_cap) != PRP_OK) {
         /*
          * Trying to revert to old cap if possible since we need to maintain cap
          * sync.
@@ -313,7 +302,7 @@ static PRP_FnCode GrowIdMgr(CORE_IdMgr *id_mgr, DT_size new_cap) {
          */
         DT_BitmapChangeSize(id_mgr->free_id_slots, old_cap);
         DT_BffrChangeSize(id_mgr->id_layer, old_cap);
-        return PRP_FN_MALLOC_ERROR;
+        return PRP_ERR_OOM;
     }
     // These can't fail.
     DT_u64 x = NEW_ID_LAYER_VAL;
@@ -321,30 +310,27 @@ static PRP_FnCode GrowIdMgr(CORE_IdMgr *id_mgr, DT_size new_cap) {
     DT_BitmapSetRange(id_mgr->free_id_slots, old_cap, new_cap);
 
     DT_size reserve_count = new_cap - DT_ArrCap(id_mgr->data);
-    if (DT_ArrReserve(id_mgr->data, reserve_count) != PRP_FN_SUCCESS ||
-        DT_ArrReserve(id_mgr->data_layer, reserve_count) != PRP_FN_SUCCESS) {
+    if (DT_ArrReserve(id_mgr->data, reserve_count) != PRP_OK ||
+        DT_ArrReserve(id_mgr->data_layer, reserve_count) != PRP_OK) {
         /*
          * By the nature of the invariants, if these fail the push ops will also
          * fail in the future the caps of these two arrays might go out of sync.
          * This is fine and not a UB, but we can't continue adding to the
          * id_mgr.
          */
-        return PRP_FN_MALLOC_ERROR;
+        return PRP_ERR_OOM;
     }
 
-    return PRP_FN_SUCCESS;
+    return PRP_OK;
 }
 
 PRP_FN_API CORE_Id PRP_FN_CALL CORE_IdMgrAddData(CORE_IdMgr *id_mgr,
                                                  const DT_void *pData) {
-    PRP_NULL_ARG_CHECK(id_mgr, CORE_INVALID_ID);
-    PRP_NULL_ARG_CHECK(pData, CORE_INVALID_ID);
+    DIAG_GUARD(id_mgr != DT_null, CORE_INVALID_ID);
+    DIAG_GUARD(pData != DT_null, CORE_INVALID_ID);
 
     DT_size len = DT_ArrLen(id_mgr->data);
     if ((DT_u32)len == id_mgr->max_cap) {
-        PRP_LOG_FN_CODE(PRP_FN_RES_EXHAUSTED_ERROR,
-                        "The max capacity of elements a CORE_IdMgr can managed "
-                        "has been reached.");
         return CORE_INVALID_ID;
     }
     if (!DT_BitmapSetCount(id_mgr->free_id_slots)) {
@@ -355,11 +341,8 @@ PRP_FN_API CORE_Id PRP_FN_CALL CORE_IdMgrAddData(CORE_IdMgr *id_mgr,
          * overflowing.
          */
         DT_size new_cap = DT_BffrCap(id_mgr->id_layer) * 2;
-        PRP_FnCode code = GrowIdMgr(id_mgr, new_cap);
-        if (code != PRP_FN_SUCCESS) {
-            PRP_LOG_FN_CODE(
-                code, "Cannot add any more elements to the CORE_IdMgr due to "
-                      "memory limitations.");
+        PRP_Result code = GrowIdMgr(id_mgr, new_cap);
+        if (code != PRP_OK) {
             return CORE_INVALID_ID;
         }
     }
@@ -386,12 +369,14 @@ PRP_FN_API CORE_Id PRP_FN_CALL CORE_IdMgrAddData(CORE_IdMgr *id_mgr,
     return (CORE_Id)PACK_GEN_INDEX(id_i, gen);
 }
 
-PRP_FN_API PRP_FnCode PRP_FN_CALL CORE_IdMgrDeleteData(CORE_IdMgr *id_mgr,
-                                                       CORE_Id *pId) {
-    PRP_NULL_ARG_CHECK(id_mgr, PRP_FN_INV_ARG_ERROR);
-    PRP_NULL_ARG_CHECK(pId, PRP_FN_INV_ARG_ERROR);
+PRP_FN_API PRP_Result PRP_FN_CALL CORE_IdMgrDeleteData(
+    CORE_IdMgr *id_mgr, CORE_Id *pId, DT_void *temp_data_bffr) {
+    DIAG_GUARD(id_mgr != DT_null, PRP_ERR_INV_ARG);
+    DIAG_GUARD(pId != DT_null, PRP_ERR_INV_ARG);
+    DIAG_GUARD(temp_data_bffr != DT_null, PRP_ERR_INV_ARG);
+
     IdState state = GetIdData(id_mgr, *pId);
-    if (state.validity_code != PRP_FN_SUCCESS) {
+    if (state.validity_code != PRP_OK) {
         return state.validity_code;
     }
 
@@ -411,8 +396,10 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL CORE_IdMgrDeleteData(CORE_IdMgr *id_mgr,
         DT_u32 id_i = *(DT_u32 *)DT_ArrGet(id_mgr->data_layer, last_i);
 
         // Repacking the dense buffers.
-        DT_ArrSwap(id_mgr->data, state.data_i, last_i);
-        DT_ArrSwap(id_mgr->data_layer, state.data_i, last_i);
+        DT_ArrSwap(id_mgr->data, state.data_i, last_i, temp_data_bffr);
+        DT_u32 data_layer_swap_buffer;
+        DT_ArrSwap(id_mgr->data_layer, state.data_i, last_i,
+                   &data_layer_swap_buffer);
 
         // Updating the id_layer val of the last element that was moved.
         id_val = *(DT_u64 *)DT_BffrGet(id_mgr->id_layer, id_i);
@@ -423,54 +410,44 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL CORE_IdMgrDeleteData(CORE_IdMgr *id_mgr,
     // Invalidating the original ptr.
     *pId = CORE_INVALID_ID;
 
-    return PRP_FN_SUCCESS;
+    return PRP_OK;
 }
 
-PRP_FN_API PRP_FnCode PRP_FN_CALL CORE_IdMgrReserve(CORE_IdMgr *id_mgr,
+PRP_FN_API PRP_Result PRP_FN_CALL CORE_IdMgrReserve(CORE_IdMgr *id_mgr,
                                                     DT_u32 count) {
-    PRP_NULL_ARG_CHECK(id_mgr, PRP_FN_INV_ARG_ERROR);
-    if (!count) {
-        PRP_LOG_FN_CODE(PRP_FN_INV_ARG_ERROR,
-                        "Cannot reserve 0 members in CORE_IdMgr.");
-        return PRP_FN_INV_ARG_ERROR;
-    }
+    DIAG_GUARD(id_mgr != DT_null, PRP_ERR_INV_ARG);
+    DIAG_GUARD(count > 0, PRP_ERR_INV_ARG);
 
     if (count > (id_mgr->max_cap - (DT_u32)(DT_ArrLen(id_mgr->data)))) {
-        PRP_LOG_FN_CODE(PRP_FN_RES_EXHAUSTED_ERROR,
-                        "Cannot reserve %u elements into the CORE_IdMgr "
-                        "because it exceeds max capacity of CORE_IdMgr.",
-                        count);
-        return PRP_FN_RES_EXHAUSTED_ERROR;
+        return PRP_ERR_RES_EXHAUSTED;
     }
     DT_size free_slots = DT_BitmapSetCount(id_mgr->free_id_slots);
     if (count <= free_slots) {
-        return PRP_FN_SUCCESS;
+        return PRP_OK;
     }
     DT_size new_cap = DT_BffrCap(id_mgr->id_layer) + (count - free_slots);
 
-    PRP_FnCode code = GrowIdMgr(id_mgr, new_cap);
-    if (code != PRP_FN_SUCCESS) {
-        PRP_LOG_FN_CODE(code,
-                        "Cannot add any more elements to the CORE_IdMgr due to "
-                        "memory limitations.");
+    PRP_Result code = GrowIdMgr(id_mgr, new_cap);
+    if (code != PRP_OK) {
         return code;
     }
 
-    return PRP_FN_SUCCESS;
+    return PRP_OK;
 }
 
-// PRP_FN_API PRP_FnCode PRP_FN_CALL CORE_IdMgrShrinkFit(CORE_IdMgr *id_mgr) {
+// PRP_FN_API PRP_Result PRP_FN_CALL CORE_IdMgrShrinkFit(CORE_IdMgr *id_mgr) {
 //     PRP_NULL_ARG_CHECK(id_mgr, PRP_FN_INV_ARG_ERROR);
 
-//     // We can do this since PRP_FN_SUCCESS is defined as 0.
+//     // We can do this since PRP_OK is defined as 0.
 //     return DT_ArrShrinkFit(id_mgr->data) ||
 //     DT_ArrShrinkFit(id_mgr->data_layer);
 // }
 
-PRP_FN_API PRP_FnCode PRP_FN_CALL CORE_IdMgrForEach(
-    CORE_IdMgr *id_mgr, PRP_FnCode (*cb)(DT_void *pVal, DT_void *user_data),
+PRP_FN_API PRP_Result PRP_FN_CALL CORE_IdMgrForEach(
+    CORE_IdMgr *id_mgr, PRP_Result (*cb)(DT_void *pVal, DT_void *user_data),
     DT_void *user_data) {
-    PRP_NULL_ARG_CHECK(id_mgr, PRP_FN_INV_ARG_ERROR);
+    DIAG_GUARD(id_mgr != DT_null, PRP_ERR_INV_ARG);
+    DIAG_GUARD(cb != DT_null, PRP_ERR_INV_ARG);
 
     return DT_ArrForEach(id_mgr->data, cb, user_data);
 }

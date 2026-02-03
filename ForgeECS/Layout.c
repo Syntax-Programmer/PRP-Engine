@@ -13,10 +13,10 @@ static DT_void CalcCompArStrides(Layout *layout);
  *
  * @param layout: The layout to create new chunk for.
  *
- * @return PRP_FN_MALLOC_ERROR if allocation fails, PRP_FN_RES_EXHAUSTED_ERROR
- * if the chunk arr can't hold anymore chunks, otherwise PRP_FN_SUCCESS.
+ * @return PRP_ERR_OOM if allocation fails, PRP_ERR_RES_EXHAUSTED if the chunk
+ * arr can't hold anymore chunks, otherwise PRP_OK.
  */
-static PRP_FnCode AddLayoutChunk(Layout *layout);
+static PRP_Result AddLayoutChunk(Layout *layout);
 /**
  * Converts a component ID to its corresponding index in the component array.
  *
@@ -32,11 +32,12 @@ static DT_size CompIdToCompArrStrideI(Layout *layout, FECS_CompId comp_id);
  *
  * @param pData: The arr should ideally give it Chunk **.
  *
- * @return PRP_FN_SUCCESS.
+ * @return PRP_OK.
  */
-static inline PRP_FnCode FreeChunkPtrs(DT_void *pData, DT_void *user_data);
+static inline PRP_Result FreeChunkPtrs(DT_void *pData, DT_void *user_data);
 
 static DT_void CalcCompArStrides(Layout *layout) {
+    DIAG_ASSERT(layout != DT_null);
     DT_size size_len;
     const DT_size *sizes =
         DT_ArrRaw(g_state->comp_registry.comp_sizes, &size_len);
@@ -62,17 +63,17 @@ static DT_void CalcCompArStrides(Layout *layout) {
     layout->chunk_size = (stride * CHUNK_CAP) + sizeof(Chunk);
 }
 
-static PRP_FnCode AddLayoutChunk(Layout *layout) {
+static PRP_Result AddLayoutChunk(Layout *layout) {
+    DIAG_ASSERT(layout != DT_null);
+
     Chunk *chunk = malloc(layout->chunk_size);
     if (!chunk) {
-        PRP_LOG_FN_MALLOC_ERROR(chunk);
-        return PRP_FN_MALLOC_ERROR;
+        return PRP_ERR_OOM;
     }
-    if (DT_ArrPush(layout->chunk_ptrs, &chunk) != PRP_FN_SUCCESS) {
-        PRP_LOG_FN_CODE(PRP_FN_RES_EXHAUSTED_ERROR,
-                        "Cannot accommodate a new slot for the new chunk.");
+    PRP_Result code = DT_ArrPush(layout->chunk_ptrs, &chunk);
+    if (code != PRP_OK) {
         free(chunk);
-        return PRP_FN_RES_EXHAUSTED_ERROR;
+        return code;
     }
     /*
      * Sets all the gens to u8 max. And the free_slot's all the bits to 1.
@@ -88,50 +89,43 @@ static PRP_FnCode AddLayoutChunk(Layout *layout) {
     memset(chunk, 0XFF, sizeof(Chunk));
     DT_size push_i = DT_ArrLen(layout->chunk_ptrs) - 1;
     DT_size bit_cap = DT_BitmapBitCap(layout->free_chunks);
-    if (push_i >= bit_cap &&
-        DT_BitmapChangeSize(layout->free_chunks, bit_cap * 2) !=
-            PRP_FN_SUCCESS) {
-        PRP_LOG_FN_MALLOC_ERROR(layout->free_chunks);
-        DT_ArrPop(layout->chunk_ptrs, DT_null);
-        free(chunk);
-        return PRP_FN_MALLOC_ERROR;
+    if (push_i >= bit_cap) {
+        PRP_Result code = DT_BitmapChangeSize(layout->free_chunks, bit_cap * 2);
+        if (code != PRP_OK) {
+            DT_ArrPop(layout->chunk_ptrs, DT_null);
+            free(chunk);
+            return code;
+        }
     }
     // Marking the new chunk as free
     DT_BitmapSet(layout->free_chunks, push_i);
 
-    return PRP_FN_SUCCESS;
+    return PRP_OK;
 }
 
 #define LAYOUT_INIT_ERROR_CHECK(x)                                             \
     do {                                                                       \
         if (!x) {                                                              \
             LayoutDelCb(&layout);                                              \
-            PRP_LOG_FN_MALLOC_ERROR(x);                                        \
             return CORE_INVALID_ID;                                            \
         }                                                                      \
     } while (0);
 
 CORE_Id LayoutCreate(CORE_Id b_set_id, DT_bool *pIsDuplicate) {
+    DIAG_GUARD(pIsDuplicate != DT_null, CORE_INVALID_ID);
     DT_Bitmap **pB_set = CORE_IdToData(g_state->b_set_id_mgr, b_set_id);
     if (!pB_set) {
-        PRP_LOG_FN_INV_ARG_ERROR(b_set_id);
         return CORE_INVALID_ID;
     }
     DT_Bitmap *b_set = *pB_set;
-    if (!DT_BitmapSetCount(b_set)) {
-        PRP_LOG_FN_CODE(PRP_FN_INV_ARG_ERROR,
-                        "Attach components to the behavior set before trying "
-                        "to create a layout with it.");
-        return CORE_INVALID_ID;
-    }
+    DIAG_GUARD(DT_BitmapSetCount(b_set) > 0, CORE_INVALID_ID);
 
     *pIsDuplicate = DT_false;
     DT_u32 len;
     const Layout *existing = CORE_IdMgrRaw(g_state->layout_id_mgr, &len);
     for (DT_u32 i = 0; i < len; i++) {
         DT_bool rslt;
-        if (DT_BitmapCmp(existing[i].b_set, b_set, &rslt) == PRP_FN_SUCCESS &&
-            rslt) {
+        if (DT_BitmapCmp(existing[i].b_set, b_set, &rslt) == PRP_OK && rslt) {
             *pIsDuplicate = DT_true;
 
             return CORE_DataIToId(g_state->layout_id_mgr, i);
@@ -152,9 +146,8 @@ CORE_Id LayoutCreate(CORE_Id b_set_id, DT_bool *pIsDuplicate) {
     LAYOUT_INIT_ERROR_CHECK(layout.b_set);
 
     CalcCompArStrides(&layout);
-    PRP_FnCode code = AddLayoutChunk(&layout);
-    if (code != PRP_FN_SUCCESS) {
-        PRP_LOG_FN_CODE(code, "Cannot add initial first chunk to the layout.");
+    PRP_Result code = AddLayoutChunk(&layout);
+    if (code != PRP_OK) {
         LayoutDelCb(&layout);
         return CORE_INVALID_ID;
     }
@@ -162,34 +155,30 @@ CORE_Id LayoutCreate(CORE_Id b_set_id, DT_bool *pIsDuplicate) {
     CORE_Id layout_id = CORE_IdMgrAddData(g_state->layout_id_mgr, &layout);
     if (layout_id == CORE_INVALID_ID) {
         LayoutDelCb(&layout);
-        PRP_LOG_FN_CODE(PRP_FN_FAILURE, "Cannot create id for the layout.");
         return CORE_INVALID_ID;
     }
 
     return layout_id;
 }
 
-PRP_FnCode LayoutDelete(CORE_Id *pLayout_id) {
-    // We don't do id validation since the below function will do it anyways.
-    PRP_FnCode code = CORE_IdMgrDeleteData(g_state->layout_id_mgr, pLayout_id);
-    if (code != PRP_FN_SUCCESS) {
-        PRP_LOG_FN_CODE(code, "Cannot delete the given behavior set id.");
-        return code;
-    }
+PRP_Result LayoutDelete(CORE_Id *pLayout_id) {
+    DIAG_GUARD(pLayout_id != DT_null, PRP_ERR_INV_ARG);
 
-    return PRP_FN_SUCCESS;
+    Layout temp = {0};
+
+    return CORE_IdMgrDeleteData(g_state->layout_id_mgr, pLayout_id, &temp);
 }
 
-static inline PRP_FnCode FreeChunkPtrs(DT_void *pVal, DT_void *user_data) {
+static inline PRP_Result FreeChunkPtrs(DT_void *pVal, DT_void *user_data) {
     (DT_void) user_data;
     Chunk **pChunk_ptr = pVal;
     free(*pChunk_ptr);
 
-    return PRP_FN_SUCCESS;
+    return PRP_OK;
 }
 
-PRP_FnCode LayoutDelCb(DT_void *layout) {
-    PRP_NULL_ARG_CHECK(layout, PRP_FN_INV_ARG_ERROR);
+PRP_Result LayoutDelCb(DT_void *layout) {
+    DIAG_GUARD(layout != DT_null, PRP_ERR_INV_ARG);
 
     Layout *l = layout;
     if (l->comp_arr_strides) {
@@ -208,7 +197,7 @@ PRP_FnCode LayoutDelCb(DT_void *layout) {
     }
     l->chunk_size = 0;
 
-    return PRP_FN_SUCCESS;
+    return PRP_OK;
 }
 
 // Utility macros for brevity and less points of failure if something changes.
@@ -216,19 +205,16 @@ PRP_FnCode LayoutDelCb(DT_void *layout) {
     (*(Chunk **)DT_ArrGet((layout)->chunk_ptrs, (chunk_i)))
 #define SLOT_BIT_MASK(slot) (1U << (slot))
 
-PRP_FnCode LayoutCreateEntity(CORE_Id layout_id, FECS_EntityId *entity_id) {
-    PRP_NULL_ARG_CHECK(entity_id, PRP_FN_INV_ARG_ERROR);
+PRP_Result LayoutCreateEntity(CORE_Id layout_id, FECS_EntityId *entity_id) {
+    DIAG_GUARD(entity_id != DT_null, PRP_ERR_INV_ARG);
     Layout *layout = CORE_IdToData(g_state->layout_id_mgr, layout_id);
     if (!layout) {
-        PRP_LOG_FN_INV_ARG_ERROR(layout_id);
-        return PRP_FN_INV_ARG_ERROR;
+        return PRP_ERR_INV_ARG;
     }
 
     if (!DT_BitmapSetCount(layout->free_chunks)) {
-        PRP_FnCode code = AddLayoutChunk(layout);
-        if (code != PRP_FN_SUCCESS) {
-            PRP_LOG_FN_CODE(code,
-                            "Cannot create new entity. No space available.");
+        PRP_Result code = AddLayoutChunk(layout);
+        if (code != PRP_OK) {
             return code;
         }
     }
@@ -247,29 +233,25 @@ PRP_FnCode LayoutCreateEntity(CORE_Id layout_id, FECS_EntityId *entity_id) {
 
     entity_id->gen = chunk->gens[entity_id->slot];
 
-    return PRP_FN_SUCCESS;
+    return PRP_OK;
 }
 
-PRP_FnCode LayoutDeleteEntity(FECS_EntityId *entity_id) {
-    PRP_NULL_ARG_CHECK(entity_id, PRP_FN_INV_ARG_ERROR);
+PRP_Result LayoutDeleteEntity(FECS_EntityId *entity_id) {
+    DIAG_GUARD(entity_id != DT_null, PRP_ERR_INV_ARG);
     if (entity_id->slot >= CHUNK_CAP) {
-        PRP_LOG_FN_INV_ARG_ERROR(entity_id->slot);
-        return PRP_FN_INV_ARG_ERROR;
+        return PRP_ERR_INV_ARG;
     }
     Layout *layout =
         CORE_IdToData(g_state->layout_id_mgr, entity_id->layout_id);
     if (!layout) {
-        PRP_LOG_FN_INV_ARG_ERROR(entity_id->layout_id);
-        return PRP_FN_INV_ARG_ERROR;
+        return PRP_ERR_INV_ARG;
     }
     if (entity_id->chunk_i >= DT_ArrLen(layout->chunk_ptrs)) {
-        PRP_LOG_FN_INV_ARG_ERROR(entity_id->chunk_i);
-        return PRP_FN_INV_ARG_ERROR;
+        return PRP_ERR_INV_ARG;
     }
     Chunk *chunk = CHUNK(layout, entity_id->chunk_i);
     if (chunk->gens[entity_id->slot] != entity_id->gen) {
-        PRP_LOG_FN_INV_ARG_ERROR(entity_id->gen);
-        return PRP_FN_INV_ARG_ERROR;
+        return PRP_ERR_INV_ARG;
     }
 
     chunk->gens[entity_id->slot]++;
@@ -278,25 +260,19 @@ PRP_FnCode LayoutDeleteEntity(FECS_EntityId *entity_id) {
     // This invalidates the entity Id.
     memset(entity_id, 0XFF, sizeof(FECS_EntityId));
 
-    return PRP_FN_SUCCESS;
+    return PRP_OK;
 }
 
 FECS_EntityIdBatch *LayoutCreateEntityBatch(CORE_Id layout_id, DT_size count) {
-    if (!count) {
-        PRP_LOG_FN_CODE(PRP_FN_INV_ARG_ERROR,
-                        "FECS_EntityIdBatch can't be made with count=0.");
-        return DT_null;
-    }
+    DIAG_GUARD(count > 0, DT_null);
     Layout *layout = CORE_IdToData(g_state->layout_id_mgr, layout_id);
     if (!layout) {
-        PRP_LOG_FN_INV_ARG_ERROR(layout_id);
         return DT_null;
     }
 
     FECS_EntityIdBatch *entity_batch = malloc(
         sizeof(FECS_EntityIdBatch) + (sizeof(FECS_EntityBatchData) * count));
     if (!entity_batch) {
-        PRP_LOG_FN_MALLOC_ERROR(entity_batch);
         return DT_null;
     }
     entity_batch->layout_id = layout_id;
@@ -307,8 +283,8 @@ FECS_EntityIdBatch *LayoutCreateEntityBatch(CORE_Id layout_id, DT_size count) {
             DT_size chunks_needed = (remaining + CHUNK_CAP - 1) / CHUNK_CAP;
             // Allocating all the needed chunk in bulk.
             for (DT_size j = 0; j < chunks_needed; j++) {
-                PRP_FnCode code = AddLayoutChunk(layout);
-                if (code != PRP_FN_SUCCESS) {
+                PRP_Result code = AddLayoutChunk(layout);
+                if (code != PRP_OK) {
                     if (j > 0) {
                         // Create entities of the chunks added so far.
                         break;
@@ -317,8 +293,8 @@ FECS_EntityIdBatch *LayoutCreateEntityBatch(CORE_Id layout_id, DT_size count) {
                      * We don't throw an error here because going back and
                      * refreeing each entity is expensive.
                      */
-                    PRP_LOG_FN_CODE(
-                        code,
+                    DIAG_LOG_INFO(
+                        DIAG_LOG_CODE_FALLBACK_USED,
                         "Only able to create %zu entities out of %zu. "
                         "Partially created entity batch will be returned.",
                         i, count);
@@ -343,15 +319,15 @@ FECS_EntityIdBatch *LayoutCreateEntityBatch(CORE_Id layout_id, DT_size count) {
     return entity_batch;
 }
 
-PRP_FnCode LayoutDeleteEntityBatch(FECS_EntityIdBatch **pEntity_batch) {
-    PRP_NULL_ARG_CHECK(pEntity_batch, PRP_FN_INV_ARG_ERROR);
+PRP_Result LayoutDeleteEntityBatch(FECS_EntityIdBatch **pEntity_batch) {
+    DIAG_GUARD(pEntity_batch != DT_null, PRP_ERR_INV_ARG);
+    DIAG_GUARD(*pEntity_batch != DT_null, PRP_ERR_INV_ARG);
+
     FECS_EntityIdBatch *entity_batch = *pEntity_batch;
-    PRP_NULL_ARG_CHECK(entity_batch, PRP_FN_INV_ARG_ERROR);
     Layout *layout =
         CORE_IdToData(g_state->layout_id_mgr, entity_batch->layout_id);
     if (!layout) {
-        PRP_LOG_FN_INV_ARG_ERROR(entity_batch->layout_id);
-        return PRP_FN_INV_ARG_ERROR;
+        return PRP_ERR_INV_ARG;
     }
     DT_size chunks_len = DT_ArrLen(layout->chunk_ptrs);
 
@@ -360,16 +336,19 @@ PRP_FnCode LayoutDeleteEntityBatch(FECS_EntityIdBatch **pEntity_batch) {
         DT_u8 slot = entity_batch->entities[i].slot,
               gen = entity_batch->entities[i].gen;
         if (slot >= CHUNK_CAP) {
-            PRP_LOG_FN_INV_ARG_ERROR(slot);
+            DIAG_LOG_ERROR(DIAG_LOG_CODE_CORRUPTION,
+                           "Entity number %zu in entity batch is invalid.", i);
             continue;
         }
         if (chunk_i >= chunks_len) {
-            PRP_LOG_FN_INV_ARG_ERROR(chunk_i);
+            DIAG_LOG_ERROR(DIAG_LOG_CODE_CORRUPTION,
+                           "Entity number %zu in entity batch is invalid.", i);
             continue;
         }
         Chunk *chunk = CHUNK(layout, chunk_i);
         if (chunk->gens[slot] != gen) {
-            PRP_LOG_FN_INV_ARG_ERROR(gen);
+            DIAG_LOG_ERROR(DIAG_LOG_CODE_CORRUPTION,
+                           "Entity number %zu in entity batch is invalid.", i);
             continue;
         }
         chunk->gens[slot]++;
@@ -379,18 +358,21 @@ PRP_FnCode LayoutDeleteEntityBatch(FECS_EntityIdBatch **pEntity_batch) {
     free(entity_batch);
     *pEntity_batch = DT_null;
 
-    return PRP_FN_SUCCESS;
+    return PRP_OK;
 }
 
 static DT_size CompIdToCompArrStrideI(Layout *layout, FECS_CompId comp_id) {
+    DIAG_ASSERT(layout != DT_null);
+    DIAG_ASSERT(comp_id < DT_ArrLen(g_state->comp_registry.comp_sizes));
+
     DT_size index = PRP_INVALID_INDEX;
     DT_size word_cap, bit_cap;
     const DT_Bitword *b_set_raw =
         DT_BitmapRaw(layout->b_set, &word_cap, &bit_cap);
 
     /*
-     * Not respecting word cap and bit cap since the below is guaranteed to be
-     * within bounds.
+     * Not respecting word cap and bit cap since the below is guaranteed to
+     * be within bounds.
      */
     for (DT_size i = 0; i < WORD_I(comp_id); i++) {
         index += DT_BitwordPopCnt(b_set_raw[i]);
@@ -402,29 +384,25 @@ static DT_size CompIdToCompArrStrideI(Layout *layout, FECS_CompId comp_id) {
     return index;
 }
 
-PRP_FnCode LayoutEntityOperateComp(FECS_EntityId entity_id, FECS_CompId comp_id,
-                                   PRP_FnCode (*fn)(DT_void *data,
+PRP_Result LayoutEntityOperateComp(FECS_EntityId entity_id, FECS_CompId comp_id,
+                                   PRP_Result (*fn)(DT_void *data,
                                                     DT_void *user_data),
                                    DT_void *user_data) {
-    PRP_NULL_ARG_CHECK(fn, PRP_FN_INV_ARG_ERROR);
-    COMP_ID_VALIDITY_CHECK(comp_id, PRP_FN_INV_ARG_ERROR);
+    DIAG_GUARD(fn != DT_null, PRP_ERR_INV_ARG);
+    COMP_ID_VALIDITY_CHECK(comp_id, PRP_ERR_INV_ARG);
     if (entity_id.slot >= CHUNK_CAP) {
-        PRP_LOG_FN_INV_ARG_ERROR(entity_id.slot);
-        return PRP_FN_INV_ARG_ERROR;
+        return PRP_ERR_INV_ARG;
     }
     Layout *layout = CORE_IdToData(g_state->layout_id_mgr, entity_id.layout_id);
     if (!layout) {
-        PRP_LOG_FN_INV_ARG_ERROR(entity_id.layout_id);
-        return PRP_FN_INV_ARG_ERROR;
+        return PRP_ERR_INV_ARG;
     }
     if (entity_id.chunk_i >= DT_ArrLen(layout->chunk_ptrs)) {
-        PRP_LOG_FN_INV_ARG_ERROR(entity_id.chunk_i);
-        return PRP_FN_INV_ARG_ERROR;
+        return PRP_ERR_INV_ARG;
     }
     Chunk *chunk = CHUNK(layout, entity_id.chunk_i);
     if (chunk->gens[entity_id.slot] != entity_id.gen) {
-        PRP_LOG_FN_INV_ARG_ERROR(entity_id.gen);
-        return PRP_FN_INV_ARG_ERROR;
+        return PRP_ERR_INV_ARG;
     }
 
     DT_size comp_arr_stride =
@@ -437,17 +415,16 @@ PRP_FnCode LayoutEntityOperateComp(FECS_EntityId entity_id, FECS_CompId comp_id,
     return fn(data, user_data);
 }
 
-PRP_FnCode LayoutEntityBatchOperateComp(
+PRP_Result LayoutEntityBatchOperateComp(
     FECS_EntityIdBatch *entity_batch, FECS_CompId comp_id,
-    PRP_FnCode (*fn)(DT_void *data, DT_void *user_data), DT_void *user_data) {
-    PRP_NULL_ARG_CHECK(fn, PRP_FN_INV_ARG_ERROR);
-    COMP_ID_VALIDITY_CHECK(comp_id, PRP_FN_INV_ARG_ERROR);
-    PRP_NULL_ARG_CHECK(entity_batch, PRP_FN_INV_ARG_ERROR);
+    PRP_Result (*fn)(DT_void *data, DT_void *user_data), DT_void *user_data) {
+    DIAG_GUARD(fn != DT_null, PRP_ERR_INV_ARG);
+    COMP_ID_VALIDITY_CHECK(comp_id, PRP_ERR_INV_ARG);
+    DIAG_GUARD(entity_batch != DT_null, PRP_ERR_INV_ARG);
     Layout *layout =
         CORE_IdToData(g_state->layout_id_mgr, entity_batch->layout_id);
     if (!layout) {
-        PRP_LOG_FN_INV_ARG_ERROR(entity_batch->layout_id);
-        return PRP_FN_INV_ARG_ERROR;
+        return PRP_ERR_INV_ARG;
     }
 
     DT_size chunks_len = DT_ArrLen(layout->chunk_ptrs);
@@ -461,16 +438,19 @@ PRP_FnCode LayoutEntityBatchOperateComp(
         DT_u8 slot = entity_batch->entities[i].slot,
               gen = entity_batch->entities[i].gen;
         if (slot >= CHUNK_CAP) {
-            PRP_LOG_FN_INV_ARG_ERROR(slot);
+            DIAG_LOG_ERROR(DIAG_LOG_CODE_CORRUPTION,
+                           "Entity number %zu in entity batch is invalid.", i);
             continue;
         }
         if (chunk_i >= chunks_len) {
-            PRP_LOG_FN_INV_ARG_ERROR(chunk_i);
+            DIAG_LOG_ERROR(DIAG_LOG_CODE_CORRUPTION,
+                           "Entity number %zu in entity batch is invalid.", i);
             continue;
         }
         Chunk *chunk = CHUNK(layout, chunk_i);
         if (chunk->gens[slot] != gen) {
-            PRP_LOG_FN_INV_ARG_ERROR(gen);
+            DIAG_LOG_ERROR(DIAG_LOG_CODE_CORRUPTION,
+                           "Entity number %zu in entity batch is invalid.", i);
             continue;
         }
 
@@ -479,5 +459,5 @@ PRP_FnCode LayoutEntityBatchOperateComp(
         fn(data, user_data);
     }
 
-    return PRP_FN_SUCCESS;
+    return PRP_OK;
 }

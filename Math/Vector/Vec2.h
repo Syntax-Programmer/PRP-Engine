@@ -26,8 +26,8 @@ typedef struct {
 PRP_FN_API MATH_Vec2 PRP_FN_CALL MATH_Vec2FromTheta(DT_f32 theta);
 PRP_FN_API MATH_Vec2 PRP_FN_CALL MATH_Vec2FromPolar(DT_f32 r, DT_f32 theta);
 PRP_FN_API MATH_Vec2 PRP_FN_CALL MATH_Vec2FromArray(const DT_f32 arr[2]);
-PRP_FN_API PRP_FnCode PRP_FN_CALL MATH_Vec2ToArray(MATH_Vec2 v, DT_f32 out[2]);
-PRP_FN_API PRP_FnCode PRP_FN_CALL MATH_Vec2ToPolar(MATH_Vec2 v, DT_f32 *r,
+PRP_FN_API PRP_Result PRP_FN_CALL MATH_Vec2ToArray(MATH_Vec2 v, DT_f32 out[2]);
+PRP_FN_API PRP_Result PRP_FN_CALL MATH_Vec2ToPolar(MATH_Vec2 v, DT_f32 *r,
                                                    DT_f32 *theta);
 
 /* ----  VEC-VEC MATH ---- */

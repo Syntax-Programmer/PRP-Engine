@@ -49,19 +49,19 @@ extern "C" {
 /* ----  UNREACHABLE---- */
 
 #if defined(__clang__) || defined(__GNUC__)
-#define PRP_UNREACHABLE()                                                      \
+#define DIAG_UNREACHABLE()                                                      \
     do {                                                                       \
         DIAG_PANIC("UNREACHABLE reached");                                     \
         __builtin_unreachable();                                               \
     } while (0)
 #elif defined(_MSC_VER)
-#define PRP_UNREACHABLE()                                                      \
+#define DIAG_UNREACHABLE()                                                      \
     do {                                                                       \
         DIAG_PANIC("UNREACHABLE reached");                                     \
         __assume(0);                                                           \
     } while (0)
 #else
-#define PRP_UNREACHABLE() DIAG_PANIC("UNREACHABLE reached")
+#define DIAG_UNREACHABLE() DIAG_PANIC("UNREACHABLE reached")
 #endif
 
 /* ----  STATIC ASSERT ---- */
@@ -78,7 +78,7 @@ extern "C" {
 #define DIAG_GUARD(expr, ret)                                                  \
     do {                                                                       \
         if (!(expr)) {                                                         \
-            return (ret)                                                       \
+            return (ret);                                                       \
         }                                                                      \
     } while (0);
 
@@ -102,6 +102,10 @@ extern "C" {
         }                                                                      \
     } while (0)
 
+/**
+ * Note that in the debug mode the ret argument is irrelevant and won't play any
+ * role in anything.    
+ */
 #define DIAG_GUARD(expr, ret) DIAG_ASSERT(expr)
 
 #endif

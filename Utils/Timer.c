@@ -1,8 +1,7 @@
-#include "Defs.h"
 #define _POSIX_C_SOURCE 200809L // Enable clock_gettime on POSIX systems
 
-#include "../Diagnostics/Assert.h"
 #include "Timer.h"
+#include "../Diagnostics/Assert.h"
 
 /* ----  TIME MEASUREMENT  ---- */
 

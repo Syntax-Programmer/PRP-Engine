@@ -6,7 +6,7 @@ extern "C" {
 
 #include "../Data-Types/Arr.h"
 #include "../Data-Types/Bitmap.h"
-#include "../Utils/Logger.h"
+#include "../Diagnostics/Assert.h"
 #include "Shared-Defs.h"
 
 /**
@@ -23,20 +23,15 @@ extern "C" {
 /* ----  COMP ---- */
 
 #define COMP_ID_VALIDITY_CHECK(comp_id, ret)                                   \
-    do {                                                                       \
-        if (comp_id >= DT_ArrLen(g_state->comp_registry.comp_sizes)) {         \
-            PRP_LOG_FN_INV_ARG_ERROR(comp_id);                                 \
-            return ret;                                                        \
-        }                                                                      \
-    } while (0)
+    DIAG_GUARD(comp_id < DT_ArrLen(g_state->comp_registry.comp_sizes), ret)
 
 /**
  * Registers the component of the given size to the FECS.
  *
  * @param comp_size: The size the comp struct is going to be.
  *
- * @return FECS_INVALID_COMP_ID if the comp_size=0 or we can't create any more
- * components, otherwise the componenet id of the registerted component
+ * @return FECS_INVALID_COMP_ID if the comp_size=0 or we can't create any
+ * more components, otherwise the componenet id of the registerted component
  */
 FECS_CompId CompRegister(DT_size comp_size);
 
@@ -56,19 +51,20 @@ CORE_Id BehaviorSetCreate(DT_void);
  *
  * @param pB_set_id: The pointer to the id of the behavior set to delete.
  *
- * @return PRP_FN_INV_ARG_ERROR if pB_set_id is DT_null or the id it points to
- * is invalid, otherwise it returns PRP_FN_SUCCESS.
+ * @return PRP_ERR_INV_ARG if pB_set_id is DT_null,
+ * PRP_ERR_OOB/PRP_ERR_INVALID_STATE if the id is invalid, otherwise it returns
+ * PRP_OK.
  */
-PRP_FnCode BehaviorSetDelete(CORE_Id *pB_set_id);
+PRP_Result BehaviorSetDelete(CORE_Id *pB_set_id);
 /**
  * Empties the behavior set the given id is linked to.
  *
  * #param b_set_id; The id to the behavior set to empty,
  *
- * @return PRP_FN_INV_ARG_ERROR id the given id is invalid in some way,
- * otherwise the PRP_FN_SUCCESS.
+ * @return PRP_ERR_INV_ARG id the given id is invalid in some way, otherwise the
+ * PRP_OK.
  */
-PRP_FnCode BehaviorSetClear(CORE_Id b_set_id);
+PRP_Result BehaviorSetClear(CORE_Id b_set_id);
 /**
  * Attaches the given component id to the behavior set the given b_set_id
  * points to.
@@ -76,11 +72,11 @@ PRP_FnCode BehaviorSetClear(CORE_Id b_set_id);
  * @param b_set_id: The id to the behavior set to attach the component to.
  * @param comp_id: The component id to attach to the behavior set.
  *
- * @return PRP_FN_INV_ARG_ERROR if the parameters are invalid in any way,
- * PRP_FN_RES_EXHAUSTED_ERROR if the behavior_set cannot accommodate anymore
- * comp id, otherwise PRP_FN_SUCCESS.
+ * @return PRP_ERR_INV_ARG if the parameters are invalid in any way,
+ * PRP_ERR_RES_EXHAUSTED/PRP_ERR_OOM if the behavior_set cannot accommodate
+ * anymore comp id, otherwise PRP_OK.
  */
-PRP_FnCode BehaviorSetAttachComp(CORE_Id b_set_id, FECS_CompId comp_id);
+PRP_Result BehaviorSetAttachComp(CORE_Id b_set_id, FECS_CompId comp_id);
 /**
  * Detaches the given component id from the behavior set the given b_set_id
  * points to.
@@ -88,10 +84,10 @@ PRP_FnCode BehaviorSetAttachComp(CORE_Id b_set_id, FECS_CompId comp_id);
  * @param b_set_id: The id to the behavior set to detach the component from.
  * @param comp_id: The component id to detach from the behavior set.
  *
- * @return PRP_FN_INV_ARG_ERROR if the parameters are invalid in any way,
- * otherwise PRP_FN_SUCCESS.
+ * @return PRP_ERR_INV_ARG if the parameters are invalid in any way, otherwise
+ * PRP_OK.
  */
-PRP_FnCode BehaviorSetDetachComp(CORE_Id b_set_id, FECS_CompId comp_id);
+PRP_Result BehaviorSetDetachComp(CORE_Id b_set_id, FECS_CompId comp_id);
 /**
  * Checks if the given component id is present in the behavior set the b_set_id
  * points to.
@@ -101,10 +97,10 @@ PRP_FnCode BehaviorSetDetachComp(CORE_Id b_set_id, FECS_CompId comp_id);
  * @param pRslt: The pointer to the variable where the boolean result will be
  * stored.
  *
- * @return PRP_FN_INV_ARG_ERROR if the parameters are invalid in any way,
- * otherwise PRP_FN_SUCCESS.
+ * @return PRP_ERR_INV_ARG if the parameters are invalid in any way,
+ * otherwise PRP_OK.
  */
-PRP_FnCode BehaviorSetHasComp(CORE_Id b_set_id, FECS_CompId comp_id,
+PRP_Result BehaviorSetHasComp(CORE_Id b_set_id, FECS_CompId comp_id,
                               DT_bool *pRslt);
 /**
  * Callback for the CORE_IdMgr the behavior sets belong to so that the IdMgr can
@@ -112,10 +108,10 @@ PRP_FnCode BehaviorSetHasComp(CORE_Id b_set_id, FECS_CompId comp_id,
  *
  * @param data: The pointer to the data the IdMgr gives to us to free.
  *
- * @return Ideally should always return PRP_FN_SUCCESS, unless some internal
+ * @return Ideally should always return PRP_OK, unless some internal
  * corruption happened,
  */
-PRP_FnCode BehaviorSetDelCb(DT_void *pB_set);
+PRP_Result BehaviorSetDelCb(DT_void *pB_set);
 
 /* ----  LAYOUT ---- */
 
@@ -196,20 +192,21 @@ CORE_Id LayoutCreate(CORE_Id b_set_id, DT_bool *pIsDuplicate);
  *
  * @param pLayout_id: The pointer to the id of the layout to delete.
  *
- * @return PRP_FN_INV_ARG_ERROR if pLayout_id is DT_null or the id it points to
- * is invalid, otherwise it returns PRP_FN_SUCCESS.
+ * @return PRP_ERR_INV_ARG if pLayout_id is DT_null,
+ * PRP_ERR_OOB/PRP_ERR_INVALID_STATE if the id is invalid, otherwise it returns
+ * PRP_OK.
  */
-PRP_FnCode LayoutDelete(CORE_Id *pLayout_id);
+PRP_Result LayoutDelete(CORE_Id *pLayout_id);
 /**
  * Callback for the CORE_IdMgr the layout belong to so that the IdMgr can
  * free data.
  *
  * @param layout: The pointer to the layout the IdMgr gives to us to free.
  *
- * @return Ideally should always return PRP_FN_SUCCESS, unless some internal
- * corruption happened,
+ * @return Ideally should always return PRP_OK, unless some internal corruption
+ * happened,
  */
-PRP_FnCode LayoutDelCb(DT_void *layout);
+PRP_Result LayoutDelCb(DT_void *layout);
 
 /**
  * Create a new entity in the layout.
@@ -217,27 +214,26 @@ PRP_FnCode LayoutDelCb(DT_void *layout);
  * @param layout_id: The id of the layout from which to create the entity.
  * @param entity_id: The storage for the new entity.
  *
- * @return PRP_FN_INV_ARG_ERROR if the parameters are invalid in any way,
- * PRP_FN_MALLOC_ERROR/PRP_FN_RES_EXHAUSTED_ERROR if the layout can't allocate
- * any more entities, otherwise PRP_FN_SUCCESS.
+ * @return PRP_ERR_INV_ARG if the parameters are invalid in any way,
+ * PRP_ERR_OOM/PRP_ERR_RES_EXHAUSTED if the layout can't allocate any more
+ * entities, otherwise PRP_OK.
  */
-PRP_FnCode LayoutCreateEntity(CORE_Id layout_id, FECS_EntityId *entity_id);
+PRP_Result LayoutCreateEntity(CORE_Id layout_id, FECS_EntityId *entity_id);
 /**
  * Deletes the entity corresponding to the given id.
  *
  * @param entity_id: The id of the entity to delete.
  *
- * @return PRP_FN_INV_ARG_ERROR if the entity id is invalid, otherwise
- * PRP_FN_SUCCESS.
+ * @return PRP_ERR_INV_ARG if the entity id is invalid, otherwise PRP_OK.
  */
-PRP_FnCode LayoutDeleteEntity(FECS_EntityId *entity_id);
+PRP_Result LayoutDeleteEntity(FECS_EntityId *entity_id);
 /**
  * Creates a batch of entities in the layout.
  *
  * @param layout_id: The id of the layout from which to create the entities.
  * @param count: The number of entities to create.
  *
- * @return DT_NULL if the parameter is invalid in any way, otherwise a pointer
+ * @return DT_null if the parameter is invalid in any way, otherwise a pointer
  * to the created entity batch.
  *
  * @note If count number of slots cannot be allocated, but some entities are
@@ -251,13 +247,13 @@ FECS_EntityIdBatch *LayoutCreateEntityBatch(CORE_Id layout_id, DT_size count);
  *
  * @param pEntity_batch: The pointer to the entity batch pointer to delete.
  *
- * @return PRP_FN_INV_ARG_ERROR if pEntity_batch is DT_null or the entity batch
- * it points to is invalid, otherwise it returns PRP_FN_SUCCESS.
+ * @return PRP_ERR_INV_ARG if pEntity_batch is DT_null or the entity batch
+ * it points to is invalid, otherwise it returns PRP_OK.
  *
  * @note If any entity in the batch is deemed invalid, the function will just
  * skip over it. LIKE A BOSS.
  */
-PRP_FnCode LayoutDeleteEntityBatch(FECS_EntityIdBatch **pEntity_batch);
+PRP_Result LayoutDeleteEntityBatch(FECS_EntityIdBatch **pEntity_batch);
 /**
  * Provides the comp id's data of the entity to the fn for usage.
  *
@@ -266,11 +262,11 @@ PRP_FnCode LayoutDeleteEntityBatch(FECS_EntityIdBatch **pEntity_batch);
  * @param fn: The function that will be called with the comp id's data.
  * @param user_data: The user data to pass to the function.
  *
- * @return PRP_FN_INV_ARG_ERROR if the parameters are invalid in any way,
- * otherwise it returns PRP_FN_SUCCESS.
+ * @return PRP_ERR_INV_ARG if the parameters are invalid in any way,
+ * otherwise it returns PRP_OK or whatever the dn returns.
  */
-PRP_FnCode LayoutEntityOperateComp(FECS_EntityId entity_id, FECS_CompId comp_id,
-                                   PRP_FnCode (*fn)(DT_void *data,
+PRP_Result LayoutEntityOperateComp(FECS_EntityId entity_id, FECS_CompId comp_id,
+                                   PRP_Result (*fn)(DT_void *data,
                                                     DT_void *user_data),
                                    DT_void *user_data);
 /**
@@ -282,12 +278,12 @@ PRP_FnCode LayoutEntityOperateComp(FECS_EntityId entity_id, FECS_CompId comp_id,
  * @param fn: The function that will be called with the comp id's data.
  * @param user_data: The user data to pass to the function.
  *
- * @return PRP_FN_INV_ARG_ERROR if the parameters are invalid in any way,
- * otherwise it returns PRP_FN_SUCCESS.
+ * @return PRP_ERR_INV_ARG if the parameters are invalid in any way,
+ * otherwise it returns PRP_OK.
  */
-PRP_FnCode LayoutEntityBatchOperateComp(
+PRP_Result LayoutEntityBatchOperateComp(
     FECS_EntityIdBatch *entity_batch, FECS_CompId comp_id,
-    PRP_FnCode (*fn)(DT_void *data, DT_void *user_data), DT_void *user_data);
+    PRP_Result (*fn)(DT_void *data, DT_void *user_data), DT_void *user_data);
 
 /* ----  QUERY  ---- */
 
@@ -316,10 +312,11 @@ CORE_Id QueryCreate(CORE_Id exclude_b_set_id, CORE_Id include_b_set_id);
  *
  * @param pQuery_id: The pointer to the id of the query to delete.
  *
- * @return PRP_FN_INV_ARG_ERROR if pQuery_id is DT_null or the id it points to
- * is invalid, otherwise it returns PRP_FN_SUCCESS.
+ * @return PRP_ERR_INV_ARG if pQuery_id is DT_null,
+ * PRP_ERR_OOB/PRP_ERR_INVALID_STATE if the id is invalid, otherwise it returns
+ * PRP_OK.
  */
-PRP_FnCode QueryDelete(CORE_Id *pQuery_id);
+PRP_Result QueryDelete(CORE_Id *pQuery_id);
 
 /**
  * Callback for the CORE_IdMgr the layout belong to so that the IdMgr can
@@ -327,28 +324,26 @@ PRP_FnCode QueryDelete(CORE_Id *pQuery_id);
  *
  * @param query: The pointer to the query the IdMgr gives to us to free.
  *
- * @return Ideally should always return PRP_FN_SUCCESS, unless some internal
+ * @return Ideally should always return PRP_O, unless some internal
  * corruption happened,
  */
-PRP_FnCode QueryDelCb(DT_void *query);
+PRP_Result QueryDelCb(DT_void *query);
 /**
  * Updates every query to also account for the newly created layout.
  *
  * @param layout_id: The id of the layout to cascade.
  *
- * @return PRP_FN_INV_ARG_ERROR if layout_id is invalid, otherwise it returns
- * PRP_FN_SUCCESS.
+ * @return PRP_ERR_INV_ARG if layout_id is invalid, otherwise it returns PRP_OK.
  */
-PRP_FnCode QueryCascadeLayoutCreate(CORE_Id layout_id);
+PRP_Result QueryCascadeLayoutCreate(CORE_Id layout_id);
 /**
  * Updates every query to also account for the deleted layout.
  *
  * @param layout_id: The id of the layout to cascade.
  *
- * @return PRP_FN_INV_ARG_ERROR if layout_id is invalid, otherwise it returns
- * PRP_FN_SUCCESS.
+ * @return PRP_ERR_INV_ARG if layout_id is invalid, otherwise it returns PRP_OK.
  */
-PRP_FnCode QueryCascadeLayoutDelete(CORE_Id layout_id);
+PRP_Result QueryCascadeLayoutDelete(CORE_Id layout_id);
 
 /* ----  SYSTEM  ---- */
 
@@ -374,19 +369,19 @@ CORE_Id SystemCreate(CORE_Id query_id, FECS_SysFn fn, DT_void *user_data);
  *
  * @param pSystem_id: The pointer to the id of the system to delete.
  *
- * @return PRP_FN_INV_ARG_ERROR if pSystem_id is DT_null or the id it points to
- * is invalid, otherwise it returns PRP_FN_SUCCESS.
+ * @return PRP_ERR_INV_ARG if pSystem_id is DT_null,
+ * PRP_ERR_OOB/PRP_ERR_INVALID_STATE if the id is invalid, otherwise it returns
+ * PRP_OK.
  */
-PRP_FnCode SystemDelete(CORE_Id *pSystem_id);
+PRP_Result SystemDelete(CORE_Id *pSystem_id);
 /**
  * Executes the system with the given id.
  *
  * @param system_id: The id of the system to execute.
  *
- * @return PRP_FN_INV_ARG_ERROR if system_id is invalid, otherwise it returns
- * PRP_FN_SUCCESS.
+ * @return PRP_ERR_INV_ARG if system_id is invalid, otherwise it returns PRP_OK.
  */
-PRP_FnCode SystemExec(CORE_Id system_id);
+PRP_Result SystemExec(CORE_Id system_id);
 
 /* ----  STATE  ---- */
 

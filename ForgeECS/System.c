@@ -1,41 +1,31 @@
 #include "Shared-Internals.h"
 
 CORE_Id SystemCreate(CORE_Id query_id, FECS_SysFn fn, DT_void *user_data) {
-    PRP_NULL_ARG_CHECK(fn, CORE_INVALID_ID);
-    DT_bool rslt;
+    DIAG_GUARD(fn != DT_null, CORE_INVALID_ID);
 
-    if (CORE_IdIsValid(g_state->query_id_mgr, query_id, &rslt) !=
-            PRP_FN_SUCCESS ||
+    DT_bool rslt;
+    if (CORE_IdIsValid(g_state->query_id_mgr, query_id, &rslt) != PRP_OK ||
         !rslt) {
-        PRP_LOG_FN_INV_ARG_ERROR(query_id);
         return CORE_INVALID_ID;
     }
 
     System system = {.query_id = query_id, .fn = fn, .user_data = user_data};
 
-    CORE_Id system_id = CORE_IdMgrAddData(g_state->system_id_mgr, &system);
-    if (system_id == CORE_INVALID_ID) {
-        PRP_LOG_FN_CODE(PRP_FN_FAILURE, "Cannot create id for the system.");
-    }
-
-    return system_id;
+    return CORE_IdMgrAddData(g_state->system_id_mgr, &system);
 }
 
-PRP_FnCode SystemDelete(CORE_Id *pSystem_id) {
-    PRP_FnCode code = CORE_IdMgrDeleteData(g_state->system_id_mgr, pSystem_id);
-    if (code != PRP_FN_SUCCESS) {
-        PRP_LOG_FN_CODE(code, "Cannot delete the given system id.");
-        return code;
-    }
+PRP_Result SystemDelete(CORE_Id *pSystem_id) {
+    DIAG_GUARD(pSystem_id != DT_null, PRP_ERR_INV_ARG);
 
-    return PRP_FN_SUCCESS;
+    System temp = {0};
+
+    return CORE_IdMgrDeleteData(g_state->system_id_mgr, pSystem_id, &temp);
 }
 
-PRP_FnCode SystemExec(CORE_Id system_id) {
+PRP_Result SystemExec(CORE_Id system_id) {
     System *system = CORE_IdToData(g_state->system_id_mgr, system_id);
     if (!system) {
-        PRP_LOG_FN_INV_ARG_ERROR(system_id);
-        return PRP_FN_INV_ARG_ERROR;
+        return PRP_ERR_INV_ARG;
     }
     /*
      * This MUST be valid otherwise we can assume that someone maliciously
@@ -74,5 +64,5 @@ PRP_FnCode SystemExec(CORE_Id system_id) {
         }
     }
 
-    return PRP_FN_SUCCESS;
+    return PRP_OK;
 }

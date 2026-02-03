@@ -4,7 +4,6 @@
     do {                                                                       \
         if (!x) {                                                              \
             QueryDelCb(&query);                                                \
-            PRP_LOG_FN_MALLOC_ERROR(x);                                        \
             return CORE_INVALID_ID;                                            \
         }                                                                      \
     } while (0);
@@ -16,7 +15,6 @@ CORE_Id QueryCreate(CORE_Id exclude_b_set_id, CORE_Id include_b_set_id) {
         DT_Bitmap **pExc_b_set =
             CORE_IdToData(g_state->b_set_id_mgr, exclude_b_set_id);
         if (!pExc_b_set) {
-            PRP_LOG_FN_INV_ARG_ERROR(exclude_b_set_id);
             return CORE_INVALID_ID;
         }
         query.exclude_comps = DT_BitmapClone(*pExc_b_set);
@@ -26,7 +24,6 @@ CORE_Id QueryCreate(CORE_Id exclude_b_set_id, CORE_Id include_b_set_id) {
     DT_Bitmap **pInc_b_set =
         CORE_IdToData(g_state->b_set_id_mgr, include_b_set_id);
     if (!pInc_b_set) {
-        PRP_LOG_FN_INV_ARG_ERROR(pInc_b_set);
         return CORE_INVALID_ID;
     }
     query.include_comps = DT_BitmapClone(*pInc_b_set);
@@ -54,27 +51,19 @@ CORE_Id QueryCreate(CORE_Id exclude_b_set_id, CORE_Id include_b_set_id) {
         }
     }
 
-    PRP_FnCode code = CORE_IdMgrAddData(g_state->query_id_mgr, &query);
-    if (code != PRP_FN_SUCCESS) {
-        PRP_LOG_FN_CODE(code, "Cannot create id for the query.");
-        return code;
-    }
-
-    return PRP_FN_SUCCESS;
+    return CORE_IdMgrAddData(g_state->query_id_mgr, &query);
 }
 
-PRP_FnCode QueryDelete(CORE_Id *pQuery_id) {
-    PRP_FnCode code = CORE_IdMgrDeleteData(g_state->query_id_mgr, pQuery_id);
-    if (code != PRP_FN_SUCCESS) {
-        PRP_LOG_FN_CODE(code, "Cannot delete the given query id.");
-        return code;
-    }
+PRP_Result QueryDelete(CORE_Id *pQuery_id) {
+    DIAG_GUARD(pQuery_id != DT_null, PRP_ERR_INV_ARG);
 
-    return PRP_FN_SUCCESS;
+    Query temp = {0};
+
+    return CORE_IdMgrDeleteData(g_state->query_id_mgr, pQuery_id, &temp);
 }
 
-PRP_FnCode QueryDelCb(DT_void *query) {
-    PRP_NULL_ARG_CHECK(query, PRP_FN_INV_ARG_ERROR);
+PRP_Result QueryDelCb(DT_void *query) {
+    DIAG_GUARD(query != DT_null, PRP_ERR_INV_ARG);
 
     Query *q = query;
     if (q->include_comps) {
@@ -87,18 +76,17 @@ PRP_FnCode QueryDelCb(DT_void *query) {
         DT_ArrDelete(&q->layout_matches);
     }
 
-    return PRP_FN_SUCCESS;
+    return PRP_OK;
 }
 
-PRP_FnCode QueryCascadeLayoutCreate(CORE_Id layout_id) {
+PRP_Result QueryCascadeLayoutCreate(CORE_Id layout_id) {
     /*
      * This is an internal function managed by FECS so we are guaranteed to have
      * a never before seen layout here.
      */
     Layout *layout = CORE_IdToData(g_state->layout_id_mgr, layout_id);
     if (!layout) {
-        PRP_LOG_FN_INV_ARG_ERROR(layout_id);
-        return PRP_FN_INV_ARG_ERROR;
+        return PRP_ERR_INV_ARG;
     }
 
     DT_u32 len;
@@ -118,10 +106,10 @@ PRP_FnCode QueryCascadeLayoutCreate(CORE_Id layout_id) {
         }
     }
 
-    return PRP_FN_SUCCESS;
+    return PRP_OK;
 }
 
-PRP_FnCode QueryCascadeLayoutDelete(CORE_Id layout_id) {
+PRP_Result QueryCascadeLayoutDelete(CORE_Id layout_id) {
     /*
      * This is an internal function managed by FECS so we are guaranteed to have
      * a never before seen layout here.
@@ -129,8 +117,7 @@ PRP_FnCode QueryCascadeLayoutDelete(CORE_Id layout_id) {
     DT_bool rslt;
     CORE_IdIsValid(g_state->layout_id_mgr, layout_id, &rslt);
     if (!rslt) {
-        PRP_LOG_FN_INV_ARG_ERROR(layout_id);
-        return PRP_FN_INV_ARG_ERROR;
+        return PRP_ERR_INV_ARG;
     }
 
     DT_u32 len;
@@ -142,12 +129,13 @@ PRP_FnCode QueryCascadeLayoutDelete(CORE_Id layout_id) {
         for (DT_size j = 0; j < ids_len; j++) {
             if (layout_ids[j] == layout_id) {
                 // Since the layout matches are unordered we can do this.
-                DT_ArrSwap(queries[i].layout_matches, j, ids_len - 1);
+                CORE_Id temp;
+                DT_ArrSwap(queries[i].layout_matches, j, ids_len - 1, &temp);
                 DT_ArrPop(queries[i].layout_matches, DT_null);
                 break;
             }
         }
     }
 
-    return PRP_FN_SUCCESS;
+    return PRP_OK;
 }

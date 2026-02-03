@@ -35,8 +35,8 @@ typedef struct _Hm DT_Hm;
 PRP_FN_API DT_Hm *PRP_FN_CALL
     DT_HmCreate(DT_u64 (*hash_fn)(const DT_void *key),
                 DT_bool (*key_cmp_cb)(const DT_void *k1, const DT_void *k2),
-                PRP_FnCode (*key_del_cb)(DT_void *key),
-                PRP_FnCode (*val_del_cb)(DT_void *val));
+                PRP_Result (*key_del_cb)(DT_void *key),
+                PRP_Result (*val_del_cb)(DT_void *val));
 /**
  * Deletes the hashmap and sets the original DT_Hm * to DT_null to prevent use
  * after free bugs.

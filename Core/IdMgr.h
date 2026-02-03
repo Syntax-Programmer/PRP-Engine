@@ -41,17 +41,17 @@ typedef struct _IdMgr CORE_IdMgr;
  * @return The pointer of the id manager.
  */
 PRP_FN_API CORE_IdMgr *PRP_FN_CALL CORE_IdMgrCreate(
-    DT_size data_size, PRP_FnCode (*data_del_cb)(DT_void *data_entry));
+    DT_size data_size, PRP_Result (*data_del_cb)(DT_void *data_entry));
 /**
  * Deletes the id manager and sets the original CORE_IdMgr * to DT_null to
  * prevent use after free bugs.
  *
  * @param pId_mgr: The pointer to the id manager pointer to delete.
  *
- * @return PRP_FN_INV_ARG_ERROR if pId_mgr is DT_null or the id manager it
- * points to is invalid, otherwise it returns PRP_FN_SUCCESS.
+ * @return PRP_ERR_INV_ARG if the pId_mgr or *pId_mgr is DT_null, otherwise it
+ * returns PRP_OK.
  */
-PRP_FN_API PRP_FnCode PRP_FN_CALL CORE_IdMgrDelete(CORE_IdMgr **pId_mgr);
+PRP_FN_API PRP_Result PRP_FN_CALL CORE_IdMgrDelete(CORE_IdMgr **pId_mgr);
 
 /**
  * Returns the raw memory pointer of the data array to the user.
@@ -118,10 +118,10 @@ PRP_FN_API DT_void *PRP_FN_CALL CORE_IdToData(const CORE_IdMgr *id_mgr,
  * @param pRslt: The pointer to the variable where the boolean result will be
  * stored.
  *
- * @return PRP_FN_INV_ARG_ERROR if the parameters are invalid in any way,
- * otherwise PRP_FN_SUCCESS.
+ * @return PRP_ERR_INV_ARG if the parameters are invalid in any way, otherwise
+ * PRP_OK.
  */
-PRP_FN_API PRP_FnCode PRP_FN_CALL CORE_IdIsValid(const CORE_IdMgr *id_mgr,
+PRP_FN_API PRP_Result PRP_FN_CALL CORE_IdIsValid(const CORE_IdMgr *id_mgr,
                                                  CORE_Id id, DT_bool *pRslt);
 /**
  * Converts a data index to an id that manages it.
@@ -155,28 +155,30 @@ PRP_FN_API CORE_Id PRP_FN_CALL CORE_IdMgrAddData(CORE_IdMgr *id_mgr,
  *
  * @param id_mgr: The id manager to delete the data from.
  * @param pId: The pointer to the id that points to the data to delete.
+ * @param temp_data_buffer: A temp buffer to store result b/w function's
+ * internal computations.
  *
- * @return PRP_FN_INV_ARG_ERROR if the parameters are invalid in any way,
- * PRP_FN_OOB_ERROR/PRP_FN_UAF_ERROR if the given id is invalid or stale,
- * otherwise PRP_FN_SUCCESS.
+ * @return PRP_ERR_INV_ARG if the parameters are invalid in any way,
+ * PRP_ERR_OOB/PRP_ERR_INV_STATE if the given id is invalid or stale, otherwise
+ * PRP_OK.
  */
-PRP_FN_API PRP_FnCode PRP_FN_CALL CORE_IdMgrDeleteData(CORE_IdMgr *id_mgr,
-                                                       CORE_Id *pId);
+PRP_FN_API PRP_Result PRP_FN_CALL CORE_IdMgrDeleteData(CORE_IdMgr *id_mgr,
+                                                       CORE_Id *pId,
+                                                       DT_void *temp_data_bffr);
 /**
  * Reserves <count> number of elements in the id manager for future insertion.
  *
  * @param id_mgr: The id manager to reserve into.
  * @param count: The number of elements to reserve.
  *
- * @return PRP_FN_INV_ARG_ERROR if the parameters are invalid in any way,
- * PRP_FN_RES_EXHAUSTED_ERROR if max cap of the id manager is reached,
- * PRP_FN_MALLOC_ERROR if reserving failed due to realloc failure, otherwise
- * PRP_FN_SUCCESS.
+ * @return PRP_ERR_INV_ARG if the parameters are invalid in any way,
+ * PRP_ERR_RES_EXHAUSTED if max cap of the id manager is reached, PRP_ERR_OOM if
+ * reserving failed due to realloc failure, otherwise PRP_OK.
  */
-PRP_FN_API PRP_FnCode PRP_FN_CALL CORE_IdMgrReserve(CORE_IdMgr *id_mgr,
+PRP_FN_API PRP_Result PRP_FN_CALL CORE_IdMgrReserve(CORE_IdMgr *id_mgr,
                                                     DT_u32 count);
 
-// PRP_FN_API PRP_FnCode PRP_FN_CALL CORE_IdMgrShrinkFit(CORE_IdMgr *id_mgr);
+// PRP_FN_API PRP_Result PRP_FN_CALL CORE_IdMgrShrinkFit(CORE_IdMgr *id_mgr);
 
 /**
  * Performs a foreach operation of each of the element of the id manager.
@@ -184,14 +186,14 @@ PRP_FN_API PRP_FnCode PRP_FN_CALL CORE_IdMgrReserve(CORE_IdMgr *id_mgr,
  *
  * @param id_mgr: The id manager on which the foreach will happen.
  * @param cb: The callback to be called per element. If this doesn't return
- * PRP_FN_SUCCESS, further execution will be halted.
+ * PRP_OK, further execution will be halted.
  * @param user_data: Additional data needed for the foreach execution.
  *
- * @return PRP_FN_INV_ARG_ERROR if the parameters are invalid in some way,
- * otherwise PRP_FN_SUCCESS.
+ * @return PRP_ERR_INV_ARG if the parameters are invalid in some way,
+ * otherwise PRP_OK.
  */
-PRP_FN_API PRP_FnCode PRP_FN_CALL CORE_IdMgrForEach(
-    CORE_IdMgr *id_mgr, PRP_FnCode (*cb)(DT_void *pVal, DT_void *user_data),
+PRP_FN_API PRP_Result PRP_FN_CALL CORE_IdMgrForEach(
+    CORE_IdMgr *id_mgr, PRP_Result (*cb)(DT_void *pVal, DT_void *user_data),
     DT_void *user_data);
 
 #ifdef __cplusplus

@@ -41,7 +41,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL MEM_PoolDelete(MEM_Pool **pPool);
  * @param pool: The pool to allocate the element from.
  *
  * @return DT_null if the parameters are invalid in any way, DT_null if all
- * the elements have been already allocated, otherwise PRP_FN_SUCCESS.
+ * the elements have been already allocated, otherwise PRP_OK.
  */
 PRP_FN_API DT_void *PRP_FN_CALL MEM_PoolAlloc(MEM_Pool *pool);
 /**
@@ -51,7 +51,7 @@ PRP_FN_API DT_void *PRP_FN_CALL MEM_PoolAlloc(MEM_Pool *pool);
  * @param pool: The pool to allocate the element from.
  *
  * @return DT_null if the parameters are invalid in any way, DT_null if all
- * the elements have been already allocated, otherwise PRP_FN_SUCCESS.
+ * the elements have been already allocated, otherwise PRP_OK.
  */
 PRP_FN_API DT_void *PRP_FN_CALL MEM_PoolCalloc(MEM_Pool *pool);
 /**

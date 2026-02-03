@@ -179,7 +179,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrExtend(DT_Bffr *bffr1,
  * happening. its size = memb_size.
  *
  * @return PRP_ERR_INV_ARG if the parameters are invalid in any way,
- * PRP_FN_OOB_ERROR if the indices are out of bound, otherwise PRP_FN_SUCCESS.
+ * PRP_FN_OOB_ERROR if the indices are out of bound, otherwise PRP_OK.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrSwap(DT_Bffr *bffr, DT_size i,
                                               DT_size j, DT_void *swap_bffr);

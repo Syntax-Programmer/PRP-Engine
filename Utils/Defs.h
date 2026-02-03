@@ -44,62 +44,6 @@ extern "C" {
 #define PRP_FN_CALL
 #endif
 
-/**
- * These are the return codes a function can return.
- * These have two types of enums:
- *
- * . Generic Code: Tells in general what happened to the function when executed.
- *   1) PRP_FN_SUCCESS: Tells that the function succeeded without any errors.
- *   2) PRP_FN_WARNING: Meant to be a log-only code that is not returned but
- *                      logged using logger utility to tell users what is the
- *                      warning.
- *   3) PRP_FN_FAILURE: Generic failure condition that can not be explained
- *                      directly by the Specific-Error-Codes. These can be
- *                      logical errors that is per project specific.
- *
- * . Specific Error Codes: Codes other than the Generic Codes are the specific
- *                         error codes telling what exactly went wrong in the
- *                         function.
- *   1) PRP_FN_NULL_ERROR: NULL error is thrown when we have unexpected NULL
- *                         pointer in our code that is not the prelim argument
- *                         check.
- *   2) PRP_FN_OOB_ERROR: OOB(Out Of Bounds) error is thrown when something
- *                        tries to access data beyond its predetermined bounds.
- *   3) PRP_FN_MALLOC_ERROR: MALLOC error is thrown in any process where a
- *                           allocator function of any type tries and fails to
- *                           allocate memory to the caller.
- *   4) PRP_FN_UAF_ERROR: UAF(Use After Free) error is thrown when we detect an
- *                        object is being used after being freed, either
- *                        physically or semantically.
- *   5) PRP_FN_INV_ARG_ERROR: INV_ARG(Invalid Argument) error is thrown when a
- *                            function detects that the arguments passed to it
- *                            are in some way invalid. During invalid arg
- *                            detection sometime we can also throw UAF or OOB
- *                            error just to specify what exactly went wrong.
- *   6) PRP_FN_RES_EXHAUSTED_ERROR: RES_EXHAUSTED(Resource Exhausted) error is
- *                                  thrown when a function that is suppose to
- *                                  create something "runs out of it", and
- *                                  cannot further create it.
- *   7) PRP_FN_FILE_IO_ERROR: FILE_IO(File input-output) error is thrown when
- *                            interacting with a file fails in some way.
- *   8) PRP_FN_INT_OVERFLOW_ERROR: INT_OVERFLOW error is thrown when some
- *                                 calculation results in overflow of the int's
- *                                 max cap.
- */
-typedef enum {
-    PRP_FN_SUCCESS,
-    PRP_FN_WARNING,
-    PRP_FN_FAILURE,
-    PRP_FN_NULL_ERROR,
-    PRP_FN_OOB_ERROR,
-    PRP_FN_MALLOC_ERROR,
-    PRP_FN_UAF_ERROR,
-    PRP_FN_INV_ARG_ERROR,
-    PRP_FN_RES_EXHAUSTED_ERROR,
-    PRP_FN_FILE_IO_ERROR,
-    PRP_FN_INT_OVERFLOW_ERROR,
-} PRP_FnCode;
-
 typedef enum {
     PRP_OK = 0,
     PRP_ERR_INV_ARG,
