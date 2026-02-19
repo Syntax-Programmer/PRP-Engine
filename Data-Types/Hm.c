@@ -69,6 +69,19 @@ struct _Hm {
 #define MAX_LAYOUT_CAP (DT_SIZE_MAX / sizeof(DT_size))
 #define MAX_ELEM_CAP (DT_SIZE_MAX / sizeof(Elem))
 
+#define INVARIANT_EXPR(hm)                                                     \
+    ((hm) != DT_null && (hm)->layout != DT_null && (hm)->elems != DT_null &&   \
+     (hm)->layout_cap > 0 && (hm)->elem_cap > 0 &&                             \
+     (hm)->layout_cap <= MAX_LAYOUT_CAP &&                                     \
+     ((hm)->layout_cap & ((hm)->layout_cap - 1)) == 0 &&                       \
+     (hm)->elem_cap <= MAX_ELEM_CAP && (hm)->elem_len <= (hm)->elem_cap &&     \
+     (hm)->elem_len <= (hm)->layout_cap && (hm)->hash_fn != DT_null &&         \
+     (hm)->key_cmp_cb != DT_null && (hm)->key_del_cb != DT_null &&             \
+     (hm)->val_del_cb != DT_null)
+#define ASSERT_INVARIANT_EXPR(hm)                                              \
+    DIAG_ASSERT_MSG(INVARIANT_EXPR(hm),                                        \
+                    "The given hashmap is either DT_null, or is corrupted.")
+
 /**
  * Grows the elem array of the hashmap safely.
  *
@@ -100,30 +113,37 @@ static DT_void GrowHmLayout(DT_Hm *hm);
  * @return PRP_ERR_OOB if the key doesn't exist in the hashmap, otherwise
  * zzPRP_OK.
  */
-static PRP_Result FetchLayoutElemI(DT_Hm *hm, DT_void *key, DT_size *pLayout_i,
-                                   DT_size *pElem_i);
+static PRP_Result FetchLayoutElemI(const DT_Hm *hm, const DT_void *key,
+                                   DT_size *pLayout_i, DT_size *pElem_i);
 
-PRP_FN_API DT_Hm *PRP_FN_CALL
-DT_HmCreate(DT_u64 (*hash_fn)(const DT_void *key),
-            DT_bool (*key_cmp_cb)(const DT_void *k1, const DT_void *k2),
-            PRP_Result (*key_del_cb)(DT_void *key),
-            PRP_Result (*val_del_cb)(DT_void *val)) {
-    DIAG_GUARD(hash_fn != DT_null, DT_null);
-    DIAG_GUARD(key_cmp_cb != DT_null, DT_null);
-    DIAG_GUARD(key_del_cb != DT_null, DT_null);
-    DIAG_GUARD(val_del_cb != DT_null, DT_null);
+PRP_FN_API PRP_Result PRP_FN_CALL DT_HmGetLastErrCode(DT_void) {
+    return last_err_code;
+}
+
+PRP_FN_API DT_Hm *PRP_FN_CALL DT_HmCreateUnchecked(
+    DT_u64 (*hash_fn)(const DT_void *key),
+    DT_bool (*key_cmp_cb)(const DT_void *k1, const DT_void *k2),
+    PRP_Result (*key_del_cb)(DT_void *key),
+    PRP_Result (*val_del_cb)(DT_void *val)) {
+    DIAG_ASSERT(hash_fn != DT_null);
+    DIAG_ASSERT(key_cmp_cb != DT_null);
+    DIAG_ASSERT(key_del_cb != DT_null);
+    DIAG_ASSERT(val_del_cb != DT_null);
 
     DT_Hm *hm = calloc(1, sizeof(DT_Hm));
     if (!hm) {
+        SET_LAST_ERR_CODE(PRP_ERR_OOM);
         return DT_null;
     }
     hm->layout = malloc(sizeof(DT_size) * INIT_LAYOUT_CAP);
     if (!hm->layout) {
+        SET_LAST_ERR_CODE(PRP_ERR_OOM);
         free(hm);
         return DT_null;
     }
     hm->elems = malloc(sizeof(Elem) * INIT_ELEM_CAP);
     if (!hm->elems) {
+        SET_LAST_ERR_CODE(PRP_ERR_OOM);
         free(hm->layout);
         free(hm);
         return DT_null;
@@ -141,39 +161,61 @@ DT_HmCreate(DT_u64 (*hash_fn)(const DT_void *key),
     return hm;
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL DT_HmDelete(DT_Hm **pHm) {
-    DIAG_GUARD(pHm != DT_null, PRP_ERR_INV_ARG);
-    DIAG_GUARD(*pHm != DT_null, PRP_ERR_INV_ARG);
+PRP_FN_API DT_Hm *PRP_FN_CALL
+DT_HmCreateChecked(DT_u64 (*hash_fn)(const DT_void *key),
+                   DT_bool (*key_cmp_cb)(const DT_void *k1, const DT_void *k2),
+                   PRP_Result (*key_del_cb)(DT_void *key),
+                   PRP_Result (*val_del_cb)(DT_void *val)) {
+    if (!hash_fn || !key_cmp_cb || !key_del_cb || !val_del_cb) {
+        SET_LAST_ERR_CODE(PRP_ERR_INV_ARG);
+        return DT_null;
+    }
+
+    return DT_HmCreateUnchecked(hash_fn, key_cmp_cb, key_del_cb, val_del_cb);
+}
+
+PRP_FN_API DT_void PRP_FN_CALL DT_HmDeleteUnchecked(DT_Hm **pHm) {
+    DIAG_ASSERT(pHm != DT_null);
+    DIAG_ASSERT(*pHm != DT_null);
+    DIAG_ASSERT((*pHm)->layout != DT_null && (*pHm)->elems != DT_null);
 
     DT_Hm *hm = *pHm;
 
-    if (hm->layout) {
-        free(hm->layout);
-        hm->layout = DT_null;
-    }
-    if (hm->elems) {
-        for (DT_size i = 0; i < hm->elem_len; i++) {
-            Elem elem = hm->elems[i];
-            hm->key_del_cb(elem.key);
-            if (elem.val) {
-                hm->val_del_cb(elem.val);
-            }
+    free(hm->layout);
+    for (DT_size i = 0; i < hm->elem_len; i++) {
+        Elem elem = hm->elems[i];
+        hm->key_del_cb(elem.key);
+        if (elem.val) {
+            hm->val_del_cb(elem.val);
         }
-        free(hm->elems);
-        hm->elems = DT_null;
     }
+    free(hm->elems);
+
+#if !defined(PRP_NDEBUG)
+    hm->layout = DT_null;
+    hm->elems = DT_null;
     hm->elem_cap = hm->layout_cap = hm->elem_len = 0;
     hm->hash_fn = DT_null;
     hm->key_cmp_cb = DT_null;
     hm->key_del_cb = hm->val_del_cb = DT_null;
+#endif
+
     free(hm);
     *pHm = DT_null;
+}
+
+PRP_FN_API PRP_Result PRP_FN_CALL DT_HmDeleteChecked(DT_Hm **pHm) {
+    if (!pHm || !(*pHm) || !(*pHm)->layout || !(*pHm)->elems) {
+        return PRP_ERR_INV_ARG;
+    }
+
+    DT_HmDeleteUnchecked(pHm);
 
     return PRP_OK;
 }
 
 static PRP_Result GrowHmElems(DT_Hm *hm) {
-    DIAG_ASSERT(hm != DT_null);
+    ASSERT_INVARIANT_EXPR(hm);
 
     if (hm->elem_cap == MAX_ELEM_CAP) {
         return PRP_ERR_RES_EXHAUSTED;
@@ -193,7 +235,7 @@ static PRP_Result GrowHmElems(DT_Hm *hm) {
 }
 
 static DT_void GrowHmLayout(DT_Hm *hm) {
-    DIAG_ASSERT(hm != DT_null);
+    ASSERT_INVARIANT_EXPR(hm);
 
     if (hm->layout_cap == MAX_LAYOUT_CAP) {
         return;
@@ -215,7 +257,7 @@ static DT_void GrowHmLayout(DT_Hm *hm) {
     for (DT_size i = 0; i < hm->elem_len; i++) {
         Elem elem = hm->elems[i];
         DT_u64 perturb = elem.hash, j = perturb & mask;
-        while (layout[j] != EMPTY_I) {
+        while (hm->layout[j] != EMPTY_I) {
             PROBE(j, perturb, mask);
         }
         hm->layout[j] = i;
@@ -224,10 +266,10 @@ static DT_void GrowHmLayout(DT_Hm *hm) {
     return;
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL DT_HmAdd(DT_Hm *hm, DT_void *key,
-                                           DT_void *val) {
-    DIAG_GUARD(hm != DT_null, PRP_ERR_INV_ARG);
-    DIAG_GUARD(key != DT_null, PRP_ERR_INV_ARG);
+PRP_FN_API PRP_Result PRP_FN_CALL DT_HmAddUnchecked(DT_Hm *hm, DT_void *key,
+                                                    DT_void *val) {
+    ASSERT_INVARIANT_EXPR(hm);
+    DIAG_ASSERT(key != DT_null);
 
     if (hm->elem_len == hm->elem_cap) {
         PRP_Result code = GrowHmElems(hm);
@@ -273,9 +315,19 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_HmAdd(DT_Hm *hm, DT_void *key,
     return PRP_OK;
 }
 
-PRP_FN_API DT_void *PRP_FN_CALL DT_HmGet(DT_Hm *hm, DT_void *key) {
-    DIAG_GUARD(hm != DT_null, DT_null);
-    DIAG_GUARD(key != DT_null, DT_null);
+PRP_FN_API PRP_Result PRP_FN_CALL DT_HmAddChecked(DT_Hm *hm, DT_void *key,
+                                                  DT_void *val) {
+    if (!INVARIANT_EXPR(hm) || !key) {
+        return PRP_ERR_INV_ARG;
+    }
+
+    return DT_HmAddUnchecked(hm, key, val);
+}
+
+PRP_FN_API DT_void *PRP_FN_CALL DT_HmGetUnchecked(const DT_Hm *hm,
+                                                  DT_void *key) {
+    ASSERT_INVARIANT_EXPR(hm);
+    DIAG_ASSERT(key != DT_null);
 
     DT_u64 mask = hm->layout_cap - 1;
     DT_u64 hash = hm->hash_fn(key);
@@ -292,12 +344,22 @@ PRP_FN_API DT_void *PRP_FN_CALL DT_HmGet(DT_Hm *hm, DT_void *key) {
         PROBE(i, perturb, mask);
     }
 
+    SET_LAST_ERR_CODE(PRP_ERR_NOT_FOUND);
     return DT_null;
 }
 
-static PRP_Result FetchLayoutElemI(DT_Hm *hm, DT_void *key, DT_size *pLayout_i,
-                                   DT_size *pElem_i) {
-    DIAG_ASSERT(hm != DT_null);
+PRP_FN_API DT_void *PRP_FN_CALL DT_HmGetChecked(const DT_Hm *hm, DT_void *key) {
+    if (!INVARIANT_EXPR(hm) || !key) {
+        SET_LAST_ERR_CODE(PRP_ERR_INV_ARG);
+        return DT_null;
+    }
+
+    return DT_HmGetUnchecked(hm, key);
+}
+
+static PRP_Result FetchLayoutElemI(const DT_Hm *hm, const DT_void *key,
+                                   DT_size *pLayout_i, DT_size *pElem_i) {
+    ASSERT_INVARIANT_EXPR(hm);
     DIAG_ASSERT(key != DT_null);
     DIAG_ASSERT(pLayout_i != DT_null);
     DIAG_ASSERT(pElem_i != DT_null);
@@ -320,12 +382,13 @@ static PRP_Result FetchLayoutElemI(DT_Hm *hm, DT_void *key, DT_size *pLayout_i,
         PROBE(i, perturb, mask);
     }
 
-    return PRP_ERR_OOB;
+    return PRP_ERR_NOT_FOUND;
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL DT_HmDelElem(DT_Hm *hm, DT_void *key) {
-    DIAG_GUARD(hm != DT_null, PRP_ERR_INV_ARG);
-    DIAG_GUARD(key != DT_null, PRP_ERR_INV_ARG);
+PRP_FN_API PRP_Result PRP_FN_CALL DT_HmDelElemUnchecked(DT_Hm *hm,
+                                                        DT_void *key) {
+    ASSERT_INVARIANT_EXPR(hm);
+    DIAG_ASSERT(key != DT_null);
 
     DT_size key_layout_i, key_elem_i;
     PRP_Result code = FetchLayoutElemI(hm, key, &key_layout_i, &key_elem_i);
@@ -352,19 +415,36 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_HmDelElem(DT_Hm *hm, DT_void *key) {
     return PRP_OK;
 }
 
-PRP_FN_API DT_size PRP_FN_CALL DT_HmLen(DT_Hm *hm) {
-    DIAG_GUARD(hm != DT_null, PRP_INVALID_SIZE);
+PRP_FN_API PRP_Result PRP_FN_CALL DT_HmDelElemChecked(DT_Hm *hm, DT_void *key) {
+    if (!INVARIANT_EXPR(hm) || !key) {
+        return PRP_ERR_INV_ARG;
+    }
+
+    return DT_HmDelElemUnchecked(hm, key);
+}
+
+PRP_FN_API DT_size PRP_FN_CALL DT_HmLenUnchecked(const DT_Hm *hm) {
+    ASSERT_INVARIANT_EXPR(hm);
+
+    return hm->elem_len;
+}
+
+PRP_FN_API DT_size PRP_FN_CALL DT_HmLenChecked(const DT_Hm *hm) {
+    if (!INVARIANT_EXPR(hm)) {
+        SET_LAST_ERR_CODE(PRP_ERR_INV_ARG);
+        return PRP_INVALID_SIZE;
+    }
 
     return hm->elem_len;
 }
 
 PRP_FN_API DT_size PRP_FN_CALL DT_HmMaxCap(DT_void) { return MAX_ELEM_CAP; }
 
-PRP_FN_API PRP_Result PRP_FN_CALL DT_HmForEach(
+PRP_FN_API PRP_Result PRP_FN_CALL DT_HmForEachUnchecked(
     DT_Hm *hm, PRP_Result (*cb)(DT_void *key, DT_void *val, DT_void *user_data),
     DT_void *user_data) {
-    DIAG_GUARD(hm != DT_null, PRP_ERR_INV_ARG);
-    DIAG_GUARD(cb != DT_null, PRP_ERR_INV_ARG);
+    ASSERT_INVARIANT_EXPR(hm);
+    DIAG_ASSERT(cb != DT_null);
 
     for (DT_size i = 0; i < hm->elem_len; i++) {
         Elem elem = hm->elems[i];
@@ -377,8 +457,18 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_HmForEach(
     return PRP_OK;
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL DT_HmReset(DT_Hm *hm) {
-    DIAG_GUARD(hm != DT_null, PRP_ERR_INV_ARG);
+PRP_FN_API PRP_Result PRP_FN_CALL DT_HmForEachChecked(
+    DT_Hm *hm, PRP_Result (*cb)(DT_void *key, DT_void *val, DT_void *user_data),
+    DT_void *user_data) {
+    if (!INVARIANT_EXPR(hm) || !cb) {
+        return PRP_ERR_INV_ARG;
+    }
+
+    return DT_HmForEachUnchecked(hm, cb, user_data);
+}
+
+PRP_FN_API DT_void PRP_FN_CALL DT_HmResetUnchecked(DT_Hm *hm) {
+    ASSERT_INVARIANT_EXPR(hm);
 
     // Setting all to empty indices as memset works per byte.
     memset(hm->layout, LAYOUT_EMPTYING_MASK, sizeof(DT_size) * hm->layout_cap);
@@ -389,7 +479,18 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_HmReset(DT_Hm *hm) {
             hm->val_del_cb(elem.val);
         }
     }
+#if !defined(PRP_NDEBUG)
+    memset(hm->elems, 0, hm->elem_len * sizeof(Elem));
+#endif
     hm->elem_len = 0;
+}
+
+PRP_FN_API PRP_Result PRP_FN_CALL DT_HmResetChecked(DT_Hm *hm) {
+    if (!INVARIANT_EXPR(hm)) {
+        return PRP_ERR_INV_ARG;
+    }
+
+    DT_HmResetUnchecked(hm);
 
     return PRP_OK;
 }

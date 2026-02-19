@@ -16,6 +16,36 @@ extern "C" {
 typedef struct _Hm DT_Hm;
 
 /**
+ * @return The last error code set by the buffer functions that don't return
+ * PRP_Result explicitly.
+ */
+PRP_FN_API PRP_Result PRP_FN_CALL DT_HmGetLastErrCode(DT_void);
+
+/**
+ * Creates the hashmap with the user specified parameters.
+ *
+ * @param hash_fn: The function that is used to produce the hash of the key the
+ * user wants to use.
+ * @param key_cmp_cb: This function compares different keys to check if they are
+ * the same. This allows for user defined structs to check for match with the
+ * specifics they want.
+ * @param key_del_cb: The callback that will free the memory of the key
+ * correctly and safely when we delete the hashmap, or remove an entry from the
+ * hashmap.
+ * @param val_del_cb: The callback that will free the memory of the val
+ * correctly and safely when we delete the hashmap, or remove an entry from the
+ * hashmap.
+ *
+ * @return The pointer to the hashmap.
+ *
+ * @note: This function doesn't check for argument validation in RELEASE mode.
+ */
+PRP_FN_API DT_Hm *PRP_FN_CALL DT_HmCreateUnchecked(
+    DT_u64 (*hash_fn)(const DT_void *key),
+    DT_bool (*key_cmp_cb)(const DT_void *k1, const DT_void *k2),
+    PRP_Result (*key_del_cb)(DT_void *key),
+    PRP_Result (*val_del_cb)(DT_void *val));
+/**
  * Creates the hashmap with the user specified parameters.
  *
  * @param hash_fn: The function that is used to produce the hash of the key the
@@ -32,11 +62,20 @@ typedef struct _Hm DT_Hm;
  *
  * @return The pointer to the hashmap.
  */
-PRP_FN_API DT_Hm *PRP_FN_CALL
-    DT_HmCreate(DT_u64 (*hash_fn)(const DT_void *key),
-                DT_bool (*key_cmp_cb)(const DT_void *k1, const DT_void *k2),
-                PRP_Result (*key_del_cb)(DT_void *key),
-                PRP_Result (*val_del_cb)(DT_void *val));
+PRP_FN_API DT_Hm *PRP_FN_CALL DT_HmCreateChecked(
+    DT_u64 (*hash_fn)(const DT_void *key),
+    DT_bool (*key_cmp_cb)(const DT_void *k1, const DT_void *k2),
+    PRP_Result (*key_del_cb)(DT_void *key),
+    PRP_Result (*val_del_cb)(DT_void *val));
+/**
+ * Deletes the hashmap and sets the original DT_Hm * to DT_null to prevent use
+ * after free bugs.
+ *
+ * @param pHm: The pointer to the hashmap pointer to delete.
+ *
+ * @note: This function doesn't check for argument validation in RELEASE mode.
+ */
+PRP_FN_API DT_void PRP_FN_CALL DT_HmDeleteUnchecked(DT_Hm **pHm);
 /**
  * Deletes the hashmap and sets the original DT_Hm * to DT_null to prevent use
  * after free bugs.
@@ -46,7 +85,22 @@ PRP_FN_API DT_Hm *PRP_FN_CALL
  * @return PRP_ERR_INV_ARG if the pArr or *pArr is DT_null, otherwise it
  * returns PRP_OK.
  */
-PRP_FN_API PRP_Result PRP_FN_CALL DT_HmDelete(DT_Hm **pHm);
+PRP_FN_API PRP_Result PRP_FN_CALL DT_HmDeleteChecked(DT_Hm **pHm);
+/**
+ * Adds a new key-value pair to the given hashmap. Given the key cannot be
+ * DT_null.
+ *
+ * @param hm: The hashmap to add the key-val pair to.
+ * @param key: The key of the entry used to access the value.
+ * @param val: The value the key maps to.
+ *
+ * @return PRP_ERR_RES_EXHAUSTED/PRP_ERR_OOM if there is no way to add more
+ * key-val pairs to the hashmap, otherwise PRP_OK.
+ *
+ * @note: This function doesn't check for argument validation in RELEASE mode.
+ */
+PRP_FN_API PRP_Result PRP_FN_CALL DT_HmAddUnchecked(DT_Hm *hm, DT_void *key,
+                                                    DT_void *val);
 /**
  * Adds a new key-value pair to the given hashmap. Given the key cannot be
  * DT_null.
@@ -59,8 +113,21 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_HmDelete(DT_Hm **pHm);
  * PRP_ERR_RES_EXHAUSTED/PRP_ERR_OOM if there is no way to add more key-val
  * pairs to the hashmap, otherwise PRP_OK.
  */
-PRP_FN_API PRP_Result PRP_FN_CALL DT_HmAdd(DT_Hm *hm, DT_void *key,
-                                           DT_void *val);
+PRP_FN_API PRP_Result PRP_FN_CALL DT_HmAddChecked(DT_Hm *hm, DT_void *key,
+                                                  DT_void *val);
+/**
+ * Fetches the value for the given key in the hashmap.
+ *
+ * @param hm: The hashmap to fetch the value from.
+ * @param key: The key to fetch the value it maps to.
+ *
+ * @return DT_null if there is not matching key-val pair in the hashmap with the
+ * provided key, otherwise it returns the value.
+ *
+ * @note: This function doesn't check for argument validation in RELEASE mode.
+ */
+PRP_FN_API DT_void *PRP_FN_CALL DT_HmGetUnchecked(const DT_Hm *hm,
+                                                  DT_void *key);
 /**
  * Fetches the value for the given key in the hashmap.
  *
@@ -71,18 +138,41 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_HmAdd(DT_Hm *hm, DT_void *key,
  * matching key-val pair in the hashmap with the provided key, otherwise it
  * returns the value.
  */
-PRP_FN_API DT_void *PRP_FN_CALL DT_HmGet(DT_Hm *hm, DT_void *key);
+PRP_FN_API DT_void *PRP_FN_CALL DT_HmGetChecked(const DT_Hm *hm, DT_void *key);
 /**
  * Deletes the key-val pair from the given hashmap.
  *
  * @param hm: The hashmap to delete the key-val pair from.
  * @param key: The key identifying which key-val pair to delete.
  *
- * @return PRP_ERR_INV_ARG if the parameters are invalid in any way, PRP_ERR_OOB
- * if there is no matching key-val pair in the hashmap with the provided key,
- * otherwise PRP_OK.
+ * @return PRP_ERR_NOT_FOUND if there is no matching key-val pair in the hashmap
+ * with the provided key, otherwise PRP_OK.
+ *
+ * @note: This function doesn't check for argument validation in RELEASE mode.
  */
-PRP_FN_API PRP_Result PRP_FN_CALL DT_HmDelElem(DT_Hm *hm, DT_void *key);
+PRP_FN_API PRP_Result PRP_FN_CALL DT_HmDelElemUnchecked(DT_Hm *hm,
+                                                        DT_void *key);
+/**
+ * Deletes the key-val pair from the given hashmap.
+ *
+ * @param hm: The hashmap to delete the key-val pair from.
+ * @param key: The key identifying which key-val pair to delete.
+ *
+ * @return PRP_ERR_INV_ARG if the parameters are invalid in any way,
+ * PRP_ERR_NOT_FOUND if there is no matching key-val pair in the hashmap with
+ * the provided key, otherwise PRP_OK.
+ */
+PRP_FN_API PRP_Result PRP_FN_CALL DT_HmDelElemChecked(DT_Hm *hm, DT_void *key);
+/**
+ * Fetches the number of key-val pairs the hashmap is currently holding.
+ *
+ * @param hm: The hashmap to get the len of.
+ *
+ * @return The len of the hashmap.
+ *
+ * @note: This function doesn't check for argument validation in RELEASE mode.
+ */
+PRP_FN_API DT_size PRP_FN_CALL DT_HmLenUnchecked(const DT_Hm *hm);
 /**
  * Fetches the number of key-val pairs the hashmap is currently holding.
  *
@@ -91,7 +181,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_HmDelElem(DT_Hm *hm, DT_void *key);
  * @return PRP_INVALID_SIZE if the hashmap is invalid, otherwise the len of the
  * provided hashmap.
  */
-PRP_FN_API DT_size PRP_FN_CALL DT_HmLen(DT_Hm *hm);
+PRP_FN_API DT_size PRP_FN_CALL DT_HmLenChecked(const DT_Hm *hm);
 /**
  * Returns the max cap that a hashmap can have.
  *
@@ -107,10 +197,26 @@ PRP_FN_API DT_size PRP_FN_CALL DT_HmMaxCap(DT_void);
  * return PRP_OK, further execution will be halted.
  * @param user_data: The data user wants to pass in as additional context.
  *
+ * @return PRP_OK, or the callback error code.
+ *
+ * @note: This function doesn't check for argument validation in RELEASE mode.
+ */
+PRP_FN_API PRP_Result PRP_FN_CALL DT_HmForEachUnchecked(
+    DT_Hm *hm, PRP_Result (*cb)(DT_void *key, DT_void *val, DT_void *user_data),
+    DT_void *user_data);
+/**
+ * Performs a foreach operation of each of the key-val pair of the hashmap.
+ * Calling cb per element.
+ *
+ * @param hm: The hashmap on which the foreach will happen.
+ * @param cb: The callback will be called per key-val pair. If this doesn't
+ * return PRP_OK, further execution will be halted.
+ * @param user_data: The data user wants to pass in as additional context.
+ *
  * @return PRP_ERR_INV_ARG if the parameters are invalid in any way, otherwise
  * PRP_OK, or the callback error code.
  */
-PRP_FN_API PRP_Result PRP_FN_CALL DT_HmForEach(
+PRP_FN_API PRP_Result PRP_FN_CALL DT_HmForEachChecked(
     DT_Hm *hm, PRP_Result (*cb)(DT_void *key, DT_void *val, DT_void *user_data),
     DT_void *user_data);
 /**
@@ -120,8 +226,19 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_HmForEach(
  *
  * @return PRP_ERR_INV_ARG if the hashmap is invalid in some way, otherwise
  * PRP_OK.
+ *
+ * @note: This function doesn't check for argument validation in RELEASE mode.
  */
-PRP_FN_API PRP_Result PRP_FN_CALL DT_HmReset(DT_Hm *hm);
+PRP_FN_API DT_void PRP_FN_CALL DT_HmResetUnchecked(DT_Hm *hm);
+/**
+ * Resets the hashmap to make it like a brand new hashmap with no entries.
+ *
+ * @param hm: The hashmap to reset.
+ *
+ * @return PRP_ERR_INV_ARG if the hashmap is invalid in some way, otherwise
+ * PRP_OK.
+ */
+PRP_FN_API PRP_Result PRP_FN_CALL DT_HmResetChecked(DT_Hm *hm);
 
 #ifdef __cplusplus
 }
