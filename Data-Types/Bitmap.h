@@ -74,7 +74,7 @@ PRP_FN_API DT_size PRP_FN_CALL DT_BitwordFFS(DT_Bitword word);
 typedef struct _Bitmap DT_Bitmap;
 
 #define DT_BITMAP_DEFAULT_BIT_CAP (64)
-#define DT_BITMAP_MAX_BIT_CAP ((DT_SIZE_MAX / sizeof(DT_Bitword)))
+#define DT_BITMAP_MAX_BIT_CAP (DT_SIZE_MAX)
 
 /**
  * @return The last error code set by the bitmap functions that don't return
