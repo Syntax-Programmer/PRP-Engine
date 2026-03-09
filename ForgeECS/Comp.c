@@ -1,12 +1,24 @@
-#include "Shared-Internals.h"
+#include "../Diagnostics/Assert.h"
+#include "Internals.h"
+#include <string.h>
 
-FECS_CompId CompRegister(DT_size comp_size) {
-    DIAG_GUARD(comp_size > 0, FECS_INVALID_COMP_ID);
+PRP_Result CompGetLastErrCode(DT_void) { return last_err_code; }
 
-    FECS_CompId id = DT_ArrLen(g_state->comp_registry.comp_sizes);
-    if (DT_ArrPush(g_state->comp_registry.comp_sizes, &comp_size)) {
-        return FECS_INVALID_COMP_ID;
+DT_size CompRegister(DT_char *name, DT_size size) {
+    DIAG_ASSERT(name != DT_null);
+    DIAG_ASSERT(size > 0);
+
+    ComponentMetadata data = {.size = size};
+    strncpy(data.name, name, COMP_NAME_MAX_SIZE);
+    data.name[COMP_NAME_MAX_SIZE - 1] = '\0';
+
+    DT_size idx = DT_ArrLenUnchecked(g_ctx->comps);
+    PRP_Result code = DT_ArrPushUnchecked(g_ctx->comps, &data);
+    if (code == PRP_ERR_RES_EXHAUSTED || code == PRP_ERR_OOM) {
+        SET_LAST_ERR_CODE(PRP_ERR_OOM);
+    } else if (code != PRP_OK) {
+        SET_LAST_ERR_CODE(PRP_ERR_INTERNAL);
     }
 
-    return id;
+    return idx;
 }
