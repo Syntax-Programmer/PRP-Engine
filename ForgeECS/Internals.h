@@ -62,6 +62,7 @@ typedef struct {
 
 DT_size BehaviorRegisterWArray(DT_size *comp_idxs, DT_size len);
 DT_size BehaviroRegisterWDTArr(DT_Arr *comp_idxs);
+DT_void BehaviorDelete(Behavior *behavior);
 
 #define CHUNK_CAP (32)
 
@@ -84,6 +85,9 @@ typedef struct {
     DT_Arr *chunk_ptrs;
     DT_Bitmap *free_chunks;
 } Layout;
+
+DT_size LayoutCreate(DT_DSId world_id, DT_size behavior_idx);
+DT_void LayoutDelete(Layout *layout);
 
 /* ----  QUERY ---- */
 
