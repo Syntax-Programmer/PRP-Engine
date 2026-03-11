@@ -114,6 +114,8 @@ DT_void BehaviorDelete(Behavior *behavior) {
 
 /* ----  LAYOUT ---- */
 
+static PRP_Result ChunkPtrDelCb(DT_void *ptr, DT_void *user_data);
+
 DT_size LayoutCreate(DT_DSId world_id, DT_size behavior_idx) {
     DIAG_ASSERT(behavior_idx < DT_ArrLenUnchecked(g_ctx->behaviors));
     World *world = DT_DSIdToDataChecked(g_ctx->worlds, world_id);
@@ -173,11 +175,22 @@ free_internals:
     return PRP_INVALID_INDEX;
 }
 
+static PRP_Result ChunkPtrDelCb(DT_void *ptr, DT_void *user_data) {
+    DIAG_ASSERT(ptr != DT_null);
+    (DT_void) user_data;
+
+    Chunk **pChunk_ptr = ptr;
+    free(*pChunk_ptr);
+
+    return PRP_OK;
+}
+
 DT_void LayoutDelete(Layout *layout) {
     DIAG_ASSERT(layout != DT_null);
     DIAG_ASSERT(layout->chunk_ptrs != DT_null &&
                 layout->free_chunks != DT_null);
 
+    DT_ArrForEachUnchecked(layout->chunk_ptrs, ChunkPtrDelCb, DT_null);
     DT_ArrDeleteUnchecked(&layout->chunk_ptrs);
     DT_BitmapDeleteUnchecked(&layout->free_chunks);
 
@@ -185,5 +198,3 @@ DT_void LayoutDelete(Layout *layout) {
     layout->behavior_idx = PRP_INVALID_INDEX;
 #endif
 }
-
-
