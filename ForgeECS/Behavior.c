@@ -68,6 +68,17 @@ DT_size BehaviorRegisterWArray(DT_size *comp_idxs, DT_size len) {
     }
     data.chunk_size = stride + sizeof(Chunk);
 
+    DT_size behaviors_len;
+    const Behavior *behaviors =
+        DT_ArrRawUnchecked(g_ctx->behaviors, &behaviors_len);
+    for (DT_size i = 0; i < behaviors_len; i++) {
+        if (DT_BitmapCmpUnchecked(data.set, behaviors[i].set)) {
+            DT_BitmapDeleteUnchecked(&data.set);
+            free(data.strides);
+            return i;
+        }
+    }
+
     DT_size idx = DT_ArrLenUnchecked(g_ctx->behaviors);
     PRP_Result code = DT_ArrPushUnchecked(g_ctx->behaviors, &data);
     if (code == PRP_ERR_RES_EXHAUSTED || code == PRP_ERR_OOM) {
