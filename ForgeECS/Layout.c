@@ -1,123 +1,102 @@
 #include "../Diagnostics/Assert.h"
 #include "Internals.h"
+#include <string.h>
 
-static DT_void SortCompIdxs(DT_size *comp_idxs, DT_size len);
+static PRP_Result ChunkPtrDelCb(DT_void *ptr, DT_void *user_data);
+static PRP_Result ChunkCreate(Layout *layout);
+static PRP_Result LayoutInitialize(Layout *layout, DT_size behavior_idx);
 
 PRP_Result LayoutGetLastErrCode(DT_void) { return last_err_code; }
 
-/* ----  BEHAVIOR ---- */
+static PRP_Result ChunkCreate(Layout *layout) {
+    DIAG_ASSERT(layout != DT_null);
 
-static DT_void SortCompIdxs(DT_size *comp_idxs, DT_size len) {
-    for (DT_size i = 1; i < len; i++) {
-        DT_size key = comp_idxs[i];
-        DT_size j = i;
-        while (j > 0 && comp_idxs[j - 1] > key) {
-            comp_idxs[j] = comp_idxs[j - 1];
-            j--;
-        }
-        comp_idxs[j] = key;
+    Behavior *behavior =
+        DT_ArrGetUnchecked(g_ctx->behaviors, layout->behavior_idx);
+    Chunk *chunk = malloc(behavior->chunk_size);
+    if (!chunk) {
+        return PRP_ERR_OOM;
     }
-}
 
-DT_size BehaviorRegisterWArray(DT_size *comp_idxs, DT_size len) {
-    DIAG_ASSERT(comp_idxs != DT_null);
-    DIAG_ASSERT(len > 0);
+    DT_size push_idx = DT_ArrLenUnchecked(layout->chunk_ptrs);
+    PRP_Result code = DT_ArrPushUnchecked(layout->chunk_ptrs, &chunk);
+    if (code != PRP_OK) {
+        free(chunk);
+        return code;
+    }
 
     /*
-     * Since sorting is just order changing and doesn't change the metadata, it
-     * can be done wihtout disturbing validity of arrays.
+     * Sets all the gens to u8 max. And the free_slot's all the bits to 1.
+     * Essentially initializing in a single optimized call instead of manual
+     * assigning.
+     *
+     * This also means starting gen of any entity is 255, not zero which is
+     * fine since int wrap around is permitted.
+     *
+     *  We can use sizeof(Chunk) inthis bcuz the chunk data is a flex array memb
+     * and doesn't count in the size of struct.
      */
-    Behavior data = {0};
-    data.set = DT_BitmapCreateUnchecked(DT_ArrLenUnchecked(g_ctx->comps));
-    if (!data.set) {
-        SET_LAST_ERR_CODE(PRP_ERR_OOM);
-        return PRP_INVALID_INDEX;
-    }
-    data.strides = malloc(sizeof(DT_size) * len);
-    if (!data.strides) {
-        SET_LAST_ERR_CODE(PRP_ERR_OOM);
-        goto free_internals;
-    }
-
-    SortCompIdxs(comp_idxs, len);
-    DT_size comps_len = DT_ArrLenUnchecked(g_ctx->comps);
-    DT_size stride = 0;
-    for (DT_size i = 0; i < len; i++) {
-        DT_size comp_idx = comp_idxs[i];
-        DT_bool invalid =
-            (comp_idx >= comps_len) || (i > 0 && comp_idx == comp_idxs[i - 1]);
-        DIAG_ASSERT(!invalid); // Check arr internals externally also.`
-        if (invalid) {
-            SET_LAST_ERR_CODE(PRP_ERR_INV_ARG);
-            goto free_internals;
+    memset(chunk, 0XFF, sizeof(Chunk));
+    DT_size bit_cap = DT_BitmapBitCapUnchecked(layout->free_chunks);
+    if (push_idx >= bit_cap) {
+        DT_size new_bit_cap;
+        if (DT_BITMAP_MAX_BIT_CAP / 2 < bit_cap) {
+            new_bit_cap = DT_BITMAP_MAX_BIT_CAP;
+        } else {
+            new_bit_cap = bit_cap * 2;
         }
-        DT_BitmapSetUnchecked(data.set, comp_idx);
-
-        DT_size comp_size =
-            ((ComponentMetadata *)DT_ArrGetUnchecked(g_ctx->comps, comp_idx))
-                ->size;
-        data.strides[i] = stride;
-        stride += CHUNK_CAP * comp_size;
+        code = DT_BitmapChangeSizeUnchecked(layout->free_chunks, new_bit_cap);
+        if (code != PRP_OK) {
+            DT_ArrPopUnchecked(layout->chunk_ptrs, DT_null);
+            free(chunk);
+            return code;
+        }
     }
-    data.chunk_size = stride + sizeof(Chunk);
+    DT_BitmapSetUnchecked(layout->free_chunks, push_idx);
 
-    DT_size idx = DT_ArrLenUnchecked(g_ctx->behaviors);
-    PRP_Result code = DT_ArrPushUnchecked(g_ctx->behaviors, &data);
-    if (code == PRP_ERR_RES_EXHAUSTED || code == PRP_ERR_OOM) {
-        SET_LAST_ERR_CODE(PRP_ERR_OOM);
+    return PRP_OK;
+}
+
+static PRP_Result LayoutInitialize(Layout *layout, DT_size behavior_idx) {
+    DIAG_ASSERT(layout != DT_null);
+    DIAG_ASSERT(behavior_idx < DT_ArrLenUnchecked(g_ctx->behaviors));
+
+    PRP_Result code;
+    layout->behavior_idx = behavior_idx;
+    layout->chunk_ptrs =
+        DT_ArrCreateUnchecked(sizeof(Chunk *), DT_ARR_DEFAULT_CAP);
+    if (!layout->chunk_ptrs) {
+        code = DT_ArrGetLastErrCode();
         goto free_internals;
-    } else if (code != PRP_OK) {
-        SET_LAST_ERR_CODE(PRP_ERR_INTERNAL);
+    }
+    layout->free_chunks = DT_BitmapCreateUnchecked(DT_ARR_DEFAULT_CAP);
+    if (!layout->free_chunks) {
+        code = DT_ArrGetLastErrCode();
         goto free_internals;
     }
 
-    return idx;
+    code = ChunkCreate(layout);
+    if (code != PRP_OK) {
+        goto free_internals;
+    }
+
+    return PRP_OK;
 
 free_internals:
-    if (data.set) {
-        DT_BitmapDeleteUnchecked(&data.set);
+    if (layout->chunk_ptrs) {
+        DT_ArrForEachUnchecked(layout->chunk_ptrs, ChunkPtrDelCb, DT_null);
+        DT_ArrDeleteUnchecked(&layout->chunk_ptrs);
     }
-    if (data.strides) {
-        free(data.strides);
-    }
-
-    return PRP_INVALID_INDEX;
-}
-
-DT_size BehaviroRegisterWDTArr(DT_Arr *comp_idxs) {
-    DIAG_ASSERT(comp_idxs != DT_null);
-
-    DT_size len;
-    DT_size *arr = (DT_size *)(DT_ArrRawUnchecked(comp_idxs, &len));
-    if (!arr) {
-        PRP_Result code = DT_ArrGetLastErrCode();
-        DIAG_ASSERT(code != PRP_ERR_INV_ARG);
-        SET_LAST_ERR_CODE(code);
-        return PRP_INVALID_INDEX;
+    if (layout->free_chunks) {
+        DT_BitmapDeleteUnchecked(&layout->free_chunks);
     }
 
-    return BehaviorRegisterWArray(arr, len);
+    return code;
 }
-
-DT_void BehaviorDelete(Behavior *behavior) {
-    DIAG_ASSERT(behavior != DT_null);
-    DIAG_ASSERT(behavior->set != DT_null && behavior->strides != DT_null);
-
-    DT_BitmapDeleteUnchecked(&behavior->set);
-    free(behavior->strides);
-
-#if !defined(PRP_NDEBUG)
-    behavior->strides = DT_null;
-    behavior->chunk_size = 0;
-#endif
-}
-
-/* ----  LAYOUT ---- */
-
-static PRP_Result ChunkPtrDelCb(DT_void *ptr, DT_void *user_data);
 
 DT_size LayoutCreate(DT_DSId world_id, DT_size behavior_idx) {
     DIAG_ASSERT(behavior_idx < DT_ArrLenUnchecked(g_ctx->behaviors));
+
     World *world = DT_DSIdToDataChecked(g_ctx->worlds, world_id);
     if (!world) {
         PRP_Result code = DT_DSArrGetLastErrCode();
@@ -129,50 +108,34 @@ DT_size LayoutCreate(DT_DSId world_id, DT_size behavior_idx) {
         }
         return PRP_INVALID_INDEX;
     }
+    DIAG_ASSERT(behavior_idx < DT_ArrLenUnchecked(g_ctx->behaviors));
 
     DT_size len;
     const Layout *layouts = DT_ArrRawUnchecked(world->layouts, &len);
-    DIAG_ASSERT(behavior_idx < len);
     for (DT_size i = 0; i < len; i++) {
         if (behavior_idx == layouts[i].behavior_idx) {
             return i;
         }
     }
-
     Layout data = {0};
-    data.chunk_ptrs =
-        DT_ArrCreateUnchecked(sizeof(Chunk *), DT_ARR_DEFAULT_CAP);
-    if (!data.chunk_ptrs) {
-        SET_LAST_ERR_CODE(PRP_ERR_OOM);
-        goto free_internals;
+    PRP_Result code = LayoutInitialize(&data, behavior_idx);
+    if (code != PRP_OK) {
+        SET_LAST_ERR_CODE(code);
+        return PRP_INVALID_INDEX;
     }
-    data.free_chunks = DT_BitmapCreateUnchecked(DT_ARR_DEFAULT_CAP);
-    if (!data.free_chunks) {
-        SET_LAST_ERR_CODE(PRP_ERR_OOM);
-        goto free_internals;
-    }
-    data.behavior_idx = behavior_idx;
 
-    PRP_Result code = DT_ArrPushUnchecked(world->layouts, &data);
+    code = DT_ArrPushUnchecked(world->layouts, &data);
     if (code == PRP_ERR_RES_EXHAUSTED || code == PRP_ERR_OOM) {
         SET_LAST_ERR_CODE(PRP_ERR_OOM);
-        goto free_internals;
+        LayoutDelete(&data);
+        return PRP_INVALID_INDEX;
     } else if (code != PRP_OK) {
         SET_LAST_ERR_CODE(PRP_ERR_INTERNAL);
-        goto free_internals;
+        LayoutDelete(&data);
+        return PRP_INVALID_INDEX;
     }
 
     return len;
-
-free_internals:
-    if (data.chunk_ptrs) {
-        DT_ArrDeleteUnchecked(&data.chunk_ptrs);
-    }
-    if (data.free_chunks) {
-        DT_BitmapDeleteUnchecked(&data.free_chunks);
-    }
-
-    return PRP_INVALID_INDEX;
 }
 
 static PRP_Result ChunkPtrDelCb(DT_void *ptr, DT_void *user_data) {

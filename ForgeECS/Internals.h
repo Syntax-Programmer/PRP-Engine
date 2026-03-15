@@ -41,9 +41,7 @@ typedef struct {
 PRP_Result CompGetLastErrCode(DT_void);
 DT_size CompRegister(DT_char *name, DT_size size);
 
-/* ----  LAYOUTS ---- */
-
-PRP_Result LayoutGetLastErrCode(DT_void);
+/* ----  BEHAVIOR ---- */
 
 /**
  * Runtime metadata of what components does the layout store internally. Along
@@ -60,9 +58,12 @@ typedef struct {
     DT_size chunk_size;
 } Behavior;
 
+PRP_Result BehaviorGetLastErrCode(DT_void);
 DT_size BehaviorRegisterWArray(DT_size *comp_idxs, DT_size len);
-DT_size BehaviroRegisterWDTArr(DT_Arr *comp_idxs);
+DT_size BehaviorRegisterWDTArr(DT_Arr *comp_idxs);
 DT_void BehaviorDelete(Behavior *behavior);
+
+/* ----  LAYOUTS ---- */
 
 #define CHUNK_CAP (32)
 
@@ -82,12 +83,41 @@ typedef struct {
  */
 typedef struct {
     DT_size behavior_idx;
+    /*
+     * This stores pointer to each allocated chunk of memory where each chunk
+     * holds 32 entities.
+     */
     DT_Arr *chunk_ptrs;
+    /*
+     * Each on bit tell that the chunk at that index has at least one slot
+     * empty.
+     */
     DT_Bitmap *free_chunks;
 } Layout;
 
+PRP_Result LayoutGetLastErrCode(DT_void);
 DT_size LayoutCreate(DT_DSId world_id, DT_size behavior_idx);
 DT_void LayoutDelete(Layout *layout);
+
+/* ----  ENTITIES ---- */
+
+typedef struct {
+    DT_u8 gen;
+} EntityData;
+
+typedef struct {
+    DT_size layout_idx;
+    /*
+     * We encode the slot and chunk idx into a singular entity index. This
+     * limits our total max entity cap of a layout to 2 ^ 69 to 2 ^ 64. A
+     * massive fall of but still a wayy outside practical limits that can reach.
+     *
+     * The encode is as follows:
+     * The 5 MSB encode the slot and the rest 59 bits encode the chunk index
+     * inside the layout.
+     */
+    DT_size entity_idx;
+} Entity;
 
 /* ----  QUERY ---- */
 
@@ -116,6 +146,10 @@ typedef struct {
  */
 typedef struct {
     DT_Arr *layouts;
+    /*
+     * Entity ids point into this array,
+     */
+    DT_Arr *entities;
     DT_Arr *system_cache;
 } World;
 
