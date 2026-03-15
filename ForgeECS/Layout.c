@@ -2,8 +2,34 @@
 #include "Internals.h"
 #include <string.h>
 
+/**
+ * Deletes the created chunks inside layout.chunk_ptr through DT_ArrForEach.
+ *
+ * @param ptr: The Chunk** that we will be given.
+ * @param user_data: Not imp param, will not be used.
+ *
+ * @return Should return PRP_OK, return type exists to satisfy the foreach
+ * requirement.
+ */
 static PRP_Result ChunkPtrDelCb(DT_void *ptr, DT_void *user_data);
+/**
+ * Creates a new chunk for the given layout.
+ *
+ * @param layout: The layout in which to create a new chunk.
+ *
+ * @return PRP_ERR_OOM if chunk allocation fails,
+ * PRP_ERR_OOM/PRP_ERR_RES_EXHAUSTED if we can't push any more chunks, PRP_OOM
+ * if we can't handle metadata for the chunk(free_chunks).
+ */
 static PRP_Result ChunkCreate(Layout *layout);
+/**
+ * Initializes a new layout.
+ *
+ * @param layout: The layout to initialize.
+ * @param behavior_idx: The behavior the layout is supposed to be derieved from.
+ *
+ * @return The err codes propogated by internal function call, otherwise PRP_OK.
+ */
 static PRP_Result LayoutInitialize(Layout *layout, DT_size behavior_idx);
 
 PRP_Result LayoutGetLastErrCode(DT_void) { return last_err_code; }
