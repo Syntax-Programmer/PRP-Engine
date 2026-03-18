@@ -61,7 +61,7 @@ PRP_FN_API DT_size PRP_FN_CALL DT_BitwordPopCnt(DT_Bitword word);
  *
  * @return PRP_INVALID_POS if word is 0, otherwise a 1-based ffs pos.
  *
- * @note: This returns from 1-64 not 0-63. So handle accordingly.
+ * @note: This returns froms 0-63. So handle accordingly.
  */
 PRP_FN_API DT_size PRP_FN_CALL DT_BitwordFFS(DT_Bitword word);
 
