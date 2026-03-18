@@ -51,13 +51,8 @@ DT_size BehaviorRegisterWArray(DT_size *comp_idxs, DT_size len) {
     DT_size stride = 0;
     for (DT_size i = 0; i < len; i++) {
         DT_size comp_idx = comp_idxs[i];
-        DT_bool invalid =
-            (comp_idx >= comps_len) || (i > 0 && comp_idx == comp_idxs[i - 1]);
-        DIAG_ASSERT(!invalid); // Check arr internals externally also.`
-        if (invalid) {
-            SET_LAST_ERR_CODE(PRP_ERR_INV_ARG);
-            goto free_internals;
-        }
+        DIAG_ASSERT((comp_idx < comps_len) &&
+                    (i == 0 || comp_idx != comp_idxs[i - 1]));
         DT_BitmapSetUnchecked(data.set, comp_idx);
 
         DT_size comp_size =

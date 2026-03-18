@@ -7,6 +7,7 @@ extern "C" {
 #include "../Data-Types/Arr.h"
 #include "../Data-Types/Bitmap.h"
 #include "../Data-Types/DSArr.h"
+#include "Defs.h"
 
 /*
  * A general rule for any developer visiting this file:
@@ -39,7 +40,7 @@ typedef struct {
  */
 
 PRP_Result CompGetLastErrCode(DT_void);
-DT_size CompRegister(DT_char *name, DT_size size);
+DT_size CompRegister(const DT_char *name, DT_size size);
 
 /* ----  BEHAVIOR ---- */
 
@@ -93,6 +94,7 @@ typedef struct {
      * empty.
      */
     DT_Bitmap *free_chunks;
+    DT_Arr *entities;
 } Layout;
 
 PRP_Result LayoutGetLastErrCode(DT_void);
@@ -101,23 +103,28 @@ DT_void LayoutDelete(Layout *layout);
 
 /* ----  ENTITIES ---- */
 
-typedef struct {
-    DT_u8 gen;
-} EntityData;
+FECS_Entity EntitySpawn(DT_DSId world_id, DT_size layout_idx);
+FECS_EntityBatch *EntitySpawnN(DT_DSId world_id, DT_size layout_idx,
+                               DT_size count);
+FECS_Entity EntityClone(DT_DSId world_id, const FECS_Entity entity);
+FECS_EntityBatch *EntityCloneN(DT_DSId world_id,
+                               const FECS_EntityBatch *entities);
 
-typedef struct {
-    DT_size layout_idx;
-    /*
-     * We encode the slot and chunk idx into a singular entity index. This
-     * limits our total max entity cap of a layout to 2 ^ 69 to 2 ^ 64. A
-     * massive fall of but still a wayy outside practical limits that can reach.
-     *
-     * The encode is as follows:
-     * The 5 MSB encode the slot and the rest 59 bits encode the chunk index
-     * inside the layout.
-     */
-    DT_size entity_idx;
-} Entity;
+DT_bool EntityIsValid(DT_DSId world_id, const FECS_Entity entity);
+DT_bool EntityBatchIsValid(DT_DSId world_id, const FECS_EntityBatch *entities);
+
+PRP_Result EntityKill(DT_DSId world_id, FECS_Entity entity);
+PRP_Result EntityKillN(DT_DSId world_id, FECS_EntityBatch *entities);
+
+DT_void *EntityGetComp(DT_DSId world_id, const FECS_Entity entity,
+                       DT_size comp_idx);
+PRP_Result EntitySetComp(DT_DSId world_id, FECS_Entity entity, DT_size comp_idx,
+                         const DT_void *data);
+PRP_Result EntityBatchForEach(DT_DSId world_id, FECS_EntityBatch *entities,
+                              DT_size comp_idx,
+                              PRP_Result (*cb)(DT_void *comp_data,
+                                               DT_void *user_data),
+                              DT_void *user_data);
 
 /* ----  QUERY ---- */
 
@@ -146,10 +153,6 @@ typedef struct {
  */
 typedef struct {
     DT_Arr *layouts;
-    /*
-     * Entity ids point into this array,
-     */
-    DT_Arr *entities;
     DT_Arr *system_cache;
 } World;
 
