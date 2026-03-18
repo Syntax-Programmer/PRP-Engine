@@ -4,7 +4,7 @@
 
 PRP_Result CompGetLastErrCode(DT_void) { return last_err_code; }
 
-DT_size CompRegister(DT_char *name, DT_size size) {
+DT_size CompRegister(const DT_char *name, DT_size size) {
     DIAG_ASSERT(name != DT_null);
     DIAG_ASSERT(size > 0);
 

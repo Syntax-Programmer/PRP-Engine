@@ -122,19 +122,8 @@ free_internals:
 
 DT_size LayoutCreate(DT_DSId world_id, DT_size behavior_idx) {
     DIAG_ASSERT(behavior_idx < DT_ArrLenUnchecked(g_ctx->behaviors));
-
-    World *world = DT_DSIdToDataChecked(g_ctx->worlds, world_id);
-    if (!world) {
-        PRP_Result code = DT_DSArrGetLastErrCode();
-        DIAG_ASSERT(code != PRP_ERR_INV_ARG);
-        if (code == PRP_ERR_INV_STATE || code == PRP_ERR_OOB) {
-            SET_LAST_ERR_CODE(PRP_ERR_INV_ARG);
-        } else if (code != PRP_OK) {
-            SET_LAST_ERR_CODE(PRP_ERR_INTERNAL);
-        }
-        return PRP_INVALID_INDEX;
-    }
-    DIAG_ASSERT(behavior_idx < DT_ArrLenUnchecked(g_ctx->behaviors));
+    World *world = DT_DSIdToDataUnchecked(g_ctx->worlds, world_id);
+    DIAG_ASSERT(world != DT_null);
 
     DT_size len;
     const Layout *layouts = DT_ArrRawUnchecked(world->layouts, &len);
