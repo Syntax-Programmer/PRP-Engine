@@ -72,10 +72,18 @@ DT_void BehaviorDelete(Behavior *behavior);
  * A storage unit of entities that holds 32 entities.
  */
 typedef struct {
-    DT_u8 gen[CHUNK_CAP];
+    DT_u32 gen[CHUNK_CAP];
     DT_u32 free_slot;
     DT_u8 mem[];
 } Chunk;
+
+/*
+ * Cannot use DIAG_STATIC_ASSERT since including the Assert.h library will mess
+ * with the set last error code handling. I think that's the case, I may be
+ * wrong, too tired to double check rn.
+ */
+_Static_assert(CHUNK_CAP == sizeof(DT_u32) * 8,
+               "free_slot bit width must match CHUNK_CAP");
 
 /**
  * A layout is a container/manager for entities and their lifetimes. Entities
@@ -94,7 +102,6 @@ typedef struct {
      * empty.
      */
     DT_Bitmap *free_chunks;
-    DT_Arr *entities;
 } Layout;
 
 PRP_Result LayoutGetLastErrCode(DT_void);
@@ -106,20 +113,17 @@ DT_void LayoutDelete(Layout *layout);
 FECS_Entity EntitySpawn(DT_DSId world_id, DT_size layout_idx);
 FECS_EntityBatch *EntitySpawnN(DT_DSId world_id, DT_size layout_idx,
                                DT_size count);
-FECS_Entity EntityClone(DT_DSId world_id, const FECS_Entity entity);
-FECS_EntityBatch *EntityCloneN(DT_DSId world_id,
-                               const FECS_EntityBatch *entities);
 
 DT_bool EntityIsValid(DT_DSId world_id, const FECS_Entity entity);
 DT_bool EntityBatchIsValid(DT_DSId world_id, const FECS_EntityBatch *entities);
 
-PRP_Result EntityKill(DT_DSId world_id, FECS_Entity entity);
-PRP_Result EntityKillN(DT_DSId world_id, FECS_EntityBatch *entities);
+DT_void EntityKill(DT_DSId world_id, FECS_Entity entity);
+DT_void EntityKillN(DT_DSId world_id, FECS_EntityBatch *entities);
 
 DT_void *EntityGetComp(DT_DSId world_id, const FECS_Entity entity,
                        DT_size comp_idx);
-PRP_Result EntitySetComp(DT_DSId world_id, FECS_Entity entity, DT_size comp_idx,
-                         const DT_void *data);
+DT_void EntitySetComp(DT_DSId world_id, FECS_Entity entity, DT_size comp_idx,
+                      const DT_void *data);
 PRP_Result EntityBatchForEach(DT_DSId world_id, FECS_EntityBatch *entities,
                               DT_size comp_idx,
                               PRP_Result (*cb)(DT_void *comp_data,

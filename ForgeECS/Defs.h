@@ -7,7 +7,6 @@ extern "C" {
 #include "../Data-Types/Typedefs.h"
 
 typedef struct {
-    DT_size layout_idx;
     /*
      * We encode the slot and chunk idx into a singular entity index. This
      * limits our total max entity cap of a layout to 2 ^ 69 to 2 ^ 64. A
@@ -18,16 +17,18 @@ typedef struct {
      * inside the layout.
      */
     DT_size entity_idx;
-    DT_u8 gen;
+    DT_u32 gen;
+} EntityData;
+
+typedef struct {
+    DT_size layout_idx;
+    EntityData data;
 } FECS_Entity;
 
 typedef struct {
     DT_size layout_idx;
     DT_size count;
-    struct {
-        DT_size entity_idx;
-        DT_u8 gen;
-    } EntityData[];
+    EntityData data[];
 } FECS_EntityBatch;
 
 #ifdef __cplusplus
