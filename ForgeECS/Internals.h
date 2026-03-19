@@ -140,10 +140,6 @@ typedef struct {
 /* ----  SYSTEMS ---- */
 
 typedef struct {
-
-} System;
-
-typedef struct {
     DT_size system_idx;
     DT_size query_idx;
     DT_Arr *layout_matches;
@@ -157,7 +153,7 @@ typedef struct {
  */
 typedef struct {
     DT_Arr *layouts;
-    DT_Arr *system_cache;
+    DT_Arr *system_caches;
 } World;
 
 /* ----  FECS ---- */
