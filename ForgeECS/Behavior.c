@@ -36,12 +36,8 @@ DT_size BehaviorRegisterWArray(DT_size *comp_idxs, DT_size len) {
      */
     Behavior data = {0};
     data.set = DT_BitmapCreateUnchecked(DT_ArrLenUnchecked(g_ctx->comps));
-    if (!data.set) {
-        SET_LAST_ERR_CODE(PRP_ERR_OOM);
-        return PRP_INVALID_INDEX;
-    }
     data.strides = malloc(sizeof(DT_size) * len);
-    if (!data.strides) {
+    if (!data.set || !data.strides) {
         SET_LAST_ERR_CODE(PRP_ERR_OOM);
         goto free_internals;
     }

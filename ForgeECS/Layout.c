@@ -99,7 +99,7 @@ static PRP_Result LayoutInitialize(Layout *layout, DT_size behavior_idx) {
     }
     layout->free_chunks = DT_BitmapCreateUnchecked(DT_ARR_DEFAULT_CAP);
     if (!layout->free_chunks) {
-        code = DT_ArrGetLastErrCode();
+        code = DT_BitmapGetLastErrCode();
         goto free_internals;
     }
 
