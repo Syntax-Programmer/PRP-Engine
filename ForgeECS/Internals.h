@@ -137,6 +137,12 @@ typedef struct {
     DT_Bitmap *exc;
 } Query;
 
+PRP_Result QueryGetLastErrCode(DT_void);
+DT_size QueryRegisterWArray(DT_size *inc_comps, DT_size inc_len,
+                            DT_size *exc_comps, DT_size exc_len);
+DT_size QueryRegisterWArr(DT_Arr *inc_comps, DT_Arr *exc_comps);
+DT_void QueryDelete(Query *query);
+
 /* ----  SYSTEMS ---- */
 
 typedef struct {

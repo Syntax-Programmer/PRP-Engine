@@ -74,7 +74,6 @@ DT_size BehaviorRegisterWArray(DT_size *comp_idxs, DT_size len) {
         }
     }
 
-    DT_size idx = DT_ArrLenUnchecked(g_ctx->behaviors);
     PRP_Result code = DT_ArrPushUnchecked(g_ctx->behaviors, &data);
     if (code == PRP_ERR_RES_EXHAUSTED || code == PRP_ERR_OOM) {
         SET_LAST_ERR_CODE(PRP_ERR_OOM);
@@ -84,7 +83,11 @@ DT_size BehaviorRegisterWArray(DT_size *comp_idxs, DT_size len) {
         goto free_internals;
     }
 
-    return idx;
+    /*
+     * This len was recorded before the pushing so it correctly tells the index
+     * of the new pushed entry.
+     */
+    return behaviors_len;
 
 free_internals:
     if (data.set) {

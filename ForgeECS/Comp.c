@@ -8,9 +8,10 @@ DT_size CompRegister(const DT_char *name, DT_size size) {
     DIAG_ASSERT(name != DT_null);
     DIAG_ASSERT(size > 0);
 
-    DT_size len;
-    const ComponentMetadata *meta_raw = DT_ArrRawUnchecked(g_ctx->comps, &len);
-    for (DT_size i = 0; i < len; i++) {
+    DT_size comps_len;
+    const ComponentMetadata *meta_raw =
+        DT_ArrRawUnchecked(g_ctx->comps, &comps_len);
+    for (DT_size i = 0; i < comps_len; i++) {
         if (strncmp(name, meta_raw[i].name, COMP_NAME_MAX_SIZE) == 0) {
             if (meta_raw[i].size != size) {
                 SET_LAST_ERR_CODE(PRP_ERR_ALREADY_EXISTS);
@@ -24,7 +25,6 @@ DT_size CompRegister(const DT_char *name, DT_size size) {
     strncpy(data.name, name, COMP_NAME_MAX_SIZE);
     data.name[COMP_NAME_MAX_SIZE - 1] = '\0';
 
-    DT_size idx = DT_ArrLenUnchecked(g_ctx->comps);
     PRP_Result code = DT_ArrPushUnchecked(g_ctx->comps, &data);
     if (code == PRP_ERR_RES_EXHAUSTED || code == PRP_ERR_OOM) {
         SET_LAST_ERR_CODE(PRP_ERR_OOM);
@@ -34,5 +34,9 @@ DT_size CompRegister(const DT_char *name, DT_size size) {
         return PRP_INVALID_INDEX;
     }
 
-    return idx;
+    /*
+     * This len was recorded before the pushing so it correctly tells the index
+     * of the new pushed entry.
+     */
+    return comps_len;
 }
