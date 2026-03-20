@@ -8,19 +8,6 @@ DT_size CompRegister(const DT_char *name, DT_size size) {
     DIAG_ASSERT(name != DT_null);
     DIAG_ASSERT(size > 0);
 
-    DT_size comps_len;
-    const ComponentMetadata *meta_raw =
-        DT_ArrRawUnchecked(g_ctx->comps, &comps_len);
-    for (DT_size i = 0; i < comps_len; i++) {
-        if (strncmp(name, meta_raw[i].name, COMP_NAME_MAX_SIZE) == 0) {
-            if (meta_raw[i].size != size) {
-                SET_LAST_ERR_CODE(PRP_ERR_ALREADY_EXISTS);
-                return PRP_INVALID_INDEX;
-            }
-            return i;
-        }
-    }
-
     ComponentMetadata data = {.size = size};
     strncpy(data.name, name, COMP_NAME_MAX_SIZE);
     data.name[COMP_NAME_MAX_SIZE - 1] = '\0';
@@ -34,9 +21,6 @@ DT_size CompRegister(const DT_char *name, DT_size size) {
         return PRP_INVALID_INDEX;
     }
 
-    /*
-     * This len was recorded before the pushing so it correctly tells the index
-     * of the new pushed entry.
-     */
-    return comps_len;
+    // The -1 to convert len to idx.
+    return DT_ArrLenUnchecked(g_ctx->comps) - 1;
 }

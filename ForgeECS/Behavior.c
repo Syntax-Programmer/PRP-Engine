@@ -63,17 +63,6 @@ DT_size BehaviorRegisterWArray(DT_size *comp_idxs, DT_size len) {
     }
     data.chunk_size = stride + sizeof(Chunk);
 
-    DT_size behaviors_len;
-    const Behavior *behaviors =
-        DT_ArrRawUnchecked(g_ctx->behaviors, &behaviors_len);
-    for (DT_size i = 0; i < behaviors_len; i++) {
-        if (DT_BitmapCmpUnchecked(data.set, behaviors[i].set)) {
-            DT_BitmapDeleteUnchecked(&data.set);
-            free(data.strides);
-            return i;
-        }
-    }
-
     PRP_Result code = DT_ArrPushUnchecked(g_ctx->behaviors, &data);
     if (code == PRP_ERR_RES_EXHAUSTED || code == PRP_ERR_OOM) {
         SET_LAST_ERR_CODE(PRP_ERR_OOM);
@@ -83,11 +72,8 @@ DT_size BehaviorRegisterWArray(DT_size *comp_idxs, DT_size len) {
         goto free_internals;
     }
 
-    /*
-     * This len was recorded before the pushing so it correctly tells the index
-     * of the new pushed entry.
-     */
-    return behaviors_len;
+    // The -1 to convert len to idx.
+    return DT_ArrLenUnchecked(g_ctx->behaviors) - 1;
 
 free_internals:
     if (data.set) {
@@ -105,12 +91,7 @@ DT_size BehaviorRegisterWDTArr(DT_Arr *comp_idxs) {
 
     DT_size len;
     DT_size *arr = (DT_size *)(DT_ArrRawUnchecked(comp_idxs, &len));
-    if (!arr) {
-        PRP_Result code = DT_ArrGetLastErrCode();
-        DIAG_ASSERT(code != PRP_ERR_INV_ARG);
-        SET_LAST_ERR_CODE(code);
-        return PRP_INVALID_INDEX;
-    }
+    DIAG_ASSERT(arr != DT_null);
 
     return BehaviorRegisterWArray(arr, len);
 }

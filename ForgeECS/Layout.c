@@ -127,13 +127,6 @@ DT_size LayoutCreate(DT_DSId world_id, DT_size behavior_idx) {
     World *world = DT_DSIdToDataUnchecked(g_ctx->worlds, world_id);
     DIAG_ASSERT(world != DT_null);
 
-    DT_size layouts_len;
-    const Layout *layouts = DT_ArrRawUnchecked(world->layouts, &layouts_len);
-    for (DT_size i = 0; i < layouts_len; i++) {
-        if (behavior_idx == layouts[i].behavior_idx) {
-            return i;
-        }
-    }
     Layout data = {0};
     PRP_Result code = LayoutInitialize(&data, behavior_idx);
     if (code != PRP_OK) {
@@ -152,11 +145,8 @@ DT_size LayoutCreate(DT_DSId world_id, DT_size behavior_idx) {
         return PRP_INVALID_INDEX;
     }
 
-    /*
-     * This len was recorded before the pushing so it correctly tells the index
-     * of the new pushed entry.
-     */
-    return layouts_len;
+    // The -1 to convert len to idx.
+    return DT_ArrLenUnchecked(world->layouts) - 1;
 }
 
 static PRP_Result ChunkPtrDelCb(DT_void *ptr, DT_void *user_data) {

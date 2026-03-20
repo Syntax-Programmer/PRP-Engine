@@ -17,6 +17,11 @@ extern "C" {
  *
  * Only a world can be dynamically created and destroyed, hence the use of a
  * DT_DSArr.
+ *
+ *
+ * One another note: The functions in this file will not prevent against
+ * duplicate defs and it is the job of the fecs wrappers of themse functions to
+ * explicitly check for the detection of duplicate.
  */
 
 /* ----  COMPS ---- */
