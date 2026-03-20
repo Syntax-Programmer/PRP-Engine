@@ -88,6 +88,7 @@ DT_size BehaviorRegisterWDTArr(DT_Arr *comp_idxs) {
     DT_size len;
     DT_size *arr = (DT_size *)(DT_ArrRawUnchecked(comp_idxs, &len));
     DIAG_ASSERT(arr != DT_null);
+    DIAG_ASSERT(len > 0);
 
     return BehaviorRegisterWArray(arr, len);
 }
