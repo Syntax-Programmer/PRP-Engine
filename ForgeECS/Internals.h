@@ -139,7 +139,10 @@ PRP_Result EntityBatchForEach(DT_DSId world_id, FECS_EntityBatch *entities,
 
 typedef struct {
     DT_Bitmap *inc;
+    // This will be null if we don't wan't to ex
     DT_Bitmap *exc;
+    // This will be null if there is no match for the query.
+    DT_Arr *behavior_matches;
 } Query;
 
 PRP_Result QueryGetLastErrCode(DT_void);
@@ -156,11 +159,16 @@ typedef struct {
     DT_Arr *layout_matches;
 } SystemCache;
 
+DT_size SystemRegister(FECS_System system);
+DT_size SystemCacheCreate(DT_DSId world_id, DT_size system_idx,
+                          DT_size query_idx);
+DT_void SystemCacheDelete(SystemCache *system_cache);
+
 /* ----  WORLD ---- */
 
 /**
- * A world is a runtime envirnoment of layouts, entities and things that operate
- * on said layouts and entities.
+ * A world is a runtime envirnoment of layouts, entities and things that
+ * operate on said layouts and entities.
  */
 typedef struct {
     DT_Arr *layouts;
@@ -168,6 +176,19 @@ typedef struct {
 } World;
 
 /* ----  FECS ---- */
+
+/**
+ * The correct order of how things shall be created to make sure everything
+ * works correctly is specified below.
+ *
+ * 1. Initialize the global context(g_ctx).
+ * 2. Register the components.
+ * 3. Register the behaviors.
+ * 4. Register the queries.
+ * 5. Register the systems.
+ * 6. Turn on the schema lock.
+ * 7. Start the world creation/deletion/whatever.
+ */
 
 /**
  * Contains only once defined definition of things as well as a manager for the
@@ -183,16 +204,17 @@ typedef struct {
     DT_Arr *queries;
     DT_Arr *systems;
     /*
-     * Worlds can be dynamically added/removed or randomly referenced in code,
-     * so storing it in a ds arr is worth it.
-     */
-    DT_DSArr *worlds;
-    /*
      * This tells the fecs that the definition of the above arrays have
      * completed and now we will start making the worlds.
      * The fecs.c will enforce this lock.
      */
     DT_bool schema_lock;
+    /*
+     * Worlds can be dynamically added/removed or randomly referenced in code,
+     * so storing it in a ds arr is worth it.
+     */
+    DT_DSArr *worlds;
+
 } Context;
 
 extern Context *g_ctx;
