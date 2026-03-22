@@ -499,30 +499,6 @@ PRP_FN_API DT_bool PRP_FN_CALL DT_BitmapIsFullUnchecked(const DT_Bitmap *bmp);
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapIsFullChecked(const DT_Bitmap *bmp,
                                                          DT_bool *pRslt);
-/**
- * Finds if the first bitmap is a subset of the second bitmap.
- *
- * @param bmp1: The first bitmap.
- * @param bmp2: The second bitmap.
- *
- * @return DT_false if the bmp2 is not a subset of bmp1, otherwise DT_true.
- *
- * @note: This function doesn't check for argument validation in RELEASE mode.
- */
-PRP_FN_API DT_bool PRP_FN_CALL
-DT_BitmapIsSubsetUnchecked(const DT_Bitmap *bmp1, const DT_Bitmap *bmp2);
-/**
- * Finds if the first bitmap is a subset of the second bitmap.
- *
- * @param bmp1: The first bitmap.
- * @param bmp2: The second bitmap.
- * @param pRslt: The pointer that will store the boolean result of IsSubset.
- *
- * @return PRP_ERR_INV_ARG if the parameters are invalid in any way,
- * otherwise PRP_OK.
- */
-PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapIsSubsetChecked(
-    const DT_Bitmap *bmp1, const DT_Bitmap *bmp2, DT_bool *pRslt);
 
 /**
  * Inverses the bits in the given bitmap.

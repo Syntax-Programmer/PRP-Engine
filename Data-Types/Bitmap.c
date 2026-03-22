@@ -713,37 +713,6 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapIsFullChecked(const DT_Bitmap *bmp,
     return PRP_OK;
 }
 
-PRP_FN_API DT_bool PRP_FN_CALL
-DT_BitmapIsSubsetUnchecked(const DT_Bitmap *bmp1, const DT_Bitmap *bmp2) {
-    ASSERT_INVARIANT_EXPR(bmp1);
-    ASSERT_INVARIANT_EXPR(bmp2);
-
-    DT_size min_cap = PRP_MIN(bmp1->word_cap, bmp2->word_cap);
-    for (DT_size i = 0; i < min_cap; i++) {
-        if ((bmp1->words[i] & bmp2->words[i]) != bmp2->words[i]) {
-            return DT_false;
-        }
-    }
-    for (DT_size i = min_cap; i < bmp2->word_cap; i++) {
-        if (bmp2->words[i]) {
-            return DT_false;
-        }
-    }
-
-    return DT_true;
-}
-
-PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapIsSubsetChecked(
-    const DT_Bitmap *bmp1, const DT_Bitmap *bmp2, DT_bool *pRslt) {
-    if (!INVARIANT_EXPR(bmp1) || !INVARIANT_EXPR(bmp2) || !pRslt) {
-        return PRP_ERR_INV_ARG;
-    }
-
-    *pRslt = DT_BitmapIsSubsetUnchecked(bmp1, bmp2);
-
-    return PRP_OK;
-}
-
 PRP_FN_API DT_void PRP_FN_CALL DT_BitmapNotUnchecked(DT_Bitmap *bmp) {
     ASSERT_INVARIANT_EXPR(bmp);
 
