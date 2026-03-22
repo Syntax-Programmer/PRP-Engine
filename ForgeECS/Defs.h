@@ -44,9 +44,9 @@ typedef DT_void (*FECS_System)(DT_void **comp_arr, DT_size len,
     do {                                                                       \
         DT_Bitword mask = (system_data) & -(system_data);                      \
         (idx) = DT_BitwordCTZ(mask);                                           \
-        (system_data) ^= mask;                                                   \
+        (system_data) ^= mask;                                                 \
     } while (0);
 
 #ifdef __cplusplus
-
+}
 #endif
