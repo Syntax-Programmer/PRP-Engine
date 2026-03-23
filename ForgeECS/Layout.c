@@ -163,6 +163,7 @@ DT_void LayoutDelete(Layout *layout) {
     DIAG_ASSERT(layout != DT_null);
     DIAG_ASSERT(layout->chunk_ptrs != DT_null &&
                 layout->free_chunks != DT_null);
+    DIAG_ASSERT(layout->behavior_idx < DT_ArrLenUnchecked(g_ctx->behaviors));
 
     DT_ArrForEachUnchecked(layout->chunk_ptrs, ChunkPtrDelCb, DT_null);
     DT_ArrDeleteUnchecked(&layout->chunk_ptrs);
