@@ -115,25 +115,25 @@ DT_void LayoutDelete(Layout *layout);
 
 /* ----  ENTITIES ---- */
 
-FECS_Entity EntitySpawn(DT_DSId world_id, DT_size layout_idx);
-FECS_EntityBatch *EntitySpawnN(DT_DSId world_id, DT_size layout_idx,
-                               DT_size count);
+FECS_Entity LayoutEntitySpawn(DT_DSId world_id, DT_size layout_idx);
+FECS_EntityBatch *LayoutEntitySpawnN(DT_DSId world_id, DT_size layout_idx,
+                                     DT_size count);
 
-DT_bool EntityIsValid(DT_DSId world_id, const FECS_Entity entity);
-DT_bool EntityBatchIsValid(DT_DSId world_id, const FECS_EntityBatch *entities);
+DT_bool LayoutEntityIsValid(DT_DSId world_id, const FECS_Entity entity);
+DT_bool LayoutEntityBatchIsValid(DT_DSId world_id,
+                                 const FECS_EntityBatch *entities);
 
-DT_void EntityKill(DT_DSId world_id, FECS_Entity entity);
-DT_void EntityKillN(DT_DSId world_id, FECS_EntityBatch *entities);
+DT_void LayoutEntityKill(DT_DSId world_id, FECS_Entity entity);
+DT_void LayoutEntityKillN(DT_DSId world_id, FECS_EntityBatch *entities);
 
-DT_void *EntityGetComp(DT_DSId world_id, const FECS_Entity entity,
-                       DT_size comp_idx);
-DT_void EntitySetComp(DT_DSId world_id, FECS_Entity entity, DT_size comp_idx,
-                      const DT_void *data);
-PRP_Result EntityBatchForEach(DT_DSId world_id, FECS_EntityBatch *entities,
-                              DT_size comp_idx,
-                              PRP_Result (*cb)(DT_void *comp_data,
-                                               DT_void *user_data),
-                              DT_void *user_data);
+DT_void *LayoutEntityGetComp(DT_DSId world_id, const FECS_Entity entity,
+                             DT_size comp_idx);
+DT_void LayoutEntitySetComp(DT_DSId world_id, FECS_Entity entity,
+                            DT_size comp_idx, const DT_void *data);
+PRP_Result LayoutEntityBatchForEach(
+    DT_DSId world_id, FECS_EntityBatch *entities, DT_size comp_idx,
+    PRP_Result (*cb)(DT_void *comp_data, DT_void *user_data),
+    DT_void *user_data);
 
 /* ----  QUERY ---- */
 
