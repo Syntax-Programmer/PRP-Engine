@@ -37,7 +37,6 @@ static PRP_Result LayoutInitialize(Layout *layout, DT_size behavior_idx);
 PRP_Result LayoutGetLastErrCode(DT_void) { return last_err_code; }
 
 static PRP_Result ChunkCreate(Layout *layout) {
-    ASSERT_CTX_INVARIANT_EXPR;
     DIAG_ASSERT(layout != DT_null);
 
     Behavior *behavior =
@@ -87,7 +86,6 @@ static PRP_Result ChunkCreate(Layout *layout) {
 }
 
 static PRP_Result LayoutInitialize(Layout *layout, DT_size behavior_idx) {
-    ASSERT_CTX_INVARIANT_EXPR;
     DIAG_ASSERT(layout != DT_null);
     DIAG_ASSERT(behavior_idx < DT_ArrLenUnchecked(g_ctx->behaviors));
 

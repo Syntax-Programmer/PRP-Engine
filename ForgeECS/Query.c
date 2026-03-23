@@ -14,7 +14,6 @@ static PRP_Result QueryFindMatches(Query *query);
 PRP_Result QueryGetLastErrCode(DT_void) { return last_err_code; }
 
 static PRP_Result QueryFindMatches(Query *query) {
-    ASSERT_CTX_INVARIANT_EXPR;
     DIAG_ASSERT(query != DT_null);
     DIAG_ASSERT(query->inc != DT_null);
 
