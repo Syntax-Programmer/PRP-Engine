@@ -44,6 +44,8 @@ static PRP_Result QueryFindMatches(Query *query) {
          * condition.
          */
         DT_ArrDeleteUnchecked(&query->behavior_matches);
+    } else {
+        DT_ArrShrinkFitUnchecked(query->behavior_matches);
     }
 
     return PRP_OK;
