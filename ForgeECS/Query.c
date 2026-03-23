@@ -1,6 +1,14 @@
 #include "../Diagnostics/Assert.h"
 #include "Internals.h"
 
+/**
+ * Finds all the behaviors that match the given query.
+ *
+ * @param query: The query to find the matches for.
+ *
+ * @return PRP_ERR_OOM if we can't create the array or can't push into it,
+ * PRP_ERR_INTERNAL if some other error occur, otherwise PRP_OK.
+ */
 static PRP_Result QueryFindMatches(Query *query);
 
 PRP_Result QueryGetLastErrCode(DT_void) { return last_err_code; }
