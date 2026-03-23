@@ -113,8 +113,6 @@ PRP_Result LayoutGetLastErrCode(DT_void);
 DT_size LayoutCreate(DT_DSId world_id, DT_size behavior_idx);
 DT_void LayoutDelete(Layout *layout);
 
-/* ----  ENTITIES ---- */
-
 FECS_Entity LayoutEntitySpawn(DT_DSId world_id, DT_size layout_idx);
 FECS_EntityBatch *LayoutEntitySpawnN(DT_DSId world_id, DT_size layout_idx,
                                      DT_size count);
@@ -159,6 +157,7 @@ typedef struct {
     DT_Arr *layout_matches;
 } SystemCache;
 
+PRP_Result SystemGetLastErrCode(DT_void);
 DT_size SystemRegister(FECS_System system);
 DT_size SystemCacheCreate(DT_DSId world_id, DT_size system_idx,
                           DT_size query_idx);
@@ -174,6 +173,9 @@ typedef struct {
     DT_Arr *layouts;
     DT_Arr *system_caches;
 } World;
+
+DT_DSId WorldCreate(DT_void);
+DT_void WorldDelete(DT_DSId *pWorld_id);
 
 /* ----  FECS ---- */
 

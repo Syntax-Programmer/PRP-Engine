@@ -13,6 +13,8 @@
 static DT_bool BSearchBehavior(const DT_size *behaviors, DT_size len,
                                DT_size to_find);
 
+PRP_Result SystemGetLastErrCode(DT_void) { return last_err_code; }
+
 DT_size SystemRegister(FECS_System system) {
     DIAG_ASSERT(system != DT_null);
 
