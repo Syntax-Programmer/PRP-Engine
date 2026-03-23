@@ -16,6 +16,7 @@ static DT_bool BSearchBehavior(const DT_size *behaviors, DT_size len,
 PRP_Result SystemGetLastErrCode(DT_void) { return last_err_code; }
 
 DT_size SystemRegister(FECS_System system) {
+    ASSERT_CTX_INVARIANT_EXPR;
     DIAG_ASSERT(system != DT_null);
 
     PRP_Result code = DT_ArrPushUnchecked(g_ctx->systems, &system);
@@ -51,6 +52,7 @@ static DT_bool BSearchBehavior(const DT_size *behaviors, DT_size len,
 
 DT_size SystemCacheCreate(DT_DSId world_id, DT_size system_idx,
                           DT_size query_idx) {
+    ASSERT_CTX_INVARIANT_EXPR;
     World *world = DT_DSIdToDataUnchecked(g_ctx->worlds, world_id);
     DIAG_ASSERT(world != DT_null);
     DIAG_ASSERT(system_idx < DT_ArrLenUnchecked(g_ctx->systems));

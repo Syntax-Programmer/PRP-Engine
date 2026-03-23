@@ -216,10 +216,17 @@ typedef struct {
      * so storing it in a ds arr is worth it.
      */
     DT_DSArr *worlds;
-
 } Context;
 
 extern Context *g_ctx;
+
+#define CTX_INVARIANT_EXPR                                                     \
+    (g_ctx != DT_null && g_ctx->comps != DT_null &&                            \
+     g_ctx->behaviors != DT_null && g_ctx->queries != DT_null &&               \
+     g_ctx->systems != DT_null && g_ctx->worlds != DT_null)
+#define ASSERT_CTX_INVARIANT_EXPR                                              \
+    DIAG_ASSERT_MSG(CTX_INVARIANT_EXPR,                                        \
+                    "FECS is either not initialized or is corrupted.")
 
 #ifdef __cplusplus
 }

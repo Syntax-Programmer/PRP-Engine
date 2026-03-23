@@ -27,6 +27,7 @@ static DT_void SortCompIdxs(DT_size *comp_idxs, DT_size len) {
 PRP_Result BehaviorGetLastErrCode(DT_void) { return last_err_code; }
 
 DT_size BehaviorRegisterWArray(DT_size *comp_idxs, DT_size len) {
+    ASSERT_CTX_INVARIANT_EXPR;
     DIAG_ASSERT(comp_idxs != DT_null);
     DIAG_ASSERT(len > 0);
 

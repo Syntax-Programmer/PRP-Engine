@@ -2,6 +2,8 @@
 #include "Internals.h"
 
 DT_DSId WorldCreate(DT_void) {
+    ASSERT_CTX_INVARIANT_EXPR;
+
     World data = {0};
     data.layouts = DT_ArrCreateUnchecked(sizeof(Layout), DT_ARR_DEFAULT_CAP);
     data.system_caches =
@@ -37,5 +39,7 @@ free_internals:
 }
 
 DT_void WorldDelete(DT_DSId *pWorld_id) {
+    ASSERT_CTX_INVARIANT_EXPR;
+
     DT_DSArrDelElemUnchecked(g_ctx->worlds, pWorld_id);
 }

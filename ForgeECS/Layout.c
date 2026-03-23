@@ -37,6 +37,7 @@ static PRP_Result LayoutInitialize(Layout *layout, DT_size behavior_idx);
 PRP_Result LayoutGetLastErrCode(DT_void) { return last_err_code; }
 
 static PRP_Result ChunkCreate(Layout *layout) {
+    ASSERT_CTX_INVARIANT_EXPR;
     DIAG_ASSERT(layout != DT_null);
 
     Behavior *behavior =
@@ -86,6 +87,7 @@ static PRP_Result ChunkCreate(Layout *layout) {
 }
 
 static PRP_Result LayoutInitialize(Layout *layout, DT_size behavior_idx) {
+    ASSERT_CTX_INVARIANT_EXPR;
     DIAG_ASSERT(layout != DT_null);
     DIAG_ASSERT(behavior_idx < DT_ArrLenUnchecked(g_ctx->behaviors));
 
@@ -123,6 +125,7 @@ free_internals:
 }
 
 DT_size LayoutCreate(DT_DSId world_id, DT_size behavior_idx) {
+    ASSERT_CTX_INVARIANT_EXPR;
     DIAG_ASSERT(behavior_idx < DT_ArrLenUnchecked(g_ctx->behaviors));
     World *world = DT_DSIdToDataUnchecked(g_ctx->worlds, world_id);
     DIAG_ASSERT(world != DT_null);
@@ -192,6 +195,7 @@ DT_void LayoutDelete(Layout *layout) {
 static DT_size GetCompStride(DT_size behavior_idx, DT_size comp_idx);
 
 FECS_Entity LayoutEntitySpawn(DT_DSId world_id, DT_size layout_idx) {
+    ASSERT_CTX_INVARIANT_EXPR;
     World *world = DT_DSIdToDataUnchecked(g_ctx->worlds, world_id);
     DIAG_ASSERT(world != DT_null);
     DIAG_ASSERT(layout_idx < DT_ArrLenUnchecked(world->layouts));
@@ -226,6 +230,7 @@ FECS_Entity LayoutEntitySpawn(DT_DSId world_id, DT_size layout_idx) {
 
 FECS_EntityBatch *LayoutEntitySpawnN(DT_DSId world_id, DT_size layout_idx,
                                      DT_size count) {
+    ASSERT_CTX_INVARIANT_EXPR;
     World *world = DT_DSIdToDataUnchecked(g_ctx->worlds, world_id);
     DIAG_ASSERT(world != DT_null);
     DIAG_ASSERT(count > 0);
@@ -280,6 +285,7 @@ FECS_EntityBatch *LayoutEntitySpawnN(DT_DSId world_id, DT_size layout_idx,
 }
 
 DT_bool LayoutEntityIsValid(DT_DSId world_id, const FECS_Entity entity) {
+    ASSERT_CTX_INVARIANT_EXPR;
     World *world = DT_DSIdToDataUnchecked(g_ctx->worlds, world_id);
     DIAG_ASSERT(world != DT_null);
 
@@ -305,6 +311,7 @@ DT_bool LayoutEntityIsValid(DT_DSId world_id, const FECS_Entity entity) {
 
 DT_bool LayoutEntityBatchIsValid(DT_DSId world_id,
                                  const FECS_EntityBatch *entities) {
+    ASSERT_CTX_INVARIANT_EXPR;
     DIAG_ASSERT(entities != DT_null);
     World *world = DT_DSIdToDataUnchecked(g_ctx->worlds, world_id);
     DIAG_ASSERT(world != DT_null);
@@ -333,6 +340,7 @@ DT_bool LayoutEntityBatchIsValid(DT_DSId world_id,
 }
 
 DT_void LayoutEntityKill(DT_DSId world_id, FECS_Entity entity) {
+    ASSERT_CTX_INVARIANT_EXPR;
     World *world = DT_DSIdToDataUnchecked(g_ctx->worlds, world_id);
     DIAG_ASSERT(world != DT_null);
     DIAG_ASSERT(LayoutEntityIsValid(world_id, entity) == DT_true);
@@ -349,6 +357,7 @@ DT_void LayoutEntityKill(DT_DSId world_id, FECS_Entity entity) {
 }
 
 DT_void LayoutEntityKillN(DT_DSId world_id, FECS_EntityBatch *entities) {
+    ASSERT_CTX_INVARIANT_EXPR;
     DIAG_ASSERT(entities != DT_null);
     World *world = DT_DSIdToDataUnchecked(g_ctx->worlds, world_id);
     DIAG_ASSERT(world != DT_null);
@@ -394,6 +403,7 @@ static DT_size GetCompStride(DT_size behavior_idx, DT_size comp_idx) {
 
 DT_void *LayoutEntityGetComp(DT_DSId world_id, const FECS_Entity entity,
                              DT_size comp_idx) {
+    ASSERT_CTX_INVARIANT_EXPR;
     World *world = DT_DSIdToDataUnchecked(g_ctx->worlds, world_id);
     DIAG_ASSERT(world != DT_null);
     // This entire check vanishes in debug mode.
@@ -417,6 +427,7 @@ DT_void *LayoutEntityGetComp(DT_DSId world_id, const FECS_Entity entity,
 
 DT_void LayoutEntitySetComp(DT_DSId world_id, FECS_Entity entity,
                             DT_size comp_idx, const DT_void *data) {
+    ASSERT_CTX_INVARIANT_EXPR;
     World *world = DT_DSIdToDataUnchecked(g_ctx->worlds, world_id);
     DIAG_ASSERT(world != DT_null);
     // This entire check vanishes in debug mode.
@@ -443,6 +454,7 @@ PRP_Result LayoutEntityBatchForEach(
     DT_DSId world_id, FECS_EntityBatch *entities, DT_size comp_idx,
     PRP_Result (*cb)(DT_void *comp_data, DT_void *user_data),
     DT_void *user_data) {
+    ASSERT_CTX_INVARIANT_EXPR;
     World *world = DT_DSIdToDataUnchecked(g_ctx->worlds, world_id);
     DIAG_ASSERT(world != DT_null);
     // This entire check vanishes in debug mode.

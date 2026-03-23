@@ -5,6 +5,7 @@
 PRP_Result CompGetLastErrCode(DT_void) { return last_err_code; }
 
 DT_size CompRegister(const DT_char *name, DT_size size) {
+    ASSERT_CTX_INVARIANT_EXPR;
     DIAG_ASSERT(name != DT_null);
     DIAG_ASSERT(size > 0);
 

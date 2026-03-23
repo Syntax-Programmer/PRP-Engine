@@ -14,6 +14,7 @@ static PRP_Result QueryFindMatches(Query *query);
 PRP_Result QueryGetLastErrCode(DT_void) { return last_err_code; }
 
 static PRP_Result QueryFindMatches(Query *query) {
+    ASSERT_CTX_INVARIANT_EXPR;
     DIAG_ASSERT(query != DT_null);
     DIAG_ASSERT(query->inc != DT_null);
 
@@ -61,6 +62,7 @@ static PRP_Result QueryFindMatches(Query *query) {
 
 DT_size QueryRegisterWArray(DT_size *inc_comps, DT_size inc_len,
                             DT_size *exc_comps, DT_size exc_len) {
+    ASSERT_CTX_INVARIANT_EXPR;
     DIAG_ASSERT(inc_comps != DT_null);
     DIAG_ASSERT(inc_len > 0);
     DIAG_ASSERT(((exc_comps == DT_null && exc_len == 0) ||
