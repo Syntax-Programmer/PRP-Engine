@@ -10,6 +10,18 @@
  * PRP_ERR_INTERNAL if some other error occur, otherwise PRP_OK.
  */
 static PRP_Result QueryFindMatches(Query *query);
+/**
+ * Initializes and registers a query internally.
+ *
+ * @param inc_comps: The array of comps that the query wants to include.
+ * @param inc_len: The len of the inc_comps array.
+ * @param exc_comps: The array of comps that the query wants to exclude.
+ * @param exc_len: The len of the exc_comps array.
+ *
+ * @return The query index of the fully initialized and registered query.
+ */
+static DT_size QueryRegisterInternal(DT_size *inc_comps, DT_size inc_len,
+                                     DT_size *exc_comps, DT_size exc_len);
 
 PRP_Result QueryGetLastErrCode(DT_void) { return last_err_code; }
 
@@ -59,14 +71,8 @@ static PRP_Result QueryFindMatches(Query *query) {
     return PRP_OK;
 }
 
-DT_size QueryRegisterWArray(DT_size *inc_comps, DT_size inc_len,
-                            DT_size *exc_comps, DT_size exc_len) {
-    ASSERT_CTX_INVARIANT_EXPR;
-    DIAG_ASSERT(inc_comps != DT_null);
-    DIAG_ASSERT(inc_len > 0);
-    DIAG_ASSERT(((exc_comps == DT_null && exc_len == 0) ||
-                 (exc_comps != DT_null && exc_len > 0)));
-
+static DT_size QueryRegisterInternal(DT_size *inc_comps, DT_size inc_len,
+                                     DT_size *exc_comps, DT_size exc_len) {
     Query data = {0};
     DT_size total_comps = DT_ArrLenUnchecked(g_ctx->comps);
     data.inc = DT_BitmapCreateUnchecked(total_comps);
@@ -124,7 +130,8 @@ free_internals:
     return PRP_INVALID_INDEX;
 }
 
-DT_size QueryRegisterWArr(DT_Arr *inc_comps, DT_Arr *exc_comps) {
+DT_size QueryRegister(DT_Arr *inc_comps, DT_Arr *exc_comps) {
+    ASSERT_CTX_INVARIANT_EXPR;
     DIAG_ASSERT(inc_comps != DT_null);
 
     DT_size inc_len;
@@ -140,7 +147,7 @@ DT_size QueryRegisterWArr(DT_Arr *inc_comps, DT_Arr *exc_comps) {
         DIAG_ASSERT(exc_len > 0);
     }
 
-    return QueryRegisterWArray(arr1, inc_len, arr2, exc_len);
+    return QueryRegisterInternal(arr1, inc_len, arr2, exc_len);
 }
 
 DT_void QueryDelete(Query *query) {

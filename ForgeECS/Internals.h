@@ -65,8 +65,7 @@ typedef struct {
 } Behavior;
 
 PRP_Result BehaviorGetLastErrCode(DT_void);
-DT_size BehaviorRegisterWArray(DT_size *comp_idxs, DT_size len);
-DT_size BehaviorRegisterWDTArr(DT_Arr *comp_idxs);
+DT_size BehaviorRegister(DT_Arr *comp_idxs);
 DT_void BehaviorDelete(Behavior *behavior);
 
 /* ----  LAYOUTS ---- */
@@ -144,14 +143,13 @@ typedef struct {
 } Query;
 
 PRP_Result QueryGetLastErrCode(DT_void);
-DT_size QueryRegisterWArray(DT_size *inc_comps, DT_size inc_len,
-                            DT_size *exc_comps, DT_size exc_len);
-DT_size QueryRegisterWArr(DT_Arr *inc_comps, DT_Arr *exc_comps);
+DT_size QueryRegister(DT_Arr *inc_comps, DT_Arr *exc_comps);
 DT_void QueryDelete(Query *query);
 
 /* ----  SYSTEMS ---- */
 
 typedef struct {
+    DT_bool enabled;
     DT_size system_idx;
     DT_size query_idx;
     DT_Arr *layout_matches;
@@ -172,10 +170,21 @@ DT_void SystemCacheDelete(SystemCache *system_cache);
 typedef struct {
     DT_Arr *layouts;
     DT_Arr *system_caches;
+
 } World;
 
 DT_DSId WorldCreate(DT_void);
 DT_void WorldDelete(DT_DSId *pWorld_id);
+
+PRP_Result WorldSystemExecAll(DT_DSId world_id);
+PRP_Result WorldSystemExecOne(DT_DSId world_id, DT_size system_cache_idx);
+PRP_Result WorldSystemExecMany(DT_DSId world_id, DT_Arr *system_cache_idxs);
+PRP_Result WorldUpdate(DT_DSId world_id, DT_f32 dt);
+PRP_Result WorldSetSystemExecOrder(DT_DSId world_id, DT_Arr *system_exec_order);
+PRP_Result WorldSync(DT_DSId world_id);
+PRP_Result WorldEnableSystem(DT_DSId world_id, DT_size system_cache_idx);
+PRP_Result WorldDisableSystem(DT_DSId world_id, DT_size system_cache_idx);
+// TODO: Maybe remove WArr and WArray functions to favor DT_Arr as the input.
 
 /* ----  FECS ---- */
 

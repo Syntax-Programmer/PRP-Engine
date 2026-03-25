@@ -94,6 +94,8 @@ DT_size SystemCacheCreate(DT_DSId world_id, DT_size system_idx,
             }
         }
     }
+    // Every system is enabled by default.
+    data.enabled = DT_true;
 
     PRP_Result code = DT_ArrPushUnchecked(world->system_caches, &data);
     if (code == PRP_ERR_RES_EXHAUSTED || code == PRP_ERR_OOM) {

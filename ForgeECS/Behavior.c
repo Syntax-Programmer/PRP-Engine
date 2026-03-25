@@ -8,6 +8,15 @@
  * @param len: The len of the array.
  */
 static DT_void SortCompIdxs(DT_size *comp_idxs, DT_size len);
+/**
+ * Initializes and registers a behavior internally.
+ *
+ * @param comp_idxs: The array of comps that the behavior has.
+ * @param inc_len: The len of the comp_idxs array.
+ *
+ * @return The behavior index of the fully initialized and registered query.
+ */
+static DT_size BehaviorRegisterInternal(DT_size *comp_idxs, DT_size len);
 
 static DT_void SortCompIdxs(DT_size *comp_idxs, DT_size len) {
     DIAG_ASSERT(comp_idxs != DT_null);
@@ -26,11 +35,7 @@ static DT_void SortCompIdxs(DT_size *comp_idxs, DT_size len) {
 
 PRP_Result BehaviorGetLastErrCode(DT_void) { return last_err_code; }
 
-DT_size BehaviorRegisterWArray(DT_size *comp_idxs, DT_size len) {
-    ASSERT_CTX_INVARIANT_EXPR;
-    DIAG_ASSERT(comp_idxs != DT_null);
-    DIAG_ASSERT(len > 0);
-
+static DT_size BehaviorRegisterInternal(DT_size *comp_idxs, DT_size len) {
     /*
      * Since sorting is just order changing and doesn't change the metadata, it
      * can be done wihtout disturbing validity of arrays.
@@ -83,7 +88,8 @@ free_internals:
     return PRP_INVALID_INDEX;
 }
 
-DT_size BehaviorRegisterWDTArr(DT_Arr *comp_idxs) {
+DT_size BehaviorRegister(DT_Arr *comp_idxs) {
+    ASSERT_CTX_INVARIANT_EXPR;
     DIAG_ASSERT(comp_idxs != DT_null);
 
     DT_size len;
@@ -91,7 +97,7 @@ DT_size BehaviorRegisterWDTArr(DT_Arr *comp_idxs) {
     DIAG_ASSERT(arr != DT_null);
     DIAG_ASSERT(len > 0);
 
-    return BehaviorRegisterWArray(arr, len);
+    return BehaviorRegisterInternal(arr, len);
 }
 
 DT_void BehaviorDelete(Behavior *behavior) {
