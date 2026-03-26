@@ -8,15 +8,17 @@ struct _Bffr {
     DT_u8 *mem;
 };
 
-#define INVARIANT_EXPR(bffr)                                                   \
-    ((bffr) != DT_null && (bffr)->mem != DT_null && (bffr)->memb_size > 0 &&   \
-     (bffr)->cap > 0 && (bffr)->cap <= DT_BFFR_MAX_CAP((bffr)->memb_size))
 #define ASSERT_INVARIANT_EXPR(bffr)                                            \
-    DIAG_ASSERT_MSG(INVARIANT_EXPR(bffr),                                      \
+    DIAG_ASSERT_MSG(DT_BffrIsValid(bffr),                                      \
                     "The given buffer is either DT_null, or is corrupted.")
 
 PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrGetLastErrCode(DT_void) {
     return last_err_code;
+}
+
+PRP_FN_API DT_bool PRP_FN_CALL DT_BffrIsValid(const DT_Bffr *bffr) {
+    return (bffr != DT_null && bffr->mem != DT_null && bffr->memb_size > 0 &&
+            bffr->cap > 0 && bffr->cap <= DT_BFFR_MAX_CAP(bffr->memb_size));
 }
 
 PRP_FN_API DT_Bffr *PRP_FN_CALL DT_BffrCreateUnchecked(DT_size memb_size,
@@ -70,7 +72,7 @@ PRP_FN_API DT_Bffr *PRP_FN_CALL DT_BffrCloneUnchecked(const DT_Bffr *bffr) {
 }
 
 PRP_FN_API DT_Bffr *PRP_FN_CALL DT_BffrCloneChecked(const DT_Bffr *bffr) {
-    if (!INVARIANT_EXPR(bffr)) {
+    if (!DT_BffrIsValid(bffr)) {
         SET_LAST_ERR_CODE(PRP_ERR_INV_ARG);
         return DT_null;
     }
@@ -117,7 +119,7 @@ PRP_FN_API const DT_void *PRP_FN_CALL DT_BffrRawUnchecked(const DT_Bffr *bffr,
 
 PRP_FN_API const DT_void *PRP_FN_CALL DT_BffrRawChecked(const DT_Bffr *bffr,
                                                         DT_size *pCap) {
-    if (!INVARIANT_EXPR(bffr) || !pCap) {
+    if (!DT_BffrIsValid(bffr) || !pCap) {
         SET_LAST_ERR_CODE(PRP_ERR_INV_ARG);
         return DT_null;
     }
@@ -134,7 +136,7 @@ PRP_FN_API DT_size PRP_FN_CALL DT_BffrCapUnchecked(const DT_Bffr *bffr) {
 }
 
 PRP_FN_API DT_size PRP_FN_CALL DT_BffrCapChecked(const DT_Bffr *bffr) {
-    if (!INVARIANT_EXPR(bffr)) {
+    if (!DT_BffrIsValid(bffr)) {
         SET_LAST_ERR_CODE(PRP_ERR_INV_ARG);
         return PRP_INVALID_SIZE;
     }
@@ -149,7 +151,7 @@ PRP_FN_API DT_size PRP_FN_CALL DT_BffrMembSizeUnchecked(const DT_Bffr *bffr) {
 }
 
 PRP_FN_API DT_size PRP_FN_CALL DT_BffrMembSizeChecked(const DT_Bffr *bffr) {
-    if (!INVARIANT_EXPR(bffr)) {
+    if (!DT_BffrIsValid(bffr)) {
         SET_LAST_ERR_CODE(PRP_ERR_INV_ARG);
         return PRP_INVALID_SIZE;
     }
@@ -164,7 +166,7 @@ PRP_FN_API DT_size PRP_FN_CALL DT_BffrMaxCapUnchecked(const DT_Bffr *bffr) {
 }
 
 PRP_FN_API DT_size PRP_FN_CALL DT_BffrMaxCapChecked(const DT_Bffr *bffr) {
-    if (!INVARIANT_EXPR(bffr)) {
+    if (!DT_BffrIsValid(bffr)) {
         SET_LAST_ERR_CODE(PRP_ERR_INV_ARG);
         return PRP_INVALID_SIZE;
     }
@@ -182,7 +184,7 @@ PRP_FN_API DT_void *PRP_FN_CALL DT_BffrGetUnchecked(const DT_Bffr *bffr,
 
 PRP_FN_API DT_void *PRP_FN_CALL DT_BffrGetChecked(const DT_Bffr *bffr,
                                                   DT_size i) {
-    if (!INVARIANT_EXPR(bffr)) {
+    if (!DT_BffrIsValid(bffr)) {
         SET_LAST_ERR_CODE(PRP_ERR_INV_ARG);
         return DT_null;
     }
@@ -205,7 +207,7 @@ PRP_FN_API DT_void PRP_FN_CALL DT_BffrSetUnchecked(DT_Bffr *bffr, DT_size i,
 
 PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrSetChecked(DT_Bffr *bffr, DT_size i,
                                                     const DT_void *pData) {
-    if (!INVARIANT_EXPR(bffr) || !pData) {
+    if (!DT_BffrIsValid(bffr) || !pData) {
         return PRP_ERR_INV_ARG;
     }
     if (i >= bffr->cap) {
@@ -235,7 +237,7 @@ PRP_FN_API DT_void PRP_FN_CALL DT_BffrSetRangeUnchecked(DT_Bffr *bffr,
 PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrSetRangeChecked(DT_Bffr *bffr,
                                                          DT_size i, DT_size j,
                                                          const DT_void *pData) {
-    if (!INVARIANT_EXPR(bffr) || !pData || i >= j) {
+    if (!DT_BffrIsValid(bffr) || !pData || i >= j) {
         return PRP_ERR_INV_ARG;
     }
     if (i >= bffr->cap || j > bffr->cap) {
@@ -261,7 +263,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrSetManyChecked(DT_Bffr *bffr,
                                                         DT_size i,
                                                         const DT_void *data_arr,
                                                         DT_size len) {
-    if (!INVARIANT_EXPR(bffr) || !data_arr) {
+    if (!DT_BffrIsValid(bffr) || !data_arr) {
         return PRP_ERR_INV_ARG;
     }
     if (i >= bffr->cap || bffr->cap - i < len) {
@@ -288,7 +290,7 @@ PRP_FN_API DT_bool PRP_FN_CALL DT_BffrCmpUnchecked(const DT_Bffr *bffr1,
 PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrCmpChecked(const DT_Bffr *bffr1,
                                                     const DT_Bffr *bffr2,
                                                     DT_bool *pRslt) {
-    if (!INVARIANT_EXPR(bffr1) || !INVARIANT_EXPR(bffr2) || !pRslt) {
+    if (!DT_BffrIsValid(bffr1) || !DT_BffrIsValid(bffr2) || !pRslt) {
         return PRP_ERR_INV_ARG;
     }
 
@@ -319,7 +321,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrExtendUnchecked(DT_Bffr *bffr1,
 
 PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrExtendChecked(DT_Bffr *bffr1,
                                                        const DT_Bffr *bffr2) {
-    if (!(INVARIANT_EXPR(bffr1)) || !(INVARIANT_EXPR(bffr2)) ||
+    if (!(DT_BffrIsValid(bffr1)) || !(DT_BffrIsValid(bffr2)) ||
         bffr1->memb_size != bffr2->memb_size) {
         return PRP_ERR_INV_ARG;
     }
@@ -349,7 +351,7 @@ PRP_FN_API DT_void PRP_FN_CALL DT_BffrSwapUnchecked(DT_Bffr *bffr, DT_size i,
 PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrSwapChecked(DT_Bffr *bffr, DT_size i,
                                                      DT_size j,
                                                      DT_void *swap_bffr) {
-    if (!INVARIANT_EXPR(bffr) || !swap_bffr) {
+    if (!DT_BffrIsValid(bffr) || !swap_bffr) {
         return PRP_ERR_INV_ARG;
     }
     if (i >= bffr->cap || j >= bffr->cap) {
@@ -368,7 +370,7 @@ PRP_FN_API DT_void PRP_FN_CALL DT_BffrClearUnchecked(DT_Bffr *bffr) {
 }
 
 PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrClearChecked(DT_Bffr *bffr) {
-    if (!INVARIANT_EXPR(bffr)) {
+    if (!DT_BffrIsValid(bffr)) {
         return PRP_ERR_INV_ARG;
     }
 
@@ -405,7 +407,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrChangeSizeUnchecked(DT_Bffr *bffr,
 
 PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrChangeSizeChecked(DT_Bffr *bffr,
                                                            DT_size new_cap) {
-    if (!INVARIANT_EXPR(bffr) || !new_cap) {
+    if (!DT_BffrIsValid(bffr) || !new_cap) {
         return PRP_ERR_INV_ARG;
     }
 

@@ -21,6 +21,15 @@ typedef struct _Pool MEM_Pool;
  */
 PRP_FN_API PRP_Result PRP_FN_CALL MEM_PoolGetLastErrCode(DT_void);
 /**
+ * Checks if the given pool is valid or not.
+ *
+ * @param pool: Checks if the given pool is valid or not.
+ *
+ * @return DT_false if the pool is DT_null or is internally invalid, otherwise
+ * DT_true.
+ */
+PRP_FN_API DT_bool PRP_FN_CALL MEM_PoolIsValid(const MEM_Pool *pool);
+/**
  * Creates the pool allocator with the given memb_size and cap.
  *
  * @param memb_size: The size of individual allocable blocks of the pool.

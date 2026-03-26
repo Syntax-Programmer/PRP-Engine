@@ -17,6 +17,15 @@ typedef struct _Bffr DT_Bffr;
  * PRP_Result explicitly.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrGetLastErrCode(DT_void);
+/**
+ * Checks if the given buffer is valid or not.
+ *
+ * @param bffr: Checks if the given buffer is valid or not.
+ *
+ * @return DT_false if the buffer is DT_null or is internally invalid, otherwise
+ * DT_true.
+ */
+PRP_FN_API DT_bool PRP_FN_CALL DT_BffrIsValid(const DT_Bffr *bffr);
 
 /**
  * Creates the dynamic buffer with user specified initial cap.

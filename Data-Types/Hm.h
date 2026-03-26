@@ -20,6 +20,15 @@ typedef struct _Hm DT_Hm;
  * PRP_Result explicitly.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_HmGetLastErrCode(DT_void);
+/**
+ * Checks if the given hashmap is valid or not.
+ *
+ * @param hm: Checks if the given hashmap is valid or not.
+ *
+ * @return DT_false if the hashmap is DT_null or is internally invalid,
+ * otherwise DT_true.
+ */
+PRP_FN_API DT_bool PRP_FN_CALL DT_HmIsValid(const DT_Hm *hm);
 
 /**
  * Creates the hashmap with the user specified parameters.

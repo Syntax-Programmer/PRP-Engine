@@ -43,7 +43,15 @@ typedef DT_u64 DT_DSId;
  * return PRP_Result explicitly.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_DSArrGetLastErrCode(DT_void);
-
+/**
+ * Checks if the given ds array is valid or not.
+ *
+ * @param ds_arr: Checks if the given ds array is valid or not.
+ *
+ * @return DT_false if the ds array is DT_null or is internally invalid,
+ * otherwise DT_true.
+ */
+PRP_FN_API DT_bool PRP_FN_CALL DT_DSArrIsValid(const DT_DSArr *ds_arr);
 /**
  * Creates the ds array wiht the user specified memb size.
  *

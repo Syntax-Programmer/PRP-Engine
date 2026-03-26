@@ -24,6 +24,15 @@ typedef struct _Arr DT_Arr;
  * PRP_Result explicitly.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrGetLastErrCode(DT_void);
+/**
+ * Checks if the given array is valid or not.
+ *
+ * @param arr: Checks if the given array is valid or not.
+ *
+ * @return DT_false if the array is DT_null or is internally invalid, otherwise
+ * DT_true.
+ */
+PRP_FN_API DT_bool PRP_FN_CALL DT_ArrIsValid(const DT_Arr *arr);
 
 /**
  * Creates the dynamic array with user specified initial cap.

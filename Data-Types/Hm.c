@@ -69,17 +69,8 @@ struct _Hm {
 #define MAX_LAYOUT_CAP (DT_SIZE_MAX / sizeof(DT_size))
 #define MAX_ELEM_CAP (DT_SIZE_MAX / sizeof(Elem))
 
-#define INVARIANT_EXPR(hm)                                                     \
-    ((hm) != DT_null && (hm)->layout != DT_null && (hm)->elems != DT_null &&   \
-     (hm)->layout_cap > 0 && (hm)->elem_cap > 0 &&                             \
-     (hm)->layout_cap <= MAX_LAYOUT_CAP &&                                     \
-     ((hm)->layout_cap & ((hm)->layout_cap - 1)) == 0 &&                       \
-     (hm)->elem_cap <= MAX_ELEM_CAP && (hm)->elem_len <= (hm)->elem_cap &&     \
-     (hm)->elem_len <= (hm)->layout_cap && (hm)->hash_fn != DT_null &&         \
-     (hm)->key_cmp_cb != DT_null && (hm)->key_del_cb != DT_null &&             \
-     (hm)->val_del_cb != DT_null)
 #define ASSERT_INVARIANT_EXPR(hm)                                              \
-    DIAG_ASSERT_MSG(INVARIANT_EXPR(hm),                                        \
+    DIAG_ASSERT_MSG(DT_HmIsValid(hm),                                          \
                     "The given hashmap is either DT_null, or is corrupted.")
 
 /**
@@ -118,6 +109,17 @@ static PRP_Result FetchLayoutElemI(const DT_Hm *hm, const DT_void *key,
 
 PRP_FN_API PRP_Result PRP_FN_CALL DT_HmGetLastErrCode(DT_void) {
     return last_err_code;
+}
+
+PRP_FN_API DT_bool PRP_FN_CALL DT_HmIsValid(const DT_Hm *hm) {
+    return (hm != DT_null && hm->layout != DT_null && hm->elems != DT_null &&
+            hm->layout_cap > 0 && hm->elem_cap > 0 &&
+            hm->layout_cap <= MAX_LAYOUT_CAP &&
+            (hm->layout_cap & (hm->layout_cap - 1)) == 0 &&
+            hm->elem_cap <= MAX_ELEM_CAP && hm->elem_len <= hm->elem_cap &&
+            hm->elem_len <= hm->layout_cap && hm->hash_fn != DT_null &&
+            hm->key_cmp_cb != DT_null && hm->key_del_cb != DT_null &&
+            hm->val_del_cb != DT_null);
 }
 
 PRP_FN_API DT_Hm *PRP_FN_CALL DT_HmCreateUnchecked(
@@ -215,8 +217,6 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_HmDeleteChecked(DT_Hm **pHm) {
 }
 
 static PRP_Result GrowHmElems(DT_Hm *hm) {
-    ASSERT_INVARIANT_EXPR(hm);
-
     if (hm->elem_cap == MAX_ELEM_CAP) {
         return PRP_ERR_RES_EXHAUSTED;
     }
@@ -235,8 +235,6 @@ static PRP_Result GrowHmElems(DT_Hm *hm) {
 }
 
 static DT_void GrowHmLayout(DT_Hm *hm) {
-    ASSERT_INVARIANT_EXPR(hm);
-
     if (hm->layout_cap == MAX_LAYOUT_CAP) {
         return;
     }
@@ -317,7 +315,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_HmAddUnchecked(DT_Hm *hm, DT_void *key,
 
 PRP_FN_API PRP_Result PRP_FN_CALL DT_HmAddChecked(DT_Hm *hm, DT_void *key,
                                                   DT_void *val) {
-    if (!INVARIANT_EXPR(hm) || !key) {
+    if (!DT_HmIsValid(hm) || !key) {
         return PRP_ERR_INV_ARG;
     }
 
@@ -349,7 +347,7 @@ PRP_FN_API DT_void *PRP_FN_CALL DT_HmGetUnchecked(const DT_Hm *hm,
 }
 
 PRP_FN_API DT_void *PRP_FN_CALL DT_HmGetChecked(const DT_Hm *hm, DT_void *key) {
-    if (!INVARIANT_EXPR(hm) || !key) {
+    if (!DT_HmIsValid(hm) || !key) {
         SET_LAST_ERR_CODE(PRP_ERR_INV_ARG);
         return DT_null;
     }
@@ -359,11 +357,6 @@ PRP_FN_API DT_void *PRP_FN_CALL DT_HmGetChecked(const DT_Hm *hm, DT_void *key) {
 
 static PRP_Result FetchLayoutElemI(const DT_Hm *hm, const DT_void *key,
                                    DT_size *pLayout_i, DT_size *pElem_i) {
-    ASSERT_INVARIANT_EXPR(hm);
-    DIAG_ASSERT(key != DT_null);
-    DIAG_ASSERT(pLayout_i != DT_null);
-    DIAG_ASSERT(pElem_i != DT_null);
-
     *pLayout_i = *pElem_i = PRP_INVALID_INDEX;
 
     DT_u64 mask = hm->layout_cap - 1;
@@ -416,7 +409,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_HmDelElemUnchecked(DT_Hm *hm,
 }
 
 PRP_FN_API PRP_Result PRP_FN_CALL DT_HmDelElemChecked(DT_Hm *hm, DT_void *key) {
-    if (!INVARIANT_EXPR(hm) || !key) {
+    if (!DT_HmIsValid(hm) || !key) {
         return PRP_ERR_INV_ARG;
     }
 
@@ -430,7 +423,7 @@ PRP_FN_API DT_size PRP_FN_CALL DT_HmLenUnchecked(const DT_Hm *hm) {
 }
 
 PRP_FN_API DT_size PRP_FN_CALL DT_HmLenChecked(const DT_Hm *hm) {
-    if (!INVARIANT_EXPR(hm)) {
+    if (!DT_HmIsValid(hm)) {
         SET_LAST_ERR_CODE(PRP_ERR_INV_ARG);
         return PRP_INVALID_SIZE;
     }
@@ -460,7 +453,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_HmForEachUnchecked(
 PRP_FN_API PRP_Result PRP_FN_CALL DT_HmForEachChecked(
     DT_Hm *hm, PRP_Result (*cb)(DT_void *key, DT_void *val, DT_void *user_data),
     DT_void *user_data) {
-    if (!INVARIANT_EXPR(hm) || !cb) {
+    if (!DT_HmIsValid(hm) || !cb) {
         return PRP_ERR_INV_ARG;
     }
 
@@ -486,7 +479,7 @@ PRP_FN_API DT_void PRP_FN_CALL DT_HmResetUnchecked(DT_Hm *hm) {
 }
 
 PRP_FN_API PRP_Result PRP_FN_CALL DT_HmResetChecked(DT_Hm *hm) {
-    if (!INVARIANT_EXPR(hm)) {
+    if (!DT_HmIsValid(hm)) {
         return PRP_ERR_INV_ARG;
     }
 

@@ -22,6 +22,15 @@ typedef struct _Arena MEM_Arena;
  */
 PRP_FN_API PRP_Result PRP_FN_CALL MEM_ArenaGetLastErrCode(DT_void);
 /**
+ * Checks if the given arena is valid or not.
+ *
+ * @param arena: Checks if the given arena is valid or not.
+ *
+ * @return DT_false if the arena is DT_null or is internally invalid, otherwise
+ * DT_true.
+ */
+PRP_FN_API DT_bool PRP_FN_CALL MEM_ArenaIsValid(const MEM_Arena *arena);
+/**
  * Returns the max size that an arena can have.
  *
  * @return The max size that an arena can have.

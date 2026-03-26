@@ -10,15 +10,17 @@ struct _Arena {
 
 #define MAX_ALLOCABLE_SIZE (DT_SIZE_MAX - sizeof(MEM_Arena))
 
-#define INVARIANT_EXPR(arena)                                                  \
-    ((arena) != DT_null && (arena)->size > 0 &&                                \
-     (arena)->size <= MAX_ALLOCABLE_SIZE && (arena)->ofs <= (arena)->size)
 #define ASSERT_INVARIANT_EXPR(arena)                                           \
-    DIAG_ASSERT_MSG(INVARIANT_EXPR(arena),                                     \
+    DIAG_ASSERT_MSG(MEM_ArenaIsValid(arena),                                   \
                     "The given arena is either DT_null, or is corrupted.")
 
 PRP_FN_API PRP_Result PRP_FN_CALL MEM_ArenaGetLastErrCode(DT_void) {
     return last_err_code;
+}
+
+PRP_FN_API DT_bool PRP_FN_CALL MEM_ArenaIsValid(const MEM_Arena *arena) {
+    return (arena != DT_null && arena->size > 0 &&
+            arena->size <= MAX_ALLOCABLE_SIZE && arena->ofs <= arena->size);
 }
 
 PRP_FN_API DT_size PRP_FN_CALL MEM_ArenaMaxSize(DT_void) {
@@ -86,7 +88,7 @@ PRP_FN_API DT_void *PRP_FN_CALL MEM_ArenaAllocUnchecked(MEM_Arena *arena,
 
 PRP_FN_API DT_void *PRP_FN_CALL MEM_ArenaAllocChecked(MEM_Arena *arena,
                                                       DT_size size) {
-    if (!INVARIANT_EXPR(arena) || !size) {
+    if (!MEM_ArenaIsValid(arena) || !size) {
         SET_LAST_ERR_CODE(PRP_ERR_INV_ARG);
         return DT_null;
     }
@@ -113,7 +115,7 @@ PRP_FN_API DT_void *PRP_FN_CALL MEM_ArenaCallocUnchecked(MEM_Arena *arena,
 
 PRP_FN_API DT_void *PRP_FN_CALL MEM_ArenaCallocChecked(MEM_Arena *arena,
                                                        DT_size size) {
-    if (!INVARIANT_EXPR(arena) || !size) {
+    if (!MEM_ArenaIsValid(arena) || !size) {
         SET_LAST_ERR_CODE(PRP_ERR_INV_ARG);
         return DT_null;
     }
@@ -131,7 +133,7 @@ PRP_FN_API DT_void PRP_FN_CALL MEM_ArenaResetUnchecked(MEM_Arena *arena) {
 }
 
 PRP_FN_API PRP_Result PRP_FN_CALL MEM_ArenaResetChecked(MEM_Arena *arena) {
-    if (!INVARIANT_EXPR(arena)) {
+    if (!MEM_ArenaIsValid(arena)) {
         return PRP_ERR_INV_ARG;
     }
 

@@ -81,6 +81,15 @@ typedef struct _Bitmap DT_Bitmap;
  * PRP_Result explicitly.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapGetLastErrCode(DT_void);
+/**
+ * Checks if the given bitmap is valid or not.
+ *
+ * @param bmp: Checks if the given bitmap is valid or not.
+ *
+ * @return DT_false if the bitmap is DT_null or is internally invalid, otherwise
+ * DT_true.
+ */
+PRP_FN_API DT_bool PRP_FN_CALL DT_BitmapIsValid(const DT_Bitmap *bmp);
 
 /**
  * Creates the bitmap with user specified bit cap.
