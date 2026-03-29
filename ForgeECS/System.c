@@ -13,6 +13,16 @@
  */
 static DT_bool BSearchBehavior(const DT_size *behaviors, DT_size len,
                                DT_size to_find);
+/**
+ * A foreach callback for the system exec function that is run on the chunk ptr
+ * array of a layout.
+ *
+ * @param pVal: The Chunk ** we will get.
+ * @param user_data: The data we supply to the callback to correctly call system
+ * function on the chunk.
+ *
+ * @return PRP_OK.
+ */
 static PRP_Result SystemExecForEachCb(DT_void *pVal, DT_void *user_data);
 
 PRP_Result SystemGetLastErrCode(DT_void) { return last_err_code; }
@@ -134,29 +144,22 @@ DT_void SystemCacheDelete(SystemCache *system_cache) {
 #endif
 }
 
-typedef struct {
-    FECS_System system;
-    DT_size *strides;
-    DT_size comp_count;
-    DT_void *user_data;
-} SystemExecUserData;
-
 struct SystemData {
-    DT_void *chunk_ptr;
-    const DT_size *comp_arr_strides;
+    DT_size *strides;
+    DT_void *user_data;
+    FECS_System system;
     DT_size comp_count;
+    DT_void *chunk_ptr;
     DT_u32 occupied_slots;
 };
 
 static PRP_Result SystemExecForEachCb(DT_void *pVal, DT_void *user_data) {
     Chunk *chunk = *(Chunk **)pVal;
-    SystemExecUserData *data = user_data;
+    FECS_SystemData *data = user_data;
+    data->chunk_ptr = chunk->mem;
+    data->occupied_slots = ~chunk->free_slot;
 
-    FECS_SystemData system_data = {.chunk_ptr = chunk->mem,
-                                   .comp_arr_strides = data->strides,
-                                   .comp_count = data->comp_count,
-                                   .occupied_slots = ~chunk->free_slot};
-    data->system(&system_data, data->user_data);
+    data->system(data, data->user_data);
 
     return PRP_OK;
 }
@@ -174,8 +177,8 @@ DT_void SystemExec(World *world, DT_size system_cache_idx, DT_void *user_data) {
         DT_ArrRawUnchecked(system_cache->layout_matches, &matches_len);
     const Layout *layouts = DT_ArrRawUnchecked(world->layouts, &layouts_len);
 
-    SystemExecUserData data = {.user_data = user_data,
-                               .system = system_cache->system};
+    FECS_SystemData system_data = {.user_data = user_data,
+                                   .system = system_cache->system};
     for (DT_size i = 0; i < matches_len; i++) {
         DT_size layout_idx = layout_matches[i];
         DIAG_ASSERT(layout_idx < layouts_len);
@@ -183,9 +186,10 @@ DT_void SystemExec(World *world, DT_size system_cache_idx, DT_void *user_data) {
         Behavior *behavior =
             DT_ArrGetUnchecked(g_ctx->behaviors, layout->behavior_idx);
         DIAG_ASSERT(behavior != DT_null);
-        data.strides = behavior->strides;
-        data.comp_count = DT_BitmapSetCountUnchecked(behavior->set);
+        system_data.strides = behavior->strides;
+        system_data.comp_count = DT_BitmapSetCountUnchecked(behavior->set);
 
-        DT_ArrForEachUnchecked(layout->chunk_ptrs, SystemExecForEachCb, &data);
+        DT_ArrForEachUnchecked(layout->chunk_ptrs, SystemExecForEachCb,
+                               &system_data);
     }
 }
