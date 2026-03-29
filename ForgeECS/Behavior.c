@@ -19,9 +19,6 @@ static DT_void SortCompIdxs(DT_size *comp_idxs, DT_size len);
 static DT_size BehaviorRegisterInternal(DT_size *comp_idxs, DT_size len);
 
 static DT_void SortCompIdxs(DT_size *comp_idxs, DT_size len) {
-    DIAG_ASSERT(comp_idxs != DT_null);
-    DIAG_ASSERT(len > 0);
-
     for (DT_size i = 1; i < len; i++) {
         DT_size key = comp_idxs[i];
         DT_size j = i;

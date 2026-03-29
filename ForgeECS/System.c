@@ -1,4 +1,5 @@
 #include "../Diagnostics/Assert.h"
+#include "Defs.h"
 #include "Internals.h"
 
 /**
@@ -12,6 +13,7 @@
  */
 static DT_bool BSearchBehavior(const DT_size *behaviors, DT_size len,
                                DT_size to_find);
+static PRP_Result SystemExecForEachCb(DT_void *pVal, DT_void *user_data);
 
 PRP_Result SystemGetLastErrCode(DT_void) { return last_err_code; }
 
@@ -53,12 +55,15 @@ static DT_bool BSearchBehavior(const DT_size *behaviors, DT_size len,
 DT_size SystemCacheCreate(DT_DSId world_id, DT_size system_idx,
                           DT_size query_idx) {
     ASSERT_CTX_INVARIANT_EXPR;
+    DIAG_ASSERT(DT_DSIdIsValidUnchecked(g_ctx->worlds, world_id));
     World *world = DT_DSIdToDataUnchecked(g_ctx->worlds, world_id);
-    DIAG_ASSERT(world != DT_null);
+    ASSERT_WORLD_INVARIANT_EXPR(world);
     DIAG_ASSERT(system_idx < DT_ArrLenUnchecked(g_ctx->systems));
     DIAG_ASSERT(query_idx < DT_ArrLenUnchecked(g_ctx->queries));
 
     SystemCache data = {.system_idx = system_idx, .query_idx = query_idx};
+    data.system =
+        *(FECS_System *)DT_ArrGetUnchecked(g_ctx->systems, system_idx);
     Query *query = DT_ArrGetUnchecked(g_ctx->queries, query_idx);
 
     if (!query->behavior_matches) {
@@ -118,15 +123,69 @@ free_internals:
 }
 
 DT_void SystemCacheDelete(SystemCache *system_cache) {
-    DIAG_ASSERT(system_cache != DT_null);
-    DIAG_ASSERT(system_cache->system_idx < DT_ArrLenUnchecked(g_ctx->systems));
-    DIAG_ASSERT(system_cache->query_idx < DT_ArrLenUnchecked(g_ctx->queries));
-    DIAG_ASSERT(system_cache->layout_matches != DT_null);
+    ASSERT_SYSTEM_CACHE_INVARIANT_EXPR(system_cache);
 
     DT_ArrDeleteUnchecked(&system_cache->layout_matches);
 
 #if !defined(PRP_NDEBUG)
+    system_cache->system = DT_null;
     system_cache->system_idx = PRP_INVALID_INDEX;
     system_cache->query_idx = PRP_INVALID_INDEX;
 #endif
+}
+
+typedef struct {
+    FECS_System system;
+    DT_size *strides;
+    DT_size comp_count;
+    DT_void *user_data;
+} SystemExecUserData;
+
+struct SystemData {
+    DT_void *chunk_ptr;
+    const DT_size *comp_arr_strides;
+    DT_size comp_count;
+    DT_u32 occupied_slots;
+};
+
+static PRP_Result SystemExecForEachCb(DT_void *pVal, DT_void *user_data) {
+    Chunk *chunk = *(Chunk **)pVal;
+    SystemExecUserData *data = user_data;
+
+    FECS_SystemData system_data = {.chunk_ptr = chunk->mem,
+                                   .comp_arr_strides = data->strides,
+                                   .comp_count = data->comp_count,
+                                   .occupied_slots = ~chunk->free_slot};
+    data->system(&system_data, data->user_data);
+
+    return PRP_OK;
+}
+
+DT_void SystemExec(World *world, DT_size system_cache_idx, DT_void *user_data) {
+    ASSERT_CTX_INVARIANT_EXPR;
+    ASSERT_WORLD_INVARIANT_EXPR(world);
+    DIAG_ASSERT(system_cache_idx < DT_ArrLenUnchecked(world->system_caches));
+    SystemCache *system_cache =
+        DT_ArrGetUnchecked(world->system_caches, system_cache_idx);
+    ASSERT_SYSTEM_CACHE_INVARIANT_EXPR(system_cache);
+
+    DT_size matches_len, layouts_len;
+    const DT_size *layout_matches =
+        DT_ArrRawUnchecked(system_cache->layout_matches, &matches_len);
+    const Layout *layouts = DT_ArrRawUnchecked(world->layouts, &layouts_len);
+
+    SystemExecUserData data = {.user_data = user_data,
+                               .system = system_cache->system};
+    for (DT_size i = 0; i < matches_len; i++) {
+        DT_size layout_idx = layout_matches[i];
+        DIAG_ASSERT(layout_idx < layouts_len);
+        const Layout *layout = &layouts[layout_idx];
+        Behavior *behavior =
+            DT_ArrGetUnchecked(g_ctx->behaviors, layout->behavior_idx);
+        DIAG_ASSERT(behavior != DT_null);
+        data.strides = behavior->strides;
+        data.comp_count = DT_BitmapSetCountUnchecked(behavior->set);
+
+        DT_ArrForEachUnchecked(layout->chunk_ptrs, SystemExecForEachCb, &data);
+    }
 }

@@ -7,6 +7,7 @@ extern "C" {
 #include "../Data-Types/Arr.h"
 #include "../Data-Types/Bitmap.h"
 #include "../Data-Types/DSArr.h"
+#include "../Diagnostics/Assert.h"
 #include "Defs.h"
 
 /*
@@ -23,6 +24,87 @@ extern "C" {
  * duplicate defs and it is the job of the fecs wrappers of themse functions to
  * explicitly check for the detection of duplicate.
  */
+
+/* ----  FECS ---- */
+
+/**
+ * The correct order of how things shall be created to make sure everything
+ * works correctly is specified below.
+ *
+ * 1. Initialize the global context(g_ctx).
+ * 2. Register the components.
+ * 3. Register the behaviors.
+ * 4. Register the queries.
+ * 5. Register the systems.
+ * 6. Turn on the schema lock.
+ * 7. Start the world creation/deletion/whatever.
+ */
+
+/**
+ * Contains only once defined definition of things as well as a manager for the
+ * created worlds.
+ */
+typedef struct {
+    /*
+     * The below definitions can only be defined and not undefined later. So we
+     * use struct macros to define all of them at once.
+     */
+    DT_Arr *comps;
+    DT_Arr *behaviors;
+    DT_Arr *queries;
+    DT_Arr *systems;
+    /*
+     * This tells the fecs that the definition of the above arrays have
+     * completed and now we will start making the worlds.
+     * The fecs.c will enforce this lock.
+     */
+    DT_bool schema_lock;
+    /*
+     * Worlds can be dynamically added/removed or randomly referenced in code,
+     * so storing it in a ds arr is worth it.
+     */
+    DT_DSArr *worlds;
+} Context;
+
+extern Context *g_ctx;
+
+#define CTX_INVARIANT_EXPR                                                     \
+    (g_ctx != DT_null && DT_ArrIsValid(g_ctx->comps) &&                        \
+     DT_ArrIsValid(g_ctx->behaviors) && DT_ArrIsValid(g_ctx->queries) &&       \
+     DT_ArrIsValid(g_ctx->systems) && DT_DSArrIsValid(g_ctx->worlds))
+#define ASSERT_CTX_INVARIANT_EXPR                                              \
+    DIAG_ASSERT_MSG(CTX_INVARIANT_EXPR,                                        \
+                    "FECS is either not initialized or is corrupted.")
+
+/* ----  WORLD ---- */
+
+/**
+ * A world is a runtime envirnoment of layouts, entities and things that
+ * operate on said layouts and entities.
+ */
+typedef struct {
+    DT_Arr *layouts;
+    DT_Arr *system_caches;
+} World;
+
+#define WORLD_INVARIANT_EXPR(world)                                            \
+    ((world) != DT_null && DT_ArrIsValid((world)->layouts) &&                  \
+     DT_ArrIsValid((world)->system_caches))
+#define ASSERT_WORLD_INVARIANT_EXPR(world)                                     \
+    DIAG_ASSERT_MSG(WORLD_INVARIANT_EXPR(world),                               \
+                    "The given world is either DT_null, or is corrupted.")
+
+DT_DSId WorldCreate(DT_void);
+DT_void WorldDelete(DT_DSId *pWorld_id);
+
+PRP_Result WorldSystemExecAll(DT_DSId world_id);
+PRP_Result WorldSystemExecOne(DT_DSId world_id, DT_size system_cache_idx);
+PRP_Result WorldSystemExecMany(DT_DSId world_id, DT_Arr *system_cache_idxs);
+PRP_Result WorldUpdate(DT_DSId world_id, DT_f32 dt);
+PRP_Result WorldSetSystemExecOrder(DT_DSId world_id, DT_Arr *system_exec_order);
+PRP_Result WorldSync(DT_DSId world_id);
+PRP_Result WorldEnableSystem(DT_DSId world_id, DT_size system_cache_idx);
+PRP_Result WorldDisableSystem(DT_DSId world_id, DT_size system_cache_idx);
 
 /* ----  COMPS ---- */
 
@@ -149,93 +231,46 @@ DT_void QueryDelete(Query *query);
 /* ----  SYSTEMS ---- */
 
 typedef struct {
+    // If not enabled the system will not execute.
     DT_bool enabled;
+    /**
+     * Caching the function pointer itself rather than the system_idx, this is
+     * because the function pointers are stable so we can do it, they reduce the
+     * indirection it takes.
+     */
+    FECS_System system;
+    /*
+     * Storing this too along side the system to maintain the identity of the
+     * system we store with the g_ctx.
+     */
     DT_size system_idx;
+    /*
+     * Same purpose as the system_idx, to link it to the g_ctx and world. Even
+     * though we store the layout matches also.
+     */
     DT_size query_idx;
     DT_Arr *layout_matches;
 } SystemCache;
+
+#define SYSTEM_CACHE_INVARIANT_EXPR(system_cache)                              \
+    ((system_cache) != DT_null && (system_cache)->system != DT_null &&         \
+     (system_cache)->system_idx < DT_ArrLenUnchecked(g_ctx->systems) &&        \
+     (system_cache)->query_idx < DT_ArrLenUnchecked(g_ctx->queries) &&         \
+     (system_cache)->layout_matches != DT_null &&                              \
+     (system_cache)->system ==                                                 \
+         (*(FECS_System *)DT_ArrGetUnchecked(g_ctx->systems,                   \
+                                             (system_cache)->system_idx)))
+#define ASSERT_SYSTEM_CACHE_INVARIANT_EXPR(system_cache)                       \
+    DIAG_ASSERT_MSG(                                                           \
+        SYSTEM_CACHE_INVARIANT_EXPR(system_cache),                             \
+        "The given system cache is either DT_null, or is corrupted.")
 
 PRP_Result SystemGetLastErrCode(DT_void);
 DT_size SystemRegister(FECS_System system);
 DT_size SystemCacheCreate(DT_DSId world_id, DT_size system_idx,
                           DT_size query_idx);
 DT_void SystemCacheDelete(SystemCache *system_cache);
-
-/* ----  WORLD ---- */
-
-/**
- * A world is a runtime envirnoment of layouts, entities and things that
- * operate on said layouts and entities.
- */
-typedef struct {
-    DT_Arr *layouts;
-    DT_Arr *system_caches;
-
-} World;
-
-DT_DSId WorldCreate(DT_void);
-DT_void WorldDelete(DT_DSId *pWorld_id);
-
-PRP_Result WorldSystemExecAll(DT_DSId world_id);
-PRP_Result WorldSystemExecOne(DT_DSId world_id, DT_size system_cache_idx);
-PRP_Result WorldSystemExecMany(DT_DSId world_id, DT_Arr *system_cache_idxs);
-PRP_Result WorldUpdate(DT_DSId world_id, DT_f32 dt);
-PRP_Result WorldSetSystemExecOrder(DT_DSId world_id, DT_Arr *system_exec_order);
-PRP_Result WorldSync(DT_DSId world_id);
-PRP_Result WorldEnableSystem(DT_DSId world_id, DT_size system_cache_idx);
-PRP_Result WorldDisableSystem(DT_DSId world_id, DT_size system_cache_idx);
-// TODO: Maybe remove WArr and WArray functions to favor DT_Arr as the input.
-
-/* ----  FECS ---- */
-
-/**
- * The correct order of how things shall be created to make sure everything
- * works correctly is specified below.
- *
- * 1. Initialize the global context(g_ctx).
- * 2. Register the components.
- * 3. Register the behaviors.
- * 4. Register the queries.
- * 5. Register the systems.
- * 6. Turn on the schema lock.
- * 7. Start the world creation/deletion/whatever.
- */
-
-/**
- * Contains only once defined definition of things as well as a manager for the
- * created worlds.
- */
-typedef struct {
-    /*
-     * The below definitions can only be defined and not undefined later. So we
-     * use struct macros to define all of them at once.
-     */
-    DT_Arr *comps;
-    DT_Arr *behaviors;
-    DT_Arr *queries;
-    DT_Arr *systems;
-    /*
-     * This tells the fecs that the definition of the above arrays have
-     * completed and now we will start making the worlds.
-     * The fecs.c will enforce this lock.
-     */
-    DT_bool schema_lock;
-    /*
-     * Worlds can be dynamically added/removed or randomly referenced in code,
-     * so storing it in a ds arr is worth it.
-     */
-    DT_DSArr *worlds;
-} Context;
-
-extern Context *g_ctx;
-
-#define CTX_INVARIANT_EXPR                                                     \
-    (g_ctx != DT_null && g_ctx->comps != DT_null &&                            \
-     g_ctx->behaviors != DT_null && g_ctx->queries != DT_null &&               \
-     g_ctx->systems != DT_null && g_ctx->worlds != DT_null)
-#define ASSERT_CTX_INVARIANT_EXPR                                              \
-    DIAG_ASSERT_MSG(CTX_INVARIANT_EXPR,                                        \
-                    "FECS is either not initialized or is corrupted.")
+DT_void SystemExec(World *world, DT_size system_cache_idx, DT_void *user_data);
 
 #ifdef __cplusplus
 }

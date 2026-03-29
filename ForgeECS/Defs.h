@@ -36,10 +36,12 @@ typedef struct {
 
 /* ----  SYSTEM ---- */
 
-typedef DT_void (*FECS_System)(DT_void **comp_arr, DT_size len,
-                               DT_void *user_data, DT_u32 system_data);
+typedef struct SystemData FECS_SystemData;
 
-#define FECS_SYSTEM_LOOP(system_data) while ((system_data))
+typedef DT_void (*FECS_System)(const FECS_SystemData *system_data,
+                               DT_void *user_data);
+
+#define FECS_SYSTEM_LOOP(free_chunk_slots) while ((free_chunk_slots))
 #define FECS_SYSTEM_GET_ENTITY_I(system_data, idx)                             \
     do {                                                                       \
         DT_Bitword mask = (system_data) & -(system_data);                      \

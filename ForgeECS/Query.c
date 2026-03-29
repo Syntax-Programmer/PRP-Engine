@@ -26,9 +26,6 @@ static DT_size QueryRegisterInternal(DT_size *inc_comps, DT_size inc_len,
 PRP_Result QueryGetLastErrCode(DT_void) { return last_err_code; }
 
 static PRP_Result QueryFindMatches(Query *query) {
-    DIAG_ASSERT(query != DT_null);
-    DIAG_ASSERT(query->inc != DT_null);
-
     if (query->behavior_matches) {
         DT_ArrResetUnchecked(query->behavior_matches);
     } else {

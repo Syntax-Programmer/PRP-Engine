@@ -43,3 +43,38 @@ DT_void WorldDelete(DT_DSId *pWorld_id) {
 
     DT_DSArrDelElemUnchecked(g_ctx->worlds, pWorld_id);
 }
+
+
+
+PRP_Result WorldSystemExecAll(DT_DSId world_id);
+PRP_Result WorldSystemExecOne(DT_DSId world_id, DT_size system_cache_idx);
+PRP_Result WorldSystemExecMany(DT_DSId world_id, DT_Arr *system_cache_idxs);
+PRP_Result WorldUpdate(DT_DSId world_id, DT_f32 dt);
+PRP_Result WorldSetSystemExecOrder(DT_DSId world_id, DT_Arr *system_exec_order);
+PRP_Result WorldSync(DT_DSId world_id);
+
+PRP_Result WorldEnableSystem(DT_DSId world_id, DT_size system_cache_idx) {
+    ASSERT_CTX_INVARIANT_EXPR;
+    World *world = DT_DSIdToDataUnchecked(g_ctx->worlds, world_id);
+    DIAG_ASSERT(world != DT_null);
+    DIAG_ASSERT(system_cache_idx < DT_ArrLenUnchecked(world->system_caches));
+
+    SystemCache *cache = (SystemCache *)DT_ArrGetUnchecked(world->system_caches,
+                                                           system_cache_idx);
+    cache->enabled = DT_true;
+
+    return PRP_OK;
+}
+
+PRP_Result WorldDisableSystem(DT_DSId world_id, DT_size system_cache_idx) {
+    ASSERT_CTX_INVARIANT_EXPR;
+    World *world = DT_DSIdToDataUnchecked(g_ctx->worlds, world_id);
+    DIAG_ASSERT(world != DT_null);
+    DIAG_ASSERT(system_cache_idx < DT_ArrLenUnchecked(world->system_caches));
+
+    SystemCache *cache = (SystemCache *)DT_ArrGetUnchecked(world->system_caches,
+                                                           system_cache_idx);
+    cache->enabled = DT_false;
+
+    return PRP_OK;
+}
