@@ -76,6 +76,32 @@ PRP_FN_API DT_Arr *PRP_FN_CALL DT_ArrCloneUnchecked(const DT_Arr *arr);
  * @return The pointer to the cloned array.
  */
 PRP_FN_API DT_Arr *PRP_FN_CALL DT_ArrCloneChecked(const DT_Arr *arr);
+/**
+ * Creates the dynamic array with user specified initial values.
+ *
+ * @param memb_size: The size of the members of the array.
+ * @param membs: The array of values to add in the array.
+ * @param len: The len of membs array.
+ *
+ * @return The pointer of the array with the initialized elements.
+ *
+ * @note: This function doesn't check for argument validation in RELEASE mode.
+ */
+PRP_FN_API DT_Arr *PRP_FN_CALL DT_ArrCreateWithDataUnchecked(DT_size memb_size,
+                                                             DT_void *membs,
+                                                             DT_size len);
+/**
+ * Creates the dynamic array with user specified initial values.
+ *
+ * @param memb_size: The size of the members of the array.
+ * @param membs: The array of values to add in the array.
+ * @param len: The len of membs array.
+ *
+ * @return The pointer of the array with the initialized elements.
+ */
+PRP_FN_API DT_Arr *PRP_FN_CALL DT_ArrCreateWithDataChecked(DT_size memb_size,
+                                                           DT_void *membs,
+                                                           DT_size len);
 
 /**
  * Deletes the array and sets the original DT_Arr * to DT_null to prevent use

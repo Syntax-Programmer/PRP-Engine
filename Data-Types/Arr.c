@@ -116,6 +116,50 @@ PRP_FN_API DT_Arr *PRP_FN_CALL DT_ArrCloneChecked(const DT_Arr *arr) {
     return DT_ArrCloneUnchecked(arr);
 }
 
+PRP_FN_API DT_Arr *PRP_FN_CALL DT_ArrCreateWithDataUnchecked(DT_size memb_size,
+                                                             DT_void *membs,
+                                                             DT_size len) {
+    DIAG_ASSERT(memb_size > 0);
+    DIAG_ASSERT(len > 0);
+
+    if (len > DT_ARR_MAX_CAP(memb_size)) {
+        SET_LAST_ERR_CODE(PRP_ERR_OOM);
+        return DT_null;
+    }
+    DT_Arr *arr = DT_ArrCreateUnchecked(memb_size, len);
+    if (!arr) {
+        SET_LAST_ERR_CODE(PRP_ERR_OOM);
+        return DT_null;
+    }
+
+    memcpy(arr->mem, membs, memb_size * len);
+    arr->len = len;
+
+    return arr;
+}
+
+PRP_FN_API DT_Arr *PRP_FN_CALL DT_ArrCreateWithDataChecked(DT_size memb_size,
+                                                           DT_void *membs,
+                                                           DT_size len) {
+    DIAG_ASSERT(memb_size > 0);
+    DIAG_ASSERT(len > 0);
+
+    if (len > DT_ARR_MAX_CAP(memb_size)) {
+        SET_LAST_ERR_CODE(PRP_ERR_OOM);
+        return DT_null;
+    }
+    DT_Arr *arr = DT_ArrCreateUnchecked(memb_size, len);
+    if (!arr) {
+        SET_LAST_ERR_CODE(PRP_ERR_OOM);
+        return DT_null;
+    }
+
+    memcpy(arr->mem, membs, memb_size * len);
+    arr->len = len;
+
+    return arr;
+}
+
 PRP_FN_API DT_void PRP_FN_CALL DT_ArrDeleteUnchecked(DT_Arr **pArr) {
     DIAG_ASSERT(pArr != DT_null);
     DIAG_ASSERT(*pArr != DT_null && (*pArr)->mem != DT_null);
