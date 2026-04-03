@@ -23,6 +23,11 @@ extern "C" {
  * One another note: The functions in this file will not prevent against
  * duplicate defs and it is the job of the fecs wrappers of themse functions to
  * explicitly check for the detection of duplicate.
+ *
+ * The functions in the file don't perform any checks to prevent any invalid
+ * argument, the fecs wrapper also has to handle it. This file checks for array
+ * internals invalidity only since checking them beforehand is costly, while
+ * checking them as they are being processed is the better choice.
  */
 
 /* ----  FECS ---- */
@@ -96,10 +101,13 @@ typedef struct {
 
 DT_DSId WorldCreate(DT_void);
 DT_void WorldDelete(DT_DSId *pWorld_id);
+PRP_Result WorldDeleteCb(DT_void *world);
 
-PRP_Result WorldSystemExecAll(DT_DSId world_id);
-PRP_Result WorldSystemExecOne(DT_DSId world_id, DT_size system_cache_idx);
-PRP_Result WorldSystemExecMany(DT_DSId world_id, DT_Arr *system_cache_idxs);
+DT_void WorldSystemExecAll(DT_DSId world_id, DT_void *user_data);
+DT_void WorldSystemExecOne(DT_DSId world_id, DT_size system_cache_idx,
+                           DT_void *user_data);
+PRP_Result WorldSystemExecMany(DT_DSId world_id, DT_Arr *system_cache_idxs,
+                               DT_void *user_data);
 PRP_Result WorldUpdate(DT_DSId world_id, DT_f32 dt);
 PRP_Result WorldSetSystemExecOrder(DT_DSId world_id, DT_Arr *system_exec_order);
 PRP_Result WorldSync(DT_DSId world_id);
@@ -128,6 +136,7 @@ typedef struct {
 
 PRP_Result CompGetLastErrCode(DT_void);
 DT_size CompRegister(const DT_char *name, DT_size size);
+DT_size CompIsRegistered(const DT_char *name);
 
 /* ----  BEHAVIOR ---- */
 
@@ -148,7 +157,69 @@ typedef struct {
 
 PRP_Result BehaviorGetLastErrCode(DT_void);
 DT_size BehaviorRegister(DT_Arr *comp_idxs);
-DT_void BehaviorDelete(Behavior *behavior);
+DT_size BehaviorIsRegistered(DT_Arr *comp_idxs);
+PRP_Result BehaviorDelete(DT_void *behavior, DT_void *_);
+
+/* ----  QUERY ---- */
+
+typedef struct {
+    DT_Bitmap *inc;
+    // This will be null if we don't wan't to ex
+    DT_Bitmap *exc;
+    // This will be null if there is no match for the query.
+    DT_Arr *behavior_matches;
+} Query;
+
+PRP_Result QueryGetLastErrCode(DT_void);
+DT_size QueryRegister(DT_Arr *inc_comps, DT_Arr *exc_comps);
+DT_size QueryIsRegistered(DT_Arr *inc_comps, DT_Arr *exc_comps);
+PRP_Result QueryDelete(DT_void *query, DT_void *_);
+
+/* ----  SYSTEMS ---- */
+
+typedef struct {
+    // If not enabled the system will not execute.
+    DT_bool enabled;
+    /**
+     * Caching the function pointer itself rather than the system_idx, this is
+     * because the function pointers are stable so we can do it, they reduce the
+     * indirection it takes.
+     */
+    FECS_System system;
+    /*
+     * Storing this too along side the system to maintain the identity of the
+     * system we store with the g_ctx.
+     */
+    DT_size system_idx;
+    /*
+     * Same purpose as the system_idx, to link it to the g_ctx and world. Even
+     * though we store the layout matches also.
+     */
+    DT_size query_idx;
+    DT_Arr *layout_matches;
+} SystemCache;
+
+#define SYSTEM_CACHE_INVARIANT_EXPR(system_cache)                              \
+    ((system_cache) != DT_null && (system_cache)->system != DT_null &&         \
+     (system_cache)->system_idx < DT_ArrLenUnchecked(g_ctx->systems) &&        \
+     (system_cache)->query_idx < DT_ArrLenUnchecked(g_ctx->queries) &&         \
+     (system_cache)->layout_matches != DT_null &&                              \
+     (system_cache)->system ==                                                 \
+         (*(FECS_System *)DT_ArrGetUnchecked(g_ctx->systems,                   \
+                                             (system_cache)->system_idx)))
+#define ASSERT_SYSTEM_CACHE_INVARIANT_EXPR(system_cache)                       \
+    DIAG_ASSERT_MSG(                                                           \
+        SYSTEM_CACHE_INVARIANT_EXPR(system_cache),                             \
+        "The given system cache is either DT_null, or is corrupted.")
+
+PRP_Result SystemGetLastErrCode(DT_void);
+DT_size SystemRegister(FECS_System system);
+DT_size SystemIsRegistered(FECS_System system);
+DT_size SystemCacheCreate(DT_DSId world_id, DT_size system_idx,
+                          DT_size query_idx);
+PRP_Result SystemCacheDelete(DT_void *system_cache, DT_void *_);
+DT_void SystemExec(World *world, const SystemCache *system_cache,
+                   DT_void *user_data);
 
 /* ----  LAYOUTS ---- */
 
@@ -192,7 +263,8 @@ typedef struct {
 
 PRP_Result LayoutGetLastErrCode(DT_void);
 DT_size LayoutCreate(DT_DSId world_id, DT_size behavior_idx);
-DT_void LayoutDelete(Layout *layout);
+PRP_Result LayoutDelete(DT_void *layout, DT_void *_);
+DT_size LayoutIsAlreadyExisting(DT_DSId world_id, DT_size behavior_idx);
 
 FECS_Entity LayoutEntitySpawn(DT_DSId world_id, DT_size layout_idx);
 FECS_EntityBatch *LayoutEntitySpawnN(DT_DSId world_id, DT_size layout_idx,
@@ -213,64 +285,6 @@ PRP_Result LayoutEntityBatchForEach(
     DT_DSId world_id, FECS_EntityBatch *entities, DT_size comp_idx,
     PRP_Result (*cb)(DT_void *comp_data, DT_void *user_data),
     DT_void *user_data);
-
-/* ----  QUERY ---- */
-
-typedef struct {
-    DT_Bitmap *inc;
-    // This will be null if we don't wan't to ex
-    DT_Bitmap *exc;
-    // This will be null if there is no match for the query.
-    DT_Arr *behavior_matches;
-} Query;
-
-PRP_Result QueryGetLastErrCode(DT_void);
-DT_size QueryRegister(DT_Arr *inc_comps, DT_Arr *exc_comps);
-DT_void QueryDelete(Query *query);
-
-/* ----  SYSTEMS ---- */
-
-typedef struct {
-    // If not enabled the system will not execute.
-    DT_bool enabled;
-    /**
-     * Caching the function pointer itself rather than the system_idx, this is
-     * because the function pointers are stable so we can do it, they reduce the
-     * indirection it takes.
-     */
-    FECS_System system;
-    /*
-     * Storing this too along side the system to maintain the identity of the
-     * system we store with the g_ctx.
-     */
-    DT_size system_idx;
-    /*
-     * Same purpose as the system_idx, to link it to the g_ctx and world. Even
-     * though we store the layout matches also.
-     */
-    DT_size query_idx;
-    DT_Arr *layout_matches;
-} SystemCache;
-
-#define SYSTEM_CACHE_INVARIANT_EXPR(system_cache)                              \
-    ((system_cache) != DT_null && (system_cache)->system != DT_null &&         \
-     (system_cache)->system_idx < DT_ArrLenUnchecked(g_ctx->systems) &&        \
-     (system_cache)->query_idx < DT_ArrLenUnchecked(g_ctx->queries) &&         \
-     (system_cache)->layout_matches != DT_null &&                              \
-     (system_cache)->system ==                                                 \
-         (*(FECS_System *)DT_ArrGetUnchecked(g_ctx->systems,                   \
-                                             (system_cache)->system_idx)))
-#define ASSERT_SYSTEM_CACHE_INVARIANT_EXPR(system_cache)                       \
-    DIAG_ASSERT_MSG(                                                           \
-        SYSTEM_CACHE_INVARIANT_EXPR(system_cache),                             \
-        "The given system cache is either DT_null, or is corrupted.")
-
-PRP_Result SystemGetLastErrCode(DT_void);
-DT_size SystemRegister(FECS_System system);
-DT_size SystemCacheCreate(DT_DSId world_id, DT_size system_idx,
-                          DT_size query_idx);
-DT_void SystemCacheDelete(SystemCache *system_cache);
-DT_void SystemExec(World *world, DT_size system_cache_idx, DT_void *user_data);
 
 #ifdef __cplusplus
 }

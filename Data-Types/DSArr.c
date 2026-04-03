@@ -334,6 +334,7 @@ PRP_FN_API DT_void *PRP_FN_CALL DT_DSIdToDataUnchecked(const DT_DSArr *ds_arr,
         GetIdData(ds_arr, id, &dummy1, &dummy2, &slot_data_i, &dummy3);
     DIAG_ASSERT_MSG(code == PRP_OK,
                     "The given id is invalid or used after free.");
+    (void)code;
 
     return ds_arr->data_layer.elems + (ds_arr->memb_size * slot_data_i);
 }
@@ -413,7 +414,7 @@ static PRP_Result GrowDataLayer(DT_DSArr *ds_arr, DT_u32 to_add) {
 
     ds_arr->data_layer.elems = elems;
     ds_arr->data_layer.data_to_id_table = data_to_id_table;
-    ds_arr->data_layer.cap = new_cap;
+    ds_arr->data_layer.cap = (DT_u32)new_cap;
 
     return PRP_OK;
 }
@@ -446,7 +447,7 @@ static PRP_Result GrowIdLayer(DT_DSArr *ds_arr, DT_u32 to_add) {
     ds_arr->id_layer.free_count += new_cap - ds_arr->id_layer.cap;
 
     ds_arr->id_layer.id_to_data_table = id_to_data_table;
-    ds_arr->id_layer.cap = new_cap;
+    ds_arr->id_layer.cap = (DT_u32)new_cap;
 
     return PRP_OK;
 }
@@ -472,7 +473,8 @@ PRP_FN_API DT_DSId PRP_FN_CALL DT_DSArrAddUnchecked(DT_DSArr *ds_arr,
             return DT_DS_INVALID_ID;
         }
     }
-    ds_arr->id_layer.free_index = ds_arr->id_layer.id_to_data_table[free_index];
+    ds_arr->id_layer.free_index =
+        (DT_u32)ds_arr->id_layer.id_to_data_table[free_index];
 
     DT_u32 len = ds_arr->data_layer.len;
     DT_void *dest = ds_arr->data_layer.elems + (len * ds_arr->memb_size);
@@ -553,6 +555,7 @@ PRP_FN_API DT_void PRP_FN_CALL DT_DSArrDelElemUnchecked(DT_DSArr *ds_arr,
         GetIdData(ds_arr, *pId, &id_i, &dummy1, &slot_data_i, &slot_gen);
     DIAG_ASSERT_MSG(code == PRP_OK,
                     "The given id is invalid or used after free.");
+    (void)code;
 
     DelElem(ds_arr, pId, id_i, slot_data_i, slot_gen);
 }

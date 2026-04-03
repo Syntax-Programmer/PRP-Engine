@@ -1,12 +1,9 @@
 #include "Internals.h"
+#include <string.h>
 
 PRP_Result CompGetLastErrCode(DT_void) { return last_err_code; }
 
 DT_size CompRegister(const DT_char *name, DT_size size) {
-    ASSERT_CTX_INVARIANT_EXPR;
-    DIAG_ASSERT(name != DT_null);
-    DIAG_ASSERT(size > 0);
-
     ComponentMetadata data = {.size = size};
     snprintf(data.name, COMP_NAME_MAX_SIZE, "%s", name);
 
@@ -21,4 +18,17 @@ DT_size CompRegister(const DT_char *name, DT_size size) {
 
     // The -1 to convert len to idx.
     return DT_ArrLenUnchecked(g_ctx->comps) - 1;
+}
+
+DT_size CompIsRegistered(const DT_char *name) {
+    DT_size len;
+    const ComponentMetadata *meta = DT_ArrRawUnchecked(g_ctx->comps, &len);
+
+    for (DT_size i = 0; i < len; i++) {
+        if (strncmp(meta[i].name, name, COMP_NAME_MAX_SIZE) == 0) {
+            return i;
+        }
+    }
+
+    return PRP_INVALID_INDEX;
 }

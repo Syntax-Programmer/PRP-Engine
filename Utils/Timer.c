@@ -34,7 +34,11 @@ static PRP_TimeMeasure GetTimeNs(DT_void) {
 static PRP_TimeMeasure GetTimeNs(DT_void) {
     struct timespec ts;
     clock_gettime(CLOCK_MONOTONIC, &ts);
-    return ts.tv_sec * 1e9 + ts.tv_nsec;
+
+    DT_f64 tv_sec = (DT_f64)ts.tv_sec;
+    DT_f64 tv_nsec = (DT_f64)ts.tv_nsec;
+
+    return tv_sec * 1e9 + tv_nsec;
 }
 #endif
 
@@ -51,8 +55,6 @@ PRP_FN_API PRP_TimeMeasure PRP_FN_CALL PRP_TimerGetTime(PRP_TimeUnit unit) {
 /* ----  TIMER  ---- */
 
 PRP_FN_API PRP_Result PRP_FN_CALL PRP_TimerStart(PRP_Timer *timer) {
-    DIAG_GUARD(timer != DT_null, PRP_ERR_INV_ARG);
-
     timer->start = PRP_TimerGetTime(timer->unit);
 
     return PRP_OK;
@@ -60,15 +62,11 @@ PRP_FN_API PRP_Result PRP_FN_CALL PRP_TimerStart(PRP_Timer *timer) {
 
 PRP_FN_API PRP_TimeMeasure PRP_FN_CALL
 PRP_TimerElapsed(const PRP_Timer *timer) {
-    DIAG_GUARD(timer != DT_null, PRP_INVALID_TIME_MEASURE);
-
     return PRP_TimerGetTime(timer->unit) - timer->start;
 }
 
 PRP_FN_API PRP_Result PRP_FN_CALL PRP_TimerChangeUnit(PRP_Timer *timer,
                                                       PRP_TimeUnit unit) {
-    DIAG_GUARD(timer != DT_null, PRP_ERR_INV_ARG);
-
     if (unit < 0 || unit > PRP_TIME_S) {
         unit = PRP_TIME_NS; // fallback
     }

@@ -44,11 +44,48 @@ DT_void WorldDelete(DT_DSId *pWorld_id) {
     DT_DSArrDelElemUnchecked(g_ctx->worlds, pWorld_id);
 }
 
+PRP_Result WorldDeleteCb(DT_void *world) {
+    World *w = world;
+    ASSERT_WORLD_INVARIANT_EXPR(w);
 
+    DT_ArrForEachUnchecked(w->layouts, LayoutDelete, DT_null);
+    DT_ArrForEachUnchecked(w->system_caches, SystemCacheDelete, DT_null);
+    DT_ArrDeleteUnchecked(&w->layouts);
+    DT_ArrDeleteUnchecked(&w->system_caches);
 
-PRP_Result WorldSystemExecAll(DT_DSId world_id);
-PRP_Result WorldSystemExecOne(DT_DSId world_id, DT_size system_cache_idx);
-PRP_Result WorldSystemExecMany(DT_DSId world_id, DT_Arr *system_cache_idxs);
+    return PRP_OK;
+}
+
+DT_void WorldSystemExecAll(DT_DSId world_id, DT_void *user_data) {
+    DIAG_ASSERT(DT_DSIdIsValidUnchecked(g_ctx->worlds, world_id));
+    World *world = DT_DSIdToDataUnchecked(g_ctx->worlds, world_id);
+    ASSERT_WORLD_INVARIANT_EXPR(world);
+
+    DT_size len;
+    const SystemCache *system_caches =
+        DT_ArrRawUnchecked(world->system_caches, &len);
+
+    for (DT_size i = 0; i < len; i++) {
+        SystemExec(world, &(system_caches[i]), user_data);
+    }
+}
+
+DT_void WorldSystemExecOne(DT_DSId world_id, DT_size system_cache_idx,
+                           DT_void *user_data) {
+    DIAG_ASSERT(DT_DSIdIsValidUnchecked(g_ctx->worlds, world_id));
+    World *world = DT_DSIdToDataUnchecked(g_ctx->worlds, world_id);
+    ASSERT_WORLD_INVARIANT_EXPR(world);
+    DIAG_ASSERT(system_cache_idx < DT_ArrLenUnchecked(world->system_caches));
+    SystemCache *system_cache =
+        DT_ArrGetUnchecked(world->system_caches, system_cache_idx);
+    ASSERT_SYSTEM_CACHE_INVARIANT_EXPR(system_cache);
+
+    SystemExec(world, system_cache, user_data);
+}
+
+PRP_Result WorldSystemExecMany(DT_DSId world_id, DT_Arr *system_cache_idxs,
+                               DT_void *user_data);
+
 PRP_Result WorldUpdate(DT_DSId world_id, DT_f32 dt);
 PRP_Result WorldSetSystemExecOrder(DT_DSId world_id, DT_Arr *system_exec_order);
 PRP_Result WorldSync(DT_DSId world_id);

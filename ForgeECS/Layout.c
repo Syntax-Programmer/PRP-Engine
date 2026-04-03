@@ -134,11 +134,11 @@ DT_size LayoutCreate(DT_DSId world_id, DT_size behavior_idx) {
     code = DT_ArrPushUnchecked(world->layouts, &data);
     if (code == PRP_ERR_RES_EXHAUSTED || code == PRP_ERR_OOM) {
         SET_LAST_ERR_CODE(PRP_ERR_OOM);
-        LayoutDelete(&data);
+        LayoutDelete(&data, DT_null);
         return PRP_INVALID_INDEX;
     } else if (code != PRP_OK) {
         SET_LAST_ERR_CODE(PRP_ERR_INTERNAL);
-        LayoutDelete(&data);
+        LayoutDelete(&data, DT_null);
         return PRP_INVALID_INDEX;
     }
 
@@ -155,19 +155,36 @@ static PRP_Result ChunkPtrDelCb(DT_void *ptr, DT_void *user_data) {
     return PRP_OK;
 }
 
-DT_void LayoutDelete(Layout *layout) {
-    DIAG_ASSERT(layout != DT_null);
-    DIAG_ASSERT(layout->chunk_ptrs != DT_null &&
-                layout->free_chunks != DT_null);
-    DIAG_ASSERT(layout->behavior_idx < DT_ArrLenUnchecked(g_ctx->behaviors));
+PRP_Result LayoutDelete(DT_void *layout, DT_void *_) {
+    (DT_void) _;
+    Layout *l = layout;
+    DIAG_ASSERT(l != DT_null);
+    DIAG_ASSERT(l->chunk_ptrs != DT_null && l->free_chunks != DT_null);
+    DIAG_ASSERT(l->behavior_idx < DT_ArrLenUnchecked(g_ctx->behaviors));
 
-    DT_ArrForEachUnchecked(layout->chunk_ptrs, ChunkPtrDelCb, DT_null);
-    DT_ArrDeleteUnchecked(&layout->chunk_ptrs);
-    DT_BitmapDeleteUnchecked(&layout->free_chunks);
+    DT_ArrForEachUnchecked(l->chunk_ptrs, ChunkPtrDelCb, DT_null);
+    DT_ArrDeleteUnchecked(&l->chunk_ptrs);
+    DT_BitmapDeleteUnchecked(&l->free_chunks);
 
 #if !defined(PRP_NDEBUG)
-    layout->behavior_idx = PRP_INVALID_INDEX;
+    l->behavior_idx = PRP_INVALID_INDEX;
 #endif
+
+    return PRP_OK;
+}
+
+DT_size LayoutIsAlreadyExisting(DT_DSId world_id, DT_size behavior_idx) {
+    World *world = DT_DSIdToDataUnchecked(g_ctx->worlds, world_id);
+    DT_size len;
+    const Layout *layouts = DT_ArrRawUnchecked(world->layouts, &len);
+
+    for (DT_size i = 0; i < len; i++) {
+        if (layouts[i].behavior_idx == behavior_idx) {
+            return i;
+        }
+    }
+
+    return PRP_INVALID_INDEX;
 }
 
 /* ----  ENTITY ---- */
@@ -208,8 +225,7 @@ FECS_Entity LayoutEntitySpawn(DT_DSId world_id, DT_size layout_idx) {
     }
 
     Chunk *chunk = CHUNK(layout, free_chunk);
-    // This is guaranteed to be of b/w 0-31.
-    DT_u8 free_slot = (DT_u8)DT_BitwordFFS((DT_Bitword)chunk->free_slot);
+    DT_u32 free_slot = (DT_u32)DT_BitwordFFS((DT_Bitword)chunk->free_slot);
 
     FECS_Entity entity = {.layout_idx = layout_idx,
                           .data.gen = chunk->gen[free_slot],
@@ -264,8 +280,8 @@ FECS_EntityBatch *LayoutEntitySpawnN(DT_DSId world_id, DT_size layout_idx,
         Chunk *chunk = CHUNK(layout, free_chunk);
         while (chunk->free_slot && i < count) {
             // This is guaranteed to be of b/w 0-31.
-            DT_u8 free_slot =
-                (DT_u8)DT_BitwordFFS((DT_Bitword)chunk->free_slot);
+            DT_u32 free_slot =
+                (DT_u32)DT_BitwordFFS((DT_Bitword)chunk->free_slot);
             batch->data[i++] =
                 (EntityData){.entity_idx = ENTITY_IDX(free_chunk, free_slot),
                              .gen = chunk->gen[free_slot]};

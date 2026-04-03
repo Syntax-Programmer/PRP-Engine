@@ -8,15 +8,6 @@
  * @param len: The len of the array.
  */
 static DT_void SortCompIdxs(DT_size *comp_idxs, DT_size len);
-/**
- * Initializes and registers a behavior internally.
- *
- * @param comp_idxs: The array of comps that the behavior has.
- * @param inc_len: The len of the comp_idxs array.
- *
- * @return The behavior index of the fully initialized and registered query.
- */
-static DT_size BehaviorRegisterInternal(DT_size *comp_idxs, DT_size len);
 
 static DT_void SortCompIdxs(DT_size *comp_idxs, DT_size len) {
     for (DT_size i = 1; i < len; i++) {
@@ -32,7 +23,10 @@ static DT_void SortCompIdxs(DT_size *comp_idxs, DT_size len) {
 
 PRP_Result BehaviorGetLastErrCode(DT_void) { return last_err_code; }
 
-static DT_size BehaviorRegisterInternal(DT_size *comp_idxs, DT_size len) {
+DT_size BehaviorRegister(DT_Arr *comp_idxs) {
+    DT_size len;
+    DT_size *arr = (DT_size *)(DT_ArrRawUnchecked(comp_idxs, &len));
+
     /*
      * Since sorting is just order changing and doesn't change the metadata, it
      * can be done wihtout disturbing validity of arrays.
@@ -45,13 +39,17 @@ static DT_size BehaviorRegisterInternal(DT_size *comp_idxs, DT_size len) {
         goto free_internals;
     }
 
-    SortCompIdxs(comp_idxs, len);
+    SortCompIdxs(arr, len);
     DT_size comps_len = DT_ArrLenUnchecked(g_ctx->comps);
     DT_size stride = 0;
     for (DT_size i = 0; i < len; i++) {
-        DT_size comp_idx = comp_idxs[i];
-        DIAG_ASSERT((comp_idx < comps_len) &&
-                    (i == 0 || comp_idx != comp_idxs[i - 1]));
+        DT_size comp_idx = arr[i];
+        if (comp_idx >= comps_len) {
+            SET_LAST_ERR_CODE(PRP_ERR_INV_ARG);
+            DIAG_LOG_ERROR(DIAG_LOG_CODE_INVALID_ARG,
+                           "The given comps array contains invalid comps.");
+            goto free_internals;
+        }
         DT_BitmapSetUnchecked(data.set, comp_idx);
 
         DT_size comp_size =
@@ -85,27 +83,45 @@ free_internals:
     return PRP_INVALID_INDEX;
 }
 
-DT_size BehaviorRegister(DT_Arr *comp_idxs) {
-    ASSERT_CTX_INVARIANT_EXPR;
-    DIAG_ASSERT(comp_idxs != DT_null);
+DT_size BehaviorIsRegistered(DT_Arr *comp_idxs) {
+    DT_size comps_len;
+    const DT_size *comps = DT_ArrRawUnchecked(comp_idxs, &comps_len);
+    DT_size behaviors_len;
+    const Behavior *behaviors =
+        DT_ArrRawUnchecked(g_ctx->behaviors, &behaviors_len);
 
-    DT_size len;
-    DT_size *arr = (DT_size *)(DT_ArrRawUnchecked(comp_idxs, &len));
-    DIAG_ASSERT(arr != DT_null);
-    DIAG_ASSERT(len > 0);
+    for (DT_size i = 0; i < behaviors_len; i++) {
+        const Behavior *behavior = &behaviors[i];
+        if (DT_BitmapSetCountUnchecked(behavior->set) != comps_len) {
+            continue;
+        }
 
-    return BehaviorRegisterInternal(arr, len);
+        DT_bool is_registered = DT_true;
+        for (DT_size j = 0; j < comps_len; j++) {
+            if (!DT_BitmapIsSetUnchecked(behavior->set, comps[i])) {
+                is_registered = DT_false;
+                break;
+            }
+        }
+        if (is_registered) {
+            return i;
+        }
+    }
+
+    return PRP_INVALID_INDEX;
 }
 
-DT_void BehaviorDelete(Behavior *behavior) {
-    DIAG_ASSERT(behavior != DT_null);
-    DIAG_ASSERT(behavior->set != DT_null && behavior->strides != DT_null);
+PRP_Result BehaviorDelete(DT_void *behavior, DT_void *_) {
+    (DT_void) _;
+    Behavior *b = behavior;
 
-    DT_BitmapDeleteUnchecked(&behavior->set);
-    free(behavior->strides);
+    DT_BitmapDeleteUnchecked(&b->set);
+    free(b->strides);
 
 #if !defined(PRP_NDEBUG)
-    behavior->strides = DT_null;
-    behavior->chunk_size = 0;
+    b->strides = DT_null;
+    b->chunk_size = 0;
 #endif
+
+    return PRP_OK;
 }

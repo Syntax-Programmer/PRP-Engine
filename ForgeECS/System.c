@@ -28,9 +28,6 @@ static PRP_Result SystemExecForEachCb(DT_void *pVal, DT_void *user_data);
 PRP_Result SystemGetLastErrCode(DT_void) { return last_err_code; }
 
 DT_size SystemRegister(FECS_System system) {
-    ASSERT_CTX_INVARIANT_EXPR;
-    DIAG_ASSERT(system != DT_null);
-
     PRP_Result code = DT_ArrPushUnchecked(g_ctx->systems, &system);
     if (code == PRP_ERR_RES_EXHAUSTED || code == PRP_ERR_OOM) {
         SET_LAST_ERR_CODE(PRP_ERR_OOM);
@@ -60,6 +57,19 @@ static DT_bool BSearchBehavior(const DT_size *behaviors, DT_size len,
     }
 
     return DT_false;
+}
+
+DT_size SystemIsRegistered(FECS_System system) {
+    DT_size len;
+    const FECS_System *systems = DT_ArrRawUnchecked(g_ctx->systems, &len);
+
+    for (DT_size i = 0; i < len; i++) {
+        if (systems[i] == system) {
+            return i;
+        }
+    }
+
+    return PRP_INVALID_INDEX;
 }
 
 DT_size SystemCacheCreate(DT_DSId world_id, DT_size system_idx,
@@ -132,16 +142,20 @@ free_internals:
     return PRP_INVALID_INDEX;
 }
 
-DT_void SystemCacheDelete(SystemCache *system_cache) {
-    ASSERT_SYSTEM_CACHE_INVARIANT_EXPR(system_cache);
+PRP_Result SystemCacheDelete(DT_void *system_cache, DT_void *_) {
+    (DT_void) _;
+    SystemCache *s = system_cache;
+    ASSERT_SYSTEM_CACHE_INVARIANT_EXPR(s);
 
-    DT_ArrDeleteUnchecked(&system_cache->layout_matches);
+    DT_ArrDeleteUnchecked(&s->layout_matches);
 
 #if !defined(PRP_NDEBUG)
-    system_cache->system = DT_null;
-    system_cache->system_idx = PRP_INVALID_INDEX;
-    system_cache->query_idx = PRP_INVALID_INDEX;
+    s->system = DT_null;
+    s->system_idx = PRP_INVALID_INDEX;
+    s->query_idx = PRP_INVALID_INDEX;
 #endif
+
+    return PRP_OK;
 }
 
 struct SystemData {
@@ -164,13 +178,9 @@ static PRP_Result SystemExecForEachCb(DT_void *pVal, DT_void *user_data) {
     return PRP_OK;
 }
 
-DT_void SystemExec(World *world, DT_size system_cache_idx, DT_void *user_data) {
+DT_void SystemExec(World *world, const SystemCache *system_cache,
+                   DT_void *user_data) {
     ASSERT_CTX_INVARIANT_EXPR;
-    ASSERT_WORLD_INVARIANT_EXPR(world);
-    DIAG_ASSERT(system_cache_idx < DT_ArrLenUnchecked(world->system_caches));
-    SystemCache *system_cache =
-        DT_ArrGetUnchecked(world->system_caches, system_cache_idx);
-    ASSERT_SYSTEM_CACHE_INVARIANT_EXPR(system_cache);
 
     DT_size matches_len, layouts_len;
     const DT_size *layout_matches =

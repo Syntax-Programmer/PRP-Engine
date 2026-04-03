@@ -275,7 +275,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_HmAddUnchecked(DT_Hm *hm, DT_void *key,
             return code;
         }
     }
-    if (hm->elem_len >= hm->layout_cap * LOAD_FACTOR) {
+    if (hm->elem_len >= (DT_size)((DT_f64)hm->layout_cap * LOAD_FACTOR)) {
         // This doesn't fail, as there is still space in layout.
         GrowHmLayout(hm);
     }

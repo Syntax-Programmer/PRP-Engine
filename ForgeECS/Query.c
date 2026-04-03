@@ -91,12 +91,30 @@ static DT_size QueryRegisterInternal(DT_size *inc_comps, DT_size inc_len,
     }
 
     for (DT_size i = 0; i < inc_len; i++) {
-        DIAG_ASSERT(inc_comps[i] < total_comps);
+        if (inc_comps[i] >= total_comps) {
+            SET_LAST_ERR_CODE(PRP_ERR_INV_ARG);
+            DIAG_LOG_ERROR(DIAG_LOG_CODE_INVALID_ARG,
+                           "The given inc comps array contains invalid comps.");
+            goto free_internals;
+        }
         DT_BitmapSetUnchecked(data.inc, inc_comps[i]);
     }
     if (data.exc) {
         for (DT_size i = 0; i < exc_len; i++) {
-            DIAG_ASSERT(exc_comps[i] < total_comps);
+            if (exc_comps[i] >= total_comps) {
+                SET_LAST_ERR_CODE(PRP_ERR_INV_ARG);
+                DIAG_LOG_ERROR(
+                    DIAG_LOG_CODE_INVALID_ARG,
+                    "The given exc comps array contains invalid comps.");
+                goto free_internals;
+            }
+            if (DT_BitmapIsSetUnchecked(data.inc, exc_comps[i])) {
+                SET_LAST_ERR_CODE(PRP_ERR_INV_ARG);
+                DIAG_LOG_ERROR(
+                    DIAG_LOG_CODE_INVALID_ARG,
+                    "The given inc and exc comps have overlapping comps");
+                goto free_internals;
+            }
             DT_BitmapSetUnchecked(data.exc, exc_comps[i]);
         }
     }
@@ -128,34 +146,71 @@ free_internals:
 }
 
 DT_size QueryRegister(DT_Arr *inc_comps, DT_Arr *exc_comps) {
-    ASSERT_CTX_INVARIANT_EXPR;
-    DIAG_ASSERT(inc_comps != DT_null);
-
     DT_size inc_len;
     DT_size *arr1 = (DT_size *)(DT_ArrRawUnchecked(inc_comps, &inc_len));
-    DIAG_ASSERT(arr1 != DT_null);
-    DIAG_ASSERT(inc_len > 0);
-
     DT_size exc_len = 0;
     DT_size *arr2 = DT_null;
     if (exc_comps) {
         arr2 = (DT_size *)(DT_ArrRawUnchecked(exc_comps, &exc_len));
-        DIAG_ASSERT(arr2 != DT_null);
-        DIAG_ASSERT(exc_len > 0);
     }
 
     return QueryRegisterInternal(arr1, inc_len, arr2, exc_len);
 }
 
-DT_void QueryDelete(Query *query) {
-    DIAG_ASSERT(query != DT_null);
-    DIAG_ASSERT(query->inc != DT_null);
+DT_size QueryIsRegistered(DT_Arr *inc_comps, DT_Arr *exc_comps) {
+    DT_size inc_comps_len = 0, exc_comps_len = 0;
+    const DT_size *inc_raw = DT_ArrRawUnchecked(inc_comps, &inc_comps_len);
+    const DT_size *exc_raw = DT_null;
+    if (exc_comps) {
+        exc_raw = DT_ArrRawUnchecked(exc_comps, &exc_comps_len);
+    }
 
-    DT_BitmapDeleteUnchecked(&query->inc);
-    if (query->exc) {
-        DT_BitmapDeleteUnchecked(&query->exc);
+    DT_size queries_len;
+    const Query *queries = DT_ArrRawUnchecked(g_ctx->queries, &queries_len);
+
+    for (DT_size i = 0; i < queries_len; i++) {
+        const Query *query = &queries[i];
+        if ((exc_comps_len && !query->exc) || (!exc_comps_len && query->exc)) {
+            continue;
+        }
+        if (DT_BitmapSetCountUnchecked(query->inc) != inc_comps_len ||
+            (query->exc &&
+             DT_BitmapSetCountUnchecked(query->exc) != exc_comps_len)) {
+            continue;
+        }
+
+        DT_bool is_registered = DT_true;
+        for (DT_size j = 0; j < inc_comps_len; j++) {
+            if (!DT_BitmapIsSetUnchecked(query->inc, inc_raw[j])) {
+                is_registered = DT_false;
+                break;
+            }
+        }
+        for (DT_size j = 0; is_registered && j < exc_comps_len; j++) {
+            if (!DT_BitmapIsSetUnchecked(query->exc, exc_raw[j])) {
+                is_registered = DT_false;
+                break;
+            }
+        }
+        if (is_registered) {
+            return i;   
+        }
     }
-    if (query->behavior_matches) {
-        DT_ArrDeleteUnchecked(&query->behavior_matches);
+
+    return PRP_INVALID_INDEX;
+}
+
+PRP_Result QueryDelete(DT_void *query, DT_void *_) {
+    (DT_void) _;
+    Query *q = query;
+
+    DT_BitmapDeleteUnchecked(&q->inc);
+    if (q->exc) {
+        DT_BitmapDeleteUnchecked(&q->exc);
     }
+    if (q->behavior_matches) {
+        DT_ArrDeleteUnchecked(&q->behavior_matches);
+    }
+
+    return PRP_OK;
 }

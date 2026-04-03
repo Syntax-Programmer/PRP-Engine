@@ -34,7 +34,7 @@ typedef DT_u64 DT_DSId;
 
 #define DT_DS_ARR_DEFAULT_CAP (16)
 #define DT_DS_ARR_MAX_CAP(memb_size)                                           \
-    PRP_MIN((DT_SIZE_MAX / (memb_size)), (DT_u32)~0)
+    ((DT_u32)PRP_MIN((DT_SIZE_MAX / (memb_size)), (DT_u32)~0))
 
 #define DT_DS_INVALID_SIZE ((DT_u32)(-1))
 
