@@ -8,143 +8,192 @@ extern "C" {
 #include "../Utils/Defs.h"
 
 /**
- * Arena, is an implementation of an fixed size arena allocator.
- * Its size is predetermined at the time of creation and can allocate memory
- * from that arena very quickly.
- * You cannot free individual allocations. All of the allocation will be freed
- * at once through the arena.
+ * MEM_Arena
+ *
+ * A fixed-size arena allocator.
+ *
+ * - Memory is allocated linearly.
+ * - Individual frees are NOT supported.
+ * - All allocations are invalidated on reset or delete.
+ *
+ * This allocator is extremely fast but requires careful lifetime management.
  */
 typedef struct _Arena MEM_Arena;
 
-/*
- * @return The last error code set by the arena functions that don't return
- * PRP_Result explicitly.
- */
-PRP_FN_API PRP_Result PRP_FN_CALL MEM_ArenaGetLastErrCode(DT_void);
 /**
- * Checks if the given arena is valid or not.
+ * Checks whether the given arena is structurally valid.
  *
- * @param arena: Checks if the given arena is valid or not.
+ * @param arena Pointer to the arena.
  *
- * @return DT_false if the arena is DT_null or is internally invalid, otherwise
- * DT_true.
+ * @return DT_true if valid, DT_false otherwise.
  */
 PRP_FN_API DT_bool PRP_FN_CALL MEM_ArenaIsValid(const MEM_Arena *arena);
+
 /**
- * Returns the max size that an arena can have.
+ * Returns the maximum allocatable arena size in bytes.
  *
- * @return The max size that an arena can have.
+ * @return Maximum supported arena size.
  */
 PRP_FN_API DT_size PRP_FN_CALL MEM_ArenaMaxSize(DT_void);
+
 /**
- * Creates the arena with the given size.
+ * Creates a new arena.
  *
- * @param size: The max size(in bytes) of the arena.
+ * @param size Total size (in bytes) of the arena.
+ * @param out  Output pointer that receives the created arena.
  *
- * @retuns The pointer to the arena.
+ * @return PRP_OK on success.
+ * @return PRP_ERR_INV_ARG if arguments are invalid.
+ * @return PRP_ERR_OOM if allocation fails.
  *
- * @note: This function doesn't check for argument validation in RELEASE mode.
+ * @note Unchecked variant:
+ * - Asserts on invalid arguments in debug.
+ * - Caller must ensure validity.
  */
-PRP_FN_API MEM_Arena *PRP_FN_CALL MEM_ArenaCreateUnchecked(DT_size size);
+PRP_FN_API PRP_Result PRP_FN_CALL MEM_ArenaCreateUnchecked(DT_size size,
+                                                           MEM_Arena **out);
+
 /**
- * Creates the arena with the given size.
+ * Creates a new arena with full argument validation.
  *
- * @param size: The max size(in bytes) of the arena.
+ * @param size Total size (in bytes) of the arena.
+ * @param out  Output pointer that receives the created arena.
  *
- * @retuns The pointer to the arena.
+ * @return PRP_OK on success.
+ * @return PRP_ERR_INV_ARG if arguments are invalid.
+ * @return PRP_ERR_OOM if allocation fails.
  */
-PRP_FN_API MEM_Arena *PRP_FN_CALL MEM_ArenaCreateChecked(DT_size size);
+PRP_FN_API PRP_Result PRP_FN_CALL MEM_ArenaCreateChecked(DT_size size,
+                                                         MEM_Arena **out);
+
 /**
- * Deletes the arena and sets the original MEM_Arena * to DT_null to prevent
- * use after free bugs.
+ * Deletes the arena and nullifies the pointer.
  *
- * @param pArena: The pointer to the arena pointer to delete.
+ * @param pArena Pointer to arena pointer.
  *
- * @note: This function doesn't check for argument validation in RELEASE mode.
+ * @note Unchecked variant:
+ * - Asserts on invalid arguments in debug.
+ * - Caller must ensure validity.
  */
 PRP_FN_API DT_void PRP_FN_CALL MEM_ArenaDeleteUnchecked(MEM_Arena **pArena);
+
 /**
- * Deletes the arena and sets the original MEM_Arena * to DT_null to prevent
- * use after free bugs.
+ * Deletes the arena and nullifies the pointer.
  *
- * @param pArena: The pointer to the arena pointer to delete.
+ * @param pArena Pointer to arena pointer.
  *
- * @return PRP_ERR_INV_ARG if the pArena or *pArena is DT_null, otherwise it
- * returns PRP_OK.
+ * @return PRP_OK on success.
+ * @return PRP_ERR_INV_ARG if pArena or *pArena is invalid.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL MEM_ArenaDeleteChecked(MEM_Arena **pArena);
+
 /**
- * Allocates a section of memory from the arena, the allocated chunk may contain
- * junk data, so caution is adviced.
+ * Allocates a block of memory from the arena.
  *
- * @param arena: The arena to allocate the chunk of mem from.
- * @prarm size: The size of the mem chunk to allocate.
+ * The returned memory is uninitialized.
  *
- * @return DT_null if size is too big for the current space left in the arena,
- * otherwise the memory pointer.
+ * @param arena Arena to allocate from.
+ * @param size  Number of bytes to allocate.
+ * @param dest  Output pointer receiving allocated memory.
  *
- * @note: This function doesn't check for argument validation in RELEASE mode.
+ * @return PRP_OK on success.
+ * @return PRP_ERR_RES_EXHAUSTED if insufficient space remains.
+ *
+ * @note Unchecked variant:
+ * - Asserts on invalid arguments in debug.
+ * - Caller must ensure validity.
+ *
+ * @warning
+ * `dest` MUST be a `void **`.
+ * Passing `T **` (e.g., `int **`) is undefined behavior.
  */
-PRP_FN_API DT_void *PRP_FN_CALL MEM_ArenaAllocUnchecked(MEM_Arena *arena,
-                                                        DT_size size);
+PRP_FN_API PRP_Result PRP_FN_CALL MEM_ArenaAllocUnchecked(MEM_Arena *arena,
+                                                          DT_size size,
+                                                          DT_void **dest);
+
 /**
- * Allocates a section of memory from the arena, the allocated chunk may contain
- * junk data, so caution is adviced.
+ * Allocates a block of memory from the arena with validation.
  *
- * @param arena: The arena to allocate the chunk of mem from.
- * @prarm size: The size of the mem chunk to allocate.
+ * The returned memory is uninitialized.
  *
- * @return DT_null if the parameters are invalid in any way, DT_null if size
- * is too big for the current space left in the arena, otherwise the memory
- * pointer.
+ * @param arena Arena to allocate from.
+ * @param size  Number of bytes to allocate.
+ * @param dest  Output pointer receiving allocated memory.
+ *
+ * @return PRP_OK on success.
+ * @return PRP_ERR_INV_ARG if arguments are invalid.
+ * @return PRP_ERR_RES_EXHAUSTED if insufficient space remains.
+ *
+ * @warning
+ * `dest` MUST be a `void **`.
+ * Passing `T **` (e.g., `int **`) is undefined behavior.
  */
-PRP_FN_API DT_void *PRP_FN_CALL MEM_ArenaAllocChecked(MEM_Arena *arena,
-                                                      DT_size size);
+PRP_FN_API PRP_Result PRP_FN_CALL MEM_ArenaAllocChecked(MEM_Arena *arena,
+                                                        DT_size size,
+                                                        DT_void **dest);
+
 /**
- * Allocates a section of memory from the arena, the allocated region is all
- * preset to 0.
+ * Allocates a zero-initialized block of memory from the arena.
  *
- * @param arena: The arena to allocate the chunk of mem from.
- * @prarm size: The size of the mem chunk to allocate.
+ * @param arena Arena to allocate from.
+ * @param size  Number of bytes to allocate.
+ * @param dest  Output pointer receiving allocated memory.
  *
- * @return DT_null if size is too big for the current space left in the arena,
- * otherwise the memory pointer.
+ * @return PRP_OK on success.
+ * @return PRP_ERR_RES_EXHAUSTED if insufficient space remains.
  *
- * @note: This function doesn't check for argument validation in RELEASE mode.
+ * @note Unchecked variant:
+ * - Asserts on invalid arguments in debug.
+ * - Caller must ensure validity.
+ *
+ * @warning
+ * `dest` MUST be a `void **`.
+ * Passing `T **` (e.g., `int **`) is undefined behavior.
  */
-PRP_FN_API DT_void *PRP_FN_CALL MEM_ArenaCallocUnchecked(MEM_Arena *arena,
-                                                         DT_size size);
+PRP_FN_API PRP_Result PRP_FN_CALL MEM_ArenaCallocUnchecked(MEM_Arena *arena,
+                                                           DT_size size,
+                                                           DT_void **dest);
+
 /**
- * Allocates a section of memory from the arena, the allocated region is all
- * preset to 0.
+ * Allocates a zero-initialized block of memory with validation.
  *
- * @param arena: The arena to allocate the chunk of mem from.
- * @prarm size: The size of the mem chunk to allocate.
+ * @param arena Arena to allocate from.
+ * @param size  Number of bytes to allocate.
+ * @param dest  Output pointer receiving allocated memory.
  *
- * @return DT_null if the parameters are invalid in any way, DT_null if size
- * is too big for the current space left in the arena, otherwise the memory
- * pointer.
+ * @return PRP_OK on success.
+ * @return PRP_ERR_INV_ARG if arguments are invalid.
+ * @return PRP_ERR_RES_EXHAUSTED if insufficient space remains.
+ *
+ * @warning
+ * `dest` MUST be a `void **`.
+ * Passing `T **` (e.g., `int **`) is undefined behavior.
  */
-PRP_FN_API DT_void *PRP_FN_CALL MEM_ArenaCallocChecked(MEM_Arena *arena,
-                                                       DT_size size);
+PRP_FN_API PRP_Result PRP_FN_CALL MEM_ArenaCallocChecked(MEM_Arena *arena,
+                                                         DT_size size,
+                                                         DT_void **dest);
+
 /**
- * Resets the arena, which invalidates all existing alloations and empties the
- * entire arena.
+ * Resets the arena.
  *
- * @param arena: The arena to reset.
+ * - All previous allocations become invalid.
+ * - Offset is reset to zero.
  *
- * @return PRP_ERR_INV_ARG if the arena is invalid, otherwise PRP_OK.
+ * @param arena Arena to reset.
  *
- * @note: This function doesn't check for argument validation in RELEASE mode.
+ * @note Unchecked variant:
+ * - Asserts on invalid arguments in debug.
+ * - Caller must ensure validity.
  */
 PRP_FN_API DT_void PRP_FN_CALL MEM_ArenaResetUnchecked(MEM_Arena *arena);
+
 /**
- * Resets the arena, which invalidates all existing alloations and empties the
- * entire arena.
+ * Resets the arena with validation.
  *
- * @param arena: The arena to reset.
+ * @param arena Arena to reset.
  *
- * @return PRP_ERR_INV_ARG if the arena is invalid, otherwise PRP_OK.
+ * @return PRP_OK on success.
+ * @return PRP_ERR_INV_ARG if arena is invalid.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL MEM_ArenaResetChecked(MEM_Arena *arena);
 

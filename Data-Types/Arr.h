@@ -8,11 +8,17 @@ extern "C" {
 #include "../Utils/Defs.h"
 
 /**
- * Arr(Dynamic Array), is an implementation of dynamic array that self grows.
- * It is equivalent to Python's lists or C++'s Vectors.
+ * DT_Arr
  *
- * It holds elements of a single SIZE(not a single type, since C is type
- * unsafe).
+ * A dynamically resizing array storing elements of fixed size.
+ *
+ * - Elements are stored contiguously in memory.
+ * - Capacity grows automatically on demand.
+ * - Not type-safe; user must ensure correct usage.
+ *
+ * Lifetime Rules:
+ * - Memory returned by getters becomes invalid after any mutating operation.
+ * - Array must be deleted using DT_ArrDelete* APIs.
  */
 typedef struct _Arr DT_Arr;
 
@@ -20,540 +26,541 @@ typedef struct _Arr DT_Arr;
 #define DT_ARR_MAX_CAP(memb_size) (DT_SIZE_MAX / (memb_size))
 
 /**
- * @return The last error code set by the array functions that don't return
- * PRP_Result explicitly.
- */
-PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrGetLastErrCode(DT_void);
-/**
- * Checks if the given array is valid or not.
+ * Checks whether the given array is structurally valid.
  *
- * @param arr: Checks if the given array is valid or not.
+ * @param arr Pointer to the array.
  *
- * @return DT_false if the array is DT_null or is internally invalid, otherwise
- * DT_true.
+ * @return DT_true if valid, DT_false otherwise.
  */
 PRP_FN_API DT_bool PRP_FN_CALL DT_ArrIsValid(const DT_Arr *arr);
 
 /**
- * Creates the dynamic array with user specified initial cap.
+ * Creates a dynamic array.
  *
- * @param memb_size: The size of the members of the array.
- * @param cap: The initial capacity of the array
+ * @param memb_size Size (in bytes) of each element.
+ * @param cap       Initial capacity.
+ * @param out       Output pointer receiving the array.
  *
- * @return The pointer of the array.
+ * @return PRP_OK on success.
+ * @return PRP_ERR_OOM if allocation fails.
  *
- * @note: This function doesn't check for argument validation in RELEASE mode.
+ * @note Unchecked variant:
+ * - Asserts on invalid arguments in debug.
  */
-PRP_FN_API DT_Arr *PRP_FN_CALL DT_ArrCreateUnchecked(DT_size memb_size,
-                                                     DT_size cap);
+PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrCreateUnchecked(DT_size memb_size,
+                                                        DT_size cap,
+                                                        DT_Arr **out);
 /**
- * Creates the dynamic array with user specified initial cap.
+ * Creates a dynamic array with validation.
  *
- * @param memb_size: The size of the members of the array.
- * @param cap: The initial capacity of the array
+ * @param memb_size Size (in bytes) of each element.
+ * @param cap       Initial capacity.
+ * @param out       Output pointer receiving the array.
  *
- * @return The pointer of the array.
+ * @return PRP_OK on success.
+ * @return PRP_ERR_OOM if allocation fails.
+ * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
-PRP_FN_API DT_Arr *PRP_FN_CALL DT_ArrCreateChecked(DT_size memb_size,
-                                                   DT_size cap);
+PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrCreateChecked(DT_size memb_size,
+                                                      DT_size cap,
+                                                      DT_Arr **out);
 /**
- * Clones the array into a new array, preserving all the contents of the array
- * too.
+ * Deep clones the given array.
  *
- * @param arr: The array to clone.
+ * @param arr The array to clone.
+ * @param out Output pointer receiving the array.
  *
- * @return The pointer to the cloned array.
+ * @return PRP_OK on success.
+ * @return PRP_ERR_OOM if allocation fails.
  *
- * @note: This function doesn't check for argument validation in RELEASE mode.
+ * @note Unchecked variant:
+ * - Asserts on invalid arguments in debug.
  */
-PRP_FN_API DT_Arr *PRP_FN_CALL DT_ArrCloneUnchecked(const DT_Arr *arr);
+PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrCloneUnchecked(const DT_Arr *arr,
+                                                       DT_Arr **out);
 /**
- * Clones the array into a new array, preserving all the contents of the array
- * too.
+ * Deep clones the given array with validation.
  *
- * @param arr: The array to clone.
+ * @param arr The array to clone.
+ * @param out Output pointer receiving the array.
  *
- * @return The pointer to the cloned array.
+ * @return PRP_OK on success.
+ * @return PRP_ERR_OOM if allocation fails.
+ * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
-PRP_FN_API DT_Arr *PRP_FN_CALL DT_ArrCloneChecked(const DT_Arr *arr);
+PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrCloneChecked(const DT_Arr *arr,
+                                                     DT_Arr **out);
 /**
- * Creates the dynamic array with user specified initial values.
+ * Creates the dynamic array with specified data.
  *
- * @param memb_size: The size of the members of the array.
- * @param membs: The array of values to add in the array.
- * @param len: The len of membs array.
+ * @param memb_size Size (in bytes) of each element.
+ * @param membs     The array of data to initialize with.
+ * @param len       Len of the membs array.
+ * @param out       Output pointer receiving the array.
  *
- * @return The pointer of the array with the initialized elements.
+ * @return PRP_OK on success.
+ * @return PRP_ERR_OOM if allocation fails.
  *
- * @note: This function doesn't check for argument validation in RELEASE mode.
+ * @note Unchecked variant:
+ * - Asserts on invalid arguments in debug.
  */
-PRP_FN_API DT_Arr *PRP_FN_CALL DT_ArrCreateWithDataUnchecked(DT_size memb_size,
-                                                             DT_void *membs,
-                                                             DT_size len);
+PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrCreateWithDataUnchecked(
+    DT_size memb_size, const DT_void *membs, DT_size len, DT_Arr **out);
 /**
- * Creates the dynamic array with user specified initial values.
+ * Creates the dynamic array with specified data.
  *
- * @param memb_size: The size of the members of the array.
- * @param membs: The array of values to add in the array.
- * @param len: The len of membs array.
+ * @param memb_size Size (in bytes) of each element.
+ * @param membs     The array of data to initialize with.
+ * @param len       Len of the membs array.
+ * @param out       Output pointer receiving the array.
  *
- * @return The pointer of the array with the initialized elements.
+ * @return PRP_OK on success.
+ * @return PRP_ERR_OOM if allocation fails.
+ * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
-PRP_FN_API DT_Arr *PRP_FN_CALL DT_ArrCreateWithDataChecked(DT_size memb_size,
-                                                           DT_void *membs,
-                                                           DT_size len);
+PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrCreateWithDataChecked(
+    DT_size memb_size, const DT_void *membs, DT_size len, DT_Arr **out);
 
 /**
- * Deletes the array and sets the original DT_Arr * to DT_null to prevent use
- * after free bugs.
+ * Deletes the array and nullifies the pointer.
  *
- * @param pArr: The pointer to the array pointer to delete.
+ * @param pArr Pointer to array pointer.
  *
- * @note: This function doesn't check for argument validation in RELEASE mode.
+ * @note Unchecked variant:
+ * - Asserts on invalid arguments in debug.
  */
 PRP_FN_API DT_void PRP_FN_CALL DT_ArrDeleteUnchecked(DT_Arr **pArr);
 /**
- * Deletes the array and sets the original DT_Arr * to DT_null to prevent use
- * after free bugs.
+ * Deletes the array and nullifies the pointer.
  *
- * @param pArr: The pointer to the array pointer to delete.
+ * @param pArr Pointer to array pointer.
  *
- * @return PRP_ERR_INV_ARG if the pArr or *pArr is DT_null, otherwise it
- * returns PRP_OK.
+ * @return PRP_OK on success.
+ * @return PRP_ERR_INV_ARG if pArr or *pArr is invalid.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrDeleteChecked(DT_Arr **pArr);
 
 /**
- * Returns the raw memory pointer of the array to the user.
- * This function returns a non-fixed pointer to the array mem. If an operation
- * is performed to the array after getting the raw data, the raw data is no
- * longer guaranteed to be valid.
+ * Returns the raw memory pointer of the array contenets.
  *
- * @param arr: The array to get the raw mem data of.
- * @param pLen: Pointer to where the len of the array will be stored to be used
- * by the caller to prevent unsafe usage.
+ * The pointer is not guaranteed to be valid after a mutation operation
  *
- * @return The memory pointer of the array's raw memory.
+ * @param arr  Array instance.
+ * @param pLen Pointer to where to store len of the array.
  *
- * @note: This function doesn't check for argument validation in RELEASE mode.
+ * @return The raw memory pointer of the array.
+ *
+ * @note Unchecked variant:
+ * - Asserts on invalid arguments in debug.
  */
 PRP_FN_API const DT_void *PRP_FN_CALL DT_ArrRawUnchecked(const DT_Arr *arr,
                                                          DT_size *pLen);
 /**
- * Returns the raw memory pointer of the array to the user.
- * This function returns a non-fixed pointer to the array mem. If an operation
- * is performed to the array after getting the raw data, the raw data is no
- * longer guaranteed to be valid.
+ * Returns the raw memory pointer of the array contenets.
  *
- * @param arr: The array to get the raw mem data of.
- * @param pLen: Pointer to where the len of the array will be stored to be used
- * by the caller to prevent unsafe usage.
+ * The pointer is not guaranteed to be valid after a mutation operation
  *
- * @return DT_null if the array is invalid or pLen is DT_null, otherwise the
- * memory pointer of the array's raw memory.
+ * @param arr  Array instance.
+ * @param pLen Pointer to where to store len of the array.
+ * @param pRaw Pointer to where to store raw mem of the array.
+ *
+ * @return PRP_OK on success.
+ * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
-PRP_FN_API const DT_void *PRP_FN_CALL DT_ArrRawChecked(const DT_Arr *arr,
-                                                       DT_size *pLen);
+PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrRawChecked(const DT_Arr *arr,
+                                                   DT_size *pLen,
+                                                   const DT_void **pRaw);
 /**
- * Returns the current len of the array that is passed to it.
+ * Returns the number of elements currently stored.
  *
- * @param arr: The array to get the len of.
+ * @param arr Array instance.
  *
- * @return The len of the array.
+ * @return Number of elements.
  *
- * @note: This function doesn't check for argument validation in RELEASE mode.
+ * @note Assumes valid array (asserts in debug).
  */
-PRP_FN_API DT_size PRP_FN_CALL DT_ArrLenUnchecked(const DT_Arr *arr);
+PRP_FN_API DT_size PRP_FN_CALL DT_ArrLen(const DT_Arr *arr);
 /**
- * Returns the current len of the array that is passed to it.
+ * Returns the capacity (number of elements) of the array.
  *
- * @param arr: The array to get the len of.
+ * @param arr Array instance.
  *
- * @return PRP_INVALID_SIZE if the array is invalid, otherwise the actual len of
- * the array.
+ * @return Array capacity.
+ *
+ * @note Assumes valid array (asserts in debug).
  */
-PRP_FN_API DT_size PRP_FN_CALL DT_ArrLenChecked(const DT_Arr *arr);
+PRP_FN_API DT_size PRP_FN_CALL DT_ArrCap(const DT_Arr *arr);
 /**
- * Returns the current allocated cap of the array that is passed to it.
+ * Returns the size (in bytes) of each element.
  *
- * @param arr: The array to get the cap of.
+ * @param arr Array instance.
  *
- * @return The cap of the array.
+ * @return Element size.
  *
- * @note: This function doesn't check for argument validation in RELEASE mode.
+ * @note Assumes valid array (asserts in debug).
  */
-PRP_FN_API DT_size PRP_FN_CALL DT_ArrCapUnchecked(const DT_Arr *arr);
+PRP_FN_API DT_size PRP_FN_CALL DT_ArrMembSize(const DT_Arr *arr);
 /**
- * Returns the current allocated cap of the array that is passed to it.
+ * Returns the maximum possible capacity for this array configuration.
  *
- * @param arr: The array to get the cap of.
+ * @param arr Array instance.
  *
- * @return PRP_INVALID_SIZE if the array is invalid, otherwise the actual cap of
- * the array.
+ * @return Maximum capacity.
+ *
+ * @note Assumes valid array (asserts in debug).
  */
-PRP_FN_API DT_size PRP_FN_CALL DT_ArrCapChecked(const DT_Arr *arr);
-/**
- * Returns the member size of the array that is passed to it.
- *
- * @param arr: The array to get the memb_size of.
- *
- * @return The memb size of the array.
- *
- * @note: This function doesn't check for argument validation in RELEASE mode.
- */
-PRP_FN_API DT_size PRP_FN_CALL DT_ArrMembSizeUnchecked(const DT_Arr *arr);
-/**
- * Returns the member size of the array that is passed to it.
- *
- * @param arr: The array to get the memb_size of.
- *
- * @return PRP_INVALID_SIZE if the array is invalid, otherwise the actual
- * memb_size of the array.
- */
-PRP_FN_API DT_size PRP_FN_CALL DT_ArrMembSizeChecked(const DT_Arr *arr);
-/**
- * Returns the max capacity of the array that is passed to it based on its
- * memb_size.
- *
- * @param arr: The array to get the max capacity of.
- *
- * @return The max capacity of the array..
- *
- * @note: This function doesn't check for argument validation in RELEASE mode.
- */
-PRP_FN_API DT_size PRP_FN_CALL DT_ArrMaxCapUnchecked(const DT_Arr *arr);
-/**
- * Returns the max capacity of the array that is passed to it based on its
- * memb_size.
- *
- * @param arr: The array to get the max capacity of.
- *
- * @return PRP_INVALID_SIZE if the array is invalid, otherwise the actual
- * max capacity of the array.
- */
-PRP_FN_API DT_size PRP_FN_CALL DT_ArrMaxCapChecked(const DT_Arr *arr);
+PRP_FN_API DT_size PRP_FN_CALL DT_ArrMaxCap(const DT_Arr *arr);
 
 /**
- * Gets the pointer to the element of the given index of the array.
+ * Retrieves the value of the given index.
  *
- * @param arr: The array to operate on.
- * @param i: The index to get the pointer to.
+ * @param arr Array instance.
+ * @param i   The index into the array.
  *
- * @return The pointer of the requested index.
+ * @return The value pointer at the index.
  *
- * @note: This function doesn't check for argument validation in RELEASE mode.
+ * @note Unchecked variant:
+ * - Asserts on invalid arguments in debug.
  */
 PRP_FN_API DT_void *PRP_FN_CALL DT_ArrGetUnchecked(const DT_Arr *arr,
                                                    DT_size i);
 /**
- * Gets the pointer to the element of the given index of the array.
+ * Retrieves the value of the given index.
  *
- * @param arr: The array to operate on.
- * @param i: The index to get the pointer to.
+ * @param arr  Array instance.
+ * @param i    The index into the array.
+ * @param dest The pointer to the value pointer.
  *
- * @return DT_null if array is invalid or the i is out of bound, otherwise the
- * pointer of the requested index.
+ * @return PRP_OK on success.
+ * @return PRP_ERR_OOB if index out of bounds.
+ * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
-PRP_FN_API DT_void *PRP_FN_CALL DT_ArrGetChecked(const DT_Arr *arr, DT_size i);
+PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrGetChecked(const DT_Arr *arr, DT_size i,
+                                                   DT_void **dest);
 /**
- * Sets the given index of the array with the given data.
+ * Sets the value of the given index.
  *
- * @param arr: The array to operate on.
- * @param i: The index to set the value of.
- * @param pData: The pointer to the data that will be set.
+ * @param arr   Array instance.
+ * @param i     The index into the array.
+ * @param pData The pointer to the data to set.
  *
- * @note: This function doesn't check for argument validation in RELEASE mode.
+ * @note Unchecked variant:
+ * - Asserts on invalid arguments in debug.
  */
 PRP_FN_API DT_void PRP_FN_CALL DT_ArrSetUnchecked(DT_Arr *arr, DT_size i,
                                                   const DT_void *pData);
 /**
- * Sets the given index of the array with the given data.
+ * Sets the value of the given index.
  *
- * @param arr: The array to operate on.
- * @param i: The index to set the value of.
- * @param pData: The pointer to the data that will be set.
+ * @param arr   Array instance.
+ * @param i     The index into the array.
+ * @param pData The pointer to the data to set.
  *
- * @return PRP_ERR_INV_ARG if the parameters are invalid in any way, PRP_ERR_OOB
- * if i is out of bounds of the array, otherwise PRP_OK.
+ * @return PRP_OK on success.
+ * @return PRP_ERR_OOB if index out of bounds.
+ * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrSetChecked(DT_Arr *arr, DT_size i,
                                                    const DT_void *pData);
 /**
- * Pushes a new element into the given array, auto growing to accommodate for
- * new elements.
+ * Pushes a new element at the end of the array.
  *
- * @param arr: The array to push the element into.
- * @param pData: The pointer to the data to be pushed into the array.
+ * @param arr   Array instance.
+ * @param pData The pointer to the data to push.
  *
- * @return PRP_ERR_RES_EXHAUSTED/PRP_ERR_OOM if pushing into the array is not
- * possible, otherwise PRP_OK.
+ * @return PRP_OK on success.
+ * @return PRP_ERR_RES_EXHAUSTED if max cap is reached.
+ * @return PRP_ERR_OOM if allocation fails.
  *
- * @note: This function doesn't check for argument validation in RELEASE mode.
+ * @note Unchecked variant:
+ * - Asserts on invalid arguments in debug.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrPushUnchecked(DT_Arr *arr,
                                                       const DT_void *pData);
 /**
- * Pushes a new element into the given array, auto growing to accommodate for
- * new elements.
+ * Pushes a new element at the end of the array.
  *
- * @param arr: The array to push the element into.
- * @param pData: The pointer to the data to be pushed into the array.
+ * @param arr   Array instance.
+ * @param pData The pointer to the data to push.
  *
- * @return PRP_INV_ARG_ERR if the parameters are invalid in any way,
- * PRP_ERR_RES_EXHAUSTED/PRP_ERR_OOM if pushing into the array is not possible,
- * otherwise PRP_OK.
+ * @return PRP_OK on success.
+ * @return PRP_ERR_RES_EXHAUSTED if max cap is reached.
+ * @return PRP_ERR_OOM if allocation fails.
+ * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrPushChecked(DT_Arr *arr,
                                                     const DT_void *pData);
 /**
  * Reserves <count> number of elements in the array.
  *
- * @param arr: The array to reserve into.
- * @param count: The number of elements to reserve.
+ * @param arr   Array instance.
+ * @param count Number of elements to reserve.
  *
- * @return PRP_ERR_RES_EXHAUSTED/PRP_ERR_OOM if reserving <count> elements into
- * the array is not possible, otherwise PRP_OK.
+ * @return PRP_OK on success.
+ * @return PRP_ERR_RES_EXHAUSTED if max cap is reached.
+ * @return PRP_ERR_OOM if allocation fails.
  *
- * @note: This function doesn't check for argument validation in RELEASE mode.
+ * @note Unchecked variant:
+ * - Asserts on invalid arguments in debug.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrReserveUnchecked(DT_Arr *arr,
                                                          DT_size count);
 /**
  * Reserves <count> number of elements in the array.
  *
- * @param arr: The array to reserve into.
- * @param count: The number of elements to reserve.
+ * @param arr   Array instance.
+ * @param count Number of elements to reserve.
  *
- * @return PRP_INV_ARG_ERR if the parameters are invalid in any way,
- * PRP_ERR_RES_EXHAUSTED/PRP_ERR_OOM if reserving <count> elements into the
- * array is not possible, otherwise PRP_OK.
+ * @return PRP_OK on success.
+ * @return PRP_ERR_RES_EXHAUSTED if max cap is reached.
+ * @return PRP_ERR_OOM if allocation fails.
+ * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrReserveChecked(DT_Arr *arr,
                                                        DT_size count);
 /**
- * Inserts the given data into index <i> of the array.
+ * Inserts the value to a given index.
  *
- * @param arr: The array to insert into.
- * @param pData: The pointer to the data to insert.
- * @param i: The index to insert the data into.
+ * @param arr   Array instance.
+ * @param pData The pointer to the data to push.
+ * @param i     The index into the array.
  *
- * @return PRP_ERR_RES_EXHAUSTED/PRP_ERR_OOM if pushing into the array is not
- * possible, otherwise PRP_OK.
+ * @return PRP_OK on success.
+ * @return PRP_ERR_RES_EXHAUSTED if max cap is reached.
+ * @return PRP_ERR_OOM if allocation fails.
  *
- * @note: This function doesn't check for argument validation in RELEASE mode.
+ * @note Unchecked variant:
+ * - Asserts on invalid arguments in debug.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrInsertUnchecked(DT_Arr *arr,
                                                         const DT_void *pData,
                                                         DT_size i);
 /**
- * Inserts the given data into index <i> of the array.
+ * Inserts the value to a given index.
  *
- * @param arr: The array to insert into.
- * @param pData: The pointer to the data to insert.
- * @param i: The index to insert the data into.
+ * @param arr   Array instance.
+ * @param pData The pointer to the data to push.
+ * @param i     The index into the array.
  *
- * @return PRP_ERR_INV_ARG if the parameters are invalid in any way, PRP_ERR_OOB
- * if i is out of bounds of the array, PRP_ERR_RES_EXHAUSTED/PRP_ERR_OOM if
- * pushing into the array is not possible, otherwise PRP_OK.
+ * @return PRP_OK on success.
+ * @return PRP_ERR_RES_EXHAUSTED if max cap is reached.
+ * @return PRP_ERR_OOM if allocation fails.
+ * @return PRP_ERR_OOB if index out of bounds.
+ * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrInsertChecked(DT_Arr *arr,
                                                       const DT_void *pData,
                                                       DT_size i);
 
 /**
- * Pops the last element of the array from the array, and optionally gives the
- * popped data to dest.
+ * Pops the last element from the array
  *
- * @param arr: The array to pop data from.
- * @param pDest: If not DT_null, the popped data is copied into it.
+ * @param arr   Array instance.
+ * @param pDest The pointer to the poped data. Its an optional param.
  *
- * @return PRP_ERR_RES_EXHAUSTED if no elements remain to pop, otherwise PRP_OK.
+ * @return PRP_OK on success.
+ * @return PRP_ERR_RES_EXHAUSTED if no elements to pop.
  *
- * @note: This function doesn't check for argument validation in RELEASE mode.
+ * @note Unchecked variant:
+ * - Asserts on invalid arguments in debug.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrPopUnchecked(DT_Arr *arr,
                                                      DT_void *pDest);
 /**
- * Pops the last element of the array from the array, and optionally gives the
- * popped data to dest.
+ * Pops the last element from the array
  *
- * @param arr: The array to pop data from.
- * @param pDest: If not DT_null, the popped data is copied into it.
+ * @param arr   Array instance.
+ * @param pDest The pointer to the poped data. Its an optional param.
  *
- * @return PRP_ERR_INV_ARG if the arr invalid, PRP_ERR_RES_EXHAUSTED if no
- * elements remain to pop, otherwise PRP_OK.
+ * @return PRP_OK on success.
+ * @return PRP_ERR_RES_EXHAUSTED if no elements to pop.
+ * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrPopChecked(DT_Arr *arr, DT_void *pDest);
 /**
- * Removes the given index from the array and repacks the array.
+ * Removes the given index and repack the array.
  *
- * @param arr: The array to remove from.
- * @param pDest: If not DT_null, the removed data is copied into it.
- * @param i: The index that is to be removed from the array.
+ * @param arr   Array instance.
+ * @param pDest The pointer to the poped data. Its an optional param.
+ * @param i     The index to remove.
  *
- * @note: This function doesn't check for argument validation in RELEASE mode.
+ * @note Unchecked variant:
+ * - Asserts on invalid arguments in debug.
  */
 PRP_FN_API DT_void PRP_FN_CALL DT_ArrRemoveUnchecked(DT_Arr *arr,
                                                      DT_void *pDest, DT_size i);
 /**
- * Removes the given index from the array and repacks the array.
+ * Removes the given index and repack the array.
  *
- * @param arr: The array to remove from.
- * @param pDest: If not DT_null, the removed data is copied into it.
- * @param i: The index that is to be removed from the array.
+ * @param arr   Array instance.
+ * @param pDest The pointer to the poped data. Its an optional param.
+ * @param i     The index to remove.
  *
- * @return PRP_ERR_INV_ARG if the arr invalid, PRP_ERR_OOB if the given index is
- * out of bounds of the array, otherwise PRP_OK.
+ * @return PRP_OK on success.
+ * @return PRP_ERR_OOB if index out of bounds.
+ * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrRemoveChecked(DT_Arr *arr,
                                                       DT_void *pDest,
                                                       DT_size i);
 
 /**
- * Compares the given two array to see if their contents are exactly equal.
+ * Comares the contents of the array.
  *
- * @param arr1: The first array that is to be compared.
- * @param arr2: The other array that is to be compared.
+ * @param arr1 Array instance 1.
+ * @param arr2 Array instance 2.
  *
- * @return DT_false if the arrays are equal, otherwise DT_true.
+ * @return DT_true if equal, DT_false otherwise.
  *
- * @note: This function doesn't check for argument validation in RELEASE mode.
+ * @note Unchecked variant:
+ * - Asserts on invalid arguments in debug.
  */
 PRP_FN_API DT_bool PRP_FN_CALL DT_ArrCmpUnchecked(const DT_Arr *arr1,
                                                   const DT_Arr *arr2);
 /**
- * Compares the given two array to see if their contents are exactly equal.
+ * Comares the contents of the array.
  *
- * @param arr1: The first array that is to be compared.
- * @param arr2: The other array that is to be compared.
- * @param pRslt: The pointer to the variable where the boolean result will be
- * stored.
+ * @param arr1  Array instance 1.
+ * @param arr2  Array instance 2.
+ * @param pRslt The pointer to where the result is stored.
  *
- * @return PRP_ERR_INV_ARG if the parameters are invalid in any way, otherwise
- * PRP_OK.
+ * @return PRP_OK on success.
+ * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrCmpChecked(const DT_Arr *arr1,
                                                    const DT_Arr *arr2,
                                                    DT_bool *pRslt);
 /**
- * Joins the content of arr2 with arr1.
+ * Extends arr2 into arr1.
  *
- * @param arr1: The first array that will contain the final extended array.
- * @param arr2: The array that is to be merged with arr1.
+ * @param arr1 Array instance 1.
+ * @param arr2 Array instance 2.
  *
- * @return PRP_ERR_RES_EXHAUSTED if the combined size exceeds the max cap of the
- * array, PRP_ERR_OOM if realloc failed on arr1, otherwise PRP_OK.
+ * @return PRP_OK on success.
+ * @return PRP_ERR_RES_EXHAUSTED if max cap is reached.
+ * @return PRP_ERR_OOM if allocation fails.
  *
- * @note: This function doesn't check for argument validation in RELEASE mode.
+ * @note Unchecked variant:
+ * - Asserts on invalid arguments in debug.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrExtendUnchecked(DT_Arr *arr1,
                                                         const DT_Arr *arr2);
 /**
- * Joins the content of arr2 with arr1.
+ * Extends arr2 into arr1.
  *
- * @param arr1: The first array that will contain the final extended array.
- * @param arr2: The array that is to be merged with arr1.
+ * @param arr1 Array instance 1.
+ * @param arr2 Array instance 2.
  *
- * @return PRP_ERR_INV_ARG if the parameters are invalid in any way,
- * PRP_ERR_RES_EXHAUSTED if the combined size exceeds the max cap of the array,
- * PRP_ERR_OOM if realloc failed on arr1, otherwise PRP_OK.
+ * @return PRP_OK on success.
+ * @return PRP_ERR_RES_EXHAUSTED if max cap is reached.
+ * @return PRP_ERR_OOM if allocation fails.
+ * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrExtendChecked(DT_Arr *arr1,
                                                       const DT_Arr *arr2);
 /**
- * Swaps the elements of the given two indices.
+ * Swaps the elements in the given indices.
  *
- * @param arr: The array to operate on.
- * @param i: The first index.
- * @param j: The second index.
- * @param swap_bffr: A buffer which will hold temp data tell the swap is
- * happening. its size = memb_size.
+ * @param arr       Array instance.
+ * @param i         The first index.
+ * @param j         The second index.
+ * @param swap_bffr A temp buffer for swapping. Must be equal arr's memb size.
  *
- * @note: This function doesn't check for argument validation in RELEASE mode.
+ * @note Unchecked variant:
+ * - Asserts on invalid arguments in debug.
  */
 PRP_FN_API DT_void PRP_FN_CALL DT_ArrSwapUnchecked(DT_Arr *arr, DT_size i,
                                                    DT_size j,
                                                    DT_void *swap_bffr);
 /**
- * Swaps the elements of the given two indices.
+ * Swaps the elements in the given indices.
  *
- * @param arr: The array to operate on.
- * @param i: The first index.
- * @param j: The second index.
- * @param swap_bffr: A buffer which will hold temp data tell the swap is
- * happening. its size = memb_size.
+ * @param arr       Array instance.
+ * @param i         The first index.
+ * @param j         The second index.
+ * @param swap_bffr A temp buffer for swapping. Must be equal arr's memb size.
  *
- * @return PRP_ERR_INV_ARG if the parameters are invalid in any way,
- * PRP_ERR_OOB if the indices are out of bound, otherwise PRP_OK.
+ * @return PRP_OK on success.
+ * @return PRP_ERR_OOB if any indices are out of bounds.
+ * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrSwapChecked(DT_Arr *arr, DT_size i,
                                                     DT_size j,
                                                     DT_void *swap_bffr);
 /**
- * Resets the array to make it behave like a brand new array.
+ * Resets the array.
  *
- * @param arr: The array to reset.
+ * Only sets len to 0 and 0s out everything, mem leak will happen if elements
+ * have internal allocations.
  *
- * @note: This function doesn't check for argument validation in RELEASE mode.
+ * @param arr Array instance.
+ *
+ * @note Unchecked variant:
+ * - Asserts on invalid arguments in debug.
  */
 PRP_FN_API DT_void PRP_FN_CALL DT_ArrResetUnchecked(DT_Arr *arr);
 /**
- * Resets the array to make it behave like a brand new array.
+ * Resets the array.
  *
- * @param arr: The array to reset.
+ * Only sets len to 0 and 0s out everything, mem leak will happen if elements
+ * have internal allocations.
  *
- * @return PRP_ERR_INV_ARG if the array is invalid in some way, otherwise
- * PRP_OK.
+ * @param arr Array instance.
+ *
+ * @return PRP_OK on success.
+ * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrResetChecked(DT_Arr *arr);
 /**
- * Shrinks the array to make its cap = len.
+ * Shrinks the array cap to match its len.
  *
- * @param arr: The array to shrink fit.
+ * @param arr Array instance.
  *
- * @return PRP_ERR_RES_EXHAUSTED/PRP_ERR_OOM if shrinking the array is not
- * possible, otherwise PRP_OK.
+ * @return PRP_OK on success.
+ * @return PRP_ERR_RES_EXHAUSTED if max cap is reached.
+ * @return PRP_ERR_OOM if allocation fails.
  *
- * @note: This function doesn't check for argument validation in RELEASE mode.
+ * @note Unchecked variant:
+ * - Asserts on invalid arguments in debug.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrShrinkFitUnchecked(DT_Arr *arr);
 /**
- * Shrinks the array to make its cap = len.
+ * Shrinks the array cap to match its len.
  *
- * @param arr: The array to shrink fit.
+ * @param arr Array instance.
  *
- * @return PRP_INV_ARG_ERR if the parameters are invalid in any way,
- * PRP_ERR_RES_EXHAUSTED/PRP_ERR_OOM if shrinking the array is not possible,
- * otherwise PRP_OK.
+ * @return PRP_OK on success.
+ * @return PRP_ERR_RES_EXHAUSTED if max cap is reached.
+ * @return PRP_ERR_OOM if allocation fails.
+ * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrShrinkFitChecked(DT_Arr *arr);
 /**
- * Performs a foreach operation of each of the element of the array. Calling cb
- * per element.
+ * Iterates over all elements of the array.
  *
- * @param arr: The array on which the foreach will happen.
- * @param cb: The callback to be called per element. If this doesn't return
- * PRP_OK, further execution will be halted.
- * @param user_data: The data user wants to pass in as additional context.
+ * @param arr       Array instance.
+ * @param cb        Callback invoked per element.
+ * @param user_data User-provided context.
  *
- * @return PRP_OK, or the callback error code.
+ * @return PRP_OK if iteration completes.
+ * @return Callback error if cb returns non-PRP_OK.
  *
- * @note: This function doesn't check for argument validation in RELEASE mode.
+ * @note Unchecked variant:
+ * - Asserts on invalid arguments in debug.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrForEachUnchecked(
     DT_Arr *arr, PRP_Result (*cb)(DT_void *pVal, DT_void *user_data),
     DT_void *user_data);
 /**
- * Performs a foreach operation of each of the element of the array. Calling cb
- * per element.
+ * Iterates over all elements of the array.
  *
- * @param arr: The array on which the foreach will happen.
- * @param cb: The callback to be called per element. If this doesn't return
- * PRP_OK, further execution will be halted.
- * @param user_data: The data user wants to pass in as additional context.
+ * @param arr       Array instance.
+ * @param cb        Callback invoked per element.
+ * @param user_data User-provided context.
  *
- * @return PRP_ERR_INV_ARG if the parameters are invalid in some way,
- * otherwise PRP_OK, or the callback error code.
+ * @return PRP_OK if iteration completes.
+ * @return Callback error if cb returns non-PRP_OK.
+ * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrForEachChecked(
     DT_Arr *arr, PRP_Result (*cb)(DT_void *pVal, DT_void *user_data),

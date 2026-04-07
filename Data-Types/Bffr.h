@@ -7,277 +7,280 @@ extern "C" {
 #include "../Data-Types/Typedefs.h"
 #include "../Utils/Defs.h"
 
+/**
+ * DT_Bffr
+ *
+ * A dynamically resizing buffer storing elements of fixed size.
+ *
+ * - Elements are stored contiguously in memory.
+ * - Capacity grows is controlled by user.
+ * - Not type-safe; user must ensure correct usage.
+ *
+ * Lifetime Rules:
+ * - Memory returned by getters becomes invalid after any mutating operation.
+ * - Buffer  must be deleted using DT_BffrDelete* APIs.
+ */
 typedef struct _Bffr DT_Bffr;
 
 #define DT_BFFR_DEFAULT_CAP (16)
 #define DT_BFFR_MAX_CAP(memb_size) (DT_SIZE_MAX / (memb_size))
 
 /**
- * @return The last error code set by the buffer functions that don't return
- * PRP_Result explicitly.
- */
-PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrGetLastErrCode(DT_void);
-/**
- * Checks if the given buffer is valid or not.
+ * Checks whether the given buffer is structurally valid.
  *
- * @param bffr: Checks if the given buffer is valid or not.
+ * @param bffr Pointer to the buffer.
  *
- * @return DT_false if the buffer is DT_null or is internally invalid, otherwise
- * DT_true.
+ * @return DT_true if valid, DT_false otherwise.
  */
 PRP_FN_API DT_bool PRP_FN_CALL DT_BffrIsValid(const DT_Bffr *bffr);
 
 /**
- * Creates the dynamic buffer with user specified initial cap.
+ * Creates a dynamic buffer.
  *
- * @param memb_size: The size of the members of the buffer.
- * @param cap: The initial capacity of the buffer
+ * @param memb_size Size (in bytes) of each element.
+ * @param cap       Initial capacity.
+ * @param out       Output pointer receiving the arraybuffer.
  *
- * @return The pointer of the buffer.
+ * @return PRP_OK on success.
+ * @return PRP_ERR_OOM if allocation fails.
  *
- * @note: This function doesn't check for argument validation in RELEASE mode.
+ * @note Unchecked variant:
+ * - Asserts on invalid arguments in debug.
  */
-PRP_FN_API DT_Bffr *PRP_FN_CALL DT_BffrCreateUnchecked(DT_size memb_size,
-                                                       DT_size cap);
+PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrCreateUnchecked(DT_size memb_size,
+                                                         DT_size cap,
+                                                         DT_Bffr **out);
 /**
- * Creates the dynamic buffer with user specified initial cap.
+ * Creates a dynamic buffer.
  *
- * @param memb_size: The size of the members of the buffer.
- * @param cap: The initial capacity of the buffer
+ * @param memb_size Size (in bytes) of each element.
+ * @param cap       Initial capacity.
+ * @param out       Output pointer receiving the arraybuffer.
  *
- * @return The pointer of the buffer.
+ * @return PRP_OK on success.
+ * @return PRP_ERR_OOM if allocation fails.
+ * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
-PRP_FN_API DT_Bffr *PRP_FN_CALL DT_BffrCreateChecked(DT_size memb_size,
-                                                     DT_size cap);
+PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrCreateChecked(DT_size memb_size,
+                                                       DT_size cap,
+                                                       DT_Bffr **out);
 /**
- * Clones the buffer into a new buffer, preserving all the contents of the
- * buffer too.
+ * Deep clones the given buffer.
  *
- * @param bffr: The buffer to clone.
+ * @param bffr The buffer to clone.
+ * @param out  Output pointer receiving the array.
  *
- * @return The pointer to the cloned buffer.
+ * @return PRP_OK on success.
+ * @return PRP_ERR_OOM if allocation fails.
  *
- * @note: This function doesn't check for argument validation in RELEASE mode.
+ * @note Unchecked variant:
+ * - Asserts on invalid arguments in debug.
  */
-PRP_FN_API DT_Bffr *PRP_FN_CALL DT_BffrCloneUnchecked(const DT_Bffr *bffr);
+PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrCloneUnchecked(const DT_Bffr *bffr,
+                                                        DT_Bffr **out);
 /**
- * Clones the buffer into a new buffer, preserving all the contents of the
- * buffer too.
+ * Deep clones the given buffer with validation.
  *
- * @param bffr: The buffer to clone.
+ * @param bffr The buffer to clone.
+ * @param out  Output pointer receiving the array.
  *
- * @return The pointer to the cloned buffer.
+ * @return PRP_OK on success.
+ * @return PRP_ERR_OOM if allocation fails.
+ * @return PRP_ERR_INV_ARG if arguments are invalid.
+ *
+ * @note Unchecked variant:
+ * - Asserts on invalid arguments in debug.
  */
-PRP_FN_API DT_Bffr *PRP_FN_CALL DT_BffrCloneChecked(const DT_Bffr *bffr);
+PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrCloneChecked(const DT_Bffr *bffr,
+                                                      DT_Bffr **out);
 
 /**
- * Deletes the buffer and sets the original DT_Bffr * to DT_null to prevent use
- * after free bugs.
+ * Deletes the buffer and nullifies the pointer.
  *
- * @param pBffr: The pointer to the buffer pointer to delete.
+ * @param pBffr Pointer to buffer pointer.
  *
- * @note: This function doesn't check for argument validation in RELEASE mode.
+ * @note Unchecked variant:
+ * - Asserts on invalid arguments in debug.
  */
 PRP_FN_API DT_void PRP_FN_CALL DT_BffrDeleteUnchecked(DT_Bffr **pBffr);
 /**
- * Deletes the buffer and sets the original DT_Bffr * to DT_null to prevent use
- * after free bugs.
+ * Deletes the buffer and nullifies the pointer.
  *
- * @param pBffr: The pointer to the buffer pointer to delete.
+ * @param pBffr Pointer to buffer pointer.
  *
- * @return PRP_ERR_INV_ARG if the pBffr or *pBffr is DT_null, otherwise it
- * returns PRP_OK.
+ * @return PRP_OK on success.
+ * @return PRP_ERR_INV_ARG if pArr or *pArr is invalid.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrDeleteChecked(DT_Bffr **pBffr);
 
 /**
- * Returns the raw memory pointer of the buffer to the user.
- * This function returns a non-fixed pointer to the buffer mem. If the buffer is
- * grown after getting the raw data, the raw data is no longer guaranteed to be
- * valid.
+ * Returns the raw memory pointer of the array contenets.
  *
- * @param bffr: The buffer to get the raw mem data of.
- * @param pCap: Pointer to where the cap of the buffer will be stored to be used
- * by the caller to prevent unsafe usage.
+ * The pointer is not guaranteed to be valid after a growth operation
  *
- * @return The memory pointer of the buffer's raw memory.
+ * @param bffr Buffer instance.
+ * @param pCap Pointer to where to store cap of the buffer.
  *
- * @note: This function doesn't check for argument validation in RELEASE mode.
+ * @return The raw memory pointer of the array.
+ *
+ * @note Unchecked variant:
+ * - Asserts on invalid arguments in debug.
  */
 PRP_FN_API const DT_void *PRP_FN_CALL DT_BffrRawUnchecked(const DT_Bffr *bffr,
                                                           DT_size *pCap);
 /**
- * Returns the raw memory pointer of the buffer to the user.
- * This function returns a non-fixed pointer to the buffer mem. If the buffer is
- * grown after getting the raw data, the raw data is no longer guaranteed to be
- * valid.
+ * Returns the raw memory pointer of the array contenets.
  *
- * @param bffr: The buffer to get the raw mem data of.
- * @param pCap: Pointer to where the cap of the buffer will be stored to be used
- * by the caller to prevent unsafe usage.
+ * The pointer is not guaranteed to be valid after a growth operation
  *
- * @return DT_null if the array is invalid or pCap is DT_null, otherwise the
- * memory pointer of the buffer's raw memory.
+ * @param bffr Buffer instance.
+ * @param pCap Pointer to where to store cap of the buffer.
+ * @param pRaw The pointer to where the raw mem will be stored.
+ *
+ * @return The raw memory pointer of the array.
+ *
+ * @return PRP_OK on success.
+ * @return PRP_ERR_INV_ARG if arguments invalid.
  */
-PRP_FN_API const DT_void *PRP_FN_CALL DT_BffrRawChecked(const DT_Bffr *bffr,
-                                                        DT_size *pCap);
+PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrRawChecked(const DT_Bffr *bffr,
+                                                    DT_size *pCap,
+                                                    DT_void **pRaw);
 /**
- * Returns the current allocated cap of the buffer that is passed to it.
+ * Returns the capacity (number of elements) of the buffer.
  *
- * @param bffr: The buffer to get the cap of.
+ * @param bffr Buffer instance.
  *
- * @return The cap of the buffer.
+ * @return Buffer capacity.
  *
- * @note: This function doesn't check for argument validation in RELEASE mode.
+ * @note Assumes valid buffer (asserts in debug).
  */
-PRP_FN_API DT_size PRP_FN_CALL DT_BffrCapUnchecked(const DT_Bffr *bffr);
+PRP_FN_API DT_size PRP_FN_CALL DT_BffrCap(const DT_Bffr *bffr);
 /**
- * Returns the current allocated cap of the buffer that is passed to it.
+ * Returns the size (in bytes) of each element.
  *
- * @param bffr: The buffer to get the cap of.
+ * @param bffr Buffer instance.
  *
- * @return PRP_INVALID_SIZE if buffer is invalid, otherwise the actual cap of
- * the buffer.
+ * @return Element size.
+ *
+ * @note Assumes valid buffer (asserts in debug).
  */
-PRP_FN_API DT_size PRP_FN_CALL DT_BffrCapChecked(const DT_Bffr *bffr);
+PRP_FN_API DT_size PRP_FN_CALL DT_BffrMembSize(const DT_Bffr *bffr);
 /**
- * Returns the member size of the buffer that is passed to it.
+ * Returns the maximum possible capacity for this buffer configuration.
  *
- * @param bffr: The buffer to get the memb_size of.
+ * @param bffr instance.
  *
- * @return The memb size of the buffer.
+ * @return Maximum capacity.
  *
- * @note: This function doesn't check for argument validation in RELEASE mode.
+ * @note Assumes valid buffer (asserts in debug).
  */
-PRP_FN_API DT_size PRP_FN_CALL DT_BffrMembSizeUnchecked(const DT_Bffr *bffr);
-/**
- * Returns the member size of the buffer that is passed to it.
- *
- * @param bffr: The buffer to get the memb_size of.
- *
- * @return PRP_INVALID_SIZE if buffer is invalid, otherwise the actual memb_size
- * of the buffer.
- */
-PRP_FN_API DT_size PRP_FN_CALL DT_BffrMembSizeChecked(const DT_Bffr *bffr);
-/**
- * Returns the max capacity of the buffer that is passed to it based on its
- * memb_size.
- *
- * @param bffr: The buffer to get the max capacity of.
- *
- * @return The max cap of the buffer.
- *
- * @note: This function doesn't check for argument validation in RELEASE mode.
- */
-PRP_FN_API DT_size PRP_FN_CALL DT_BffrMaxCapUnchecked(const DT_Bffr *bffr);
-/**
- * Returns the max capacity of the buffer that is passed to it based on its
- * memb_size.
- *
- * @param bffr: The buffer to get the max capacity of.
- *
- * @return PRP_INVALID_SIZE if the buffer is invalid, otherwise the actual
- * max capacity of the buffer.
- */
-PRP_FN_API DT_size PRP_FN_CALL DT_BffrMaxCapChecked(const DT_Bffr *bffr);
+PRP_FN_API DT_size PRP_FN_CALL DT_BffrMaxCap(const DT_Bffr *bffr);
 
 /**
- * Gets the pointer to the element of the given index of the buffer.
+ * Retrieves the value of the given index.
  *
- * @param arr: The buffer to operate on.
- * @param i: The index to get the pointer to.
+ * @param bffr Buffer instance.
+ * @param i    The index into the array.
  *
- * @return The pointer of the requested index.
+ * @return The value pointer at the index.
  *
- * @note: This function doesn't check for argument validation in RELEASE mode.
+ * @note Unchecked variant:
+ * - Asserts on invalid arguments in debug.
  */
 PRP_FN_API DT_void *PRP_FN_CALL DT_BffrGetUnchecked(const DT_Bffr *bffr,
                                                     DT_size i);
 /**
- * Gets the pointer to the element of the given index of the buffer.
+ * Retrieves the value of the given index.
  *
- * @param arr: The buffer to operate on.
- * @param i: The index to get the pointer to.
+ * @param bffr Buffer instance.
+ * @param i    The index into the buffer.
+ * @param dest The pointer to the value pointer.
  *
- * @return DT_null if buffer is invalid or the i is out of bound, otherwise the
- * pointer of the requested index.
+ * @return PRP_OK on success.
+ * @return PRP_ERR_OOB if index out of bounds.
+ * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
-PRP_FN_API DT_void *PRP_FN_CALL DT_BffrGetChecked(const DT_Bffr *bffr,
-                                                  DT_size i);
+PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrGetChecked(const DT_Bffr *bffr,
+                                                    DT_size i, DT_void **dest);
 /**
- * Sets the given index of the buffer with the given data.
+ * Sets the value of the given index.
  *
- * @param bffr: The buffer to operate on.
- * @param i: The index to set the value of.
- * @param pData: The pointer to the data that will be set.
+ * @param bffr  Buffer instance.
+ * @param i     The index into the array.
+ * @param pData The pointer to the data to set.
  *
- * @note: This function doesn't check for argument validation in RELEASE mode.
+ * @note Unchecked variant:
+ * - Asserts on invalid arguments in debug.
  */
 PRP_FN_API DT_void PRP_FN_CALL DT_BffrSetUnchecked(DT_Bffr *bffr, DT_size i,
                                                    const DT_void *pData);
 /**
- * Sets the given index of the buffer with the given data.
+ * Sets the value of the given index.
  *
- * @param bffr: The buffer to operate on.
- * @param i: The index to set the value of.
- * @param pData: The pointer to the data that will be set.
+ * @param bffr  Buffer instance.
+ * @param i     The index into the array.
+ * @param pData The pointer to the data to set.
  *
- * @return PRP_ERR_INV_ARG if the parameters are invalid in any way, PRP_ERR_OOB
- * if i is out of bounds of the buffer, otherwise PRP_OK.
+ * @return PRP_OK on success.
+ * @return PRP_ERR_OOB if index out of bounds.
+ * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrSetChecked(DT_Bffr *bffr, DT_size i,
                                                     const DT_void *pData);
 /**
- * Sets the same element 'data' to all the indices b/w i and j excluding j.
+ * Sets element in the range to the given data.
  *
- * @param bffr: The buffer to operate on.
- * @param i: The index to start from.
- * @param j: The index to stop on.
- * @param pData: The poinbter to the data to set.
+ * @param bffr   Buffer instance.
+ * @param i      The index 1 into the array.
+ * @param j      The index 2 into the array.
+ * @param pData: The pointer to the data to set.
  *
- * @note: This function doesn't check for argument validation in RELEASE mode.
+ * @note Unchecked variant:
+ * - Asserts on invalid arguments in debug.
  */
 PRP_FN_API DT_void PRP_FN_CALL DT_BffrSetRangeUnchecked(DT_Bffr *bffr,
                                                         DT_size i, DT_size j,
                                                         const DT_void *pData);
 /**
- * Sets the same element 'data' to all the indices b/w i and j excluding j.
+ * Sets element in the range to the given data.
  *
- * @param bffr: The buffer to operate on.
- * @param i: The index to start from.
- * @param j: The index to stop on.
- * @param pData: The poinbter to the data to set.
+ * @param bffr   Buffer instance.
+ * @param i      The index 1 into the array.
+ * @param j      The index 2 into the array.
+ * @param pData: The pointer to the data to set.
  *
- * @return PRP_ERR_INV_ARG if the parameters are invalid in any way or i >=
- * j, PRP_ERR_OOB if i or j is out of bounds of the buffer, otherwise
- * PRP_OK.
+ * @return PRP_OK on success.
+ * @return PRP_ERR_OOB if the indices are out of bounds of the buffer.
+ * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrSetRangeChecked(DT_Bffr *bffr,
                                                          DT_size i, DT_size j,
                                                          const DT_void *pData);
 /**
- * Sets count number of elements in order starting from index i.
+ * Copies len number of elements from data_arr into bffr starting from index i.
  *
- * @param bffr: The buffer to operate on.
- * @param i: The index to start from.
- * @param data_arr: The array of data to set.
- * @param len: The len of the data_arr.
+ * @param bffr     Buffer instance.
+ * @param i        The index into the array to start from.
+ * @param data_arr The array of data to set.
+ * @param len      The len of the data_arr.
  *
- * @note: This function doesn't check for argument validation in RELEASE mode.
+ * @note Unchecked variant:
+ * - Asserts on invalid arguments in debug.
  */
 PRP_FN_API DT_void PRP_FN_CALL DT_BffrSetManyUnchecked(DT_Bffr *bffr, DT_size i,
                                                        const DT_void *data_arr,
                                                        DT_size len);
 /**
- * Sets count number of elements in order starting from index i.
+ * Copies len number of elements from data_arr into bffr starting from index i.
  *
- * @param bffr: The buffer to operate on.
- * @param i: The index to start from.
- * @param data_arr: The array of data to set.
- * @param len: The len of the data_arr.
+ * @param bffr     Buffer instance.
+ * @param i        The index into the array to start from.
+ * @param data_arr The array of data to set.
+ * @param len      The len of the data_arr.
  *
- * @return PRP_ERR_INV_ARG if the parameters are invalid in any way,
- * PRP_ERR_OOB if i or i + len is out of bounds of the buffer, otherwise PRP_OK.
+ * @return PRP_OK on success.
+ * @return PRP_ERR_OOB if i is out of bounds of the buffer.
+ * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrSetManyChecked(DT_Bffr *bffr,
                                                         DT_size i,
@@ -285,81 +288,84 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrSetManyChecked(DT_Bffr *bffr,
                                                         DT_size len);
 
 /**
- * Compares the given two buffer to see if their contents are exactly equal.
+ * Comares the contents of the buffer.
  *
- * @param bffr1: The first buffer that is to be compared.
- * @param bffr2: The other buffer that is to be compared.
+ * @param bffr1 Buffer instance 1.
+ * @param bffr2 Buffer instance 2.
  *
- * @return DT_false if the buffers are equal, otherwise DT_true.
+ * @return DT_true if equal, DT_false otherwise.
  *
- * @note: This function doesn't check for argument validation in RELEASE mode.
+ * @note Unchecked variant:
+ * - Asserts on invalid arguments in debug.
  */
 PRP_FN_API DT_bool PRP_FN_CALL DT_BffrCmpUnchecked(const DT_Bffr *bffr1,
                                                    const DT_Bffr *bffr2);
 /**
- * Compares the given two buffer to see if their contents are exactly equal.
+ * Comares the contents of the array.
  *
- * @param bffr1: The first buffer that is to be compared.
- * @param bffr2: The other buffer that is to be compared.
- * @param pRslt: The pointer to the variable where the boolean result will be
- * stored.
+ * @param bffr1 Buffer instance 1.
+ * @param bffr2 Buffer instance 2.
+ * @param pRslt The pointer to where the result is stored.
  *
- * @return PRP_ERR_INV_ARG if the parameters are invalid in any way,
- * otherwise PRP_OK.
+ * @return PRP_OK on success.
+ * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrCmpChecked(const DT_Bffr *bffr1,
                                                     const DT_Bffr *bffr2,
                                                     DT_bool *pRslt);
 /**
- * Joins the content of bffr2 with bffr1.
+ * Extends bffr2 into bffr1.
  *
- * @param bffr1: The first buffer that will contain the final extended buffer.
- * @param bffr2: The buffer that is to be merged with bffr1.
+ * @param bffr1 Buffer instance 1.
+ * @param bffr2 Buffer instance 2.
  *
- * @return PRP_ERR_RES_EXHAUSTED if the combined size exceeds the max cap of the
- * buffer, PRP_ERR_OOM if realloc failed on bffr1, otherwise PRP_OK.
+ * @return PRP_OK on success.
+ * @return PRP_ERR_RES_EXHAUSTED if max cap is reached.
+ * @return PRP_ERR_OOM if allocation fails.
  *
- * @note: This function doesn't check for argument validation in RELEASE mode.
+ * @note Unchecked variant:
+ * - Asserts on invalid arguments in debug.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrExtendUnchecked(DT_Bffr *bffr1,
                                                          const DT_Bffr *bffr2);
 /**
- * Joins the content of bffr2 with bffr1.
+ * Extends bffr2 into bffr1.
  *
- * @param bffr1: The first buffer that will contain the final extended buffer.
- * @param bffr2: The buffer that is to be merged with bffr1.
+ * @param bffr1 Buffer instance 1.
+ * @param bffr2 Buffer instance 2.
  *
- * @return PRP_ERR_INV_ARG if the parameters are invalid in any way,
- * PRP_ERR_RES_EXHAUSTED if the combined size exceeds the max cap of the buffer,
- * PRP_ERR_OOM if realloc failed on bffr1, otherwise PRP_OK.
+ * @return PRP_OK on success.
+ * @return PRP_ERR_RES_EXHAUSTED if max cap is reached.
+ * @return PRP_ERR_OOM if allocation fails.
+ * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrExtendChecked(DT_Bffr *bffr1,
                                                        const DT_Bffr *bffr2);
 /**
- * Swaps the elements of the given two indices.
+ * Swaps the elements in the given indices.
  *
- * @param bffr: The buffer to operate on.
- * @param i: The first index.
- * @param j: The second index.
- * @param swap_bffr: A buffer which will hold temp data tell the swap is
- * happening. its size = memb_size.
+ * @param bffr      Buffer instance.
+ * @param i         The first index.
+ * @param j         The second index.
+ * @param swap_bffr A temp buffer for swapping. Must be equal arr's memb size.
  *
- * @note: This function doesn't check for argument validation in RELEASE mode.
+ * @note Unchecked variant:
+ * - Asserts on invalid arguments in debug.
  */
 PRP_FN_API DT_void PRP_FN_CALL DT_BffrSwapUnchecked(DT_Bffr *bffr, DT_size i,
                                                     DT_size j,
                                                     DT_void *swap_bffr);
 /**
- * Swaps the elements of the given two indices.
+ * Swaps the elements in the given indices.
  *
- * @param bffr: The buffer to operate on.
- * @param i: The first index.
- * @param j: The second index.
- * @param swap_bffr: A buffer which will hold temp data tell the swap is
- * happening. its size = memb_size.
+ * @param bffr      Buffer instance.
+ * @param i         The first index.
+ * @param j         The second index.
+ * @param swap_bffr A temp buffer for swapping. Must be equal arr's memb size.
  *
- * @return PRP_ERR_INV_ARG if the parameters are invalid in any way,
- * PRP_FN_OOB_ERROR if the indices are out of bound, otherwise PRP_OK.
+ * @return PRP_OK on success.
+ * @return PRP_ERR_OOB if any indices are out of bounds.
+ * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrSwapChecked(DT_Bffr *bffr, DT_size i,
                                                      DT_size j,
@@ -367,42 +373,46 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrSwapChecked(DT_Bffr *bffr, DT_size i,
 /**
  * Clears the buffer to 0.
  *
- * @param bffr: The buffer to reset.
+ * @param bffr Buffer instance.
  *
- * @note: This function doesn't check for argument validation in RELEASE mode.
+ * @note Unchecked variant:
+ * - Asserts on invalid arguments in debug.
  */
 PRP_FN_API DT_void PRP_FN_CALL DT_BffrClearUnchecked(DT_Bffr *bffr);
 /**
  * Clears the buffer to 0.
  *
- * @param bffr: The buffer to reset.
+ * @param bffr Buffer instance.
  *
- * @return PRP_ERR_INV_ARG if the array is invalid in some way, otherwise
- * PRP_OK.
+ * @return PRP_OK on success.
+ * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrClearChecked(DT_Bffr *bffr);
 /**
- * Changes the capacity of the given buffer to the provided new cap safely.
+ * Safely change size of the buffer.
  *
- * @param bffr: The buffer to change the cap of.
- * @param new_cap: The new cap of the buffer to change to.
+ * @param bffr    Buffer instance.
+ * @param new_cap The new cap of the buffer.
  *
- * @return PRP_ERR_OOM if the reallocation fails, PRP_ERR_RES_EXHAUSTED if bffr
- * cap reaches a max, otherwise PRP_OK.
+ * @return PRP_OK on success.
+ * @return PRP_ERR_RES_EXHAUSTED if max cap is reached.
+ * @return PRP_ERR_OOM if allocation fails.
  *
- * @note: This function doesn't check for argument validation in RELEASE mode.
+ * @note Unchecked variant:
+ * - Asserts on invalid arguments in debug.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrChangeSizeUnchecked(DT_Bffr *bffr,
                                                              DT_size new_cap);
 /**
- * Changes the capacity of the given buffer to the provided new cap safely.
+ * Safely change size of the buffer.
  *
- * @param bffr: The buffer to change the cap of.
- * @param new_cap: The new cap of the buffer to change to.
+ * @param bffr    Buffer instance.
+ * @param new_cap The new cap of the buffer.
  *
- * @return PRP_ERR_INV_ARG if the parameters are invalid in any way, PRP_ERR_OOM
- * if the reallocation fails, PRP_ERR_RES_EXHAUSTED if bffr cap reaches a max,
- * otherwise PRP_OK.
+ * @return PRP_OK on success.
+ * @return PRP_ERR_RES_EXHAUSTED if max cap is reached.
+ * @return PRP_ERR_OOM if allocation fails.
+ * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrChangeSizeChecked(DT_Bffr *bffr,
                                                            DT_size new_cap);

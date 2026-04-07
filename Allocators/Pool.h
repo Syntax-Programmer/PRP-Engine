@@ -8,208 +8,220 @@ extern "C" {
 #include "../Utils/Defs.h"
 
 /**
- * A modification of the arena allocator, pool allocator allocates elements of a
- * fixed size.
- * This also provides O(1) alloc and free ops in the pool. Which is perfect for
- * rapidly created and deleted objects.
+ * MEM_Pool
+ *
+ * A fixed-size pool allocator.
+ *
+ * - Allocates memory in fixed-size blocks.
+ * - Supports O(1) allocation and deallocation.
+ * - Uses an internal free list for reuse.
+ *
+ * Suitable for frequently created and destroyed objects of uniform size.
  */
 typedef struct _Pool MEM_Pool;
 
-/*
- * @return The last error code set by the pool functions that don't return
- * PRP_Result explicitly.
- */
-PRP_FN_API PRP_Result PRP_FN_CALL MEM_PoolGetLastErrCode(DT_void);
 /**
- * Checks if the given pool is valid or not.
+ * Checks whether the given pool is structurally valid.
  *
- * @param pool: Checks if the given pool is valid or not.
+ * @param pool Pointer to the pool.
  *
- * @return DT_false if the pool is DT_null or is internally invalid, otherwise
- * DT_true.
+ * @return DT_true if valid, DT_false otherwise.
  */
 PRP_FN_API DT_bool PRP_FN_CALL MEM_PoolIsValid(const MEM_Pool *pool);
+
 /**
- * Creates the pool allocator with the given memb_size and cap.
+ * Creates a pool allocator.
  *
- * @param memb_size: The size of individual allocable blocks of the pool.
- * @param cap: The max number of members the pool should hold.
+ * @param memb_size Size (in bytes) of each element.
+ * @param cap       Maximum number of elements.
+ * @param out       Output pointer receiving the created pool.
  *
- * @retuns The pointer to the pool.
+ * @return PRP_OK on success.
+ * @return PRP_ERR_OOM if allocation fails or size exceeds limits.
  *
- * @note: This function doesn't check for argument validation in RELEASE mode.
+ * @note Unchecked variant:
+ * - Asserts on invalid arguments in debug.
+ * - Caller must ensure validity.
  */
-PRP_FN_API MEM_Pool *PRP_FN_CALL MEM_PoolCreateUnchecked(DT_size memb_size,
-                                                         DT_size cap);
+PRP_FN_API PRP_Result PRP_FN_CALL MEM_PoolCreateUnchecked(DT_size memb_size,
+                                                          DT_size cap,
+                                                          MEM_Pool **out);
+
 /**
- * Creates the pool allocator with the given memb_size and cap.
+ * Creates a pool allocator with validation.
  *
- * @param memb_size: The size of individual allocable blocks of the pool.
- * @param cap: The max number of members the pool should hold.
+ * @param memb_size Size (in bytes) of each element.
+ * @param cap       Maximum number of elements.
+ * @param out       Output pointer receiving the created pool.
  *
- * @retuns The pointer to the pool.
+ * @return PRP_OK on success.
+ * @return PRP_ERR_INV_ARG if arguments are invalid.
+ * @return PRP_ERR_OOM if allocation fails or size exceeds limits.
  */
-PRP_FN_API MEM_Pool *PRP_FN_CALL MEM_PoolCreateChecked(DT_size memb_size,
-                                                       DT_size cap);
+PRP_FN_API PRP_Result PRP_FN_CALL MEM_PoolCreateChecked(DT_size memb_size,
+                                                        DT_size cap,
+                                                        MEM_Pool **out);
+
 /**
- * Deletes the pool and sets the original MEM_Pool * to DT_null to prevent use
- * after free bugs.
+ * Deletes the pool and nullifies the pointer.
  *
- * @param pPool: The pointer to the pool pointer to delete.
+ * @param pPool Pointer to pool pointer.
  *
- * @note: This function doesn't check for argument validation in RELEASE mode.
+ * @note Unchecked variant:
+ * - Asserts on invalid arguments in debug.
  */
 PRP_FN_API DT_void PRP_FN_CALL MEM_PoolDeleteUnchecked(MEM_Pool **pPool);
+
 /**
- * Deletes the pool and sets the original MEM_Pool * to DT_null to prevent use
- * after free bugs.
+ * Deletes the pool and nullifies the pointer.
  *
- * @param pPool: The pointer to the pool pointer to delete.
+ * @param pPool Pointer to pool pointer.
  *
- * @return PRP_ERR_INV_ARG if the pPool or *pPool is DT_null, otherwise it
- * returns PRP_OK.
+ * @return PRP_OK on success.
+ * @return PRP_ERR_INV_ARG if pPool or *pPool is invalid.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL MEM_PoolDeleteChecked(MEM_Pool **pPool);
+
 /**
- * Allocates an element the pool, the allocated element may contain junk data,
- * so caution is adviced.
+ * Allocates a block from the pool.
  *
- * @param pool: The pool to allocate the element from.
+ * The returned memory is uninitialized.
  *
- * @return DT_null if all the elements have been already allocated, otherwise
- * PRP_OK.
+ * @param pool Pool to allocate from.
+ * @param dest Output pointer receiving allocated memory.
  *
- * @note: This function doesn't check for argument validation in RELEASE mode.
+ * @return PRP_OK on success.
+ * @return PRP_ERR_RES_EXHAUSTED if no free blocks remain.
+ *
+ * @note Unchecked variant:
+ * - Asserts on invalid arguments in debug.
+ *
+ * @warning
+ * dest MUST be a void**. Passing T** is undefined behavior.
  */
-PRP_FN_API DT_void *PRP_FN_CALL MEM_PoolAllocUnchecked(MEM_Pool *pool);
+PRP_FN_API PRP_Result PRP_FN_CALL MEM_PoolAllocUnchecked(MEM_Pool *pool,
+                                                         DT_void **dest);
+
 /**
- * Allocates an element the pool, the allocated element may contain junk data,
- * so caution is adviced.
+ * Allocates a block from the pool with validation.
  *
- * @param pool: The pool to allocate the element from.
+ * @param pool Pool to allocate from.
+ * @param dest Output pointer receiving allocated memory.
  *
- * @return DT_null if the parameters are invalid in any way, DT_null if all
- * the elements have been already allocated, otherwise PRP_OK.
+ * @return PRP_OK on success.
+ * @return PRP_ERR_INV_ARG if arguments are invalid.
+ * @return PRP_ERR_RES_EXHAUSTED if no free blocks remain.
  */
-PRP_FN_API DT_void *PRP_FN_CALL MEM_PoolAllocChecked(MEM_Pool *pool);
+PRP_FN_API PRP_Result PRP_FN_CALL MEM_PoolAllocChecked(MEM_Pool *pool,
+                                                       DT_void **dest);
+
 /**
- * Allocates a section of memory from the arena, the allocated region is all
- * preset to 0.
+ * Allocates a zero-initialized block from the pool.
  *
- * @param pool: The pool to allocate the element from.
+ * @param pool Pool to allocate from.
+ * @param dest Output pointer receiving allocated memory.
  *
- * @return DT_null if all the elements have been already allocated, otherwise
- * PRP_OK.
+ * @return PRP_OK on success.
+ * @return PRP_ERR_RES_EXHAUSTED if no free blocks remain.
  *
- * @note: This function doesn't check for argument validation in RELEASE mode.
+ * @note Unchecked variant:
+ * - Asserts on invalid arguments in debug.
  */
-PRP_FN_API DT_void *PRP_FN_CALL MEM_PoolCallocUnchecked(MEM_Pool *pool);
+PRP_FN_API PRP_Result PRP_FN_CALL MEM_PoolCallocUnchecked(MEM_Pool *pool,
+                                                          DT_void **dest);
+
 /**
- * Allocates a section of memory from the arena, the allocated region is all
- * preset to 0.
+ * Allocates a zero-initialized block from the pool with validation.
  *
- * @param pool: The pool to allocate the element from.
+ * @param pool Pool to allocate from.
+ * @param dest Output pointer receiving allocated memory.
  *
- * @return DT_null if the parameters are invalid in any way, DT_null if all
- * the elements have been already allocated, otherwise PRP_OK.
+ * @return PRP_OK on success.
+ * @return PRP_ERR_INV_ARG if arguments are invalid.
+ * @return PRP_ERR_RES_EXHAUSTED if no free blocks remain.
  */
-PRP_FN_API DT_void *PRP_FN_CALL MEM_PoolCallocChecked(MEM_Pool *pool);
+PRP_FN_API PRP_Result PRP_FN_CALL MEM_PoolCallocChecked(MEM_Pool *pool,
+                                                        DT_void **dest);
+
 /**
- * Frees an allocated ptr from the pool.
+ * Frees a previously allocated block back to the pool.
  *
- * @param pool: The pool to free mem to.
- * @param ptr: The ptr to free in the pool.
+ * @param pool Pool to return memory to.
+ * @param ptr  Pointer previously allocated from this pool.
  *
- * @note: This function doesn't check for argument validation in RELEASE mode.
+ * @note Unchecked variant:
+ * - Asserts on invalid arguments in debug.
+ * - Caller must ensure ptr belongs to this pool.
+ *
+ * @warning
+ * Double-free is NOT detected and leads to undefined behavior.
  */
 PRP_FN_API DT_void PRP_FN_CALL MEM_PoolFreeUnchecked(MEM_Pool *pool,
                                                      DT_void *ptr);
+
 /**
- * Frees an allocated ptr from the pool.
+ * Frees a previously allocated block with validation.
  *
- * @param pool: The pool to free mem to.
- * @param ptr: The ptr to free in the pool.
+ * @param pool Pool to return memory to.
+ * @param ptr  Pointer previously allocated from this pool.
  *
- * @return PRP_ERR_INV_ARG if the pool or the ptr is invalid, otherwise PRP_OK.
+ * @return PRP_OK on success.
+ * @return PRP_ERR_INV_ARG if pool or ptr is invalid.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL MEM_PoolFreeChecked(MEM_Pool *pool,
                                                       DT_void *ptr);
+
 /**
- * Returns the current allocated cap of the pool that is passed to it.
+ * Returns the capacity (number of elements) of the pool.
  *
- * @param pool: The pool to get the cap of.
+ * @param pool Pool instance.
  *
- * @return The cap of the pool.
+ * @return Pool capacity.
  *
- * @note: This function doesn't check for argument validation in RELEASE mode.
- *
+ * @note Assumes valid pool (asserts in debug).
  */
-PRP_FN_API DT_size PRP_FN_CALL MEM_PoolCapUnchecked(const MEM_Pool *pool);
+PRP_FN_API DT_size PRP_FN_CALL MEM_PoolCap(const MEM_Pool *pool);
 /**
- * Returns the current allocated cap of the pool that is passed to it.
+ * Returns the size (in bytes) of each element.
  *
- * @param pool: The pool to get the cap of.
+ * @param pool Pool instance.
  *
- * @return PRP_INVALID_SIZE if the pool is invalid, otherwise the actual cap of
- * the pool.
+ * @return Element size.
+ *
+ * @note Assumes valid pool (asserts in debug).
  */
-PRP_FN_API DT_size PRP_FN_CALL MEM_PoolCapChecked(const MEM_Pool *pool);
+PRP_FN_API DT_size PRP_FN_CALL MEM_PoolMembSize(const MEM_Pool *pool);
 /**
- * Returns the memb size of the pool that is passed to it.
+ * Returns the maximum possible capacity for this pool configuration.
  *
- * @param pool: The pool to get the memb size of.
+ * @param pool Pool instance.
  *
- * @return The memb size of the pool.
+ * @return Maximum capacity.
  *
- * @note: This function doesn't check for argument validation in RELEASE mode.
- *
+ * @note Assumes valid pool (asserts in debug).
  */
-PRP_FN_API DT_size PRP_FN_CALL MEM_PoolMembSizeUnchecked(const MEM_Pool *pool);
+PRP_FN_API DT_size PRP_FN_CALL MEM_PoolMaxCap(const MEM_Pool *pool);
+
 /**
- * Returns the memb size of the pool that is passed to it.
+ * Resets the pool.
  *
- * @param pool: The pool to get the memb size of.
+ * - All allocated blocks become invalid.
+ * - Free list is rebuilt.
  *
- * @return PRP_INVALID_SIZE if the pool is invalid, otherwise the actual memb
- * size of the pool.
- */
-PRP_FN_API DT_size PRP_FN_CALL MEM_PoolMembSizeChecked(const MEM_Pool *pool);
-/**
- * Returns the max cap of the pool that is passed to it.
+ * @param pool Pool to reset.
  *
- * @param pool: The pool to get the max cap of.
- *
- * @return The max cap of the pool.
- *
- * @note: This function doesn't check for argument validation in RELEASE mode.
- *
- */
-PRP_FN_API DT_size PRP_FN_CALL MEM_PoolMaxCapUnchecked(const MEM_Pool *pool);
-/**
- * Returns the max cap of the pool that is passed to it.
- *
- * @param pool: The pool to get the max cap of.
- *
- * @return PRP_INVALID_SIZE if the pool is invalid, otherwise the actual max cap
- * the pool.
- */
-PRP_FN_API DT_size PRP_FN_CALL MEM_PoolMaxCapChecked(const MEM_Pool *pool);
-/**
- * Resets the pool, which invalidates all existing alloations and empties the
- * entire pool.
- *
- * @param pool: The pool to reset.
- *
- * @note: This function doesn't check for argument validation in RELEASE mode.
+ * @note Unchecked variant:
+ * - Asserts on invalid arguments in debug.
  */
 PRP_FN_API DT_void PRP_FN_CALL MEM_PoolResetUnchecked(MEM_Pool *pool);
+
 /**
- * Resets the pool, which invalidates all existing alloations and empties the
- * entire pool.
+ * Resets the pool with validation.
  *
- * @param pool: The pool to reset.
+ * @param pool Pool to reset.
  *
- * @return PRP_ERR_INV_ARG if the pool is invalid, otherwise PRP_OK.
+ * @return PRP_OK on success.
+ * @return PRP_ERR_INV_ARG if pool is invalid.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL MEM_PoolResetChecked(MEM_Pool *pool);
 

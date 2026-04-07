@@ -1,5 +1,6 @@
 #include "DSArr.h"
 #include "../Diagnostics/Assert.h"
+#include "Typedefs.h"
 #include <string.h>
 
 struct _DSArr {
@@ -110,15 +111,16 @@ struct _DSArr {
  * Fetches the data that we can derive from an id, while simultaneously checking
  * for validity of the id.
  *
- * @param ds_arr: The array from which the id belongs from.
- * @param id: The id to index into the ds array.
- * @param pId_i: The index value packed inside the id itself.
- * @param pId_gen: The gen value packed inside the id itself.
- * @param pSlot_data_i: The index of the data the id actually refers to.
- * @param pSlot_gen: The actual current gen of the slot stored in the ds_arr.
+ * @param ds_arr       The array from which the id belongs from.
+ * @param id           The id to index into the ds array.
+ * @param pId_i        The index value packed inside the id itself.
+ * @param pId_gen      The gen value packed inside the id itself.
+ * @param pSlot_data_i The index of the data the id actually refers to.
+ * @param pSlot_gen    The actual current gen of the slot stored in the ds_arr.
  *
- * @return PRP_ERR_OOB if the id encodes an index that doesn't exist,
- * PRP_ERR_INV_STATE if the id is stale and freed earlier, otherwise PRP_OK.
+ * @return PRP_OK on success.
+ * @return PRP_ERR_OOB if id encodes invalid index.
+ * @return PRP_ERR_INV_STATE if the id is stale or freed earlier.
  */
 static inline PRP_Result GetIdData(const DT_DSArr *ds_arr, DT_DSId id,
                                    DT_u32 *pId_i, DT_u32 *pId_gen,
@@ -127,38 +129,36 @@ static inline PRP_Result GetIdData(const DT_DSArr *ds_arr, DT_DSId id,
  * This is a helper function that deletes the data associated with the given id
  * and mark the id as invalid.
  *
- * @param ds_arr: The array to delete the element from.
- * @param pId: The id to delete.
- * @param id_i: The index encoded in the *pId.
- * @param slot_data_i: The index of the data that the id refers to.
- * @param slot_gen: The current gen of the slot in the ds_arr.
+ * @param ds_arr      The array to delete the element from.
+ * @param pId         The id to delete.
+ * @param id_i        The index encoded in the *pId.
+ * @param slot_data_i The index of the data that the id refers to.
+ * @param slot_gen    The current gen of the slot in the ds_arr.
  */
 static inline DT_void DelElem(DT_DSArr *ds_arr, DT_DSId *pId, DT_u32 id_i,
                               DT_u32 slot_data_i, DT_u32 slot_gen);
 /**
  * Grows the data layer of a given ds array by <to_add> amount.
  *
- * @param ds_arr: The array to grow the data layer of.
- * @param to_add: The count to add the ds_arr's data layer by.
+ * @param ds_arr The array to grow the data layer of.
+ * @param to_add The count to add the ds_arr's data layer by.
  *
- * @return PRP_ERR_RES_EXHAUSTED if the data layer is already at max cap,
- * PRP_ERR_OOM if the reallocation of the arrays fail, otherwise PRP_OK.
+ * @return PRP_OK on success.
+ * @return PRP_ERR_RES_EXHAUSTED if max cap is reached.
+ * @return PRP_ERR_OOM if allocation fails.
  */
 static PRP_Result GrowDataLayer(DT_DSArr *ds_arr, DT_u32 to_add);
 /**
  * Grows the id layer of a given ds array by <to_add> amount.
  *
- * @param ds_arr: The array to grow the id layer of.
- * @param to_add: The count to add the ds_arr's id layer by.
+ * @param ds_arr The array to grow the id layer of.
+ * @param to_add The count to add the ds_arr's id layer by.
  *
- * @return PRP_ERR_RES_EXHAUSTED if the id layer is already at max cap,
- * PRP_ERR_OOM if the reallocation of the array fail, otherwise PRP_OK.
+ * @return PRP_OK on success.
+ * @return PRP_ERR_RES_EXHAUSTED if max cap is reached.
+ * @return PRP_ERR_OOM if allocation fails.
  */
 static PRP_Result GrowIdLayer(DT_DSArr *ds_arr, DT_u32 to_add);
-
-PRP_FN_API PRP_Result PRP_FN_CALL DT_DSArrGetLastErrCode(DT_void) {
-    return last_err_code;
-}
 
 PRP_FN_API DT_bool PRP_FN_CALL DT_DSArrIsValid(const DT_DSArr *ds_arr) {
     return (ds_arr != DT_null && ds_arr->memb_size > 0 &&
@@ -183,19 +183,19 @@ PRP_FN_API DT_bool PRP_FN_CALL DT_DSArrIsValid(const DT_DSArr *ds_arr) {
 #define ID_ARR_INIT_ERR_ROUTINE(x)                                             \
     do {                                                                       \
         if (!x) {                                                              \
-            SET_LAST_ERR_CODE(PRP_ERR_OOM);                                    \
-            goto free_internals;                                               \
+            goto err_path;                                                     \
         }                                                                      \
     } while (0);
 
-PRP_FN_API DT_DSArr *PRP_FN_CALL DT_DSArrCreateUnchecked(
-    DT_size memb_size, PRP_Result (*elem_del_cb)(DT_void *elem)) {
+PRP_FN_API PRP_Result PRP_FN_CALL DT_DSArrCreateUnchecked(
+    DT_size memb_size, PRP_Result (*elem_del_cb)(DT_void *elem),
+    DT_DSArr **out) {
     DIAG_ASSERT(memb_size > 0);
+    DIAG_ASSERT(out != DT_null);
 
     DT_DSArr *ds_arr = calloc(1, sizeof(DT_DSArr));
     if (!ds_arr) {
-        SET_LAST_ERR_CODE(PRP_ERR_OOM);
-        return DT_null;
+        return PRP_ERR_OOM;
     }
     ds_arr->elem_del_cb = elem_del_cb;
     ds_arr->memb_size = memb_size;
@@ -219,9 +219,11 @@ PRP_FN_API DT_DSArr *PRP_FN_CALL DT_DSArrCreateUnchecked(
     ds_arr->id_layer.free_index = 0;
     ds_arr->id_layer.free_count = cap;
 
-    return ds_arr;
+    *out = ds_arr;
 
-free_internals:
+    return PRP_OK;
+
+err_path:
     if (ds_arr->data_layer.elems) {
         free(ds_arr->data_layer.elems);
     }
@@ -232,17 +234,17 @@ free_internals:
         free(ds_arr->id_layer.id_to_data_table);
     }
     free(ds_arr);
-    return DT_null;
+    return PRP_ERR_OOM;
 }
 
-PRP_FN_API DT_DSArr *PRP_FN_CALL DT_DSArrCreateChecked(
-    DT_size memb_size, PRP_Result (*elem_del_cb)(DT_void *elem)) {
-    if (!memb_size) {
-        SET_LAST_ERR_CODE(PRP_ERR_INV_ARG);
-        return DT_null;
+PRP_FN_API PRP_Result PRP_FN_CALL DT_DSArrCreateChecked(
+    DT_size memb_size, PRP_Result (*elem_del_cb)(DT_void *elem),
+    DT_DSArr **out) {
+    if (!memb_size || !out) {
+        return PRP_ERR_INV_ARG;
     }
 
-    return DT_DSArrCreateUnchecked(memb_size, elem_del_cb);
+    return DT_DSArrCreateUnchecked(memb_size, elem_del_cb, out);
 }
 
 PRP_FN_API DT_void PRP_FN_CALL DT_DSArrDeleteUnchecked(DT_DSArr **pDs_arr) {
@@ -294,17 +296,8 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_DSArrDeleteChecked(DT_DSArr **pDs_arr) {
     return PRP_OK;
 }
 
-PRP_FN_API DT_u32 PRP_FN_CALL DT_DSArrLenUnchecked(const DT_DSArr *ds_arr) {
+PRP_FN_API DT_u32 PRP_FN_CALL DT_DSArrLen(const DT_DSArr *ds_arr) {
     ASSERT_INVARIANT_EXPR(ds_arr);
-
-    return ds_arr->data_layer.len;
-}
-
-PRP_FN_API DT_u32 PRP_FN_CALL DT_DSArrLenChecked(const DT_DSArr *ds_arr) {
-    if (!DT_DSArrIsValid(ds_arr)) {
-        SET_LAST_ERR_CODE(PRP_ERR_INV_ARG);
-        return DT_DS_INVALID_SIZE;
-    }
 
     return ds_arr->data_layer.len;
 }
@@ -339,22 +332,23 @@ PRP_FN_API DT_void *PRP_FN_CALL DT_DSIdToDataUnchecked(const DT_DSArr *ds_arr,
     return ds_arr->data_layer.elems + (ds_arr->memb_size * slot_data_i);
 }
 
-PRP_FN_API DT_void *PRP_FN_CALL DT_DSIdToDataChecked(const DT_DSArr *ds_arr,
-                                                     DT_DSId id) {
-    if (!DT_DSArrIsValid(ds_arr)) {
-        SET_LAST_ERR_CODE(PRP_ERR_INV_ARG);
-        return DT_null;
+PRP_FN_API PRP_Result PRP_FN_CALL DT_DSIdToDataChecked(const DT_DSArr *ds_arr,
+                                                       DT_DSId id,
+                                                       DT_void **dest) {
+    if (!DT_DSArrIsValid(ds_arr) || !dest) {
+        return PRP_ERR_INV_ARG;
     }
 
     DT_u32 dummy1, dummy2, slot_data_i, dummy3;
     PRP_Result code =
         GetIdData(ds_arr, id, &dummy1, &dummy2, &slot_data_i, &dummy3);
     if (code != PRP_OK) {
-        SET_LAST_ERR_CODE(code);
-        return DT_null;
+        return code;
     }
 
-    return ds_arr->data_layer.elems + (ds_arr->memb_size * slot_data_i);
+    *dest = ds_arr->data_layer.elems + (ds_arr->memb_size * slot_data_i);
+
+    return PRP_OK;
 }
 
 PRP_FN_API DT_bool PRP_FN_CALL DT_DSIdIsValidUnchecked(const DT_DSArr *ds_arr,
@@ -452,25 +446,25 @@ static PRP_Result GrowIdLayer(DT_DSArr *ds_arr, DT_u32 to_add) {
     return PRP_OK;
 }
 
-PRP_FN_API DT_DSId PRP_FN_CALL DT_DSArrAddUnchecked(DT_DSArr *ds_arr,
-                                                    DT_void *data) {
+PRP_FN_API PRP_Result PRP_FN_CALL DT_DSArrAddUnchecked(DT_DSArr *ds_arr,
+                                                       DT_void *data,
+                                                       DT_DSId *pId) {
     ASSERT_INVARIANT_EXPR(ds_arr);
     DIAG_ASSERT(data != DT_null);
+    DIAG_ASSERT(pId != DT_null);
 
     DT_u32 free_index = ds_arr->id_layer.free_index;
     if (free_index == INVALID_ID_LAYER_INDEX) {
         PRP_Result code = GrowIdLayer(ds_arr, ds_arr->data_layer.cap);
         if (code != PRP_OK) {
-            SET_LAST_ERR_CODE(code);
-            return DT_DS_INVALID_ID;
+            return code;
         }
         free_index = ds_arr->id_layer.free_index;
     }
     if (ds_arr->data_layer.len == ds_arr->data_layer.cap) {
         PRP_Result code = GrowDataLayer(ds_arr, ds_arr->id_layer.cap);
         if (code != PRP_OK) {
-            SET_LAST_ERR_CODE(code);
-            return DT_DS_INVALID_ID;
+            return code;
         }
     }
     ds_arr->id_layer.free_index =
@@ -487,17 +481,19 @@ PRP_FN_API DT_DSId PRP_FN_CALL DT_DSArrAddUnchecked(DT_DSArr *ds_arr,
     ds_arr->data_layer.len++;
     ds_arr->id_layer.free_count--;
 
-    return PACK_UNPACKED(free_index, curr_gen);
+    *pId = PACK_UNPACKED(free_index, curr_gen);
+
+    return PRP_OK;
 }
 
-PRP_FN_API DT_DSId PRP_FN_CALL DT_DSArrAddChecked(DT_DSArr *ds_arr,
-                                                  DT_void *data) {
-    if (!DT_DSArrIsValid(ds_arr) || !data) {
-        SET_LAST_ERR_CODE(PRP_ERR_INV_ARG);
-        return DT_DS_INVALID_ID;
+PRP_FN_API PRP_Result PRP_FN_CALL DT_DSArrAddChecked(DT_DSArr *ds_arr,
+                                                     DT_void *data,
+                                                     DT_DSId *pId) {
+    if (!DT_DSArrIsValid(ds_arr) || !data || !pId) {
+        return PRP_ERR_INV_ARG;
     }
 
-    return DT_DSArrAddUnchecked(ds_arr, data);
+    return DT_DSArrAddUnchecked(ds_arr, data, pId);
 }
 
 static inline DT_void DelElem(DT_DSArr *ds_arr, DT_DSId *pId, DT_u32 id_i,

@@ -15,13 +15,14 @@ struct _Arr {
     DIAG_ASSERT_MSG(DT_ArrIsValid(arr),                                        \
                     "The given array is either DT_null, or is corrupted.")
 /**
- * Changes the capacity of the given array to the provided new cap safely.
+ * Safely change size of the array.
  *
- * @param arr: The array to change the cap of.
- * @param new_cap: The new cap of the array to change to.
+ * @param arr    Array instance.
+ * @param new_cap The new cap of the array.
  *
- * @return PRP_ERR_OOM if the reallocation fails, PRP_ERR_RES_EXHAUSTED if arr
- * cap reaches a max, otherwise PRP_OK.
+ * @return PRP_OK on success.
+ * @return PRP_ERR_RES_EXHAUSTED if max cap is reached.
+ * @return PRP_ERR_OOM if allocation fails.
  */
 static PRP_Result ArrChangeSize(DT_Arr *arr, DT_size new_cap);
 
@@ -44,120 +45,103 @@ static PRP_Result ArrChangeSize(DT_Arr *arr, DT_size new_cap) {
     return PRP_OK;
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrGetLastErrCode(DT_void) {
-    return last_err_code;
-}
-
 PRP_FN_API DT_bool PRP_FN_CALL DT_ArrIsValid(const DT_Arr *arr) {
     return (arr != DT_null && arr->mem != DT_null && arr->memb_size > 0 &&
             arr->cap > 0 && arr->cap <= DT_ARR_MAX_CAP(arr->memb_size) &&
             arr->len <= arr->cap);
 }
 
-PRP_FN_API DT_Arr *PRP_FN_CALL DT_ArrCreateUnchecked(DT_size memb_size,
-                                                     DT_size cap) {
+PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrCreateUnchecked(DT_size memb_size,
+                                                        DT_size cap,
+                                                        DT_Arr **out) {
     DIAG_ASSERT(memb_size > 0);
     DIAG_ASSERT(cap > 0);
+    DIAG_ASSERT(out != DT_null);
 
     if (cap > DT_ARR_MAX_CAP(memb_size)) {
-        SET_LAST_ERR_CODE(PRP_ERR_OOM);
-        return DT_null;
+        return PRP_ERR_OOM;
     }
 
     DT_Arr *arr = malloc(sizeof(DT_Arr));
     if (!arr) {
-        SET_LAST_ERR_CODE(PRP_ERR_OOM);
-        return DT_null;
+        return PRP_ERR_OOM;
     }
     arr->mem = malloc(memb_size * cap);
     if (!arr->mem) {
-        SET_LAST_ERR_CODE(PRP_ERR_OOM);
         free(arr);
-        return DT_null;
+        return PRP_ERR_OOM;
     }
     arr->memb_size = memb_size;
     arr->cap = cap;
     arr->len = 0;
 
-    return arr;
+    *out = arr;
+
+    return PRP_OK;
 }
 
-PRP_FN_API DT_Arr *PRP_FN_CALL DT_ArrCreateChecked(DT_size memb_size,
-                                                   DT_size cap) {
-    if (!memb_size || !cap) {
-        SET_LAST_ERR_CODE(PRP_ERR_INV_ARG);
-        return DT_null;
+PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrCreateChecked(DT_size memb_size,
+                                                      DT_size cap,
+                                                      DT_Arr **out) {
+    if (!memb_size || !cap || !out) {
+        return PRP_ERR_INV_ARG;
     }
 
-    return DT_ArrCreateUnchecked(memb_size, cap);
+    return DT_ArrCreateUnchecked(memb_size, cap, out);
 }
 
-PRP_FN_API DT_Arr *PRP_FN_CALL DT_ArrCloneUnchecked(const DT_Arr *arr) {
+PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrCloneUnchecked(const DT_Arr *arr,
+                                                       DT_Arr **out) {
     ASSERT_INVARIANT_EXPR(arr);
+    DIAG_ASSERT(out != DT_null);
 
     // Unchecked since we checked for invariants above.
-    DT_Arr *cpy = DT_ArrCreateUnchecked(arr->memb_size, arr->cap);
-    if (!cpy) {
-        SET_LAST_ERR_CODE(PRP_ERR_OOM);
-        return DT_null;
+    PRP_Result code = DT_ArrCreateUnchecked(arr->memb_size, arr->cap, out);
+    if (code != PRP_OK) {
+        return code;
     }
+
+    DT_Arr *cpy = *out;
     cpy->len = arr->len;
     memcpy(cpy->mem, arr->mem, arr->memb_size * arr->len);
 
-    return cpy;
+    return PRP_OK;
 }
 
-PRP_FN_API DT_Arr *PRP_FN_CALL DT_ArrCloneChecked(const DT_Arr *arr) {
-    if (!DT_ArrIsValid(arr)) {
-        SET_LAST_ERR_CODE(PRP_ERR_INV_ARG);
-        return DT_null;
+PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrCloneChecked(const DT_Arr *arr,
+                                                     DT_Arr **out) {
+    if (!DT_ArrIsValid(arr) || !out) {
+        return PRP_ERR_INV_ARG;
     }
 
-    return DT_ArrCloneUnchecked(arr);
+    return DT_ArrCloneUnchecked(arr, out);
 }
 
-PRP_FN_API DT_Arr *PRP_FN_CALL DT_ArrCreateWithDataUnchecked(DT_size memb_size,
-                                                             DT_void *membs,
-                                                             DT_size len) {
+PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrCreateWithDataUnchecked(
+    DT_size memb_size, const DT_void *membs, DT_size len, DT_Arr **out) {
     DIAG_ASSERT(memb_size > 0);
     DIAG_ASSERT(len > 0);
+    DIAG_ASSERT(out != DT_null);
 
-    if (len > DT_ARR_MAX_CAP(memb_size)) {
-        SET_LAST_ERR_CODE(PRP_ERR_OOM);
-        return DT_null;
-    }
-    DT_Arr *arr = DT_ArrCreateUnchecked(memb_size, len);
-    if (!arr) {
-        SET_LAST_ERR_CODE(PRP_ERR_OOM);
-        return DT_null;
+    PRP_Result code = DT_ArrCreateUnchecked(memb_size, len, out);
+    if (code != PRP_OK) {
+        return code;
     }
 
+    DT_Arr *arr = *out;
     memcpy(arr->mem, membs, memb_size * len);
     arr->len = len;
 
-    return arr;
+    return PRP_OK;
 }
 
-PRP_FN_API DT_Arr *PRP_FN_CALL DT_ArrCreateWithDataChecked(DT_size memb_size,
-                                                           DT_void *membs,
-                                                           DT_size len) {
-    DIAG_ASSERT(memb_size > 0);
-    DIAG_ASSERT(len > 0);
-
-    if (len > DT_ARR_MAX_CAP(memb_size)) {
-        SET_LAST_ERR_CODE(PRP_ERR_OOM);
-        return DT_null;
-    }
-    DT_Arr *arr = DT_ArrCreateUnchecked(memb_size, len);
-    if (!arr) {
-        SET_LAST_ERR_CODE(PRP_ERR_OOM);
-        return DT_null;
+PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrCreateWithDataChecked(
+    DT_size memb_size, const DT_void *membs, DT_size len, DT_Arr **out) {
+    if (!memb_size || !len || !out) {
+        return PRP_ERR_INV_ARG;
     }
 
-    memcpy(arr->mem, membs, memb_size * len);
-    arr->len = len;
-
-    return arr;
+    return DT_ArrCreateWithDataUnchecked(memb_size, membs, len, out);
 }
 
 PRP_FN_API DT_void PRP_FN_CALL DT_ArrDeleteUnchecked(DT_Arr **pArr) {
@@ -197,74 +181,39 @@ PRP_FN_API const DT_void *PRP_FN_CALL DT_ArrRawUnchecked(const DT_Arr *arr,
     return arr->mem;
 }
 
-PRP_FN_API const DT_void *PRP_FN_CALL DT_ArrRawChecked(const DT_Arr *arr,
-                                                       DT_size *pLen) {
-    if (!DT_ArrIsValid(arr) || !pLen) {
-        SET_LAST_ERR_CODE(PRP_ERR_INV_ARG);
-        return DT_null;
+PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrRawChecked(const DT_Arr *arr,
+                                                   DT_size *pLen,
+                                                   const DT_void **pRaw) {
+    if (!DT_ArrIsValid(arr) || !pLen || !pRaw) {
+        return PRP_ERR_INV_ARG;
     }
 
     *pLen = arr->len;
+    *pRaw = arr->mem;
 
-    return arr->mem;
+    return PRP_OK;
 }
 
-PRP_FN_API DT_size PRP_FN_CALL DT_ArrLenUnchecked(const DT_Arr *arr) {
+PRP_FN_API DT_size PRP_FN_CALL DT_ArrLen(const DT_Arr *arr) {
     ASSERT_INVARIANT_EXPR(arr);
 
     return arr->len;
 }
 
-PRP_FN_API DT_size PRP_FN_CALL DT_ArrLenChecked(const DT_Arr *arr) {
-    if (!DT_ArrIsValid(arr)) {
-        SET_LAST_ERR_CODE(PRP_ERR_INV_ARG);
-        return PRP_INVALID_SIZE;
-    }
-
-    return arr->len;
-}
-
-PRP_FN_API DT_size PRP_FN_CALL DT_ArrCapUnchecked(const DT_Arr *arr) {
+PRP_FN_API DT_size PRP_FN_CALL DT_ArrCap(const DT_Arr *arr) {
     ASSERT_INVARIANT_EXPR(arr);
 
     return arr->cap;
 }
 
-PRP_FN_API DT_size PRP_FN_CALL DT_ArrCapChecked(const DT_Arr *arr) {
-    if (!DT_ArrIsValid(arr)) {
-        SET_LAST_ERR_CODE(PRP_ERR_INV_ARG);
-        return PRP_INVALID_SIZE;
-    }
-
-    return arr->cap;
-}
-
-PRP_FN_API DT_size PRP_FN_CALL DT_ArrMembSizeUnchecked(const DT_Arr *arr) {
+PRP_FN_API DT_size PRP_FN_CALL DT_ArrMembSize(const DT_Arr *arr) {
     ASSERT_INVARIANT_EXPR(arr);
 
     return arr->memb_size;
 }
 
-PRP_FN_API DT_size PRP_FN_CALL DT_ArrMembSizeChecked(const DT_Arr *arr) {
-    if (!DT_ArrIsValid(arr)) {
-        SET_LAST_ERR_CODE(PRP_ERR_INV_ARG);
-        return PRP_INVALID_SIZE;
-    }
-
-    return arr->memb_size;
-}
-
-PRP_FN_API DT_size PRP_FN_CALL DT_ArrMaxCapUnchecked(const DT_Arr *arr) {
+PRP_FN_API DT_size PRP_FN_CALL DT_ArrMaxCap(const DT_Arr *arr) {
     ASSERT_INVARIANT_EXPR(arr);
-
-    return DT_ARR_MAX_CAP(arr->memb_size);
-}
-
-PRP_FN_API DT_size PRP_FN_CALL DT_ArrMaxCapChecked(const DT_Arr *arr) {
-    if (!DT_ArrIsValid(arr)) {
-        SET_LAST_ERR_CODE(PRP_ERR_INV_ARG);
-        return PRP_INVALID_SIZE;
-    }
 
     return DT_ARR_MAX_CAP(arr->memb_size);
 }
@@ -277,17 +226,18 @@ PRP_FN_API DT_void *PRP_FN_CALL DT_ArrGetUnchecked(const DT_Arr *arr,
     return arr->mem + (i * arr->memb_size);
 }
 
-PRP_FN_API DT_void *PRP_FN_CALL DT_ArrGetChecked(const DT_Arr *arr, DT_size i) {
-    if (!DT_ArrIsValid(arr)) {
-        SET_LAST_ERR_CODE(PRP_ERR_INV_ARG);
-        return DT_null;
+PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrGetChecked(const DT_Arr *arr, DT_size i,
+                                                   DT_void **dest) {
+    if (!DT_ArrIsValid(arr) || !dest) {
+        return PRP_ERR_INV_ARG;
     }
     if (i >= arr->len) {
-        SET_LAST_ERR_CODE(PRP_ERR_OOB);
-        return DT_null;
+        return PRP_ERR_OOB;
     }
 
-    return DT_ArrGetUnchecked(arr, i);
+    *dest = DT_ArrGetUnchecked(arr, i);
+
+    return PRP_OK;
 }
 
 PRP_FN_API DT_void PRP_FN_CALL DT_ArrSetUnchecked(DT_Arr *arr, DT_size i,

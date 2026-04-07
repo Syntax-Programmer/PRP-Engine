@@ -8,244 +8,243 @@ extern "C" {
 #include "../Utils/Defs.h"
 
 /**
- * A generic hashmap that can store key-value pairs.
- * This supports user defined hash functions for flexibility. This hashmap
- * implementation is counterpart to cPython's dicts, but a little more
- * leaner(since python is very generic).
+ * DT_Hm
+ *
+ * A generic hashmap storing key-value pairs.
+ *
+ * - Uses user-provided hash and comparison functions.
+ * - Supports custom destruction callbacks for keys and values.
+ * - Designed as a lean alternative to high-level hashmaps (e.g. Python dict).
  */
 typedef struct _Hm DT_Hm;
 
 /**
- * @return The last error code set by the buffer functions that don't return
- * PRP_Result explicitly.
- */
-PRP_FN_API PRP_Result PRP_FN_CALL DT_HmGetLastErrCode(DT_void);
-/**
- * Checks if the given hashmap is valid or not.
+ * Checks whether the given hashmap is structurally valid.
  *
- * @param hm: Checks if the given hashmap is valid or not.
+ * @param hm Pointer to the hashmap.
  *
- * @return DT_false if the hashmap is DT_null or is internally invalid,
- * otherwise DT_true.
+ * @return DT_true if valid, DT_false otherwise.
  */
 PRP_FN_API DT_bool PRP_FN_CALL DT_HmIsValid(const DT_Hm *hm);
 
 /**
- * Creates the hashmap with the user specified parameters.
+ * Creates a hashmap with user-defined behavior.
  *
- * @param hash_fn: The function that is used to produce the hash of the key the
- * user wants to use.
- * @param key_cmp_cb: This function compares different keys to check if they are
- * the same. This allows for user defined structs to check for match with the
- * specifics they want.
- * @param key_del_cb: The callback that will free the memory of the key
- * correctly and safely when we delete the hashmap, or remove an entry from the
- * hashmap.
- * @param val_del_cb: The callback that will free the memory of the val
- * correctly and safely when we delete the hashmap, or remove an entry from the
- * hashmap.
+ * @param hash_fn     Function used to hash keys.
+ * @param key_cmp_cb  Function used to compare keys.
+ * @param key_del_cb  Callback to destroy keys (can be DT_null if not needed).
+ * @param val_del_cb  Callback to destroy values (can be DT_null if not needed).
+ * @param out         Output pointer receiving the created hashmap.
  *
- * @return The pointer to the hashmap.
+ * @return PRP_OK on success.
+ * @return PRP_ERR_OOM if allocation fails.
  *
- * @note: This function doesn't check for argument validation in RELEASE mode.
+ * @note Unchecked variant:
+ * - Asserts on invalid arguments in debug.
  */
-PRP_FN_API DT_Hm *PRP_FN_CALL DT_HmCreateUnchecked(
+PRP_FN_API PRP_Result PRP_FN_CALL DT_HmCreateUnchecked(
     DT_u64 (*hash_fn)(const DT_void *key),
     DT_bool (*key_cmp_cb)(const DT_void *k1, const DT_void *k2),
     PRP_Result (*key_del_cb)(DT_void *key),
-    PRP_Result (*val_del_cb)(DT_void *val));
+    PRP_Result (*val_del_cb)(DT_void *val), DT_Hm **out);
+
 /**
- * Creates the hashmap with the user specified parameters.
+ * Creates a hashmap with validation.
  *
- * @param hash_fn: The function that is used to produce the hash of the key the
- * user wants to use.
- * @param key_cmp_cb: This function compares different keys to check if they are
- * the same. This allows for user defined structs to check for match with the
- * specifics they want.
- * @param key_del_cb: The callback that will free the memory of the key
- * correctly and safely when we delete the hashmap, or remove an entry from the
- * hashmap.
- * @param val_del_cb: The callback that will free the memory of the val
- * correctly and safely when we delete the hashmap, or remove an entry from the
- * hashmap.
+ * @param hash_fn     Function used to hash keys.
+ * @param key_cmp_cb  Function used to compare keys.
+ * @param key_del_cb  Callback to destroy keys.
+ * @param val_del_cb  Callback to destroy values.
+ * @param out         Output pointer receiving the created hashmap.
  *
- * @return The pointer to the hashmap.
+ * @return PRP_OK on success.
+ * @return PRP_ERR_INV_ARG if arguments are invalid.
+ * @return PRP_ERR_OOM if allocation fails.
  */
-PRP_FN_API DT_Hm *PRP_FN_CALL DT_HmCreateChecked(
-    DT_u64 (*hash_fn)(const DT_void *key),
-    DT_bool (*key_cmp_cb)(const DT_void *k1, const DT_void *k2),
-    PRP_Result (*key_del_cb)(DT_void *key),
-    PRP_Result (*val_del_cb)(DT_void *val));
+PRP_FN_API PRP_Result PRP_FN_CALL
+DT_HmCreateChecked(DT_u64 (*hash_fn)(const DT_void *key),
+                   DT_bool (*key_cmp_cb)(const DT_void *k1, const DT_void *k2),
+                   PRP_Result (*key_del_cb)(DT_void *key),
+                   PRP_Result (*val_del_cb)(DT_void *val), DT_Hm **out);
+
 /**
- * Deletes the hashmap and sets the original DT_Hm * to DT_null to prevent use
- * after free bugs.
+ * Deletes the hashmap and nullifies the pointer.
  *
- * @param pHm: The pointer to the hashmap pointer to delete.
+ * @param pHm Pointer to hashmap pointer.
  *
- * @note: This function doesn't check for argument validation in RELEASE mode.
+ * @note Unchecked variant:
+ * - Asserts on invalid arguments in debug.
  */
 PRP_FN_API DT_void PRP_FN_CALL DT_HmDeleteUnchecked(DT_Hm **pHm);
+
 /**
- * Deletes the hashmap and sets the original DT_Hm * to DT_null to prevent use
- * after free bugs.
+ * Deletes the hashmap and nullifies the pointer.
  *
- * @param pHm: The pointer to the hashmap pointer to delete.
+ * @param pHm Pointer to hashmap pointer.
  *
- * @return PRP_ERR_INV_ARG if the pArr or *pArr is DT_null, otherwise it
- * returns PRP_OK.
+ * @return PRP_OK on success.
+ * @return PRP_ERR_INV_ARG if pHm or *pHm is invalid.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_HmDeleteChecked(DT_Hm **pHm);
+
 /**
- * Adds a new key-value pair to the given hashmap. Given the key cannot be
- * DT_null.
+ * Inserts a key-value pair into the hashmap.
  *
- * @param hm: The hashmap to add the key-val pair to.
- * @param key: The key of the entry used to access the value.
- * @param val: The value the key maps to.
+ * @param hm  Hashmap instance.
+ * @param key Key (must not be DT_null).
+ * @param val Value associated with the key.
  *
- * @return PRP_ERR_RES_EXHAUSTED/PRP_ERR_OOM if there is no way to add more
- * key-val pairs to the hashmap, otherwise PRP_OK.
+ * @return PRP_OK on success.
+ * @return PRP_ERR_OOM or PRP_ERR_RES_EXHAUSTED if insertion fails.
  *
- * @note: This function doesn't check for argument validation in RELEASE mode.
+ * @note Unchecked variant:
+ * - Asserts on invalid arguments in debug.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_HmAddUnchecked(DT_Hm *hm, DT_void *key,
                                                     DT_void *val);
+
 /**
- * Adds a new key-value pair to the given hashmap. Given the key cannot be
- * DT_null.
+ * Inserts a key-value pair with validation.
  *
- * @param hm: The hashmap to add the key-val pair to.
- * @param key: The key of the entry used to access the value.
- * @param val: The value the key maps to.
+ * @param hm  Hashmap instance.
+ * @param key Key.
+ * @param val Value.
  *
- * @return PRP_ERR_INV_ARG if the parameters are invalid in any way,
- * PRP_ERR_RES_EXHAUSTED/PRP_ERR_OOM if there is no way to add more key-val
- * pairs to the hashmap, otherwise PRP_OK.
+ * @return PRP_OK on success.
+ * @return PRP_ERR_INV_ARG if arguments are invalid.
+ * @return PRP_ERR_OOM or PRP_ERR_RES_EXHAUSTED if insertion fails.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_HmAddChecked(DT_Hm *hm, DT_void *key,
                                                   DT_void *val);
+
 /**
- * Fetches the value for the given key in the hashmap.
+ * Retrieves the value associated with a key.
  *
- * @param hm: The hashmap to fetch the value from.
- * @param key: The key to fetch the value it maps to.
+ * @param hm   Hashmap instance.
+ * @param key  Key to search.
+ * @param pVal Output pointer receiving the value if found.
  *
- * @return DT_null if there is not matching key-val pair in the hashmap with the
- * provided key, otherwise it returns the value.
+ * @return PRP_OK if key is found.
+ * @return PRP_ERR_NOT_FOUND if key does not exist.
  *
- * @note: This function doesn't check for argument validation in RELEASE mode.
+ * @note Unchecked variant:
+ * - Asserts on invalid arguments in debug.
  */
-PRP_FN_API DT_void *PRP_FN_CALL DT_HmGetUnchecked(const DT_Hm *hm,
-                                                  DT_void *key);
+PRP_FN_API PRP_Result PRP_FN_CALL DT_HmGetUnchecked(const DT_Hm *hm,
+                                                    DT_void *key,
+                                                    DT_void **pVal);
+
 /**
- * Fetches the value for the given key in the hashmap.
+ * Retrieves the value associated with a key with validation.
  *
- * @param hm: The hashmap to fetch the value from.
- * @param key: The key to fetch the value it maps to.
+ * @param hm   Hashmap instance.
+ * @param key  Key to search.
+ * @param pVal Output pointer receiving the value if found.
  *
- * @return DT_null if the parameters are invalid in any way, or there is not
- * matching key-val pair in the hashmap with the provided key, otherwise it
- * returns the value.
+ * @return PRP_OK if key is found.
+ * @return PRP_ERR_NOT_FOUND if key does not exist.
+ * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
-PRP_FN_API DT_void *PRP_FN_CALL DT_HmGetChecked(const DT_Hm *hm, DT_void *key);
+PRP_FN_API PRP_Result PRP_FN_CALL DT_HmGetChecked(const DT_Hm *hm, DT_void *key,
+                                                  DT_void **pVal);
+
 /**
- * Deletes the key-val pair from the given hashmap.
+ * Removes a key-value pair from the hashmap.
  *
- * @param hm: The hashmap to delete the key-val pair from.
- * @param key: The key identifying which key-val pair to delete.
+ * @param hm  Hashmap instance.
+ * @param key Key identifying the entry.
  *
- * @return PRP_ERR_NOT_FOUND if there is no matching key-val pair in the hashmap
- * with the provided key, otherwise PRP_OK.
+ * @return PRP_OK on success.
+ * @return PRP_ERR_NOT_FOUND if key does not exist.
  *
- * @note: This function doesn't check for argument validation in RELEASE mode.
+ * @note Unchecked variant:
+ * - Asserts on invalid arguments in debug.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_HmDelElemUnchecked(DT_Hm *hm,
                                                         DT_void *key);
+
 /**
- * Deletes the key-val pair from the given hashmap.
+ * Removes a key-value pair with validation.
  *
- * @param hm: The hashmap to delete the key-val pair from.
- * @param key: The key identifying which key-val pair to delete.
+ * @param hm  Hashmap instance.
+ * @param key Key identifying the entry.
  *
- * @return PRP_ERR_INV_ARG if the parameters are invalid in any way,
- * PRP_ERR_NOT_FOUND if there is no matching key-val pair in the hashmap with
- * the provided key, otherwise PRP_OK.
+ * @return PRP_OK on success.
+ * @return PRP_ERR_NOT_FOUND if key does not exist.
+ * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_HmDelElemChecked(DT_Hm *hm, DT_void *key);
+
 /**
- * Fetches the number of key-val pairs the hashmap is currently holding.
+ * Returns the number of elements currently stored.
  *
- * @param hm: The hashmap to get the len of.
+ * @param hm Hashmap instance.
  *
- * @return The len of the hashmap.
+ * @return Number of elements.
  *
- * @note: This function doesn't check for argument validation in RELEASE mode.
+ * @note Assumes valid hashmap (asserts in debug).
  */
-PRP_FN_API DT_size PRP_FN_CALL DT_HmLenUnchecked(const DT_Hm *hm);
+PRP_FN_API DT_size PRP_FN_CALL DT_HmLen(const DT_Hm *hm);
+
 /**
- * Fetches the number of key-val pairs the hashmap is currently holding.
+ * Returns the maximum capacity supported by the hashmap.
  *
- * @param hm: The hashmap to get the len of.
- *
- * @return PRP_INVALID_SIZE if the hashmap is invalid, otherwise the len of the
- * provided hashmap.
- */
-PRP_FN_API DT_size PRP_FN_CALL DT_HmLenChecked(const DT_Hm *hm);
-/**
- * Returns the max cap that a hashmap can have.
- *
- * @return The max cap that a hashmap can have.
+ * @return Maximum capacity.
  */
 PRP_FN_API DT_size PRP_FN_CALL DT_HmMaxCap(DT_void);
+
 /**
- * Performs a foreach operation of each of the key-val pair of the hashmap.
- * Calling cb per element.
+ * Iterates over all key-value pairs.
  *
- * @param hm: The hashmap on which the foreach will happen.
- * @param cb: The callback will be called per key-val pair. If this doesn't
- * return PRP_OK, further execution will be halted.
- * @param user_data: The data user wants to pass in as additional context.
+ * @param hm        Hashmap instance.
+ * @param cb        Callback invoked per element.
+ * @param user_data User-provided context.
  *
- * @return PRP_OK, or the callback error code.
+ * @return PRP_OK if iteration completes.
+ * @return Callback error if cb returns non-PRP_OK.
  *
- * @note: This function doesn't check for argument validation in RELEASE mode.
+ * @note Unchecked variant:
+ * - Asserts on invalid arguments in debug.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_HmForEachUnchecked(
     DT_Hm *hm, PRP_Result (*cb)(DT_void *key, DT_void *val, DT_void *user_data),
     DT_void *user_data);
+
 /**
- * Performs a foreach operation of each of the key-val pair of the hashmap.
- * Calling cb per element.
+ * Iterates over all key-value pairs with validation.
  *
- * @param hm: The hashmap on which the foreach will happen.
- * @param cb: The callback will be called per key-val pair. If this doesn't
- * return PRP_OK, further execution will be halted.
- * @param user_data: The data user wants to pass in as additional context.
+ * @param hm        Hashmap instance.
+ * @param cb        Callback invoked per element.
+ * @param user_data User-provided context.
  *
- * @return PRP_ERR_INV_ARG if the parameters are invalid in any way, otherwise
- * PRP_OK, or the callback error code.
+ * @return PRP_OK if iteration completes.
+ * @return Callback error if cb returns non-PRP_OK.
+ * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_HmForEachChecked(
     DT_Hm *hm, PRP_Result (*cb)(DT_void *key, DT_void *val, DT_void *user_data),
     DT_void *user_data);
+
 /**
- * Resets the hashmap to make it like a brand new hashmap with no entries.
+ * Resets the hashmap.
  *
- * @param hm: The hashmap to reset.
+ * - All entries are removed.
+ * - Key/value destructors are invoked if provided.
  *
- * @return PRP_ERR_INV_ARG if the hashmap is invalid in some way, otherwise
- * PRP_OK.
+ * @param hm Hashmap instance.
  *
- * @note: This function doesn't check for argument validation in RELEASE mode.
+ * @note Unchecked variant:
+ * - Asserts on invalid arguments in debug.
  */
 PRP_FN_API DT_void PRP_FN_CALL DT_HmResetUnchecked(DT_Hm *hm);
+
 /**
- * Resets the hashmap to make it like a brand new hashmap with no entries.
+ * Resets the hashmap with validation.
  *
- * @param hm: The hashmap to reset.
+ * @param hm Hashmap instance.
  *
- * @return PRP_ERR_INV_ARG if the hashmap is invalid in some way, otherwise
- * PRP_OK.
+ * @return PRP_OK on success.
+ * @return PRP_ERR_INV_ARG if hashmap is invalid.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_HmResetChecked(DT_Hm *hm);
 

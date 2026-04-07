@@ -29,47 +29,50 @@ extern "C" {
 typedef DT_u64 DT_Bitword;
 
 /**
- * Counts the trailing zeros of a bitword.
+ * Counts the trailing zeros of bitword.
  *
- * @param word: The word to count the trailing zeros for.
+ * @param word The word to count in.
  *
- * @return PRP_INVALID_INDEX if word is 0, otherwise the zero-based index of the
- * LSB.
+ * @return The CTZ count of word if word != 0.
+ * @return PRP_INVALID_INDEX if word == 0.
  */
 PRP_FN_API DT_size PRP_FN_CALL DT_BitwordCTZ(DT_Bitword word);
 /**
- * Counts the leading zeros of a bitword.
+ * Counts the leading zeros of bitword.
  *
- * @param word: The word to count the leading zeros for.
+ * @param word The word to count in.
  *
- * @return PRP_INVALID_INDEX if word is 0, otherwise the number of zeros after
- * the MSB.
+ * @return The CLZ count of word if word != 0.
+ * @return PRP_INVALID_INDEX if word == 0.
  */
 PRP_FN_API DT_size PRP_FN_CALL DT_BitwordCLZ(DT_Bitword word);
 /**
- * Counts the total number of bits set in a bitword.
+ * Counts the total number of bits set in a word.
  *
- * @param word: The word to count the set bits for.
+ * @param word The word to count in.
  *
- * @return The number of set bits in the given word.
+ * @return The number of set bits in word.
  */
 PRP_FN_API DT_size PRP_FN_CALL DT_BitwordPopCnt(DT_Bitword word);
 /**
  * Finds the first set bit of the word.
  *
- * @param word: The word to find FFS for.
+ * @param word The word to find FFS in.
  *
- * @return PRP_INVALID_POS if word is 0, otherwise a 1-based ffs pos.
- *
- * @note: This returns froms 0-63. So handle accordingly.
+ * @return 0-based index of the first set bit.
+ * @return PRP_INVALID_POS if word == 0.
  */
 PRP_FN_API DT_size PRP_FN_CALL DT_BitwordFFS(DT_Bitword word);
 
 /* ----  BITMAP UTILS ---- */
 
 /**
- * A dynamic bitmap that stores bits and auto grows on demand.
- * Used for creating compact bool arrays.
+ * DT_Bitmap
+ *
+ * A dynamically resizing bitmap.
+ *
+ * - Bits are stored in linear memory.
+ * - Capacity grows is controlled by user.
  */
 typedef struct _Bitmap DT_Bitmap;
 
@@ -77,634 +80,642 @@ typedef struct _Bitmap DT_Bitmap;
 #define DT_BITMAP_MAX_BIT_CAP (DT_SIZE_MAX)
 
 /**
- * @return The last error code set by the bitmap functions that don't return
- * PRP_Result explicitly.
- */
-PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapGetLastErrCode(DT_void);
-/**
- * Checks if the given bitmap is valid or not.
+ * Checks whether the given bitmap is structurally valid.
  *
- * @param bmp: Checks if the given bitmap is valid or not.
+ * @param bmp Pointer to the bitmap.
  *
- * @return DT_false if the bitmap is DT_null or is internally invalid, otherwise
- * DT_true.
+ * @return DT_true if valid, DT_false otherwise.
  */
 PRP_FN_API DT_bool PRP_FN_CALL DT_BitmapIsValid(const DT_Bitmap *bmp);
 
 /**
- * Creates the bitmap with user specified bit cap.
+ * Creates a dynamic bitmap.
  *
- * @param bit_cap: The number of bits the user wants to consider for the bitmap
- * to have.
+ * @param bit_cap Initial bit capacity.
  *
- * @return The pointer to the bitmap.
+ * @return PRP_OK on success.
+ * @return PRP_ERR_OOM if allocation fails.
  *
- * @note: This function doesn't check for argument validation in RELEASE mode.
+ * @note Unchecked variant:
+ * - Asserts on invalid arguments in debug.
  */
-PRP_FN_API DT_Bitmap *PRP_FN_CALL DT_BitmapCreateUnchecked(DT_size bit_cap);
+PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapCreateUnchecked(DT_size bit_cap,
+                                                           DT_Bitmap **out);
 /**
- * Creates the bitmap with user specified bit cap.
+ * Creates a dynamic bitmap.
  *
- * @param bit_cap: The number of bits the user wants to consider for the bitmap
- * to have.
+ * @param bit_cap Initial bit capacity.
  *
- * @return The pointer to the bitmap.
+ * @return PRP_OK on success.
+ * @return PRP_ERR_OOM if allocation fails.
+ * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
-PRP_FN_API DT_Bitmap *PRP_FN_CALL DT_BitmapCreateChecked(DT_size bit_cap);
+PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapCreateChecked(DT_size bit_cap,
+                                                         DT_Bitmap **out);
 /**
- * Clones the bitmap into a new bitmap, preserving all the contents of the
- * bitmap too.
+ * Deep clones the given bitmap.
  *
- * @param: bmp: The bitmap to clone.
+ * @param bmp The bitmap to clone.
+ * @param out Output pointer receiving the bitmap.
  *
- * @return The pointer to the cloned bitmap.
+ * @return PRP_OK on success.
+ * @return PRP_ERR_OOM if allocation fails.
  *
- * @note: This function doesn't check for argument validation in RELEASE mode.
+ * @note Unchecked variant:
+ * - Asserts on invalid arguments in debug.
  */
-PRP_FN_API DT_Bitmap *PRP_FN_CALL DT_BitmapCloneUnchecked(const DT_Bitmap *bmp);
+PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapCloneUnchecked(const DT_Bitmap *bmp,
+                                                          DT_Bitmap **out);
 /**
- * Clones the bitmap into a new bitmap, preserving all the contents of the
- * bitmap too.
+ * Deep clones the given bitmap.
  *
- * @param: bmp: The bitmap to clone.
+ * @param bmp The bitmap to clone.
+ * @param out Output pointer receiving the bitmap.
  *
- * @return The pointer to the cloned bitmap.
+ * @return PRP_OK on success.
+ * @return PRP_ERR_OOM if allocation fails.
+ * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
-PRP_FN_API DT_Bitmap *PRP_FN_CALL DT_BitmapCloneChecked(const DT_Bitmap *bmp);
+PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapCloneChecked(const DT_Bitmap *bmp,
+                                                        DT_Bitmap **out);
 
 /**
- * Deletes the bitmap and sets the original DT_Bitmap * to DT_null to prevent
- * use after free bugs.
+ * Deletes the bitmap and nullifies the pointer.
  *
- * @param pBmp: The pointer to the bitmap pointer to delete.
+ * @param pBmp Pointer to bitmap pointer.
  *
- * @note: This function doesn't check for argument validation in RELEASE mode.
+ * @note Unchecked variant:
+ * - Asserts on invalid arguments in debug.
  */
 PRP_FN_API DT_void PRP_FN_CALL DT_BitmapDeleteUnchecked(DT_Bitmap **pBmp);
 /**
- * Deletes the bitmap and sets the original DT_Bitmap * to DT_null to prevent
- * use after free bugs.
+ * Deletes the bitmap and nullifies the pointer.
  *
- * @param pBmp: The pointer to the bitmap pointer to delete.
+ * @param pBmp Pointer to bitmap pointer.
  *
- * @return PRP_ERR_INV_ARG if the pBmp or *pBmp is DT_null, otherwise it
- * returns PRP_OK.
+ * @return PRP_OK on success.
+ * @return PRP_ERR_INV_ARG if pArr or *pArr is invalid.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapDeleteChecked(DT_Bitmap **pBmp);
 
 /**
- * Returns the raw memory pointer of the bitmap to the user.
- * This function returns a non-fixed pointer to the bitmap mem. If an operation
- * is performed to the bitmap after getting the raw data, the raw data is no
- * longer guaranteed to be valid.
- * NOTE: If any kind of changes user makes without using designated functions
- * will cause corruption instantly.
+ * Returns the raw memory pointer of the bitmap contenets.
  *
- * @param bmp: The bitmap to get the raw mem data of.
- * @param pWord_cap: Pointer to where the cap of the bitmap will be stored to be
- * used by the caller to prevent unsafe usage.
- * @param pBit_cap: Pointer to where the bit cap of the bitmap the user set will
- * be stored, for the semantic correctness of what user picked.
+ * The pointer is not guaranteed to be valid after a growth operation
  *
- * @return The memory pointer of the bitmap's raw memory.
+ * @param bmp       Bitmap instance.
+ * @param pWord_cap Pointer to where to store word cap of bitmap.
+ * @param pBit_cap  Pointer to where to store word cap of bitmap.
  *
- * @note: This function doesn't check for argument validation in RELEASE mode.
+ * @return The raw memory pointer of the bitmap.
+ *
+ * @note Unchecked variant:
+ * - Asserts on invalid arguments in debug.
  */
 PRP_FN_API const DT_Bitword *PRP_FN_CALL DT_BitmapRawUnchecked(
     const DT_Bitmap *bmp, DT_size *pWord_cap, DT_size *pBit_cap);
 /**
- * Returns the raw memory pointer of the bitmap to the user.
- * This function returns a non-fixed pointer to the bitmap mem. If an operation
- * is performed to the bitmap after getting the raw data, the raw data is no
- * longer guaranteed to be valid.
- * NOTE: If any kind of changes user makes without using designated functions
- * will cause corruption instantly.
+ * Returns the raw memory pointer of the bitmap contenets.
  *
- * @param bmp: The bitmap to get the raw mem data of.
- * @param pWord_cap: Pointer to where the cap of the bitmap will be stored to be
- * used by the caller to prevent unsafe usage.
- * @param pBit_cap: Pointer to where the bit cap of the bitmap the user set will
- * be stored, for the semantic correctness of what user picked.
+ * The pointer is not guaranteed to be valid after a growth operation
  *
- * @return DT_null if the bitmap is invalid or pWord_cap is DT_null, otherwise
- * the memory pointer of the bitmap's raw memory.
+ * @param bmp       Bitmap instance.
+ * @param pWord_cap Pointer to where to store word cap of bitmap.
+ * @param pBit_cap  Pointer to where to store word cap of bitmap.
+ * @param pRaw      The pointer to where the raw mem will be stored.
+ *
+ * @return PRP_OK on success.
+ * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
-PRP_FN_API const DT_Bitword *PRP_FN_CALL DT_BitmapRawChecked(
-    const DT_Bitmap *bmp, DT_size *pWord_cap, DT_size *pBit_cap);
+PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapRawChecked(const DT_Bitmap *bmp,
+                                                      DT_size *pWord_cap,
+                                                      DT_size *pBit_cap,
+                                                      DT_void **pRaw);
 
 /**
- * Returns the current set count of the bitmap that is passed to it.
+ * Returns the number of set bits currently stored.
  *
- * @param bmp: The bitmap to get the set count of.
+ * @param bmp Bitmap instance.
  *
- * @return The set count fo the bitmap.
+ * @return Number of bits set.
  *
- * @note: This function doesn't check for argument validation in RELEASE mode.
+ * @note Assumes valid bitmap (asserts in debug).
  */
-PRP_FN_API DT_size PRP_FN_CALL DT_BitmapSetCountUnchecked(const DT_Bitmap *bmp);
+PRP_FN_API DT_size PRP_FN_CALL DT_BitmapSetCount(const DT_Bitmap *bmp);
 /**
- * Returns the current set count of the bitmap that is passed to it.
+ * Returns the first set bit of the bitmap.
  *
- * @param bmp: The bitmap to get the set count of.
+ * @param bmp Bitmap instance.
  *
- * @return PRP_INVALID_SIZE if the bitmap is invalid, otherwise the actual set
- * count of the bitmap.
+ * @return 0-based index of the first bit set.
+ *
+ * @note Assumes valid bitmap (asserts in debug).
  */
-PRP_FN_API DT_size PRP_FN_CALL DT_BitmapSetCountChecked(const DT_Bitmap *bmp);
+PRP_FN_API DT_size PRP_FN_CALL DT_BitmapFFS(const DT_Bitmap *bmp);
 /**
- * Returns the current first set pos of the bitmap that is passed to it.
+ * Returns the number of bit cap of bitmap.
  *
- * @param bmp: The bitmap to get the fist set pos of.
+ * @param bmp Bitmap instance.
  *
- * @return PRP_INVALID_INDEX if there is no bit set, otherwise the actual
- * index of the first set bit.
+ * @return Bit cap of bitmap.
  *
- * @note: This function doesn't check for argument validation in RELEASE mode.
+ * @note Assumes valid bitmap (asserts in debug).
  */
-PRP_FN_API DT_size PRP_FN_CALL DT_BitmapFFSUnchecked(const DT_Bitmap *bmp);
-/**
- * Returns the current first set pos of the bitmap that is passed to it.
- *
- * @param bmp: The bitmap to get the fist set pos of.
- *
- * @return PRP_INVALID_INDEX if the bitmap is invalid, PRP_INVALID_INDEX if
- * there is no bit set, otherwise the actual index of the first set bit.
- */
-PRP_FN_API DT_size PRP_FN_CALL DT_BitmapFFSChecked(const DT_Bitmap *bmp);
-/**
- * Returns the current bit cap of the bitmap that is passed to it.
- *
- * @param bmp: The bitmap to get the bit cap of.
- *
- * @return The bit cap of the bitmap.
- *
- * @note: This function doesn't check for argument validation in RELEASE mode.
- */
-PRP_FN_API DT_size PRP_FN_CALL DT_BitmapBitCapUnchecked(const DT_Bitmap *bmp);
-/**
- * Returns the current bit cap of the bitmap that is passed to it.
- *
- * @param bmp: The bitmap to get the bit cap of.
- *
- * @return PRP_INVALID_SIZE if the bitmap is invalid, otherwise the actual bit
- * cap of the bitmap.
- */
-PRP_FN_API DT_size PRP_FN_CALL DT_BitmapBitCapChecked(const DT_Bitmap *bmp);
+PRP_FN_API DT_size PRP_FN_CALL DT_BitmapBitCap(const DT_Bitmap *bmp);
 
 /**
- * Sets the given index bit in the bitmap.
+ * Sets bit of the given index.
  *
- * @param bmp: The bitmap to operate on.
- * @param i: The index to set.
+ * @param bmp Bitmap instance.
+ * @param i   Index into the bitmap.
  *
- * @note: This function doesn't check for argument validation in RELEASE mode.
+ * @note Unchecked variant:
+ * - Asserts on invalid arguments in debug.
  */
 PRP_FN_API DT_void PRP_FN_CALL DT_BitmapSetUnchecked(DT_Bitmap *bmp, DT_size i);
 /**
- * Sets the given index bit in the bitmap.
+ * Sets bit of the given index.
  *
- * @param bmp: The bitmap to operate on.
- * @param i: The index to set.
+ * @param bmp Bitmap instance.
+ * @param i   Index into the bitmap.
  *
- * @return PRP_ERR_INV_ARG if the parameters are invalid in any way,
- * PRP_ERR_OOB i is bigger or equal to btimap's bit cap, otherwise PRP_OK.
+ * @return PRP_OK on success.
+ * @return PRP_ERR_INV_ARG is arguments are invalid.
+ * @return PRP_ERR_OOB if index out of bounds.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapSetChecked(DT_Bitmap *bmp,
                                                       DT_size i);
 /**
- * Clears the given index bit in the bitmap.
+ * Clears bit of the given index.
  *
- * @param bmp: The bitmap to operate on.
- * @param i: The index to set.
+ * @param bmp Bitmap instance.
+ * @param i   Index into the bitmap.
  *
- * @note: This function doesn't check for argument validation in RELEASE mode.
+ * @note Unchecked variant:
+ * - Asserts on invalid arguments in debug.
  */
 PRP_FN_API DT_void PRP_FN_CALL DT_BitmapClrUnchecked(DT_Bitmap *bmp, DT_size i);
 /**
- * Clears the given index bit in the bitmap.
+ * Clears bit of the given index.
  *
- * @param bmp: The bitmap to operate on.
- * @param i: The index to set.
+ * @param bmp Bitmap instance.
+ * @param i   Index into the bitmap.
  *
- * @return PRP_ERR_INV_ARG if the parameters are invalid in any way,
- * PRP_ERR_OOB i is bigger or equal to btimap's bit cap, otherwise PRP_OK.
+ * @return PRP_OK on success.
+ * @return PRP_ERR_INV_ARG is arguments are invalid.
+ * @return PRP_ERR_OOB if index out of bounds.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapClrChecked(DT_Bitmap *bmp,
                                                       DT_size i);
 /**
- * Toggles the given index bit in the bitmap.
+ * Toggles bit of the given index.
  *
- * @param bmp: The bitmap to operate on.
- * @param i: The index to set.
+ * @param bmp Bitmap instance.
+ * @param i   Index into the bitmap.
  *
- * @note: This function doesn't check for argument validation in RELEASE mode.
+ * @note Unchecked variant:
+ * - Asserts on invalid arguments in debug.
  */
 PRP_FN_API DT_void PRP_FN_CALL DT_BitmapToggleUnchecked(DT_Bitmap *bmp,
                                                         DT_size i);
 /**
- * Toggles the given index bit in the bitmap.
+ * Toggles bit of the given index.
  *
- * @param bmp: The bitmap to operate on.
- * @param i: The index to set.
+ * @param bmp Bitmap instance.
+ * @param i   Index into the bitmap.
  *
- * @return PRP_ERR_INV_ARG if the parameters are invalid in any way,
- * PRP_ERR_OOB i is bigger or equal to btimap's bit cap, otherwise PRP_OK.
+ * @return PRP_OK on success.
+ * @return PRP_ERR_INV_ARG is arguments are invalid.
+ * @return PRP_ERR_OOB if index out of bounds.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapToggleChecked(DT_Bitmap *bmp,
                                                          DT_size i);
 /**
- * Checks the given index bit in the bitmap is set.
+ * Checks if bit set on given index.
  *
- * @param bmp: The bitmap to operate on.
- * @param i: The index to check for.
+ * @param bmp Bitmap instance.
+ * @param i   Index into the bitmap.
  *
- * @return DT_false if the given bit is not set, otherwise DT_true.
+ * @return DT_true if bit set, DT_false otherwise.
  *
- * @note: This function doesn't check for argument validation in RELEASE mode.
+ * @note Unchecked variant:
+ * - Asserts on invalid arguments in debug.
  */
 PRP_FN_API DT_bool PRP_FN_CALL DT_BitmapIsSetUnchecked(const DT_Bitmap *bmp,
                                                        DT_size i);
 /**
- * Checks the given index bit in the bitmap is set.
+ * Checks if bit set on given index.
  *
- * @param bmp: The bitmap to operate on.
- * @param i: The index to check for.
- * @param pRslt: The pointer that will store the boolean result of IsSet.
+ * @param bmp Bitmap instance.
+ * @param i   Index into the bitmap.
+ * @param pRslt The pointer to where the result is stored.
  *
- * @return PRP_ERR_INV_ARG if the parameters are invalid in any way,
- * PRP_ERR_OOB i is bigger or equal to btimap's bit cap, otherwise PRP_OK.
+ * @return PRP_OK on success.
+ * @return PRP_ERR_INV_ARG is arguments are invalid.
+ * @return PRP_ERR_OOB if index out of bounds.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapIsSetChecked(const DT_Bitmap *bmp,
                                                         DT_size i,
                                                         DT_bool *pRslt);
 
 /**
- * Sets the given range of bits in the bitmap. From i to j excluding j.
+ * Sets bits in the range.
  *
- * @param bmp: The bitmap to operate on.
- * @param i: The index to start from.
- * @param j: The index to end at.
+ * @param bmp Bitmap instance.
+ * @param i   The index 1 into the bitmap.
+ * @param j   The index 2 into the bitmap.
  *
- * @note: This function doesn't check for argument validation in RELEASE mode.
+ * @note Unchecked variant:
+ * - Asserts on invalid arguments in debug.
  */
 PRP_FN_API DT_void PRP_FN_CALL DT_BitmapSetRangeUnchecked(DT_Bitmap *bmp,
                                                           DT_size i, DT_size j);
 /**
- * Sets the given range of bits in the bitmap. From i to j excluding j.
+ * Sets bits in the range.
  *
- * @param bmp: The bitmap to operate on.
- * @param i: The index to start from.
- * @param j: The index to end at.
+ * @param bmp Bitmap instance.
+ * @param i   The index 1 into the bitmap.
+ * @param j   The index 2 into the bitmap.
  *
- * @return PRP_ERR_INV_ARG if the parameters are invalid in any way,
- * PRP_ERR_OOB i or j are bigger or equal to btimap's bit cap, otherwise PRP_OK.
+ * @return PRP_OK on success.
+ * @return PRP_ERR_OOB if any indices are out of bounds.
+ * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapSetRangeChecked(DT_Bitmap *bmp,
                                                            DT_size i,
                                                            DT_size j);
 /**
- * Clears the given range of bits in the bitmap. From i to j excluding j.
+ * Clears bits in the range.
  *
- * @param bmp: The bitmap to operate on.
- * @param i: The index to start from.
- * @param j: The index to end at.
+ * @param bmp Bitmap instance.
+ * @param i   The index 1 into the bitmap.
+ * @param j   The index 2 into the bitmap.
  *
- * @note: This function doesn't check for argument validation in RELEASE mode.
+ * @note Unchecked variant:
+ * - Asserts on invalid arguments in debug.
  */
 PRP_FN_API DT_void PRP_FN_CALL DT_BitmapClrRangeUnchecked(DT_Bitmap *bmp,
                                                           DT_size i, DT_size j);
 /**
- * Clears the given range of bits in the bitmap. From i to j excluding j.
+ * Clears bits in the range.
  *
- * @param bmp: The bitmap to operate on.
- * @param i: The index to start from.
- * @param j: The index to end at.
+ * @param bmp Bitmap instance.
+ * @param i   The index 1 into the bitmap.
+ * @param j   The index 2 into the bitmap.
  *
- * @return PRP_ERR_INV_ARG if the parameters are invalid in any way,
- * PRP_ERR_OOB i or j are bigger or equal to btimap's bit cap, otherwise PRP_OK.
+ * @return PRP_OK on success.
+ * @return PRP_ERR_OOB if any indices are out of bounds.
+ * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapClrRangeChecked(DT_Bitmap *bmp,
                                                            DT_size i,
                                                            DT_size j);
 /**
- * Toggles the given range of bits in the bitmap. From i to j excluding j.
+ * Toggles bits in the range.
  *
- * @param bmp: The bitmap to operate on.
- * @param i: The index to start from.
- * @param j: The index to end at.
+ * @param bmp Bitmap instance.
+ * @param i   The index 1 into the bitmap.
+ * @param j   The index 2 into the bitmap.
  *
- * @note: This function doesn't check for argument validation in RELEASE mode.
+ * @note Unchecked variant:
+ * - Asserts on invalid arguments in debug.
  */
 PRP_FN_API DT_void PRP_FN_CALL DT_BitmapToggleRangeUnchecked(DT_Bitmap *bmp,
                                                              DT_size i,
                                                              DT_size j);
 /**
- * Toggles the given range of bits in the bitmap. From i to j excluding j.
+ * Toggles bits in the range.
  *
- * @param bmp: The bitmap to operate on.
- * @param i: The index to start from.
- * @param j: The index to end at.
+ * @param bmp Bitmap instance.
+ * @param i   The index 1 into the bitmap.
+ * @param j   The index 2 into the bitmap.
  *
- * @return PRP_ERR_INV_ARG if the parameters are invalid in any way,
- * PRP_ERR_OOB i or j are bigger or equal to btimap's bit cap, otherwise PRP_OK.
+ * @return PRP_OK on success.
+ * @return PRP_ERR_OOB if any indices are out of bounds.
+ * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapToggleRangeChecked(DT_Bitmap *bmp,
                                                               DT_size i,
                                                               DT_size j);
 /**
- * Checks if in the given range of indices in the bitmap any bit is set.
+ * Checks if any bits are set in the range.
  *
- * @param bmp: The bitmap to operate on.
- * @param i: The index to start from.
- * @param j: The index to end at.
+ * @param bmp Bitmap instance.
+ * @param i   The index 1 into the bitmap.
+ * @param j   The index 2 into the bitmap.
  *
- * @return DT_false if no bits are set in the given range, otherwise DT_true.
+ * @return DT_true if any bit is set in range, DT_false otherwise.
  *
- * @note: This function doesn't check for argument validation in RELEASE mode.
+ * @note Unchecked variant:
+ * - Asserts on invalid arguments in debug.
  */
 PRP_FN_API DT_bool PRP_FN_CALL
 DT_BitmapIsSetRangeAnyUnchecked(const DT_Bitmap *bmp, DT_size i, DT_size j);
 /**
- * Checks if in the given range of indices in the bitmap any bit is set.
+ * Checks if any bits are set in the range.
  *
- * @param bmp: The bitmap to operate on.
- * @param i: The index to start from.
- * @param j: The index to end at.
- * @param pRslt: The pointer that will store the boolean result of the
- * operation.
+ * @param bmp   Bitmap instance.
+ * @param i     The index 1 into the bitmap.
+ * @param j     The index 2 into the bitmap.
+ * @param pRslt The pointer to where the result is stored.
  *
- * @return PRP_ERR_INV_ARG if the parameters are invalid in any way,
- * PRP_ERR_OOB i or j are bigger or equal to btimap's bit cap, otherwise PRP_OK.
+ * @return PRP_OK on success.
+ * @return PRP_ERR_OOB if any indices are out of bounds.
+ * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapIsSetRangeAnyChecked(
     const DT_Bitmap *bmp, DT_size i, DT_size j, DT_bool *pRslt);
 /**
- * Checks if in the given range of indices in the bitmap all bit are set.
+ * Checks if all bits are set in the range.
  *
- * @param bmp: The bitmap to operate on.
- * @param i: The index to start from.
- * @param j: The index to end at.
+ * @param bmp Bitmap instance.
+ * @param i   The index 1 into the bitmap.
+ * @param j   The index 2 into the bitmap.
  *
- * @return DT_false if no bits are set in the given range, otherwise DT_true.
+ * @return DT_true if all bit is set in range, DT_false otherwise.
  *
- * @note: This function doesn't check for argument validation in RELEASE mode.
+ * @note Unchecked variant:
+ * - Asserts on invalid arguments in debug.
  */
 PRP_FN_API DT_bool PRP_FN_CALL
 DT_BitmapIsSetRangeAllUnchecked(const DT_Bitmap *bmp, DT_size i, DT_size j);
 /**
- * Checks if in the given range of indices in the bitmap all bit are set.
+ * Checks if all bits are set in the range.
  *
- * @param bmp: The bitmap to operate on.
- * @param i: The index to start from.
- * @param j: The index to end at.
- * @param pRslt: The pointer that will store the boolean result of the
- * operation.
+ * @param bmp   Bitmap instance.
+ * @param i     The index 1 into the bitmap.
+ * @param j     The index 2 into the bitmap.
+ * @param pRslt The pointer to where the result is stored.
  *
- * @return PRP_ERR_INV_ARG if the parameters are invalid in any way,
- * PRP_ERR_OOB i or j are bigger or equal to btimap's bit cap, otherwise PRP_OK.
+ * @return PRP_OK on success.
+ * @return PRP_ERR_OOB if all indices are out of bounds.
+ * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapIsSetRangeAllChecked(
     const DT_Bitmap *bmp, DT_size i, DT_size j, DT_bool *pRslt);
 
 /**
- * Checks the given bitmap is empty.
+ * Checks if there is no bits set in bitmap.
  *
- * @param bmp: The bitmap to check for.
+ * @param bmp Bitmap instance.
  *
- * @return DT_false if the bitmap has at least one bit set, otherwise DT_true.
+ * @return DT_true if bitmap is empty, DT_false otherwise.
  *
- * @note: This function doesn't check for argument validation in RELEASE mode.
+ * @note Unchecked variant:
+ * - Asserts on invalid arguments in debug.
  */
 PRP_FN_API DT_bool PRP_FN_CALL DT_BitmapIsEmptyUnchecked(const DT_Bitmap *bmp);
 /**
- * Checks the given bitmap is empty.
+ * Checks if there is no bits set in bitmap.
  *
- * @param bmp: The bitmap to check for.
- * @param pRslt: The pointer that will store the boolean result of IsEmpty.
+ * @param bmp   Bitmap instance.
+ * @param pRslt The pointer to where the result is stored.
  *
- * @return PRP_ERR_INV_ARG if the parameters are invalid in any way,
- * otherwise PRP_OK.
+ * @return PRP_OK on success.
+ * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapIsEmptyChecked(const DT_Bitmap *bmp,
                                                           DT_bool *pRslt);
 /**
- * Checks the given bitmap is full.
+ * Checks if the bitmap is full.
  *
- * @param bmp: The bitmap to check for.
+ * @param bmp Bitmap instance.
  *
- * @return DT_false if the bitmap is not completly full, otherwise DT_true.
+ * @return DT_true if bitmap is full, DT_false otherwise.
  *
- * @note: This function doesn't check for argument validation in RELEASE mode.
+ * @note Unchecked variant:
+ * - Asserts on invalid arguments in debug.
  */
 PRP_FN_API DT_bool PRP_FN_CALL DT_BitmapIsFullUnchecked(const DT_Bitmap *bmp);
 /**
- * Checks the given bitmap is full.
+ * Checks if the bitmap is full.
  *
- * @param bmp: The bitmap to check for.
- * @param pRslt: The pointer that will store the boolean result of IsFull.
+ * @param bmp   Bitmap instance.
+ * @param pRslt The pointer to where the result is stored.
  *
- * @return PRP_ERR_INV_ARG if the parameters are invalid in any way,
- * otherwise PRP_OK.
+ * @return PRP_OK on success.
+ * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapIsFullChecked(const DT_Bitmap *bmp,
                                                          DT_bool *pRslt);
 
 /**
- * Inverses the bits in the given bitmap.
+ * Performs a NOT operation on every bit in bitmap.
  *
- * @param bmp; The bitmap to operate on.
+ * @param bmp Bitmap instance.
  *
- * @note: This function doesn't check for argument validation in RELEASE mode.
+ * @note Unchecked variant:
+ * - Asserts on invalid arguments in debug.
  */
 PRP_FN_API DT_void PRP_FN_CALL DT_BitmapNotUnchecked(DT_Bitmap *bmp);
 /**
- * Inverses the bits in the given bitmap.
+ * Performs a NOT operation on every bit in bitmap.
  *
- * @param bmp; The bitmap to operate on.
+ * @param bmp Bitmap instance.
  *
- * @return PRP_ERR_INV_ARG if the bitmap is invalid, otherwise PRP_OK.
+ * @return PRP_OK on success.
+ * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapNotChecked(DT_Bitmap *bmp);
 /**
- * ANDs b/w bitmap1 and bitmap2 and stores the result in bmp1.
+ * Performs an AND operation b/w bmp1 and bmp2.
  *
- * @param bmp1: The bitmap1 of the anding, and will store the result also.
- * @param bmp2: The bitmap2 of the anding.
+ * Stores the result in bmp1 itself.
  *
- * @note: This function doesn't check for argument validation in RELEASE mode.
+ * @param bmp1 Bitmap instance 1.
+ * @param bmp2 Bitmap instance 2.
+ *
+ * @note Unchecked variant:
+ * - Asserts on invalid arguments in debug.
  */
 PRP_FN_API DT_void PRP_FN_CALL DT_BitmapAndUnchecked(DT_Bitmap *bmp1,
                                                      const DT_Bitmap *bmp2);
 /**
- * ANDs b/w bitmap1 and bitmap2 and stores the result in bmp1.
+ * Performs an AND operation b/w bmp1 and bmp2.
  *
- * @param bmp1: The bitmap1 of the anding, and will store the result also.
- * @param bmp2: The bitmap2 of the anding.
+ * Stores the result in bmp1 itself.
  *
- * @return PRP_ERR_INV_ARG if any of the two bitmaps is invalid, otherwise
- * PRP_OK.
+ * @param bmp1 Bitmap instance 1.
+ * @param bmp2 Bitmap instance 2.
+ *
+ * @return PRP_OK on success.
+ * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapAndChecked(DT_Bitmap *bmp1,
                                                       const DT_Bitmap *bmp2);
 /**
- * ORs b/w bitmap1 and bitmap2 and stores the result in bmp1.
+ * Performs an OR operation b/w bmp1 and bmp2.
  *
- * @param bmp1: The bitmap1 of the oring, and will store the result also.
- * @param bmp2: The bitmap2 of the oring.
+ * Stores the result in bmp1 itself.
  *
- * @note: This function doesn't check for argument validation in RELEASE mode.
+ * @param bmp1 Bitmap instance 1.
+ * @param bmp2 Bitmap instance 2.
+ *
+ * @note Unchecked variant:
+ * - Asserts on invalid arguments in debug.
  */
 PRP_FN_API DT_void PRP_FN_CALL DT_BitmapOrUnchecked(DT_Bitmap *bmp1,
                                                     const DT_Bitmap *bmp2);
 /**
- * ORs b/w bitmap1 and bitmap2 and stores the result in bmp1.
+ * Performs an OR operation b/w bmp1 and bmp2.
  *
- * @param bmp1: The bitmap1 of the oring, and will store the result also.
- * @param bmp2: The bitmap2 of the oring.
+ * Stores the result in bmp1 itself.
  *
- * @return PRP_ERR_INV_ARG if any of the two bitmaps is invalid, otherwise
- * PRP_OK.
+ * @param bmp1 Bitmap instance 1.
+ * @param bmp2 Bitmap instance 2.
+ *
+ * @return PRP_OK on success.
+ * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapOrChecked(DT_Bitmap *bmp1,
                                                      const DT_Bitmap *bmp2);
 
 /**
- * Checks if bitmap1 has all of the bits of bitmap2.
+ * Checks if bmp1 & bmp2 == bmp2.
  *
- * @param bmp1: The bitmap which will be checked.
- * @param bmp2: The bitmap against which bmp1 will be checked.
+ * @param bmp1 Bitmap instance 1.
+ * @param bmp2 Bitmap instance 2.
  *
- * @return DT_false if the bmp1 doesn't have all the bits set that are in bmp2,
- * otherwise DT_true.
+ * @return DT_true if has all condition is met, DT_false otherwise.
  *
- * @note: This function doesn't check for argument validation in RELEASE mode.
+ * @note Unchecked variant:
+ * - Asserts on invalid arguments in debug.
  */
 PRP_FN_API DT_bool PRP_FN_CALL DT_BitmapHasAllUnchecked(const DT_Bitmap *bmp1,
                                                         const DT_Bitmap *bmp2);
 /**
- * Checks if bitmap1 has all of the bits of bitmap2.
+ * Checks if bmp1 & bmp2 == bmp2.
  *
- * @param bmp1: The bitmap which will be checked.
- * @param bmp2: The bitmap against which bmp1 will be checked.
- * @param pRslt: The pointer that will store the boolean result of HasAll.
+ * @param bmp1  Bitmap instance 1.
+ * @param bmp2  Bitmap instance 2.
+ * @param pRslt The pointer to where the result is stored.
  *
- * @return PRP_ERR_INV_ARG if the parameters are invalid in any way, otherwise
- * PRP_OK.
+ * @return PRP_OK on success.
+ * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapHasAllChecked(const DT_Bitmap *bmp1,
                                                          const DT_Bitmap *bmp2,
                                                          DT_bool *pRslt);
 /**
- * Checks if bitmap1 has any of the bits of bitmap2.
+ * Checks if bmp1 & bmp2 != 0.
  *
- * @param bmp1: The bitmap which will be checked.
- * @param bmp2: The bitmap against which bmp1 will be checked.
+ * @param bmp1 Bitmap instance 1.
+ * @param bmp2 Bitmap instance 2.
  *
- * @return DT_false if the bmp1 doesn't have any bits set that are in bmp2,
- * otherwise DT_true.
+ * @return DT_true if has any condition is met, DT_false otherwise.
  *
- * @note: This function doesn't check for argument validation in RELEASE mode.
+ * @note Unchecked variant:
+ * - Asserts on invalid arguments in debug.
  */
 PRP_FN_API DT_bool PRP_FN_CALL DT_BitmapHasAnyUnchecked(const DT_Bitmap *bmp1,
                                                         const DT_Bitmap *bmp2);
 /**
- * Checks if bitmap1 has any of the bits of bitmap2.
+ * Checks if bmp1 & bmp2 != 0.
  *
- * @param bmp1: The bitmap which will be checked.
- * @param bmp2: The bitmap against which bmp1 will be checked.
- * @param pRslt: The pointer that will store the boolean result of HasAny.
+ * @param bmp1  Bitmap instance 1.
+ * @param bmp2  Bitmap instance 2.
+ * @param pRslt The pointer to where the result is stored.
  *
- * @return PRP_ERR_INV_ARG if the parameters are invalid in any way, otherwise
- * PRP_OK.
+ * @return PRP_OK on success.
+ * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapHasAnyChecked(const DT_Bitmap *bmp1,
                                                          const DT_Bitmap *bmp2,
                                                          DT_bool *pRslt);
 
 /**
- * Compares the bit structure of the two bitmaps, if they are exactly equal.
+ * Comares if bits of bmp1 are equal to bmp2.
  *
- * @param bmp1: First bitmap.
- * @param bmp2: Second bitmap.
+ * @param bmp1  Bitmap instance 1.
+ * @param bmp2  Bitmap instance 2.
  *
- * @return DT_false if the bitmaps are equal, otherwise DT_true.
+ * @return DT_true if equal, DT_false otherwise.
  *
- * @note: This function doesn't check for argument validation in RELEASE mode.
+ * @note Unchecked variant:
+ * - Asserts on invalid arguments in debug.
  */
 PRP_FN_API DT_bool PRP_FN_CALL DT_BitmapCmpUnchecked(const DT_Bitmap *bmp1,
                                                      const DT_Bitmap *bmp2);
 /**
- * Compares the bit structure of the two bitmaps, if they are exactly equal.
+ * Comares if bits of bmp1 are equal to bmp2.
  *
- * @param bmp1: First bitmap.
- * @param bmp2: Second bitmap.
- * @param pRslt: The pointer that will store the boolean result of Cmp.
+ * @param bmp1  Bitmap instance 1.
+ * @param bmp2  Bitmap instance 2.
+ * @param pRslt The pointer to where the result is stored.
  *
- * @return PRP_ERR_INV_ARG if the parameters are invalid in any way, otherwise
- * PRP_OK.
+ * @return PRP_OK on success.
+ * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapCmpChecked(const DT_Bitmap *bmp1,
                                                       const DT_Bitmap *bmp2,
                                                       DT_bool *pRslt);
 /**
- * Resets the bitmap to make it behave like a brand new bitmap.
+ * Resets the bitmap.
  *
- * @param bmp: The bitmap to reset.
+ * @param bmp Bitmap instance.
  *
- * @note: This function doesn't check for argument validation in RELEASE mode.
+ * @note Unchecked variant:
+ * - Asserts on invalid arguments in debug.
  */
 PRP_FN_API DT_void PRP_FN_CALL DT_BitmapResetUnchecked(DT_Bitmap *bmp);
 /**
- * Resets the bitmap to make it behave like a brand new bitmap.
+ * Resets the bitmap.
  *
- * @param bmp: The bitmap to reset.
+ * @param bmp Bitmap instance.
  *
- * @return PRP_ERR_INV_ARG if the bitmap is invalid, otherwise PRP_OK.
+ * @return PRP_OK on success.
+ * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapResetChecked(DT_Bitmap *bmp);
 /**
  * Shrinks the bitmap to its MSB word.
  *
- * @param bmp: The bitmap to shrink fit.
+ * @param bmp Bitmap instance.
  *
- * @return PRP_ERR_RES_EXHAUSTED/PRP_ERR_OOM if we can't accomodate the
- * shrinking, otherwise PRP_OK.
+ * @return PRP_OK on success.
+ * @return PRP_ERR_RES_EXHAUSTED if max cap is reached.
+ * @return PRP_ERR_OOM if allocation fails.
  *
- * @note: This function doesn't check for argument validation in RELEASE mode.
+ * @note Unchecked variant:
+ * - Asserts on invalid arguments in debug.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapShrinkFitUnchecked(DT_Bitmap *bmp);
 /**
  * Shrinks the bitmap to its MSB word.
  *
- * @param bmp: The bitmap to shrink fit.
+ * @param arr Bitmap instance.
  *
- * @return PRP_ERR_INV_ARG if the bitmap is invalid,
- * PRP_ERR_RES_EXHAUSTED/PRP_ERR_OOM if we can't accomodate the shrinking,
- * otherwise PRP_OK.
+ * @return PRP_OK on success.
+ * @return PRP_ERR_RES_EXHAUSTED if max cap is reached.
+ * @return PRP_ERR_OOM if allocation fails.
+ * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapShrinkFitChecked(DT_Bitmap *bmp);
 /**
- * Changes the bit cap of the given bitmap to the provided new cap safely.
+ * Safely change size of the bitmap.
  *
- * @param bitmap: The bitmap to change the cap of.
- * @param new_bit_cap: The new bit cap of the bitmap to change to.
+ * @param bmp         Bitmap instance.
+ * @param new_bit_cap The new bit cap of the bitmap.
  *
- * @return PRP_ERR_OOM if the reallocation fails, PRP_ERR_RES_EXHAUSTED if bffr
- * cap reaches a max, otherwise PRP_OK.
+ * @return PRP_OK on success.
+ * @return PRP_ERR_RES_EXHAUSTED if max bit cap is reached.
+ * @return PRP_ERR_OOM if allocation fails.
  *
- * @note: This function doesn't check for argument validation in RELEASE mode.
+ * @note Unchecked variant:
+ * - Asserts on invalid arguments in debug.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL
 DT_BitmapChangeSizeUnchecked(DT_Bitmap *bmp, DT_size new_bit_cap);
 /**
- * Changes the bit cap of the given bitmap to the provided new cap safely.
+ * Safely change size of the bitmap.
  *
- * @param bitmap: The bitmap to change the cap of.
- * @param new_bit_cap: The new bit cap of the bitmap to change to.
+ * @param bmp         Bitmap instance.
+ * @param new_bit_cap The new bit cap of the bitmap.
  *
- * @return PRP_ERR_INV_ARG if the parameters are invalid in any way, PRP_ERR_OOM
- * if the reallocation fails, PRP_ERR_RES_EXHAUSTED if bffr cap reaches a max,
- * otherwise PRP_OK.
+ * @return PRP_OK on success.
+ * @return PRP_ERR_RES_EXHAUSTED if max bit cap is reached.
+ * @return PRP_ERR_OOM if allocation fails.
+ * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL
 DT_BitmapChangeSizeChecked(DT_Bitmap *bmp, DT_size new_bit_cap);
