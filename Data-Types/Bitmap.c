@@ -166,7 +166,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapCloneUnchecked(const DT_Bitmap *bmp,
     ASSERT_INVARIANT_EXPR(bmp);
     DIAG_ASSERT(out != DT_null);
 
-    PRP_Result code = DT_BitmapCreateUnchecked(bmp->bit_cap);
+    PRP_Result code = DT_BitmapCreateUnchecked(bmp->bit_cap, out);
     if (code != PRP_OK) {
         return code;
     }

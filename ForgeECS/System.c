@@ -1,4 +1,3 @@
-#include "../Diagnostics/Assert.h"
 #include "Defs.h"
 #include "Internals.h"
 
@@ -25,20 +24,15 @@ static DT_bool BSearchBehavior(const DT_size *behaviors, DT_size len,
  */
 static PRP_Result SystemExecForEachCb(DT_void *pVal, DT_void *user_data);
 
-PRP_Result SystemGetLastErrCode(DT_void) { return last_err_code; }
-
-DT_size SystemRegister(FECS_System system) {
+PRP_Result SystemRegister(FECS_System system, DT_size *pIdx) {
     PRP_Result code = DT_ArrPushUnchecked(g_ctx->systems, &system);
-    if (code == PRP_ERR_RES_EXHAUSTED || code == PRP_ERR_OOM) {
-        SET_LAST_ERR_CODE(PRP_ERR_OOM);
-        return PRP_INVALID_INDEX;
-    } else if (code != PRP_OK) {
-        SET_LAST_ERR_CODE(PRP_ERR_INTERNAL);
-        return PRP_INVALID_INDEX;
+    if (code != PRP_OK) {
+        return code;
     }
 
-    // The -1 to convert len to idx.
-    return DT_ArrLenUnchecked(g_ctx->systems) - 1;
+    *pIdx = DT_ArrLen(g_ctx->systems) - 1;
+
+    return PRP_OK;
 }
 
 static DT_bool BSearchBehavior(const DT_size *behaviors, DT_size len,
@@ -59,41 +53,36 @@ static DT_bool BSearchBehavior(const DT_size *behaviors, DT_size len,
     return DT_false;
 }
 
-DT_size SystemIsRegistered(FECS_System system) {
+DT_bool SystemIsRegistered(FECS_System system, DT_size *pIdx) {
     DT_size len;
     const FECS_System *systems = DT_ArrRawUnchecked(g_ctx->systems, &len);
 
     for (DT_size i = 0; i < len; i++) {
         if (systems[i] == system) {
-            return i;
+            *pIdx = i;
+            return DT_true;
         }
     }
 
-    return PRP_INVALID_INDEX;
+    return DT_false;
 }
 
-DT_size SystemCacheCreate(DT_DSId world_id, DT_size system_idx,
-                          DT_size query_idx) {
-    ASSERT_CTX_INVARIANT_EXPR;
-    DIAG_ASSERT(DT_DSIdIsValidUnchecked(g_ctx->worlds, world_id));
-    World *world = DT_DSIdToDataUnchecked(g_ctx->worlds, world_id);
-    ASSERT_WORLD_INVARIANT_EXPR(world);
-    DIAG_ASSERT(system_idx < DT_ArrLenUnchecked(g_ctx->systems));
-    DIAG_ASSERT(query_idx < DT_ArrLenUnchecked(g_ctx->queries));
-
-    SystemCache data = {.system_idx = system_idx, .query_idx = query_idx};
+PRP_Result SystemCacheCreate(World *world, DT_size system_idx,
+                             DT_size query_idx, DT_size *pIdx) {
+    SystemCache data = {
+        .system_idx = system_idx, .query_idx = query_idx, .enabled = DT_true};
     data.system =
         *(FECS_System *)DT_ArrGetUnchecked(g_ctx->systems, system_idx);
-    Query *query = DT_ArrGetUnchecked(g_ctx->queries, query_idx);
+    PRP_Result code;
 
-    if (!query->behavior_matches) {
+    Query *query = DT_ArrGetUnchecked(g_ctx->queries, query_idx);
+    if (DT_ArrLen(query->behavior_matches) == 0) {
         data.layout_matches = DT_null;
     } else {
-        data.layout_matches =
-            DT_ArrCreateUnchecked(sizeof(DT_size), DT_ARR_DEFAULT_CAP);
-        if (!data.layout_matches) {
-            SET_LAST_ERR_CODE(PRP_ERR_OOM);
-            goto free_internals;
+        code = DT_ArrCreateUnchecked(sizeof(DT_size), DT_ARR_DEFAULT_CAP,
+                                     &data.layout_matches);
+        if (code != PRP_OK) {
+            goto err_path;
         }
 
         DT_size behavior_match_len, layouts_len;
@@ -101,7 +90,6 @@ DT_size SystemCacheCreate(DT_DSId world_id, DT_size system_idx,
             DT_ArrRawUnchecked(query->behavior_matches, &behavior_match_len);
         const Layout *layouts =
             DT_ArrRawUnchecked(world->layouts, &layouts_len);
-        DIAG_ASSERT(layouts != DT_null);
 
         for (DT_size i = 0; i < layouts_len; i++) {
             DT_size behavior_idx = layouts[i].behavior_idx;
@@ -109,43 +97,50 @@ DT_size SystemCacheCreate(DT_DSId world_id, DT_size system_idx,
                                  behavior_idx)) {
                 continue;
             }
-            PRP_Result code = DT_ArrPushUnchecked(data.layout_matches, &i);
-            if (code == PRP_ERR_RES_EXHAUSTED || code == PRP_ERR_OOM) {
-                SET_LAST_ERR_CODE(PRP_ERR_OOM);
-                goto free_internals;
-            } else if (code != PRP_OK) {
-                SET_LAST_ERR_CODE(PRP_ERR_INTERNAL);
-                goto free_internals;
+            code = DT_ArrPushUnchecked(data.layout_matches, &i);
+            if (code != PRP_OK) {
+                goto err_path;
             }
         }
     }
-    // Every system is enabled by default.
-    data.enabled = DT_true;
 
-    PRP_Result code = DT_ArrPushUnchecked(world->system_caches, &data);
-    if (code == PRP_ERR_RES_EXHAUSTED || code == PRP_ERR_OOM) {
-        SET_LAST_ERR_CODE(PRP_ERR_OOM);
-        goto free_internals;
-    } else if (code != PRP_OK) {
-        SET_LAST_ERR_CODE(PRP_ERR_INTERNAL);
-        goto free_internals;
+    code = DT_ArrPushUnchecked(world->system_caches, &data);
+    if (code != PRP_OK) {
+        goto err_path;
     }
 
-    // The -1 to convert len to idx.
-    return DT_ArrLenUnchecked(world->system_caches) - 1;
+    *pIdx = DT_ArrLen(world->system_caches) - 1;
 
-free_internals:
+    return PRP_OK;
+
+err_path:
     if (data.layout_matches) {
         DT_ArrDeleteUnchecked(&data.layout_matches);
     }
 
-    return PRP_INVALID_INDEX;
+    return code;
+}
+
+DT_bool SystemCacheIsAlreadyExisting(World *world, DT_size system_idx,
+                                     DT_size query_idx, DT_size *pIdx) {
+    DT_size len;
+    const SystemCache *system_caches =
+        DT_ArrRawUnchecked(world->system_caches, &len);
+
+    for (DT_size i = 0; i < len; i++) {
+        const SystemCache *cache = &system_caches[i];
+        if (cache->system_idx == system_idx && cache->query_idx == query_idx) {
+            *pIdx = i;
+            return DT_true;
+        }
+    }
+
+    return DT_false;
 }
 
 PRP_Result SystemCacheDelete(DT_void *system_cache, DT_void *_) {
     (DT_void) _;
     SystemCache *s = system_cache;
-    ASSERT_SYSTEM_CACHE_INVARIANT_EXPR(s);
 
     DT_ArrDeleteUnchecked(&s->layout_matches);
 
@@ -180,8 +175,6 @@ static PRP_Result SystemExecForEachCb(DT_void *pVal, DT_void *user_data) {
 
 DT_void SystemExec(World *world, const SystemCache *system_cache,
                    DT_void *user_data) {
-    ASSERT_CTX_INVARIANT_EXPR;
-
     DT_size matches_len, layouts_len;
     const DT_size *layout_matches =
         DT_ArrRawUnchecked(system_cache->layout_matches, &matches_len);
@@ -195,9 +188,8 @@ DT_void SystemExec(World *world, const SystemCache *system_cache,
         const Layout *layout = &layouts[layout_idx];
         Behavior *behavior =
             DT_ArrGetUnchecked(g_ctx->behaviors, layout->behavior_idx);
-        DIAG_ASSERT(behavior != DT_null);
         system_data.strides = behavior->strides;
-        system_data.comp_count = DT_BitmapSetCountUnchecked(behavior->set);
+        system_data.comp_count = DT_BitmapSetCount(behavior->set);
 
         DT_ArrForEachUnchecked(layout->chunk_ptrs, SystemExecForEachCb,
                                &system_data);

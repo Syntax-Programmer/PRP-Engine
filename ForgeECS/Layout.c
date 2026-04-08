@@ -1,4 +1,4 @@
-#include "../Diagnostics/Assert.h"
+#include "Defs.h"
 #include "Internals.h"
 #include <string.h>
 
@@ -34,8 +34,6 @@ static PRP_Result ChunkCreate(Layout *layout);
  */
 static PRP_Result LayoutInitialize(Layout *layout, DT_size behavior_idx);
 
-PRP_Result LayoutGetLastErrCode(DT_void) { return last_err_code; }
-
 static PRP_Result ChunkCreate(Layout *layout) {
     Behavior *behavior =
         DT_ArrGetUnchecked(g_ctx->behaviors, layout->behavior_idx);
@@ -44,7 +42,7 @@ static PRP_Result ChunkCreate(Layout *layout) {
         return PRP_ERR_OOM;
     }
 
-    DT_size push_idx = DT_ArrLenUnchecked(layout->chunk_ptrs);
+    DT_size push_idx = DT_ArrLen(layout->chunk_ptrs);
     PRP_Result code = DT_ArrPushUnchecked(layout->chunk_ptrs, &chunk);
     if (code != PRP_OK) {
         free(chunk);
@@ -63,7 +61,7 @@ static PRP_Result ChunkCreate(Layout *layout) {
      * and doesn't count in the size of struct.
      */
     memset(chunk, 0XFF, sizeof(Chunk));
-    DT_size bit_cap = DT_BitmapBitCapUnchecked(layout->free_chunks);
+    DT_size bit_cap = DT_BitmapBitCap(layout->free_chunks);
     if (push_idx >= bit_cap) {
         DT_size new_bit_cap;
         if (DT_BITMAP_MAX_BIT_CAP / 2 < bit_cap) {
@@ -84,28 +82,26 @@ static PRP_Result ChunkCreate(Layout *layout) {
 }
 
 static PRP_Result LayoutInitialize(Layout *layout, DT_size behavior_idx) {
-    PRP_Result code;
     layout->behavior_idx = behavior_idx;
-    layout->chunk_ptrs =
-        DT_ArrCreateUnchecked(sizeof(Chunk *), DT_ARR_DEFAULT_CAP);
-    if (!layout->chunk_ptrs) {
-        code = DT_ArrGetLastErrCode();
-        goto free_internals;
-    }
-    layout->free_chunks = DT_BitmapCreateUnchecked(DT_ARR_DEFAULT_CAP);
-    if (!layout->free_chunks) {
-        code = DT_BitmapGetLastErrCode();
-        goto free_internals;
-    }
+    PRP_Result code;
 
+    code = DT_ArrCreateUnchecked(sizeof(Chunk *), DT_ARR_DEFAULT_CAP,
+                                 &layout->chunk_ptrs);
+    if (code != PRP_OK) {
+        goto err_path;
+    }
+    code = DT_BitmapCreateUnchecked(DT_ARR_DEFAULT_CAP, &layout->free_chunks);
+    if (code != PRP_OK) {
+        goto err_path;
+    }
     code = ChunkCreate(layout);
     if (code != PRP_OK) {
-        goto free_internals;
+        goto err_path;
     }
 
     return PRP_OK;
 
-free_internals:
+err_path:
     if (layout->chunk_ptrs) {
         DT_ArrForEachUnchecked(layout->chunk_ptrs, ChunkPtrDelCb, DT_null);
         DT_ArrDeleteUnchecked(&layout->chunk_ptrs);
@@ -117,33 +113,22 @@ free_internals:
     return code;
 }
 
-DT_size LayoutCreate(DT_DSId world_id, DT_size behavior_idx) {
-    ASSERT_CTX_INVARIANT_EXPR;
-    DIAG_ASSERT(behavior_idx < DT_ArrLenUnchecked(g_ctx->behaviors));
-    DIAG_ASSERT(DT_DSIdIsValidUnchecked(g_ctx->worlds, world_id));
-    World *world = DT_DSIdToDataUnchecked(g_ctx->worlds, world_id);
-    ASSERT_WORLD_INVARIANT_EXPR(world);
-
+PRP_Result LayoutCreate(World *world, DT_size behavior_idx, DT_size *pIdx) {
     Layout data = {0};
     PRP_Result code = LayoutInitialize(&data, behavior_idx);
     if (code != PRP_OK) {
-        SET_LAST_ERR_CODE(code);
-        return PRP_INVALID_INDEX;
+        return code;
     }
 
     code = DT_ArrPushUnchecked(world->layouts, &data);
-    if (code == PRP_ERR_RES_EXHAUSTED || code == PRP_ERR_OOM) {
-        SET_LAST_ERR_CODE(PRP_ERR_OOM);
+    if (code != PRP_OK) {
         LayoutDelete(&data, DT_null);
-        return PRP_INVALID_INDEX;
-    } else if (code != PRP_OK) {
-        SET_LAST_ERR_CODE(PRP_ERR_INTERNAL);
-        LayoutDelete(&data, DT_null);
-        return PRP_INVALID_INDEX;
+        return code;
     }
 
-    // The -1 to convert len to idx.
-    return DT_ArrLenUnchecked(world->layouts) - 1;
+    *pIdx = DT_ArrLen(world->layouts) - 1;
+
+    return PRP_OK;
 }
 
 static PRP_Result ChunkPtrDelCb(DT_void *ptr, DT_void *user_data) {
@@ -158,9 +143,6 @@ static PRP_Result ChunkPtrDelCb(DT_void *ptr, DT_void *user_data) {
 PRP_Result LayoutDelete(DT_void *layout, DT_void *_) {
     (DT_void) _;
     Layout *l = layout;
-    DIAG_ASSERT(l != DT_null);
-    DIAG_ASSERT(l->chunk_ptrs != DT_null && l->free_chunks != DT_null);
-    DIAG_ASSERT(l->behavior_idx < DT_ArrLenUnchecked(g_ctx->behaviors));
 
     DT_ArrForEachUnchecked(l->chunk_ptrs, ChunkPtrDelCb, DT_null);
     DT_ArrDeleteUnchecked(&l->chunk_ptrs);
@@ -173,18 +155,19 @@ PRP_Result LayoutDelete(DT_void *layout, DT_void *_) {
     return PRP_OK;
 }
 
-DT_size LayoutIsAlreadyExisting(DT_DSId world_id, DT_size behavior_idx) {
-    World *world = DT_DSIdToDataUnchecked(g_ctx->worlds, world_id);
+DT_bool LayoutIsAlreadyExisting(World *world, DT_size behavior_idx,
+                                DT_size *pIdx) {
     DT_size len;
     const Layout *layouts = DT_ArrRawUnchecked(world->layouts, &len);
 
     for (DT_size i = 0; i < len; i++) {
         if (layouts[i].behavior_idx == behavior_idx) {
-            return i;
+            *pIdx = i;
+            return DT_true;
         }
     }
 
-    return PRP_INVALID_INDEX;
+    return DT_false;
 }
 
 /* ----  ENTITY ---- */
@@ -199,83 +182,65 @@ DT_size LayoutIsAlreadyExisting(DT_DSId world_id, DT_size behavior_idx) {
     (((DT_size)(chunk_idx) << ENTITY_SLOT_BITS) |                              \
      ((DT_size)(slot_idx) & ENTITY_SLOT_MASK))
 
-#define MAX_ENTITY_CAP(layout)                                                 \
-    (DT_ArrLenUnchecked(layout->chunk_ptrs) * CHUNK_CAP)
+#define MAX_ENTITY_CAP(layout) (DT_ArrLen(layout->chunk_ptrs) * CHUNK_CAP)
 
 static DT_size GetCompStride(DT_size behavior_idx, DT_size comp_idx);
 
-FECS_Entity LayoutEntitySpawn(DT_DSId world_id, DT_size layout_idx) {
-    ASSERT_CTX_INVARIANT_EXPR;
-    DIAG_ASSERT(DT_DSIdIsValidUnchecked(g_ctx->worlds, world_id));
-    World *world = DT_DSIdToDataUnchecked(g_ctx->worlds, world_id);
-    ASSERT_WORLD_INVARIANT_EXPR(world);
-    DIAG_ASSERT(layout_idx < DT_ArrLenUnchecked(world->layouts));
-
+PRP_Result LayoutEntitySpawn(World *world, DT_size layout_idx,
+                             FECS_Entity *pEntity) {
     Layout *layout = DT_ArrGetUnchecked(world->layouts, layout_idx);
-    DT_size free_chunk = DT_BitmapFFSUnchecked(layout->free_chunks);
+    DT_size free_chunk = DT_BitmapFFS(layout->free_chunks);
     if (free_chunk == PRP_INVALID_INDEX) {
         PRP_Result code = ChunkCreate(layout);
         if (code != PRP_OK) {
-            SET_LAST_ERR_CODE(code);
-            return (FECS_Entity){.layout_idx = PRP_INVALID_INDEX,
-                                 .data.entity_idx = PRP_INVALID_INDEX};
+            return code;
         }
-        free_chunk = DT_BitmapFFSUnchecked(layout->free_chunks);
-        DIAG_ASSERT(free_chunk != PRP_INVALID_INDEX);
+        free_chunk = DT_BitmapFFS(layout->free_chunks);
     }
 
     Chunk *chunk = CHUNK(layout, free_chunk);
     DT_u32 free_slot = (DT_u32)DT_BitwordFFS((DT_Bitword)chunk->free_slot);
 
-    FECS_Entity entity = {.layout_idx = layout_idx,
-                          .data.gen = chunk->gen[free_slot],
-                          .data.entity_idx = ENTITY_IDX(free_chunk, free_slot)};
+    pEntity->layout_idx = layout_idx;
+    pEntity->data.gen = chunk->gen[free_slot];
+    pEntity->data.entity_idx = ENTITY_IDX(free_chunk, free_slot);
     PRP_BIT_CLR(chunk->free_slot, free_slot);
     if (!chunk->free_slot) {
         DT_BitmapClrUnchecked(layout->free_chunks, free_chunk);
     }
 
-    return entity;
+    return PRP_OK;
 }
 
-FECS_EntityBatch *LayoutEntitySpawnN(DT_DSId world_id, DT_size layout_idx,
-                                     DT_size count) {
-    ASSERT_CTX_INVARIANT_EXPR;
-    DIAG_ASSERT(DT_DSIdIsValidUnchecked(g_ctx->worlds, world_id));
-    World *world = DT_DSIdToDataUnchecked(g_ctx->worlds, world_id);
-    ASSERT_WORLD_INVARIANT_EXPR(world);
-    DIAG_ASSERT(count > 0);
-    DIAG_ASSERT(layout_idx < DT_ArrLenUnchecked(world->layouts));
-
+PRP_Result LayoutEntitySpawnN(World *world, DT_size layout_idx, DT_size count,
+                              FECS_EntityBatch **pEntities) {
     Layout *layout = DT_ArrGetUnchecked(world->layouts, layout_idx);
     FECS_EntityBatch *batch =
         malloc(sizeof(FECS_EntityBatch) + (sizeof(EntityData) * count));
     if (!batch) {
-        SET_LAST_ERR_CODE(PRP_ERR_OOM);
-        return DT_null;
+        return PRP_ERR_OOM;
     }
     batch->layout_idx = layout_idx;
     batch->count = count;
     DT_size i = 0;
     while (i < count) {
-        DT_size free_chunk = DT_BitmapFFSUnchecked(layout->free_chunks);
+        DT_size free_chunk = DT_BitmapFFS(layout->free_chunks);
         if (free_chunk == PRP_INVALID_INDEX) {
             PRP_Result code = ChunkCreate(layout);
             if (code != PRP_OK) {
                 if (i == 0) {
-                    SET_LAST_ERR_CODE(code);
                     free(batch);
-                    return DT_null;
+                    return code;
                 }
                 batch->count = i;
                 DIAG_LOG_WARN(DIAG_LOG_CODE_FALLBACK_USED,
                               "Cannot create a batch of %zu entities, a batch "
                               "with %zu entities is being created.",
                               count, i);
-                return batch;
+                *pEntities = batch;
+                return PRP_OK;
             }
-            free_chunk = DT_BitmapFFSUnchecked(layout->free_chunks);
-            DIAG_ASSERT(free_chunk != PRP_INVALID_INDEX);
+            free_chunk = DT_BitmapFFS(layout->free_chunks);
         }
         Chunk *chunk = CHUNK(layout, free_chunk);
         while (chunk->free_slot && i < count) {
@@ -291,17 +256,13 @@ FECS_EntityBatch *LayoutEntitySpawnN(DT_DSId world_id, DT_size layout_idx,
             DT_BitmapClrUnchecked(layout->free_chunks, free_chunk);
         }
     }
+    *pEntities = batch;
 
-    return batch;
+    return PRP_OK;
 }
 
-DT_bool LayoutEntityIsValid(DT_DSId world_id, const FECS_Entity entity) {
-    ASSERT_CTX_INVARIANT_EXPR;
-    DIAG_ASSERT(DT_DSIdIsValidUnchecked(g_ctx->worlds, world_id));
-    World *world = DT_DSIdToDataUnchecked(g_ctx->worlds, world_id);
-    ASSERT_WORLD_INVARIANT_EXPR(world);
-
-    if (entity.layout_idx >= DT_ArrLenUnchecked(world->layouts)) {
+DT_bool LayoutEntityIsValid(World *world, const FECS_Entity entity) {
+    if (entity.layout_idx >= DT_ArrLen(world->layouts)) {
         return DT_false;
     }
     Layout *layout = DT_ArrGetUnchecked(world->layouts, entity.layout_idx);
@@ -321,15 +282,9 @@ DT_bool LayoutEntityIsValid(DT_DSId world_id, const FECS_Entity entity) {
     return DT_true;
 }
 
-DT_bool LayoutEntityBatchIsValid(DT_DSId world_id,
+DT_bool LayoutEntityBatchIsValid(World *world,
                                  const FECS_EntityBatch *entities) {
-    ASSERT_CTX_INVARIANT_EXPR;
-    DIAG_ASSERT(DT_DSIdIsValidUnchecked(g_ctx->worlds, world_id));
-    World *world = DT_DSIdToDataUnchecked(g_ctx->worlds, world_id);
-    ASSERT_WORLD_INVARIANT_EXPR(world);
-    DIAG_ASSERT(world != DT_null);
-
-    if (entities->layout_idx >= DT_ArrLenUnchecked(world->layouts)) {
+    if (entities->layout_idx >= DT_ArrLen(world->layouts)) {
         return DT_false;
     }
     Layout *layout = DT_ArrGetUnchecked(world->layouts, entities->layout_idx);
@@ -352,13 +307,7 @@ DT_bool LayoutEntityBatchIsValid(DT_DSId world_id,
     return DT_true;
 }
 
-DT_void LayoutEntityKill(DT_DSId world_id, FECS_Entity entity) {
-    ASSERT_CTX_INVARIANT_EXPR;
-    DIAG_ASSERT(DT_DSIdIsValidUnchecked(g_ctx->worlds, world_id));
-    World *world = DT_DSIdToDataUnchecked(g_ctx->worlds, world_id);
-    ASSERT_WORLD_INVARIANT_EXPR(world);
-    DIAG_ASSERT(LayoutEntityIsValid(world_id, entity) == DT_true);
-
+DT_void LayoutEntityKill(World *world, FECS_Entity entity) {
     Layout *layout = DT_ArrGetUnchecked(world->layouts, entity.layout_idx);
     DT_size chunk_idx = entity.data.entity_idx >> ENTITY_SLOT_BITS;
     Chunk *chunk = CHUNK(layout, chunk_idx);
@@ -370,14 +319,7 @@ DT_void LayoutEntityKill(DT_DSId world_id, FECS_Entity entity) {
     DT_BitmapSetUnchecked(layout->free_chunks, chunk_idx);
 }
 
-DT_void LayoutEntityKillN(DT_DSId world_id, FECS_EntityBatch *entities) {
-    ASSERT_CTX_INVARIANT_EXPR;
-    DIAG_ASSERT(entities != DT_null);
-    DIAG_ASSERT(DT_DSIdIsValidUnchecked(g_ctx->worlds, world_id));
-    World *world = DT_DSIdToDataUnchecked(g_ctx->worlds, world_id);
-    ASSERT_WORLD_INVARIANT_EXPR(world);
-    DIAG_ASSERT(LayoutEntityBatchIsValid(world_id, entities) == DT_true);
-
+DT_void LayoutEntityKillN(World *world, FECS_EntityBatch *entities) {
     Layout *layout = DT_ArrGetUnchecked(world->layouts, entities->layout_idx);
     for (DT_size i = 0; i < entities->count; i++) {
         DT_size chunk_idx = entities->data[i].entity_idx >> ENTITY_SLOT_BITS;
@@ -392,9 +334,6 @@ DT_void LayoutEntityKillN(DT_DSId world_id, FECS_EntityBatch *entities) {
 }
 
 static DT_size GetCompStride(DT_size behavior_idx, DT_size comp_idx) {
-    DIAG_ASSERT(behavior_idx < DT_ArrLenUnchecked(g_ctx->behaviors));
-    DIAG_ASSERT(comp_idx < DT_ArrLenUnchecked(g_ctx->comps));
-
     Behavior *behavior = DT_ArrGetUnchecked(g_ctx->behaviors, behavior_idx);
     DT_size bit_cap, word_cap;
     const DT_Bitword *set_raw =
@@ -416,16 +355,8 @@ static DT_size GetCompStride(DT_size behavior_idx, DT_size comp_idx) {
     return behavior->strides[idx];
 }
 
-DT_void *LayoutEntityGetComp(DT_DSId world_id, const FECS_Entity entity,
-                             DT_size comp_idx) {
-    ASSERT_CTX_INVARIANT_EXPR;
-    DIAG_ASSERT(DT_DSIdIsValidUnchecked(g_ctx->worlds, world_id));
-    World *world = DT_DSIdToDataUnchecked(g_ctx->worlds, world_id);
-    ASSERT_WORLD_INVARIANT_EXPR(world);
-    // This entire check vanishes in debug mode.
-    DIAG_ASSERT(LayoutEntityIsValid(world_id, entity) == DT_true);
-    DIAG_ASSERT(comp_idx < DT_ArrLenUnchecked(g_ctx->comps));
-
+PRP_Result LayoutEntityGetComp(World *world, const FECS_Entity entity,
+                               DT_size comp_idx, DT_void **dest) {
     Layout *layout = DT_ArrGetUnchecked(world->layouts, entity.layout_idx);
     DT_size chunk_idx = entity.data.entity_idx >> ENTITY_SLOT_BITS;
     Chunk *chunk = CHUNK(layout, chunk_idx);
@@ -434,23 +365,17 @@ DT_void *LayoutEntityGetComp(DT_DSId world_id, const FECS_Entity entity,
     DT_size comp_size =
         ((ComponentMetadata *)DT_ArrGetUnchecked(g_ctx->comps, comp_idx))->size;
     DT_size comp_stride = GetCompStride(layout->behavior_idx, comp_idx);
-    DIAG_ASSERT_MSG(comp_stride != PRP_INVALID_SIZE,
-                    "The given comp idx to extract for the entity, is not part "
-                    "of the entity.");
+    if (comp_stride == PRP_INVALID_SIZE) {
+        return PRP_ERR_INV_ARG;
+    }
 
-    return (DT_u8 *)chunk->mem + comp_stride + (slot_idx * comp_size);
+    *dest = (DT_u8 *)chunk->mem + comp_stride + (slot_idx * comp_size);
+
+    return PRP_OK;
 }
 
-DT_void LayoutEntitySetComp(DT_DSId world_id, FECS_Entity entity,
-                            DT_size comp_idx, const DT_void *data) {
-    ASSERT_CTX_INVARIANT_EXPR;
-    DIAG_ASSERT(DT_DSIdIsValidUnchecked(g_ctx->worlds, world_id));
-    World *world = DT_DSIdToDataUnchecked(g_ctx->worlds, world_id);
-    ASSERT_WORLD_INVARIANT_EXPR(world);
-    // This entire check vanishes in debug mode.
-    DIAG_ASSERT(LayoutEntityIsValid(world_id, entity) == DT_true);
-    DIAG_ASSERT(comp_idx < DT_ArrLenUnchecked(g_ctx->comps));
-
+PRP_Result LayoutEntitySetComp(World *world, FECS_Entity entity,
+                               DT_size comp_idx, const DT_void *data) {
     Layout *layout = DT_ArrGetUnchecked(world->layouts, entity.layout_idx);
     DT_size chunk_idx = entity.data.entity_idx >> ENTITY_SLOT_BITS;
     Chunk *chunk = CHUNK(layout, chunk_idx);
@@ -459,32 +384,27 @@ DT_void LayoutEntitySetComp(DT_DSId world_id, FECS_Entity entity,
     DT_size comp_size =
         ((ComponentMetadata *)DT_ArrGetUnchecked(g_ctx->comps, comp_idx))->size;
     DT_size comp_stride = GetCompStride(layout->behavior_idx, comp_idx);
-    DIAG_ASSERT_MSG(comp_stride != PRP_INVALID_SIZE,
-                    "The given comp idx to extract for the entity, is not part "
-                    "of the entity.");
+    if (comp_stride == PRP_INVALID_SIZE) {
+        return PRP_ERR_INV_ARG;
+    }
     DT_u8 *ptr = (DT_u8 *)chunk->mem + comp_stride + (slot_idx * comp_size);
-
     memcpy(ptr, data, comp_size);
+
+    return PRP_OK;
 }
 
-PRP_Result LayoutEntityBatchForEach(
-    DT_DSId world_id, FECS_EntityBatch *entities, DT_size comp_idx,
-    PRP_Result (*cb)(DT_void *comp_data, DT_void *user_data),
-    DT_void *user_data) {
-    ASSERT_CTX_INVARIANT_EXPR;
-    DIAG_ASSERT(DT_DSIdIsValidUnchecked(g_ctx->worlds, world_id));
-    World *world = DT_DSIdToDataUnchecked(g_ctx->worlds, world_id);
-    ASSERT_WORLD_INVARIANT_EXPR(world);
-    // This entire check vanishes in debug mode.
-    DIAG_ASSERT(LayoutEntityBatchIsValid(world_id, entities) == DT_true);
-
+PRP_Result LayoutEntityBatchForEach(World *world, FECS_EntityBatch *entities,
+                                    DT_size comp_idx,
+                                    PRP_Result (*cb)(DT_void *comp_data,
+                                                     DT_void *user_data),
+                                    DT_void *user_data) {
     Layout *layout = DT_ArrGetUnchecked(world->layouts, entities->layout_idx);
     DT_size comp_size =
         ((ComponentMetadata *)DT_ArrGetUnchecked(g_ctx->comps, comp_idx))->size;
     DT_size comp_stride = GetCompStride(layout->behavior_idx, comp_idx);
-    DIAG_ASSERT_MSG(comp_stride != PRP_INVALID_SIZE,
-                    "The given comp idx to extract for the entity, is not part "
-                    "of the entities.");
+    if (comp_stride == PRP_INVALID_SIZE) {
+        return PRP_ERR_INV_ARG;
+    }
     for (DT_size i = 0; i < entities->count; i++) {
         DT_size chunk_idx = entities->data[i].entity_idx >> ENTITY_SLOT_BITS;
         Chunk *chunk = CHUNK(layout, chunk_idx);

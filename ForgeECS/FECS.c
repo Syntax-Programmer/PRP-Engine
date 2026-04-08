@@ -4,176 +4,175 @@
 
 /* ----  COMPS ---- */
 
-PRP_FN_API DT_size PRP_FN_CALL FECS_CompRegisterUnchecked(const DT_char *name,
-                                                          DT_size size) {
+PRP_FN_API PRP_Result PRP_FN_CALL
+FECS_CompRegisterUnchecked(const DT_char *name, DT_size size, DT_size *pIdx) {
     ASSERT_CTX_INVARIANT_EXPR;
+    DIAG_ASSERT_MSG(
+        g_ctx->schema_lock == DT_false,
+        "The given operation cannot be performed after a schema lock.");
     DIAG_ASSERT(name != DT_null);
     DIAG_ASSERT(size > 0);
+    DIAG_ASSERT(pIdx != DT_null);
 
-    if (CompIsRegistered(name) != PRP_INVALID_INDEX) {
-        SET_LAST_ERR_CODE(PRP_ERR_ALREADY_EXISTS);
+    if (CompIsRegistered(name, pIdx)) {
         DIAG_LOG_ERROR(DIAG_LOG_CODE_INVALID_ARG,
                        "The given component name is already registered.");
-        return PRP_INVALID_INDEX;
-    }       
-    DT_size idx = CompRegister(name, size);
-    if (idx == PRP_INVALID_INDEX) {
-        SET_LAST_ERR_CODE(CompGetLastErrCode());
+        return PRP_ERR_ALREADY_EXISTS;
     }
 
-    return idx;
+    return CompRegister(name, size, pIdx);
 }
 
-PRP_FN_API DT_size PRP_FN_CALL FECS_CompRegisterChecked(const DT_char *name,
-                                                        DT_size size) {
-    if (!CTX_INVARIANT_EXPR) {
-        SET_LAST_ERR_CODE(PRP_ERR_INTERNAL);
-        return PRP_INVALID_INDEX;
+PRP_FN_API PRP_Result PRP_FN_CALL FECS_CompRegisterChecked(const DT_char *name,
+                                                           DT_size size,
+                                                           DT_size *pIdx) {
+    if (!CTX_INVARIANT_EXPR || g_ctx->schema_lock) {
+        return PRP_ERR_INTERNAL;
     }
-    if (!name || !size) {
-        SET_LAST_ERR_CODE(PRP_ERR_INV_ARG);
-        return PRP_INVALID_INDEX;
+    if (!name || !size || !pIdx) {
+        return PRP_ERR_INV_ARG;
     }
-    if (CompIsRegistered(name) != PRP_INVALID_INDEX) {
-        SET_LAST_ERR_CODE(PRP_ERR_ALREADY_EXISTS);
+    if (CompIsRegistered(name, pIdx)) {
         DIAG_LOG_ERROR(DIAG_LOG_CODE_INVALID_ARG,
                        "The given component name is already registered.");
-        return PRP_INVALID_INDEX;
+        return PRP_ERR_ALREADY_EXISTS;
     }
 
-    DT_size idx = CompRegister(name, size);
-    if (idx == PRP_INVALID_INDEX) {
-        SET_LAST_ERR_CODE(CompGetLastErrCode());
-    }
-
-    return idx;
+    return CompRegister(name, size, pIdx);
 }
 
 /* ----  BEHAVIOR ---- */
 
-PRP_FN_API DT_size PRP_FN_CALL
-FECS_BehaviorRegisterUnchecked(DT_Arr *comp_idxs) {
+PRP_FN_API PRP_Result PRP_FN_CALL
+FECS_BehaviorRegisterUnchecked(DT_Arr *comp_idxs, DT_size *pIdx) {
     ASSERT_CTX_INVARIANT_EXPR;
+    DIAG_ASSERT_MSG(
+        g_ctx->schema_lock == DT_false,
+        "The given operation cannot be performed after a schema lock.");
     DIAG_ASSERT(DT_ArrIsValid(comp_idxs) == DT_true);
+    DIAG_ASSERT(pIdx != DT_null);
 
-    DT_size idx = BehaviorIsRegistered(comp_idxs);
-    if (idx != PRP_INVALID_INDEX) {
-        return idx;
+    if (BehaviorIsRegistered(comp_idxs, pIdx)) {
+        return PRP_OK;
     }
-    idx = BehaviorRegister(comp_idxs);
-    if (idx == PRP_INVALID_INDEX) {
-        SET_LAST_ERR_CODE(BehaviorGetLastErrCode());
+    PRP_Result code = BehaviorRegister(comp_idxs, pIdx);
+    if (code != PRP_OK) {
+        return code;
+    }
+    code = DT_ArrForEachUnchecked(g_ctx->queries, QueryCascadeUpdateBehavior,
+                                  pIdx);
+    if (code != PRP_OK) {
+        DT_ArrForEachUnchecked(g_ctx->queries, QueryCascadingErrorCleanup,
+                               pIdx);
+        Behavior *behavior;
+        DT_ArrPopUnchecked(g_ctx->behaviors, behavior);
+        BehaviorDelete(behavior, DT_null);
+        return code;
     }
 
-    return idx;
+    return PRP_OK;
 }
 
-PRP_FN_API DT_size PRP_FN_CALL FECS_BehaviorRegisterChecked(DT_Arr *comp_idxs) {
-    if (!CTX_INVARIANT_EXPR) {
-        SET_LAST_ERR_CODE(PRP_ERR_INTERNAL);
-        return PRP_INVALID_INDEX;
+PRP_FN_API PRP_Result PRP_FN_CALL
+FECS_BehaviorRegisterChecked(DT_Arr *comp_idxs, DT_size *pIdx) {
+    if (!CTX_INVARIANT_EXPR || g_ctx->schema_lock) {
+        return PRP_ERR_INTERNAL;
     }
-    if (!DT_ArrIsValid(comp_idxs)) {
-        SET_LAST_ERR_CODE(PRP_ERR_INV_ARG);
-        return PRP_INVALID_INDEX;
-    }
-
-    DT_size idx = BehaviorIsRegistered(comp_idxs);
-    if (idx != PRP_INVALID_INDEX) {
-        return idx;
-    }
-    idx = BehaviorRegister(comp_idxs);
-    if (idx == PRP_INVALID_INDEX) {
-        SET_LAST_ERR_CODE(BehaviorGetLastErrCode());
+    if (!DT_ArrIsValid(comp_idxs) || !pIdx) {
+        return PRP_ERR_INV_ARG;
     }
 
-    return idx;
+    if (BehaviorIsRegistered(comp_idxs, pIdx)) {
+        return PRP_OK;
+    }
+    PRP_Result code = BehaviorRegister(comp_idxs, pIdx);
+    if (code != PRP_OK) {
+        return code;
+    }
+    code = DT_ArrForEachUnchecked(g_ctx->queries, QueryCascadeUpdateBehavior,
+                                  pIdx);
+    if (code != PRP_OK) {
+        DT_ArrForEachUnchecked(g_ctx->queries, QueryCascadingErrorCleanup,
+                               pIdx);
+        Behavior *behavior;
+        DT_ArrPopUnchecked(g_ctx->behaviors, behavior);
+        BehaviorDelete(behavior, DT_null);
+        return code;
+    }
+
+    return PRP_OK;
 }
 
 /* ----  QUERY ---- */
 
-PRP_FN_API DT_size PRP_FN_CALL FECS_QueryRegisterUnchecked(DT_Arr *inc_comps,
-                                                           DT_Arr *exc_comps) {
+PRP_FN_API PRP_Result PRP_FN_CALL FECS_QueryRegisterUnchecked(
+    const DT_Arr *inc_comps, const DT_Arr *exc_comps, DT_size *pIdx) {
     ASSERT_CTX_INVARIANT_EXPR;
+    DIAG_ASSERT_MSG(
+        g_ctx->schema_lock == DT_false,
+        "The given operation cannot be performed after a schema lock.");
     DIAG_ASSERT(DT_ArrIsValid(inc_comps) == DT_true);
     if (exc_comps) {
         DIAG_ASSERT(DT_ArrIsValid(exc_comps) == DT_true);
     }
+    DIAG_ASSERT(pIdx != DT_null);
 
-    DT_size idx = QueryIsRegistered(inc_comps, exc_comps);
-    if (idx != PRP_INVALID_INDEX) {
-        return idx;
-    }
-    idx = QueryRegister(inc_comps, exc_comps);
-    if (idx == PRP_INVALID_INDEX) {
-        SET_LAST_ERR_CODE(QueryGetLastErrCode());
+    if (QueryIsRegistered(inc_comps, exc_comps, pIdx)) {
+        return PRP_OK;
     }
 
-    return idx;
+    return QueryRegister(inc_comps, exc_comps, pIdx);
 }
 
-PRP_FN_API DT_size PRP_FN_CALL FECS_QueryRegisterChecked(DT_Arr *inc_comps,
-                                                         DT_Arr *exc_comps) {
-    if (!CTX_INVARIANT_EXPR) {
-        SET_LAST_ERR_CODE(PRP_ERR_INTERNAL);
-        return PRP_INVALID_INDEX;
+PRP_FN_API PRP_Result PRP_FN_CALL FECS_QueryRegisterChecked(
+    const DT_Arr *inc_comps, const DT_Arr *exc_comps, DT_size *pIdx) {
+    if (!CTX_INVARIANT_EXPR || g_ctx->schema_lock) {
+        return PRP_ERR_INTERNAL;
     }
-    if (!DT_ArrIsValid(inc_comps) || (exc_comps && !DT_ArrIsValid(exc_comps))) {
-        SET_LAST_ERR_CODE(PRP_ERR_INV_ARG);
-        return PRP_INVALID_INDEX;
-    }
-
-    DT_size idx = QueryIsRegistered(inc_comps, exc_comps);
-    if (idx != PRP_INVALID_INDEX) {
-        return idx;
-    }
-    idx = QueryRegister(inc_comps, exc_comps);
-    if (idx == PRP_INVALID_INDEX) {
-        SET_LAST_ERR_CODE(QueryGetLastErrCode());
+    if (!DT_ArrIsValid(inc_comps) || (exc_comps && !DT_ArrIsValid(exc_comps)) ||
+        !pIdx) {
+        return PRP_ERR_INV_ARG;
     }
 
-    return idx;
+    if (QueryIsRegistered(inc_comps, exc_comps, pIdx)) {
+        return PRP_OK;
+    }
+
+    return QueryRegister(inc_comps, exc_comps, pIdx);
 }
 
 /* ----  SYSTEMS ---- */
 
-PRP_FN_API DT_size PRP_FN_CALL
-FECS_SystemRegisterUnchecked(FECS_System system) {
+PRP_FN_API PRP_Result PRP_FN_CALL
+FECS_SystemRegisterUnchecked(FECS_System system, DT_size *pIdx) {
     ASSERT_CTX_INVARIANT_EXPR;
+    DIAG_ASSERT_MSG(
+        g_ctx->schema_lock == DT_false,
+        "The given operation cannot be performed after a schema lock.");
     DIAG_ASSERT(system != DT_null);
+    DIAG_ASSERT(pIdx != DT_null);
 
-    DT_size idx = SystemIsRegistered(system);
-    if (idx != PRP_INVALID_INDEX) {
-        return idx;
-    }
-    idx = SystemRegister(system);
-    if (idx == PRP_INVALID_INDEX) {
-        SET_LAST_ERR_CODE(SystemGetLastErrCode());
+    if (SystemIsRegistered(system, pIdx)) {
+        return PRP_OK;
     }
 
-    return idx;
+    return SystemRegister(system, pIdx);
 }
 
-PRP_FN_API DT_size PRP_FN_CALL FECS_SystemRegisterChecked(FECS_System system) {
-    if (!CTX_INVARIANT_EXPR) {
-        SET_LAST_ERR_CODE(PRP_ERR_INTERNAL);
-        return PRP_INVALID_INDEX;
+PRP_FN_API PRP_Result PRP_FN_CALL FECS_SystemRegisterChecked(FECS_System system,
+                                                             DT_size *pIdx) {
+    if (!CTX_INVARIANT_EXPR || g_ctx->schema_lock) {
+        return PRP_ERR_INTERNAL;
     }
-    if (!system) {
-        SET_LAST_ERR_CODE(PRP_ERR_INV_ARG);
-        return PRP_INVALID_INDEX;
-    }
-
-    DT_size idx = SystemIsRegistered(system);
-    if (idx != PRP_INVALID_INDEX) {
-        return idx;
-    }
-    idx = SystemRegister(system);
-    if (idx == PRP_INVALID_INDEX) {
-        SET_LAST_ERR_CODE(SystemGetLastErrCode());
+    if (!system || !pIdx) {
+        return PRP_ERR_INV_ARG;
     }
 
-    return idx;
+    if (SystemIsRegistered(system, pIdx)) {
+        return PRP_OK;
+    }
+
+    return SystemRegister(system, pIdx);
 }
 
 /* ----  LAYOUTS ---- */
@@ -182,8 +181,14 @@ PRP_FN_API DT_size PRP_FN_CALL FECS_SystemRegisterChecked(FECS_System system) {
 
 Context *g_ctx = DT_null;
 
-PRP_FN_API PRP_Result PRP_FN_CALL FECS_GetLastErrCode(DT_void) {
-    return last_err_code;
+PRP_FN_API PRP_Result PRP_FN_CALL FECS_LockSchemaDefs(DT_void) {
+    if (!CTX_INVARIANT_EXPR) {
+        return PRP_ERR_INV_STATE;
+    }
+
+    g_ctx->schema_lock = DT_true;
+
+    return PRP_OK;
 }
 
 PRP_FN_API PRP_Result PRP_FN_CALL FECS_Init(DT_void) {
@@ -195,40 +200,38 @@ PRP_FN_API PRP_Result PRP_FN_CALL FECS_Init(DT_void) {
     if (!g_ctx) {
         return PRP_ERR_OOM;
     }
-    g_ctx->schema_lock = DT_true;
+    g_ctx->schema_lock = DT_false;
     PRP_Result code;
-    g_ctx->comps =
-        DT_ArrCreateUnchecked(sizeof(ComponentMetadata), DT_ARR_DEFAULT_CAP);
-    if (!g_ctx->comps) {
-        code = DT_ArrGetLastErrCode();
-        goto free_internals;
+
+    code = DT_ArrCreateUnchecked(sizeof(ComponentMetadata), DT_ARR_DEFAULT_CAP,
+                                 &g_ctx->comps);
+    if (code != PRP_OK) {
+        goto err_path;
     }
-    g_ctx->behaviors =
-        DT_ArrCreateUnchecked(sizeof(Behavior), DT_ARR_DEFAULT_CAP);
-    if (!g_ctx->behaviors) {
-        code = DT_ArrGetLastErrCode();
-        goto free_internals;
+    code = DT_ArrCreateUnchecked(sizeof(Behavior), DT_ARR_DEFAULT_CAP,
+                                 &g_ctx->behaviors);
+    if (code != PRP_OK) {
+        goto err_path;
     }
-    g_ctx->queries = DT_ArrCreateUnchecked(sizeof(Query), DT_ARR_DEFAULT_CAP);
-    if (!g_ctx->queries) {
-        code = DT_ArrGetLastErrCode();
-        goto free_internals;
+    code = DT_ArrCreateUnchecked(sizeof(Query), DT_ARR_DEFAULT_CAP,
+                                 &g_ctx->queries);
+    if (code != PRP_OK) {
+        goto err_path;
     }
-    g_ctx->systems =
-        DT_ArrCreateUnchecked(sizeof(FECS_System), DT_ARR_DEFAULT_CAP);
-    if (!g_ctx->systems) {
-        code = DT_ArrGetLastErrCode();
-        goto free_internals;
+    code = DT_ArrCreateUnchecked(sizeof(FECS_System), DT_ARR_DEFAULT_CAP,
+                                 &g_ctx->systems);
+    if (code != PRP_OK) {
+        goto err_path;
     }
-    g_ctx->worlds = DT_DSArrCreateUnchecked(sizeof(World), WorldDeleteCb);
-    if (!g_ctx->worlds) {
-        code = DT_DSArrGetLastErrCode();
-        goto free_internals;
+    code =
+        DT_DSArrCreateUnchecked(sizeof(World), WorldDeleteCb, &g_ctx->worlds);
+    if (code != PRP_OK) {
+        goto err_path;
     }
 
     return PRP_OK;
 
-free_internals:
+err_path:
     if (g_ctx->comps) {
         DT_ArrDeleteUnchecked(&g_ctx->comps);
     }
@@ -250,7 +253,7 @@ free_internals:
 }
 
 PRP_FN_API PRP_Result PRP_FN_CALL FECS_Exit(DT_void) {
-    if (!g_ctx) {
+    if (!CTX_INVARIANT_EXPR) {
         return PRP_ERR_INV_STATE;
     }
 

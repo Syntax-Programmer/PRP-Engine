@@ -17,10 +17,6 @@ struct _Pool {
     DIAG_ASSERT_MSG(MEM_PoolIsValid(pool),                                     \
                     "The given pool is either DT_null, or is corrupted.")
 
-PRP_FN_API PRP_Result PRP_FN_CALL MEM_PoolGetLastErrCode(DT_void) {
-    return last_err_code;
-}
-
 PRP_FN_API DT_bool PRP_FN_CALL MEM_PoolIsValid(const MEM_Pool *pool) {
     return (pool != DT_null && pool->memb_size > 0 &&
             pool->cap <= MAX_CAP(pool->memb_size));

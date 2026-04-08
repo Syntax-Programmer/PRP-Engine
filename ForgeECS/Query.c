@@ -1,4 +1,3 @@
-#include "../Diagnostics/Assert.h"
 #include "Internals.h"
 
 /**
@@ -20,25 +19,21 @@ static PRP_Result QueryFindMatches(Query *query);
  *
  * @return The query index of the fully initialized and registered query.
  */
-static DT_size QueryRegisterInternal(DT_size *inc_comps, DT_size inc_len,
-                                     DT_size *exc_comps, DT_size exc_len);
-
-PRP_Result QueryGetLastErrCode(DT_void) { return last_err_code; }
+static PRP_Result QueryRegisterInternal(DT_size *inc_comps, DT_size inc_len,
+                                        DT_size *exc_comps, DT_size exc_len,
+                                        DT_size *pIdx);
 
 static PRP_Result QueryFindMatches(Query *query) {
-    if (query->behavior_matches) {
-        DT_ArrResetUnchecked(query->behavior_matches);
-    } else {
-        query->behavior_matches =
-            DT_ArrCreateUnchecked(sizeof(DT_size), DT_ARR_DEFAULT_CAP);
-        if (!query->behavior_matches) {
-            return PRP_ERR_OOM;
-        }
+    PRP_Result code;
+    const DT_size QUERY_INIT_SIZE = 4;
+    code = DT_ArrCreateUnchecked(sizeof(DT_size), QUERY_INIT_SIZE,
+                                 &query->behavior_matches);
+    if (code != PRP_OK) {
+        return code;
     }
 
     DT_size len;
     const Behavior *behaviors = DT_ArrRawUnchecked(g_ctx->behaviors, &len);
-    DIAG_ASSERT(behaviors != DT_null);
     for (DT_size i = 0; i < len; i++) {
         const Behavior *behavior = &behaviors[i];
         DT_bool is_match = (!query->exc || !DT_BitmapHasAnyUnchecked(
@@ -46,92 +41,72 @@ static PRP_Result QueryFindMatches(Query *query) {
                            DT_BitmapHasAllUnchecked(behavior->set, query->inc);
         if (is_match) {
             PRP_Result code = DT_ArrPushUnchecked(query->behavior_matches, &i);
-            if (code == PRP_ERR_RES_EXHAUSTED || code == PRP_ERR_OOM) {
+            if (code != PRP_OK) {
                 DT_ArrDeleteUnchecked(&query->behavior_matches);
-                return PRP_ERR_OOM;
-            } else if (code != PRP_OK) {
-                DT_ArrDeleteUnchecked(&query->behavior_matches);
-                return PRP_ERR_INTERNAL;
+                return code;
             }
         }
-    }
-    if (DT_ArrLenUnchecked(query->behavior_matches) == 0) {
-        /*
-         * If no match, no point in wasting memory. This is a valid documented
-         * condition.
-         */
-        DT_ArrDeleteUnchecked(&query->behavior_matches);
-    } else {
-        DT_ArrShrinkFitUnchecked(query->behavior_matches);
     }
 
     return PRP_OK;
 }
 
-static DT_size QueryRegisterInternal(DT_size *inc_comps, DT_size inc_len,
-                                     DT_size *exc_comps, DT_size exc_len) {
+static PRP_Result QueryRegisterInternal(DT_size *inc_comps, DT_size inc_len,
+                                        DT_size *exc_comps, DT_size exc_len,
+                                        DT_size *pIdx) {
     Query data = {0};
-    DT_size total_comps = DT_ArrLenUnchecked(g_ctx->comps);
-    data.inc = DT_BitmapCreateUnchecked(total_comps);
-    if (!data.inc) {
-        SET_LAST_ERR_CODE(PRP_ERR_OOM);
-        goto free_internals;
+    DT_size total_comps = DT_ArrLen(g_ctx->comps);
+    PRP_Result code;
+
+    code = DT_BitmapCreateUnchecked(total_comps, &data.inc);
+    if (code != PRP_OK) {
+        goto err_path;
     }
     if (exc_comps && exc_len > 0) {
-        data.exc = DT_BitmapCreateUnchecked(total_comps);
-        if (!data.exc) {
-            SET_LAST_ERR_CODE(PRP_ERR_OOM);
-            goto free_internals;
+        code = DT_BitmapCreateUnchecked(total_comps, &data.exc);
+        if (code != PRP_OK) {
+            goto err_path;
         }
     }
-    PRP_Result code = QueryFindMatches(&data);
+    code = QueryFindMatches(&data);
     if (code != PRP_OK) {
-        SET_LAST_ERR_CODE(code);
-        goto free_internals;
+        goto err_path;
     }
 
     for (DT_size i = 0; i < inc_len; i++) {
         if (inc_comps[i] >= total_comps) {
-            SET_LAST_ERR_CODE(PRP_ERR_INV_ARG);
-            DIAG_LOG_ERROR(DIAG_LOG_CODE_INVALID_ARG,
-                           "The given inc comps array contains invalid comps.");
-            goto free_internals;
+            code = PRP_ERR_INV_ARG;
+            goto err_path;
         }
         DT_BitmapSetUnchecked(data.inc, inc_comps[i]);
     }
     if (data.exc) {
         for (DT_size i = 0; i < exc_len; i++) {
             if (exc_comps[i] >= total_comps) {
-                SET_LAST_ERR_CODE(PRP_ERR_INV_ARG);
-                DIAG_LOG_ERROR(
-                    DIAG_LOG_CODE_INVALID_ARG,
-                    "The given exc comps array contains invalid comps.");
-                goto free_internals;
+                code = PRP_ERR_INV_ARG;
+                goto err_path;
             }
             if (DT_BitmapIsSetUnchecked(data.inc, exc_comps[i])) {
-                SET_LAST_ERR_CODE(PRP_ERR_INV_ARG);
+                code = PRP_ERR_INV_ARG;
                 DIAG_LOG_ERROR(
                     DIAG_LOG_CODE_INVALID_ARG,
                     "The given inc and exc comps have overlapping comps");
-                goto free_internals;
+                goto err_path;
             }
             DT_BitmapSetUnchecked(data.exc, exc_comps[i]);
         }
     }
 
     code = DT_ArrPushUnchecked(g_ctx->queries, &data);
-    if (code == PRP_ERR_RES_EXHAUSTED || code == PRP_ERR_OOM) {
-        SET_LAST_ERR_CODE(PRP_ERR_OOM);
-        goto free_internals;
-    } else if (code != PRP_OK) {
-        SET_LAST_ERR_CODE(PRP_ERR_INTERNAL);
-        goto free_internals;
+    if (code != PRP_OK) {
+        goto err_path;
     }
 
-    // The -1 to convert len to idx.
-    return DT_ArrLenUnchecked(g_ctx->queries) - 1;
+    *pIdx = DT_ArrLen(g_ctx->queries) - 1;
 
-free_internals:
+    return PRP_OK;
+
+err_path:
     if (data.inc) {
         DT_BitmapDeleteUnchecked(&data.inc);
     }
@@ -142,10 +117,11 @@ free_internals:
         DT_ArrDeleteUnchecked(&data.behavior_matches);
     }
 
-    return PRP_INVALID_INDEX;
+    return code;
 }
 
-DT_size QueryRegister(DT_Arr *inc_comps, DT_Arr *exc_comps) {
+PRP_Result QueryRegister(const DT_Arr *inc_comps, const DT_Arr *exc_comps,
+                         DT_size *pIdx) {
     DT_size inc_len;
     DT_size *arr1 = (DT_size *)(DT_ArrRawUnchecked(inc_comps, &inc_len));
     DT_size exc_len = 0;
@@ -154,10 +130,11 @@ DT_size QueryRegister(DT_Arr *inc_comps, DT_Arr *exc_comps) {
         arr2 = (DT_size *)(DT_ArrRawUnchecked(exc_comps, &exc_len));
     }
 
-    return QueryRegisterInternal(arr1, inc_len, arr2, exc_len);
+    return QueryRegisterInternal(arr1, inc_len, arr2, exc_len, pIdx);
 }
 
-DT_size QueryIsRegistered(DT_Arr *inc_comps, DT_Arr *exc_comps) {
+DT_bool QueryIsRegistered(const DT_Arr *inc_comps, const DT_Arr *exc_comps,
+                          DT_size *pOut) {
     DT_size inc_comps_len = 0, exc_comps_len = 0;
     const DT_size *inc_raw = DT_ArrRawUnchecked(inc_comps, &inc_comps_len);
     const DT_size *exc_raw = DT_null;
@@ -173,9 +150,8 @@ DT_size QueryIsRegistered(DT_Arr *inc_comps, DT_Arr *exc_comps) {
         if ((exc_comps_len && !query->exc) || (!exc_comps_len && query->exc)) {
             continue;
         }
-        if (DT_BitmapSetCountUnchecked(query->inc) != inc_comps_len ||
-            (query->exc &&
-             DT_BitmapSetCountUnchecked(query->exc) != exc_comps_len)) {
+        if (DT_BitmapSetCount(query->inc) != inc_comps_len ||
+            (query->exc && DT_BitmapSetCount(query->exc) != exc_comps_len)) {
             continue;
         }
 
@@ -193,11 +169,45 @@ DT_size QueryIsRegistered(DT_Arr *inc_comps, DT_Arr *exc_comps) {
             }
         }
         if (is_registered) {
-            return i;   
+            *pOut = i;
+            return DT_true;
         }
     }
 
-    return PRP_INVALID_INDEX;
+    return DT_false;
+}
+
+PRP_Result QueryCascadeUpdateBehavior(DT_void *q, DT_void *b) {
+    Query *query = q;
+    DT_size behavior_idx = *(DT_size *)b;
+    Behavior *behavior = DT_ArrGetUnchecked(g_ctx->behaviors, behavior_idx);
+
+    DT_bool is_match =
+        (!query->exc || !DT_BitmapHasAnyUnchecked(behavior->set, query->exc)) &&
+        DT_BitmapHasAllUnchecked(behavior->set, query->inc);
+
+    if (!is_match) {
+        return PRP_OK;
+    }
+
+    return DT_ArrPushUnchecked(query->behavior_matches, &behavior_idx);
+}
+
+PRP_Result QueryCascadingErrorCleanup(DT_void *q, DT_void *b) {
+    Query *query = q;
+    DT_size behavior_idx = *(DT_size *)b;
+    DT_size matches_len = DT_ArrLen(query->behavior_matches);
+    if (!matches_len) {
+        return PRP_OK;
+    }
+
+    DT_size last_idx = *(DT_size *)DT_ArrGetUnchecked(query->behavior_matches,
+                                                      matches_len - 1);
+    if (last_idx == behavior_idx) {
+        DT_ArrPopUnchecked(query->behavior_matches, DT_null);
+    }
+
+    return PRP_OK;
 }
 
 PRP_Result QueryDelete(DT_void *query, DT_void *_) {

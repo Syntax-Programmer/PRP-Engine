@@ -99,7 +99,7 @@ typedef struct {
     DIAG_ASSERT_MSG(WORLD_INVARIANT_EXPR(world),                               \
                     "The given world is either DT_null, or is corrupted.")
 
-DT_DSId WorldCreate(DT_void);
+PRP_Result WorldCreate(DT_DSId *pWorld_id);
 DT_void WorldDelete(DT_DSId *pWorld_id);
 PRP_Result WorldDeleteCb(DT_void *world);
 
@@ -111,8 +111,8 @@ PRP_Result WorldSystemExecMany(DT_DSId world_id, DT_Arr *system_cache_idxs,
 PRP_Result WorldUpdate(DT_DSId world_id, DT_f32 dt);
 PRP_Result WorldSetSystemExecOrder(DT_DSId world_id, DT_Arr *system_exec_order);
 PRP_Result WorldSync(DT_DSId world_id);
-PRP_Result WorldEnableSystem(DT_DSId world_id, DT_size system_cache_idx);
-PRP_Result WorldDisableSystem(DT_DSId world_id, DT_size system_cache_idx);
+DT_void WorldEnableSystem(DT_DSId world_id, DT_size system_cache_idx);
+DT_void WorldDisableSystem(DT_DSId world_id, DT_size system_cache_idx);
 
 /* ----  COMPS ---- */
 
@@ -134,9 +134,8 @@ typedef struct {
  * we will deal with that later.
  */
 
-PRP_Result CompGetLastErrCode(DT_void);
-DT_size CompRegister(const DT_char *name, DT_size size);
-DT_size CompIsRegistered(const DT_char *name);
+PRP_Result CompRegister(const DT_char *name, DT_size size, DT_size *pIdx);
+DT_bool CompIsRegistered(const DT_char *name, DT_size *pOut);
 
 /* ----  BEHAVIOR ---- */
 
@@ -155,24 +154,26 @@ typedef struct {
     DT_size chunk_size;
 } Behavior;
 
-PRP_Result BehaviorGetLastErrCode(DT_void);
-DT_size BehaviorRegister(DT_Arr *comp_idxs);
-DT_size BehaviorIsRegistered(DT_Arr *comp_idxs);
+PRP_Result BehaviorRegister(DT_Arr *comp_idxs, DT_size *pIdx);
+DT_bool BehaviorIsRegistered(DT_Arr *comp_idxs, DT_size *pOut);
 PRP_Result BehaviorDelete(DT_void *behavior, DT_void *_);
 
 /* ----  QUERY ---- */
 
 typedef struct {
     DT_Bitmap *inc;
-    // This will be null if we don't wan't to ex
+    // This will be null if we don't wan't to exc
     DT_Bitmap *exc;
-    // This will be null if there is no match for the query.
     DT_Arr *behavior_matches;
 } Query;
 
-PRP_Result QueryGetLastErrCode(DT_void);
-DT_size QueryRegister(DT_Arr *inc_comps, DT_Arr *exc_comps);
-DT_size QueryIsRegistered(DT_Arr *inc_comps, DT_Arr *exc_comps);
+// inc and exc comps can't overlap.
+PRP_Result QueryRegister(const DT_Arr *inc_comps, const DT_Arr *exc_comps,
+                         DT_size *pIdx);
+DT_bool QueryIsRegistered(const DT_Arr *inc_comps, const DT_Arr *exc_comps,
+                          DT_size *pOut);
+PRP_Result QueryCascadeUpdateBehavior(DT_void *q, DT_void *b);
+PRP_Result QueryCascadingErrorCleanup(DT_void *q, DT_void *b);
 PRP_Result QueryDelete(DT_void *query, DT_void *_);
 
 /* ----  SYSTEMS ---- */
@@ -201,8 +202,8 @@ typedef struct {
 
 #define SYSTEM_CACHE_INVARIANT_EXPR(system_cache)                              \
     ((system_cache) != DT_null && (system_cache)->system != DT_null &&         \
-     (system_cache)->system_idx < DT_ArrLenUnchecked(g_ctx->systems) &&        \
-     (system_cache)->query_idx < DT_ArrLenUnchecked(g_ctx->queries) &&         \
+     (system_cache)->system_idx < DT_ArrLen(g_ctx->systems) &&                 \
+     (system_cache)->query_idx < DT_ArrLen(g_ctx->queries) &&                  \
      (system_cache)->layout_matches != DT_null &&                              \
      (system_cache)->system ==                                                 \
          (*(FECS_System *)DT_ArrGetUnchecked(g_ctx->systems,                   \
@@ -212,11 +213,12 @@ typedef struct {
         SYSTEM_CACHE_INVARIANT_EXPR(system_cache),                             \
         "The given system cache is either DT_null, or is corrupted.")
 
-PRP_Result SystemGetLastErrCode(DT_void);
-DT_size SystemRegister(FECS_System system);
-DT_size SystemIsRegistered(FECS_System system);
-DT_size SystemCacheCreate(DT_DSId world_id, DT_size system_idx,
-                          DT_size query_idx);
+PRP_Result SystemRegister(FECS_System system, DT_size *pIdx);
+DT_bool SystemIsRegistered(FECS_System system, DT_size *pIdx);
+PRP_Result SystemCacheCreate(World *world, DT_size system_idx,
+                             DT_size query_idx, DT_size *pIdx);
+DT_bool SystemCacheIsAlreadyExisting(World *world, DT_size system_idx,
+                                     DT_size query_idx, DT_size *pIdx);
 PRP_Result SystemCacheDelete(DT_void *system_cache, DT_void *_);
 DT_void SystemExec(World *world, const SystemCache *system_cache,
                    DT_void *user_data);
@@ -261,30 +263,32 @@ typedef struct {
     DT_Bitmap *free_chunks;
 } Layout;
 
-PRP_Result LayoutGetLastErrCode(DT_void);
-DT_size LayoutCreate(DT_DSId world_id, DT_size behavior_idx);
+PRP_Result LayoutCreate(World *world, DT_size behavior_idx, DT_size *pIdx);
 PRP_Result LayoutDelete(DT_void *layout, DT_void *_);
-DT_size LayoutIsAlreadyExisting(DT_DSId world_id, DT_size behavior_idx);
+DT_bool LayoutIsAlreadyExisting(World *world, DT_size behavior_idx,
+                                DT_size *pIdx);
 
-FECS_Entity LayoutEntitySpawn(DT_DSId world_id, DT_size layout_idx);
-FECS_EntityBatch *LayoutEntitySpawnN(DT_DSId world_id, DT_size layout_idx,
-                                     DT_size count);
+PRP_Result LayoutEntitySpawn(World *world, DT_size layout_idx,
+                             FECS_Entity *pEntity);
+PRP_Result LayoutEntitySpawnN(World *world, DT_size layout_idx, DT_size count,
+                              FECS_EntityBatch **pEntities);
 
-DT_bool LayoutEntityIsValid(DT_DSId world_id, const FECS_Entity entity);
-DT_bool LayoutEntityBatchIsValid(DT_DSId world_id,
+DT_bool LayoutEntityIsValid(World *world, const FECS_Entity entity);
+DT_bool LayoutEntityBatchIsValid(World *world,
                                  const FECS_EntityBatch *entities);
 
-DT_void LayoutEntityKill(DT_DSId world_id, FECS_Entity entity);
-DT_void LayoutEntityKillN(DT_DSId world_id, FECS_EntityBatch *entities);
+DT_void LayoutEntityKill(World *world, FECS_Entity entity);
+DT_void LayoutEntityKillN(World *world, FECS_EntityBatch *entities);
 
-DT_void *LayoutEntityGetComp(DT_DSId world_id, const FECS_Entity entity,
-                             DT_size comp_idx);
-DT_void LayoutEntitySetComp(DT_DSId world_id, FECS_Entity entity,
-                            DT_size comp_idx, const DT_void *data);
-PRP_Result LayoutEntityBatchForEach(
-    DT_DSId world_id, FECS_EntityBatch *entities, DT_size comp_idx,
-    PRP_Result (*cb)(DT_void *comp_data, DT_void *user_data),
-    DT_void *user_data);
+PRP_Result LayoutEntityGetComp(World *world, const FECS_Entity entity,
+                               DT_size comp_idx, DT_void **dest);
+PRP_Result LayoutEntitySetComp(World *world, FECS_Entity entity,
+                               DT_size comp_idx, const DT_void *data);
+PRP_Result LayoutEntityBatchForEach(World *world, FECS_EntityBatch *entities,
+                                    DT_size comp_idx,
+                                    PRP_Result (*cb)(DT_void *comp_data,
+                                                     DT_void *user_data),
+                                    DT_void *user_data);
 
 #ifdef __cplusplus
 }
