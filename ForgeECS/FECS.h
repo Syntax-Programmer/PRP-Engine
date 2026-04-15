@@ -5,7 +5,7 @@ extern "C" {
 #endif
 
 #include "../Data-Types/Arr.h"
-#include "Defs.h"
+#include "World/World.h"
 
 /**
  * In this ECS library, the order you define things changes how performance is
@@ -28,36 +28,51 @@ extern "C" {
 
 /* ----  COMPS ---- */
 
-PRP_FN_API PRP_Result PRP_FN_CALL
-FECS_CompRegisterUnchecked(const DT_char *name, DT_size size, DT_size *pIdx);
-PRP_FN_API PRP_Result PRP_FN_CALL FECS_CompRegisterChecked(const DT_char *name,
-                                                           DT_size size,
-                                                           DT_size *pIdx);
+/**
+ * Registers a new component into the FECS.
+ *
+ * @param name The name of the component.
+ * @param size Size (in bytes) of the component.
+ * @param pIdx Output pointer reciving the index of the component.
+ *
+ * @return PRP_OK on success.
+ * @return PRP_ERR_INV_STATE if the schema lock is already initiated.
+ * @return PRP_ERR_INV_ARG if arguments are invalid.
+ * @return PRP_ERR_RES_EXHAUSTED if max cap of comps is reached.
+ * @return PRP_ERR_OOM if allocation fails.
+ */
+PRP_FN_API PRP_Result PRP_FN_CALL FECS_CompRegister(const DT_char *name,
+                                                    DT_size size,
+                                                    DT_size *pIdx);
 
 /* ----  BEHAVIOR ---- */
 
-PRP_FN_API PRP_Result PRP_FN_CALL
-FECS_BehaviorRegisterUnchecked(DT_Arr *comp_idxs, DT_size *pIdx);
-PRP_FN_API PRP_Result PRP_FN_CALL
-FECS_BehaviorRegisterChecked(DT_Arr *comp_idxs, DT_size *pIdx);
+/**
+ * Registers a new behavior into the FECS.
+ *
+ * @param comps_idxs Unique array of component idxs. The array will mutate.
+ * @param pIdx Output pointer reciving the index of the behavior.
+ *
+ * @return PRP_OK on success.
+ * @return PRP_ERR_INV_STATE if the schema lock is already initiated.
+ * @return PRP_ERR_INV_ARG if arguments are invalid.
+ * @return PRP_ERR_RES_EXHAUSTED if max cap of behaviors or query matches is
+ *         reached.
+ * @return PRP_ERR_OOM if allocation fails.
+ */
+PRP_FN_API PRP_Result PRP_FN_CALL FECS_BehaviorRegister(DT_Arr *comp_idxs,
+                                                        DT_size *pIdx);
 
 /* ----  QUERY ---- */
 
-PRP_FN_API PRP_Result PRP_FN_CALL FECS_QueryRegisterUnchecked(
-    const DT_Arr *inc_comps, const DT_Arr *exc_comps, DT_size *pIdx);
-PRP_FN_API PRP_Result PRP_FN_CALL FECS_QueryRegisterChecked(
-    const DT_Arr *inc_comps, const DT_Arr *exc_comps, DT_size *pIdx);
+PRP_FN_API PRP_Result PRP_FN_CALL FECS_QueryRegister(const DT_Arr *inc_comps,
+                                                     const DT_Arr *exc_comps,
+                                                     DT_size *pIdx);
 
 /* ----  SYSTEMS ---- */
 
-PRP_FN_API PRP_Result PRP_FN_CALL
-FECS_SystemRegisterUnchecked(FECS_System system, DT_size *pIdx);
-PRP_FN_API PRP_Result PRP_FN_CALL FECS_SystemRegisterChecked(FECS_System system,
-                                                             DT_size *pIdx);
-
-/* ----  LAYOUTS ---- */
-
-/* ----  WORLD ---- */
+PRP_FN_API PRP_Result PRP_FN_CALL FECS_SystemRegister(FECS_System system,
+                                                      DT_size *pIdx);
 
 /* ----  FECS ---- */
 

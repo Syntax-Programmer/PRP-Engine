@@ -1,5 +1,4 @@
-#include "Defs.h"
-#include "Internals.h"
+#include "World-Internals.h"
 #include <string.h>
 
 /* ----  LAYOUTS ---- */
@@ -186,7 +185,7 @@ DT_bool LayoutIsAlreadyExisting(World *world, DT_size behavior_idx,
 
 static DT_size GetCompStride(DT_size behavior_idx, DT_size comp_idx);
 
-PRP_Result LayoutEntitySpawn(World *world, DT_size layout_idx,
+PRP_Result LayoutSpawnEntity(World *world, DT_size layout_idx,
                              FECS_Entity *pEntity) {
     Layout *layout = DT_ArrGetUnchecked(world->layouts, layout_idx);
     DT_size free_chunk = DT_BitmapFFS(layout->free_chunks);
@@ -212,8 +211,8 @@ PRP_Result LayoutEntitySpawn(World *world, DT_size layout_idx,
     return PRP_OK;
 }
 
-PRP_Result LayoutEntitySpawnN(World *world, DT_size layout_idx, DT_size count,
-                              FECS_EntityBatch **pEntities) {
+PRP_Result LayoutSpawnEntities(World *world, DT_size layout_idx, DT_size count,
+                               FECS_EntityBatch **pEntities) {
     Layout *layout = DT_ArrGetUnchecked(world->layouts, layout_idx);
     FECS_EntityBatch *batch =
         malloc(sizeof(FECS_EntityBatch) + (sizeof(EntityData) * count));
@@ -261,7 +260,7 @@ PRP_Result LayoutEntitySpawnN(World *world, DT_size layout_idx, DT_size count,
     return PRP_OK;
 }
 
-DT_bool LayoutEntityIsValid(World *world, const FECS_Entity entity) {
+DT_bool LayoutIsEntityValid(World *world, const FECS_Entity entity) {
     if (entity.layout_idx >= DT_ArrLen(world->layouts)) {
         return DT_false;
     }
@@ -282,8 +281,7 @@ DT_bool LayoutEntityIsValid(World *world, const FECS_Entity entity) {
     return DT_true;
 }
 
-DT_bool LayoutEntityBatchIsValid(World *world,
-                                 const FECS_EntityBatch *entities) {
+DT_bool LayoutAreEntitiesValid(World *world, const FECS_EntityBatch *entities) {
     if (entities->layout_idx >= DT_ArrLen(world->layouts)) {
         return DT_false;
     }
@@ -307,7 +305,7 @@ DT_bool LayoutEntityBatchIsValid(World *world,
     return DT_true;
 }
 
-DT_void LayoutEntityKill(World *world, FECS_Entity entity) {
+DT_void LayoutKillEntity(World *world, FECS_Entity entity) {
     Layout *layout = DT_ArrGetUnchecked(world->layouts, entity.layout_idx);
     DT_size chunk_idx = entity.data.entity_idx >> ENTITY_SLOT_BITS;
     Chunk *chunk = CHUNK(layout, chunk_idx);
@@ -319,7 +317,7 @@ DT_void LayoutEntityKill(World *world, FECS_Entity entity) {
     DT_BitmapSetUnchecked(layout->free_chunks, chunk_idx);
 }
 
-DT_void LayoutEntityKillN(World *world, FECS_EntityBatch *entities) {
+DT_void LayoutKillEntities(World *world, FECS_EntityBatch *entities) {
     Layout *layout = DT_ArrGetUnchecked(world->layouts, entities->layout_idx);
     for (DT_size i = 0; i < entities->count; i++) {
         DT_size chunk_idx = entities->data[i].entity_idx >> ENTITY_SLOT_BITS;
@@ -355,7 +353,7 @@ static DT_size GetCompStride(DT_size behavior_idx, DT_size comp_idx) {
     return behavior->strides[idx];
 }
 
-PRP_Result LayoutEntityGetComp(World *world, const FECS_Entity entity,
+PRP_Result LayoutGetEntityComp(World *world, const FECS_Entity entity,
                                DT_size comp_idx, DT_void **dest) {
     Layout *layout = DT_ArrGetUnchecked(world->layouts, entity.layout_idx);
     DT_size chunk_idx = entity.data.entity_idx >> ENTITY_SLOT_BITS;
@@ -374,7 +372,7 @@ PRP_Result LayoutEntityGetComp(World *world, const FECS_Entity entity,
     return PRP_OK;
 }
 
-PRP_Result LayoutEntitySetComp(World *world, FECS_Entity entity,
+PRP_Result LayoutSetEntityComp(World *world, FECS_Entity entity,
                                DT_size comp_idx, const DT_void *data) {
     Layout *layout = DT_ArrGetUnchecked(world->layouts, entity.layout_idx);
     DT_size chunk_idx = entity.data.entity_idx >> ENTITY_SLOT_BITS;
@@ -393,11 +391,11 @@ PRP_Result LayoutEntitySetComp(World *world, FECS_Entity entity,
     return PRP_OK;
 }
 
-PRP_Result LayoutEntityBatchForEach(World *world, FECS_EntityBatch *entities,
-                                    DT_size comp_idx,
-                                    PRP_Result (*cb)(DT_void *comp_data,
-                                                     DT_void *user_data),
-                                    DT_void *user_data) {
+PRP_Result LayoutForEachEntities(World *world, FECS_EntityBatch *entities,
+                                 DT_size comp_idx,
+                                 PRP_Result (*cb)(DT_void *comp_data,
+                                                  DT_void *user_data),
+                                 DT_void *user_data) {
     Layout *layout = DT_ArrGetUnchecked(world->layouts, entities->layout_idx);
     DT_size comp_size =
         ((ComponentMetadata *)DT_ArrGetUnchecked(g_ctx->comps, comp_idx))->size;

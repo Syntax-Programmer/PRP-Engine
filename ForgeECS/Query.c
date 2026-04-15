@@ -1,4 +1,4 @@
-#include "Internals.h"
+#include "FECS-Internals.h"
 
 /**
  * Finds all the behaviors that match the given query.

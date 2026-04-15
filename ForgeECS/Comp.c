@@ -1,4 +1,5 @@
-#include "Internals.h"
+
+#include "FECS-Internals.h"
 #include <string.h>
 
 PRP_Result CompRegister(const DT_char *name, DT_size size, DT_size *pIdx) {
