@@ -1,4 +1,3 @@
-
 #include "FECS-Internals.h"
 #include <string.h>
 
@@ -11,7 +10,7 @@ PRP_Result CompRegister(const DT_char *name, DT_size size, DT_size *pIdx) {
         return code;
     }
 
-    *pIdx = DT_ArrLen(g_ctx->behaviors) - 1;
+    *pIdx = DT_ArrLen(g_ctx->comps) - 1;
 
     return PRP_OK;
 }

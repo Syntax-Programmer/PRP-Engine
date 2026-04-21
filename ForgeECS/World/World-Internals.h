@@ -80,6 +80,12 @@ typedef struct {
     DT_Bitmap *free_chunks;
 } Layout;
 
+/**
+ * NOTE: Since validating entity batches completely before the parsing of them
+ * is very expensive, that check is done during the parsing and if invalidity is
+ * found it is reported and we exit at that instant.
+ */
+
 PRP_Result LayoutCreate(World *world, DT_size behavior_idx, DT_size *pIdx);
 PRP_Result LayoutDelete(DT_void *layout, DT_void *_);
 DT_bool LayoutIsAlreadyExisting(World *world, DT_size behavior_idx,
@@ -94,7 +100,7 @@ DT_bool LayoutIsEntityValid(World *world, const FECS_Entity entity);
 DT_bool LayoutAreEntitiesValid(World *world, const FECS_EntityBatch *entities);
 
 DT_void LayoutKillEntity(World *world, FECS_Entity entity);
-DT_void LayoutKillEntities(World *world, FECS_EntityBatch *entities);
+PRP_Result LayoutKillEntities(World *world, FECS_EntityBatch **pEntities);
 
 PRP_Result LayoutGetEntityComp(World *world, const FECS_Entity entity,
                                DT_size comp_idx, DT_void **dest);

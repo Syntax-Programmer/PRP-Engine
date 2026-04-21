@@ -47,7 +47,7 @@ PRP_FN_API PRP_Result FECS_LayoutAreEntitiesValid(
 PRP_FN_API PRP_Result PRP_FN_CALL FECS_LayoutKillEntity(DT_DSId world_id,
                                                         FECS_Entity entity);
 PRP_FN_API PRP_Result PRP_FN_CALL
-FECS_LayoutKillEntities(DT_DSId world_id, FECS_EntityBatch *entities);
+FECS_LayoutKillEntities(DT_DSId world_id, FECS_EntityBatch **pEntities);
 PRP_FN_API PRP_Result PRP_FN_CALL
 FECS_LayoutGetEntityComp(DT_DSId world_id, const FECS_Entity entity,
                          DT_size comp_idx, DT_void **dest);

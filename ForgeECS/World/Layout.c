@@ -203,7 +203,7 @@ PRP_Result LayoutSpawnEntity(World *world, DT_size layout_idx,
     pEntity->layout_idx = layout_idx;
     pEntity->data.gen = chunk->gen[free_slot];
     pEntity->data.entity_idx = ENTITY_IDX(free_chunk, free_slot);
-    PRP_BIT_CLR(chunk->free_slot, free_slot);
+    PRP_BIT_CLR(chunk->free_slot, BIT_MASK(free_slot));
     if (!chunk->free_slot) {
         DT_BitmapClrUnchecked(layout->free_chunks, free_chunk);
     }
@@ -249,7 +249,7 @@ PRP_Result LayoutSpawnEntities(World *world, DT_size layout_idx, DT_size count,
             batch->data[i++] =
                 (EntityData){.entity_idx = ENTITY_IDX(free_chunk, free_slot),
                              .gen = chunk->gen[free_slot]};
-            PRP_BIT_CLR(chunk->free_slot, free_slot);
+            PRP_BIT_CLR(chunk->free_slot, BIT_MASK(free_slot));
         }
         if (!chunk->free_slot) {
             DT_BitmapClrUnchecked(layout->free_chunks, free_chunk);
@@ -274,7 +274,7 @@ DT_bool LayoutIsEntityValid(World *world, const FECS_Entity entity) {
     DT_u8 slot_idx = entity.data.entity_idx & ENTITY_SLOT_MASK;
 
     if (chunk->gen[slot_idx] != entity.data.gen ||
-        PRP_BIT_IS_SET(chunk->free_slot, slot_idx)) {
+        PRP_BIT_IS_SET(chunk->free_slot, BIT_MASK(slot_idx))) {
         return DT_false;
     }
 
@@ -287,17 +287,17 @@ DT_bool LayoutAreEntitiesValid(World *world, const FECS_EntityBatch *entities) {
     }
     Layout *layout = DT_ArrGetUnchecked(world->layouts, entities->layout_idx);
     DT_size max_entity_idx = MAX_ENTITY_CAP(layout);
-
+    const EntityData *data = entities->data;
     for (DT_size i = 0; i < entities->count; i++) {
-        if (entities->data[i].entity_idx >= max_entity_idx) {
+        if (data[i].entity_idx >= max_entity_idx) {
             return DT_false;
         }
-        DT_size chunk_idx = entities->data[i].entity_idx >> ENTITY_SLOT_BITS;
+        DT_size chunk_idx = data[i].entity_idx >> ENTITY_SLOT_BITS;
+        DT_u8 slot_idx = data[i].entity_idx & ENTITY_SLOT_MASK;
         Chunk *chunk = CHUNK(layout, chunk_idx);
-        DT_u8 slot_idx = entities->data[i].entity_idx & ENTITY_SLOT_MASK;
         // The PRP_BIT_IS_SET check prevents duplicate entities in the batch.
-        if (chunk->gen[slot_idx] != entities->data[i].gen ||
-            PRP_BIT_IS_SET(chunk->free_slot, slot_idx)) {
+        if (chunk->gen[slot_idx] != data[i].gen ||
+            PRP_BIT_IS_SET(chunk->free_slot, BIT_MASK(slot_idx))) {
             return DT_false;
         }
     }
@@ -313,22 +313,37 @@ DT_void LayoutKillEntity(World *world, FECS_Entity entity) {
 
     // Wrap around of gen is valid behavior.
     chunk->gen[slot_idx]++;
-    PRP_BIT_SET(chunk->free_slot, slot_idx);
+    PRP_BIT_SET(chunk->free_slot, BIT_MASK(slot_idx));
     DT_BitmapSetUnchecked(layout->free_chunks, chunk_idx);
 }
 
-DT_void LayoutKillEntities(World *world, FECS_EntityBatch *entities) {
+PRP_Result LayoutKillEntities(World *world, FECS_EntityBatch **pEntities) {
+    FECS_EntityBatch *entities = *pEntities;
     Layout *layout = DT_ArrGetUnchecked(world->layouts, entities->layout_idx);
+    DT_size max_entity_idx = MAX_ENTITY_CAP(layout);
+    const EntityData *data = entities->data;
     for (DT_size i = 0; i < entities->count; i++) {
-        DT_size chunk_idx = entities->data[i].entity_idx >> ENTITY_SLOT_BITS;
+        if (data[i].entity_idx >= max_entity_idx) {
+            return PRP_ERR_INV_ARG;
+        }
+        DT_size chunk_idx = data[i].entity_idx >> ENTITY_SLOT_BITS;
+        DT_u8 slot_idx = data[i].entity_idx & ENTITY_SLOT_MASK;
         Chunk *chunk = CHUNK(layout, chunk_idx);
-        DT_u8 slot_idx = entities->data[i].entity_idx & ENTITY_SLOT_MASK;
+        if (chunk->gen[slot_idx] != data[i].gen ||
+            PRP_BIT_IS_SET(chunk->free_slot, BIT_MASK(slot_idx))) {
+            return PRP_ERR_INV_ARG;
+        }
 
         // Wrap around of gen is valid behavior.
         chunk->gen[slot_idx]++;
-        PRP_BIT_SET(chunk->free_slot, slot_idx);
+        PRP_BIT_SET(chunk->free_slot, BIT_MASK(slot_idx));
         DT_BitmapSetUnchecked(layout->free_chunks, chunk_idx);
     }
+
+    free(entities);
+    *pEntities = DT_null;
+
+    return PRP_OK;
 }
 
 static DT_size GetCompStride(DT_size behavior_idx, DT_size comp_idx) {
@@ -397,6 +412,9 @@ PRP_Result LayoutForEachEntities(World *world, FECS_EntityBatch *entities,
                                                   DT_void *user_data),
                                  DT_void *user_data) {
     Layout *layout = DT_ArrGetUnchecked(world->layouts, entities->layout_idx);
+    DT_size max_entity_idx = MAX_ENTITY_CAP(layout);
+    const EntityData *data = entities->data;
+
     DT_size comp_size =
         ((ComponentMetadata *)DT_ArrGetUnchecked(g_ctx->comps, comp_idx))->size;
     DT_size comp_stride = GetCompStride(layout->behavior_idx, comp_idx);
@@ -404,9 +422,17 @@ PRP_Result LayoutForEachEntities(World *world, FECS_EntityBatch *entities,
         return PRP_ERR_INV_ARG;
     }
     for (DT_size i = 0; i < entities->count; i++) {
-        DT_size chunk_idx = entities->data[i].entity_idx >> ENTITY_SLOT_BITS;
+        if (data[i].entity_idx >= max_entity_idx) {
+            return PRP_ERR_INV_ARG;
+        }
+        DT_size chunk_idx = data[i].entity_idx >> ENTITY_SLOT_BITS;
+        DT_u8 slot_idx = data[i].entity_idx & ENTITY_SLOT_MASK;
         Chunk *chunk = CHUNK(layout, chunk_idx);
-        DT_u8 slot_idx = entities->data[i].entity_idx & ENTITY_SLOT_MASK;
+        if (chunk->gen[slot_idx] != data[i].gen ||
+            PRP_BIT_IS_SET(chunk->free_slot, BIT_MASK(slot_idx))) {
+            return PRP_ERR_INV_ARG;
+        }
+
         DT_u8 *ptr = (DT_u8 *)chunk->mem + comp_stride + (slot_idx * comp_size);
         PRP_Result code = cb(ptr, user_data);
         if (code != PRP_OK) {

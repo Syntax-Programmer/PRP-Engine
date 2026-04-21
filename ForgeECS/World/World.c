@@ -391,7 +391,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL FECS_LayoutKillEntity(DT_DSId world_id,
 }
 
 PRP_FN_API PRP_Result PRP_FN_CALL
-FECS_LayoutKillEntities(DT_DSId world_id, FECS_EntityBatch *entities) {
+FECS_LayoutKillEntities(DT_DSId world_id, FECS_EntityBatch **pEntities) {
     if (!CTX_INVARIANT_EXPR) {
         DIAG_PANIC("The engine is corrupted/not-initilized correctly.");
     }
@@ -401,19 +401,23 @@ FECS_LayoutKillEntities(DT_DSId world_id, FECS_EntityBatch *entities) {
     DT_void *w;
     PRP_Result code = DT_DSIdToDataChecked(g_ctx->worlds, world_id, &w);
     DIAG_ASSERT_MSG(code == PRP_OK, "The given world id is invalid.");
-    DIAG_ASSERT(entities != DT_null);
-    if (code != PRP_OK || !entities) {
+    DIAG_ASSERT(pEntities != DT_null);
+    if (code != PRP_OK || !pEntities) {
         return PRP_ERR_INV_ARG;
     }
-    DT_bool is_valid = LayoutAreEntitiesValid(w, entities);
-    DIAG_ASSERT_MSG(is_valid, "The given entity is invalid");
-    if (!is_valid) {
-        return PRP_ERR_INV_ARG;
-    }
+    /*
+     *    DT_bool is_valid = LayoutAreEntitiesValid(w, *pEntities);
+     *    DIAG_ASSERT_MSG(is_valid, "The given entities are invalid");
+     *    if (!is_valid) {
+     *        return PRP_ERR_INV_ARG;
+     *    }
+     *
+     * The above lines of validity checks are removed since the kill entities
+     * now internally validates entities as it is parsing to improve
+     * performance.
+     **/
 
-    LayoutKillEntities(w, entities);
-
-    return PRP_OK;
+    return LayoutKillEntities(w, pEntities);
 }
 
 PRP_FN_API PRP_Result PRP_FN_CALL
@@ -491,11 +495,17 @@ PRP_FN_API PRP_Result PRP_FN_CALL FECS_LayoutForEachEntities(
         !code) {
         return PRP_ERR_INV_ARG;
     }
-    DT_bool is_valid = LayoutAreEntitiesValid(w, entities);
-    DIAG_ASSERT_MSG(is_valid, "The given entity is invalid");
-    if (!is_valid) {
-        return PRP_ERR_INV_ARG;
-    }
+    /*
+     *    DT_bool is_valid = LayoutAreEntitiesValid(w, *pEntities);
+     *    DIAG_ASSERT_MSG(is_valid, "The given entities are invalid");
+     *    if (!is_valid) {
+     *        return PRP_ERR_INV_ARG;
+     *    }
+     *
+     * The above lines of validity checks are removed since the for each
+     * entities now internally validates entities as it is parsing to improve
+     * performance.
+     **/
 
     return LayoutForEachEntities(w, entities, comp_idx, cb, user_data);
 }
