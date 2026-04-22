@@ -1,6 +1,5 @@
 #include "World.h"
 #include "World-Internals.h"
-#include <sys/types.h>
 
 /* ----  WORLDS ---- */
 

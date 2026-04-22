@@ -112,7 +112,7 @@ DT_bool CompIsRegistered(const DT_char *name, DT_size *pOut);
  * A storage unit of entities that holds 32 entities.
  */
 typedef struct {
-    DT_u32 gen[CHUNK_CAP];
+    DT_u32 gens[CHUNK_CAP];
     DT_u32 free_slot;
     DT_u8 mem[];
 } Chunk;

@@ -1,5 +1,4 @@
 #include "FECS-Internals.h"
-#include <stdlib.h>
 
 /**
  * Sorts the given comp idx array using insertion sort.

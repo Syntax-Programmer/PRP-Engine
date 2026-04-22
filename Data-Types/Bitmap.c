@@ -1,6 +1,5 @@
 #include "Bitmap.h"
 #include "../Diagnostics/Assert.h"
-#include "Typedefs.h"
 #include <string.h>
 
 /* ----  BITWORD UTILS ---- */
