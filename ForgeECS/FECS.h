@@ -33,11 +33,12 @@ extern "C" {
  *
  * @param name The name of the component.
  * @param size Size (in bytes) of the component.
- * @param pIdx Output pointer reciving the index of the component.
+ * @param pIdx The pointer to hold the index of the behavior.
  *
  * @return PRP_OK on success.
  * @return PRP_ERR_INV_STATE if the schema lock is already initiated.
  * @return PRP_ERR_INV_ARG if arguments are invalid.
+ * @return PRP_ERR_ALREADY_EXISTS if given comp already exists.
  * @return PRP_ERR_RES_EXHAUSTED if max cap of comps is reached.
  * @return PRP_ERR_OOM if allocation fails.
  */
@@ -50,8 +51,8 @@ PRP_FN_API PRP_Result PRP_FN_CALL FECS_CompRegister(const DT_char *name,
 /**
  * Registers a new behavior into the FECS.
  *
- * @param comps_idxs Unique array of component idxs. The array will mutate.
- * @param pIdx Output pointer reciving the index of the behavior.
+ * @param comp_idxs Array of comp behavior includes. Array will mutate.
+ * @param pIdx      The pointer to hold the index of the behavior.
  *
  * @return PRP_OK on success.
  * @return PRP_ERR_INV_STATE if the schema lock is already initiated.
@@ -65,20 +66,60 @@ PRP_FN_API PRP_Result PRP_FN_CALL FECS_BehaviorRegister(DT_Arr *comp_idxs,
 
 /* ----  QUERY ---- */
 
+/**
+ * Registers a new query into the FECS.
+ *
+ * @param inc_comps Array of comps query includes.
+ * @param exc_comps Array of comps query excludes.
+ * @param pIdx      The pointer to hold the index of the query.
+ *
+ * @return PRP_OK on success.
+ * @return PRP_ERR_INV_STATE if the schema lock is already initiated.
+ * @return PRP_ERR_INV_ARG if arguments are invalid.
+ * @return PRP_ERR_RES_EXHAUSTED if max cap of behaviors or query matches is
+ *         reached.
+ * @return PRP_ERR_OOM if allocation fails.
+ */
 PRP_FN_API PRP_Result PRP_FN_CALL FECS_QueryRegister(const DT_Arr *inc_comps,
                                                      const DT_Arr *exc_comps,
                                                      DT_size *pIdx);
 
 /* ----  SYSTEMS ---- */
 
+/**
+ * Registers a new system into the FECS.
+ *
+ * @param system The system function to register.
+ * @param pIdx   The pointer to hold the index of the system.
+ *
+ * @return PRP_OK on success.
+ * @return PRP_ERR_INV_STATE if the schema lock is already initiated.
+ * @return PRP_ERR_INV_ARG if arguments are invalid.
+ * @return PRP_ERR_RES_EXHAUSTED if max cap of behaviors or query matches is
+ *         reached.
+ * @return PRP_ERR_OOM if allocation fails.
+ */
 PRP_FN_API PRP_Result PRP_FN_CALL FECS_SystemRegister(FECS_System system,
                                                       DT_size *pIdx);
 
 /* ----  FECS ---- */
 
-PRP_FN_API PRP_Result PRP_FN_CALL FECS_LockSchemaDefs(DT_void);
+/**
+ * Locks the schema definition for the FECS.
+ * Cannot register anything after this.
+ */
+PRP_FN_API DT_void PRP_FN_CALL FECS_LockSchemaDefs(DT_void);
+/**
+ * Initializes the FECS.
+ *
+ * @return PRP_OK on success.
+ * @return PRP_ERR_OOM if allocation fails.
+ */
 PRP_FN_API PRP_Result PRP_FN_CALL FECS_Init(DT_void);
-PRP_FN_API PRP_Result PRP_FN_CALL FECS_Exit(DT_void);
+/**
+ * Exits the FECS. Cleaning up every resource allocated.
+ */
+PRP_FN_API DT_void PRP_FN_CALL FECS_Exit(DT_void);
 
 #ifdef __cplusplus
 }

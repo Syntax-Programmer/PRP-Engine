@@ -1,27 +1,27 @@
 #include "World-Internals.h"
 
 /**
- * Performs a binary search on the given array to find the given element.
+ * Binary search to an element in the given array.
  *
- * @param behaviors: The array to search into.
- * @param len: The len of the given array.
- * @param to_find: The data to find.
+ * @param behaviors Array to search into.
+ * @param len       Len of the given array.
+ * @param to_find   The data to find.
  *
- * @return DT_false if the element is not found, otherwise DT_true.
+ * @return DT_true if found.
+ * @return DT_false if not-found.
  */
 static DT_bool BSearchBehavior(const DT_size *behaviors, DT_size len,
                                DT_size to_find);
 /**
- * A foreach callback for the system exec function that is run on the chunk ptr
- * array of a layout.
+ * Executes a system function for the given chunk.
+ * Called via DT_ArrForEach_...
  *
- * @param pVal: The Chunk ** we will get.
- * @param user_data: The data we supply to the callback to correctly call system
- * function on the chunk.
+ * @param pChunk      Pointer to chunk to execute on
+ * @param system_data Engine state and user data to correctly call system.
  *
- * @return PRP_OK.
+ * @return PRP_OK on success.
  */
-static PRP_Result SystemExecForEachCb(DT_void *pVal, DT_void *user_data);
+static PRP_Result SystemExecForEachCb(DT_void *pChunk, DT_void *system_data);
 
 static DT_bool BSearchBehavior(const DT_size *behaviors, DT_size len,
                                DT_size to_find) {
@@ -97,7 +97,7 @@ err_path:
 }
 
 DT_bool SystemCacheIsAlreadyExisting(World *world, DT_size system_idx,
-                                     DT_size query_idx, DT_size *pIdx) {
+                                     DT_size query_idx, DT_size *pOut) {
     DT_size len;
     const SystemCache *system_caches =
         DT_ArrRawUnchecked(world->system_caches, &len);
@@ -105,7 +105,7 @@ DT_bool SystemCacheIsAlreadyExisting(World *world, DT_size system_idx,
     for (DT_size i = 0; i < len; i++) {
         const SystemCache *cache = &system_caches[i];
         if (cache->system_idx == system_idx && cache->query_idx == query_idx) {
-            *pIdx = i;
+            *pOut = i;
             return DT_true;
         }
     }
@@ -128,20 +128,26 @@ PRP_Result SystemCacheDelete(DT_void *system_cache, DT_void *_) {
     return PRP_OK;
 }
 
+/**
+ * Internal state with everything needed to execute system and user
+ * interactablity.
+ */
 struct SystemData {
-    DT_size *strides;
+    Behavior *behavior;
     DT_void *user_data;
     FECS_System system;
-    DT_size comp_count;
     DT_void *chunk_ptr;
     DT_u32 occupied_slots;
 };
 
-static PRP_Result SystemExecForEachCb(DT_void *pVal, DT_void *user_data) {
-    Chunk *chunk = *(Chunk **)pVal;
-    FECS_SystemData *data = user_data;
-    data->chunk_ptr = chunk->mem;
+static PRP_Result SystemExecForEachCb(DT_void *pChunk, DT_void *system_data) {
+    Chunk *chunk = *(Chunk **)pChunk;
+    FECS_SystemData *data = system_data;
     data->occupied_slots = ~chunk->free_slot;
+    if (data->occupied_slots == 0) {
+        return PRP_OK;
+    }
+    data->chunk_ptr = chunk->mem;
 
     data->system(data, data->user_data);
 
@@ -162,10 +168,27 @@ DT_void SystemExec(World *world, const SystemCache *system_cache,
         const Layout *layout = &layouts[layout_idx];
         Behavior *behavior =
             DT_ArrGetUnchecked(g_ctx->behaviors, layout->behavior_idx);
-        system_data.strides = behavior->strides;
-        system_data.comp_count = DT_BitmapSetCount(behavior->set);
+        system_data.behavior = behavior;
 
         DT_ArrForEachUnchecked(layout->chunk_ptrs, SystemExecForEachCb,
                                &system_data);
     }
 }
+
+// DT_void *SystemCacheGetComp(const FECS_SystemData *system_data,
+//                             DT_size comp_idx) {
+//     /**
+//      * Pop counting for inding components is not that bad after all, since,
+//      even
+//      * at 1024 components behavior, there will only be around 16 pop countss
+//      * done to find the index of any comp in the strides array.
+//      */
+//     // WoRK in progress.
+//     return DT_null;
+// }
+
+/**
+ * NOTE: Major memory optimization opportunity:
+ * replace the query matches and layout matches arrays into bitmaps where each
+ * index set is a match at that index.
+ */

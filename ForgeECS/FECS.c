@@ -124,14 +124,12 @@ PRP_FN_API PRP_Result PRP_FN_CALL FECS_SystemRegister(FECS_System system,
 
 Context *g_ctx = DT_null;
 
-PRP_FN_API PRP_Result PRP_FN_CALL FECS_LockSchemaDefs(DT_void) {
+PRP_FN_API DT_void PRP_FN_CALL FECS_LockSchemaDefs(DT_void) {
     if (!CTX_INVARIANT_EXPR) {
         DIAG_PANIC("The engine is corrupted/not-initilized correctly.");
     }
 
     g_ctx->schema_lock = DT_true;
-
-    return PRP_OK;
 }
 
 PRP_FN_API PRP_Result PRP_FN_CALL FECS_Init(DT_void) {
@@ -195,7 +193,7 @@ err_path:
     return code;
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL FECS_Exit(DT_void) {
+PRP_FN_API DT_void PRP_FN_CALL FECS_Exit(DT_void) {
     if (!CTX_INVARIANT_EXPR) {
         DIAG_PANIC("The engine is corrupted/not-initilized correctly.");
     }
@@ -210,6 +208,4 @@ PRP_FN_API PRP_Result PRP_FN_CALL FECS_Exit(DT_void) {
 
     free(g_ctx);
     g_ctx = DT_null;
-
-    return PRP_OK;
 }

@@ -490,8 +490,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL FECS_LayoutForEachEntities(
     DIAG_ASSERT_MSG(comp_idx < DT_ArrLen(g_ctx->comps),
                     "The given comp idx is invalid.");
     DIAG_ASSERT(cb != DT_null);
-    if (code != PRP_OK || !entities || comp_idx >= DT_ArrLen(g_ctx->comps) ||
-        !code) {
+    if (code != PRP_OK || !entities || comp_idx >= DT_ArrLen(g_ctx->comps)) {
         return PRP_ERR_INV_ARG;
     }
     /*

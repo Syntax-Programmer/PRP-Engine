@@ -1,10 +1,10 @@
 #include "FECS-Internals.h"
 
 /**
- * Sorts the given comp idx array using insertion sort.
+ * Sorts given array using insertion sort.
  *
- * @param comp_idxs: The array to sort.
- * @param len: The len of the array.
+ * @param comp_idxs Array to sort.
+ * @param len       Len of the array.
  */
 static DT_void SortCompIdxs(DT_size *comp_idxs, DT_size len);
 

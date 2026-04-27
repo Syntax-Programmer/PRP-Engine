@@ -4,32 +4,33 @@
 /* ----  LAYOUTS ---- */
 
 /**
- * Deletes the created chunks inside layout.chunk_ptr through DT_ArrForEach.
+ * Deletes the chunks inside layout.
+ * Called via DT_ArrForEach_...
  *
- * @param ptr: The Chunk** that we will be given.
- * @param user_data: Not imp param, will not be used.
+ * @param ptr Chunk** to free.
  *
- * @return Should return PRP_OK, return type exists to satisfy the foreach
- * requirement.
+ * @return PRP_OK on success.
  */
-static PRP_Result ChunkPtrDelCb(DT_void *ptr, DT_void *user_data);
+static PRP_Result ChunkPtrDelCb(DT_void *ptr, DT_void *_);
 /**
- * Creates a new chunk for the given layout.
+ * Adds new chunk to layout.
  *
- * @param layout: The layout in which to create a new chunk.
+ * @param layout Layout instance.
  *
- * @return PRP_ERR_OOM if chunk allocation fails,
- * PRP_ERR_OOM/PRP_ERR_RES_EXHAUSTED if we can't push any more chunks, PRP_OOM
- * if we can't handle metadata for the chunk(free_chunks).
+ * @return PRP_OK on success.
+ * @return PRP_ERR_RES_EXHAUSTED if max cap is reached.
+ * @return PRP_ERR_OOM if allocation fails.
  */
 static PRP_Result ChunkCreate(Layout *layout);
 /**
  * Initializes a new layout.
  *
- * @param layout: The layout to initialize.
- * @param behavior_idx: The behavior the layout is supposed to be derieved from.
+ * @param layout       Layout instance.
+ * @param behavior_idx The underlying behavior of the layout.
  *
- * @return The err codes propogated by internal function call, otherwise PRP_OK.
+ * @return PRP_OK on success.
+ * @return PRP_ERR_RES_EXHAUSTED if max cap is reached.
+ * @return PRP_ERR_OOM if allocation fails.
  */
 static PRP_Result LayoutInitialize(Layout *layout, DT_size behavior_idx);
 
@@ -130,8 +131,8 @@ PRP_Result LayoutCreate(World *world, DT_size behavior_idx, DT_size *pIdx) {
     return PRP_OK;
 }
 
-static PRP_Result ChunkPtrDelCb(DT_void *ptr, DT_void *user_data) {
-    (DT_void) user_data;
+static PRP_Result ChunkPtrDelCb(DT_void *ptr, DT_void *_) {
+    (DT_void) _;
 
     Chunk **pChunk_ptr = ptr;
     free(*pChunk_ptr);
@@ -155,13 +156,13 @@ PRP_Result LayoutDelete(DT_void *layout, DT_void *_) {
 }
 
 DT_bool LayoutIsAlreadyExisting(World *world, DT_size behavior_idx,
-                                DT_size *pIdx) {
+                                DT_size *pOut) {
     DT_size len;
     const Layout *layouts = DT_ArrRawUnchecked(world->layouts, &len);
 
     for (DT_size i = 0; i < len; i++) {
         if (layouts[i].behavior_idx == behavior_idx) {
-            *pIdx = i;
+            *pOut = i;
             return DT_true;
         }
     }
@@ -183,9 +184,35 @@ DT_bool LayoutIsAlreadyExisting(World *world, DT_size behavior_idx,
 
 #define MAX_ENTITY_CAP(layout) (DT_ArrLen(layout->chunk_ptrs) * CHUNK_CAP)
 
+/**
+ * A chunk view is data upon a chunk's entire free slots allocated at once.
+ */
+typedef struct {
+    DT_size chunk_idx;
+    DT_u32 occupied_slots;
+    DT_u32 gens[32];
+} ChunkView;
+
+/**
+ * Fetches the stride of component in the given behavior.
+ *
+ * @param beahvior_idx The behavior to fetch stride from.
+ * @param comp_idx     The comp to fetch stride of.
+ *
+ * @return PRP_INVALID_SIZE if comp doesn't exist in behavior.
+ * @return The stride of the comp in the behavior otherwise.
+ */
 static DT_size GetCompStride(DT_size behavior_idx, DT_size comp_idx);
-static PRP_Result EntityBatchValidityCb(DT_void *chunk_view,
-                                        DT_void *user_data);
+/**
+ * Checks if the chunk view of a entity batch is valid.
+ *
+ * @param chunk_view A chunk view from entity batch.
+ * @param layout     The layout the entities/chunk_views belong to.
+ *
+ * @return PRP_OK on success.
+ * @return PRP_ERR_INV_STATE if the chunk view contains invlaid entities.
+ */
+static PRP_Result EntityBatchValidityCb(DT_void *chunk_view, DT_void *layout);
 
 PRP_Result LayoutSpawnEntity(World *world, DT_size layout_idx,
                              FECS_Entity *pEntity) {
@@ -251,7 +278,7 @@ PRP_Result LayoutSpawnEntities(World *world, DT_size layout_idx, DT_size count,
             pop--;
         }
 
-        ChunkView view = {.chunk_idx = free_chunk, .mask = mask};
+        ChunkView view = {.chunk_idx = free_chunk, .occupied_slots = mask};
         // Easier to copy the entire thing than parse it.
         memcpy(view.gens, chunk->gens, CHUNK_CAP * sizeof(DT_u32));
 
@@ -312,7 +339,7 @@ static PRP_Result EntityBatchValidityCb(DT_void *chunk_view, DT_void *layout) {
         return PRP_ERR_INV_STATE;
     }
     Chunk *chunk = CHUNK(l, view->chunk_idx);
-    DT_u32 mask = view->mask;
+    DT_u32 mask = view->occupied_slots;
     while (mask) {
         DT_u32 slot = DT_BitwordCTZ(mask);
         if (view->gens[slot] != chunk->gens[slot] ||
@@ -360,12 +387,12 @@ PRP_Result LayoutKillEntities(World *world, FECS_EntityBatch **pEntities) {
             return PRP_ERR_INV_ARG;
         }
         Chunk *chunk = CHUNK(layout, view->chunk_idx);
-        DT_u32 mask = view->mask;
+        DT_u32 mask = view->occupied_slots;
         while (mask) {
             DT_u32 slot = DT_BitwordCTZ(mask);
             if (view->gens[slot] != chunk->gens[slot] ||
                 PRP_BIT_IS_SET(chunk->free_slot, BIT_MASK(slot))) {
-                if (mask != view->mask) {
+                if (mask != view->occupied_slots) {
                     // We deleted some entities so chunk is free.
                     DT_BitmapSetUnchecked(layout->free_chunks, view->chunk_idx);
                 }
@@ -464,7 +491,7 @@ PRP_Result LayoutForEachEntities(World *world, FECS_EntityBatch *entities,
             return PRP_ERR_INV_ARG;
         }
         Chunk *chunk = CHUNK(layout, view->chunk_idx);
-        DT_u32 mask = view->mask;
+        DT_u32 mask = view->occupied_slots;
         while (mask) {
             DT_u32 slot = DT_BitwordCTZ(mask);
             if (view->gens[slot] != chunk->gens[slot] ||

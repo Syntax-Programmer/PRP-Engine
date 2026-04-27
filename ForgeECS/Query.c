@@ -1,23 +1,29 @@
 #include "FECS-Internals.h"
 
 /**
- * Finds all the behaviors that match the given query.
+ * Finds behavior matches for the query.
  *
- * @param query: The query to find the matches for.
+ * @param query Query instance.
  *
- * @return PRP_ERR_OOM if we can't create the array or can't push into it,
- * PRP_ERR_INTERNAL if some other error occur, otherwise PRP_OK.
+ * @return PRP_OK on success.
+ * @return PRP_ERR_RES_EXHAUSTED if max cap is reached.
+ * @return PRP_ERR_OOM if allocation fails.
  */
 static PRP_Result QueryFindMatches(Query *query);
 /**
- * Initializes and registers a query internally.
+ * Internal routine to register a query.
  *
- * @param inc_comps: The array of comps that the query wants to include.
- * @param inc_len: The len of the inc_comps array.
- * @param exc_comps: The array of comps that the query wants to exclude.
- * @param exc_len: The len of the exc_comps array.
+ * @param inc_comps Array of comps query includes.
+ * @param inc_len   Len of inc_comps.
+ * @param exc_comps Array of comps query excludes.
+ * @param exc_len   Len of exc_comps.
+ * @param pIdx      The pointer to hold the index of the query.
  *
- * @return The query index of the fully initialized and registered query.
+ * @return PRP_OK on success.
+ * @return PRP_ERR_RES_EXHAUSTED if max cap is reached.
+ * @return PRP_ERR_OOM if allocation fails.
+ * @return PRP_ERR_INV_ARG if comps in the given arrays are invalid, or
+ *                         exc_comps and inc_comps have overlapping components.
  */
 static PRP_Result QueryRegisterInternal(DT_size *inc_comps, DT_size inc_len,
                                         DT_size *exc_comps, DT_size exc_len,

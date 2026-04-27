@@ -25,6 +25,32 @@ typedef int8_t DT_i8;
 typedef float DT_f32;
 typedef double DT_f64;
 
+/* ----  MIN MAX VALUES  ---- */
+
+#define MATH_I8_MAX ((DT_i8)0X7F)
+#define MATH_I8_MIN ((DT_i8)(-0X80))
+
+#define MATH_U8_MAX ((DT_u8)0XFF)
+#define MATH_U8_MIN ((DT_u8)0)
+
+#define MATH_I16_MAX ((DT_i16)0X7FFF)
+#define MATH_I16_MIN ((DT_i16)(-0X8000))
+
+#define MATH_U16_MAX ((DT_u16)0XFFFF)
+#define MATH_U16_MIN ((DT_u16)0)
+
+#define MATH_I32_MAX ((DT_i32)0X7FFFFFFF)
+#define MATH_I32_MIN ((DT_i32)(-0X80000000))
+
+#define MATH_U32_MAX ((DT_u32)0XFFFFFFFFu)
+#define MATH_U32_MIN ((DT_u32)0u)
+
+#define MATH_I64_MAX ((DT_i64)0X7FFFFFFFFFFFFFFFll)
+#define MATH_I64_MIN ((DT_i64)(-0X8000000000000000ll))
+
+#define MATH_U64_MAX ((DT_u64)0XFFFFFFFFFFFFFFFFull)
+#define MATH_U64_MIN ((DT_u64)0ull)
+
 typedef char DT_char;
 
 typedef void DT_void;
