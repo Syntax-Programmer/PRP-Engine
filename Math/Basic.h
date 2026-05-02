@@ -39,22 +39,16 @@ static inline DT_f64 MATH_AbsF64(DT_f64 a) {
     return (a < (DT_f64)0.0f) ? -a : a;
 }
 
-typedef enum {
-    SIGN_NEGATIVE = -1,
-    SIGN_ZERO = 0,
-    SIGN_POSITIVE = 1,
-} MATH_Sign;
-
-static inline MATH_Sign MATH_SignF32(DT_f32 a) {
+static inline DT_f32 MATH_SignF32(DT_f32 a) {
     DT_f32 zero = 0.0;
 
-    return (MATH_Sign)((a > zero) - (a < zero));
+    return (DT_f32)((a > zero) - (a < zero));
 }
 
-static inline MATH_Sign MATH_SignF64(DT_f64 a) {
+static inline DT_f64 MATH_SignF64(DT_f64 a) {
     DT_f64 zero = 0.0;
 
-    return (MATH_Sign)((a > zero) - (a < zero));
+    return (DT_f64)((a > zero) - (a < zero));
 }
 
 static inline DT_f32 MATH_FloorF32(DT_f32 a) { return floorf(a); }
