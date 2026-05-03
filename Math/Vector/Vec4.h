@@ -45,8 +45,8 @@ static inline MATH_Vec4 MATH_Vec4CreateUnitW(DT_void) {
     return (MATH_Vec4){.x = 0, .y = 0, .z = 0, .w = 1};
 }
 
-static inline MATH_Vec4 MATH_Vec4CreateScalar(DT_f32 scalar) {
-    return (MATH_Vec4){scalar, scalar, scalar, scalar};
+static inline MATH_Vec4 MATH_Vec4CreateScalar(DT_f32 s) {
+    return (MATH_Vec4){s, s, s, s};
 }
 
 static inline MATH_Vec4 MATH_Vec4Homogenize(MATH_Vec4 a) {
@@ -55,14 +55,12 @@ static inline MATH_Vec4 MATH_Vec4Homogenize(MATH_Vec4 a) {
 }
 
 static inline MATH_Vec4 MATH_Vec4HomogenizeSafe(MATH_Vec4 a, DT_f32 fallback) {
-    MATH_Vec4 b;
+    a.x = MATH_SafeDivF32(a.x, a.w, fallback);
+    a.y = MATH_SafeDivF32(a.y, a.w, fallback);
+    a.z = MATH_SafeDivF32(a.z, a.w, fallback);
+    a.w = 1.0;
 
-    b.x = MATH_SafeDivF32(a.x, a.w, fallback);
-    b.y = MATH_SafeDivF32(a.y, a.w, fallback);
-    b.z = MATH_SafeDivF32(a.z, a.w, fallback);
-    b.w = 1.0;
-
-    return b;
+    return a;
 }
 
 static inline MATH_Vec4 MATH_Vec4Neg(MATH_Vec4 a) {
@@ -311,8 +309,8 @@ static inline MATH_Vec4 MATH_Vec4ProjectSafe(MATH_Vec4 a, MATH_Vec4 b,
         return fallback;
     }
 
-    DT_f32 scalar = MATH_Vec4Dot(a, b) / denom;
-    return MATH_Vec4MulScalar(b, scalar);
+    DT_f32 s = MATH_Vec4Dot(a, b) / denom;
+    return MATH_Vec4MulScalar(b, s);
 }
 
 static inline MATH_Vec4 MATH_Vec4Reject(MATH_Vec4 a, MATH_Vec4 b) {

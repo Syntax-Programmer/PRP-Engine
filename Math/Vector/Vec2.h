@@ -34,8 +34,8 @@ static inline MATH_Vec2 MATH_Vec2CreateUnitY(DT_void) {
     return (MATH_Vec2){.x = 0, .y = 1};
 }
 
-static inline MATH_Vec2 MATH_Vec2CreateScalar(DT_f32 scalar) {
-    return (MATH_Vec2){scalar, scalar};
+static inline MATH_Vec2 MATH_Vec2CreateScalar(DT_f32 s) {
+    return (MATH_Vec2){s, s};
 }
 
 static inline MATH_Vec2 MATH_Vec2Neg(MATH_Vec2 a) {
@@ -299,9 +299,9 @@ static inline MATH_Vec2 MATH_Vec2ProjectSafe(MATH_Vec2 a, MATH_Vec2 b,
     if (MATH_IsZeroF32(denom)) {
         return fallback;
     }
+    DT_f32 s = MATH_Vec2Dot(a, b) / denom;
 
-    DT_f32 scalar = MATH_Vec2Dot(a, b) / denom;
-    return MATH_Vec2MulScalar(b, scalar);
+    return MATH_Vec2MulScalar(b, s);
 }
 
 static inline MATH_Vec2 MATH_Vec2Reject(MATH_Vec2 a, MATH_Vec2 b) {

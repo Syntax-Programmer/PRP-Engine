@@ -39,8 +39,8 @@ static inline MATH_Vec3 MATH_Vec3CreateUnitZ(DT_void) {
     return (MATH_Vec3){.x = 0, .y = 0, .z = 1};
 }
 
-static inline MATH_Vec3 MATH_Vec3CreateScalar(DT_f32 scalar) {
-    return (MATH_Vec3){scalar, scalar, scalar};
+static inline MATH_Vec3 MATH_Vec3CreateScalar(DT_f32 s) {
+    return (MATH_Vec3){s, s, s};
 }
 
 static inline MATH_Vec3 MATH_Vec3Neg(MATH_Vec3 a) {
@@ -382,9 +382,9 @@ static inline MATH_Vec3 MATH_Vec3ProjectSafe(MATH_Vec3 a, MATH_Vec3 b,
     if (MATH_IsZeroF32(denom)) {
         return fallback;
     }
+    DT_f32 s = MATH_Vec3Dot(a, b) / denom;
 
-    DT_f32 scalar = MATH_Vec3Dot(a, b) / denom;
-    return MATH_Vec3MulScalar(b, scalar);
+    return MATH_Vec3MulScalar(b, s);
 }
 
 static inline MATH_Vec3 MATH_Vec3Reject(MATH_Vec3 a, MATH_Vec3 b) {
@@ -428,10 +428,3 @@ static inline MATH_Vec3 MATH_Vec3Reflect(MATH_Vec3 v, MATH_Vec3 n) {
 #ifdef __cplusplus
 }
 #endif
-
-/**
- * TODO:
- * (A) Distance to line / plane
- * (B) Projection onto plane
- * (C) Signed angle (with reference axis)
- */
