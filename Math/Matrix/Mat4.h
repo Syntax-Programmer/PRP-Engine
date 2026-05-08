@@ -474,9 +474,87 @@ static inline DT_bool MATH_Mat4IsInf(MATH_Mat4 a) {
                      MATH_IsInfF32(a.m[14]) || MATH_IsInfF32(a.m[15]));
 }
 
+static inline DT_bool MATH_Mat4IsOrthonormal(MATH_Mat4 a) {
+    MATH_Vec4 c0 = {.x = a.m[0], .y = a.m[1], .z = a.m[2], .w = a.m[3]};
+    MATH_Vec4 c1 = {.x = a.m[4], .y = a.m[5], .z = a.m[6], .w = a.m[7]};
+    MATH_Vec4 c2 = {.x = a.m[8], .y = a.m[9], .z = a.m[10], .w = a.m[11]};
+    MATH_Vec4 c3 = {.x = a.m[12], .y = a.m[13], .z = a.m[14], .w = a.m[15]};
+
+    DT_f32 d01 = MATH_Vec4Dot(c0, c1);
+    DT_f32 d02 = MATH_Vec4Dot(c0, c2);
+    DT_f32 d03 = MATH_Vec4Dot(c0, c3);
+    DT_f32 d12 = MATH_Vec4Dot(c1, c2);
+    DT_f32 d13 = MATH_Vec4Dot(c1, c3);
+    DT_f32 d23 = MATH_Vec4Dot(c2, c3);
+
+    DT_f32 l0 = MATH_Vec4LenSq(c0);
+    DT_f32 l1 = MATH_Vec4LenSq(c1);
+    DT_f32 l2 = MATH_Vec4LenSq(c2);
+    DT_f32 l3 = MATH_Vec4LenSq(c3);
+
+    return (DT_bool)(MATH_IsZeroF32(d01) && MATH_IsZeroF32(d02) &&
+                     MATH_IsZeroF32(d03) && MATH_IsZeroF32(d12) &&
+                     MATH_IsZeroF32(d13) && MATH_IsZeroF32(d23) &&
+                     MATH_AlmostEqF32(l0, 1.0f) && MATH_AlmostEqF32(l1, 1.0f) &&
+                     MATH_AlmostEqF32(l2, 1.0f) && MATH_AlmostEqF32(l3, 1.0f));
+}
+
 static inline DT_bool MATH_Mat4IsAffine(MATH_Mat4 a) {
     return (DT_bool)(MATH_IsZeroF32(a.m[3]) && MATH_IsZeroF32(a.m[7]) &&
                      MATH_IsZeroF32(a.m[11]) &&
+                     MATH_AlmostEqF32(a.m[15], 1.0f));
+}
+
+static inline DT_bool MATH_Mat4IsAffineOrthonormal(MATH_Mat4 a) {
+    MATH_Vec3 c0 = {.x = a.m[0], .y = a.m[1], .z = a.m[2]};
+    MATH_Vec3 c1 = {.x = a.m[4], .y = a.m[5], .z = a.m[6]};
+    MATH_Vec3 c2 = {.x = a.m[8], .y = a.m[9], .z = a.m[10]};
+
+    DT_f32 d01 = MATH_Vec3Dot(c0, c1);
+    DT_f32 d02 = MATH_Vec3Dot(c0, c2);
+    DT_f32 d12 = MATH_Vec3Dot(c1, c2);
+
+    DT_f32 l0 = MATH_Vec3LenSq(c0);
+    DT_f32 l1 = MATH_Vec3LenSq(c1);
+    DT_f32 l2 = MATH_Vec3LenSq(c2);
+
+    return (DT_bool)(MATH_IsZeroF32(a.m[3]) && MATH_IsZeroF32(a.m[7]) &&
+                     MATH_IsZeroF32(a.m[11]) &&
+                     MATH_AlmostEqF32(a.m[15], 1.0f) &&
+                     MATH_IsZeroF32(d01) && MATH_IsZeroF32(d02) &&
+                     MATH_IsZeroF32(d12) &&
+                     MATH_AlmostEqF32(l0, 1.0f) && MATH_AlmostEqF32(l1, 1.0f) &&
+                     MATH_AlmostEqF32(l2, 1.0f));
+}
+
+static inline DT_bool MATH_Mat4IsSymmetric(MATH_Mat4 a) {
+    return (DT_bool)(MATH_AlmostEqF32(a.m[1], a.m[4]) &&
+                     MATH_AlmostEqF32(a.m[2], a.m[8]) &&
+                     MATH_AlmostEqF32(a.m[3], a.m[12]) &&
+                     MATH_AlmostEqF32(a.m[6], a.m[9]) &&
+                     MATH_AlmostEqF32(a.m[7], a.m[13]) &&
+                     MATH_AlmostEqF32(a.m[11], a.m[14]));
+}
+
+static inline DT_bool MATH_Mat4IsDiagonal(MATH_Mat4 a) {
+    return (DT_bool)(MATH_IsZeroF32(a.m[1]) && MATH_IsZeroF32(a.m[2]) &&
+                     MATH_IsZeroF32(a.m[3]) && MATH_IsZeroF32(a.m[4]) &&
+                     MATH_IsZeroF32(a.m[6]) && MATH_IsZeroF32(a.m[7]) &&
+                     MATH_IsZeroF32(a.m[8]) && MATH_IsZeroF32(a.m[9]) &&
+                     MATH_IsZeroF32(a.m[11]) && MATH_IsZeroF32(a.m[12]) &&
+                     MATH_IsZeroF32(a.m[13]) && MATH_IsZeroF32(a.m[14]));
+}
+
+static inline DT_bool MATH_Mat4IsIdentity(MATH_Mat4 a) {
+    return (DT_bool)(MATH_IsZeroF32(a.m[1]) && MATH_IsZeroF32(a.m[2]) &&
+                     MATH_IsZeroF32(a.m[3]) && MATH_IsZeroF32(a.m[4]) &&
+                     MATH_IsZeroF32(a.m[6]) && MATH_IsZeroF32(a.m[7]) &&
+                     MATH_IsZeroF32(a.m[8]) && MATH_IsZeroF32(a.m[9]) &&
+                     MATH_IsZeroF32(a.m[11]) && MATH_IsZeroF32(a.m[12]) &&
+                     MATH_IsZeroF32(a.m[13]) && MATH_IsZeroF32(a.m[14]) &&
+                     MATH_AlmostEqF32(a.m[0], 1.0f) &&
+                     MATH_AlmostEqF32(a.m[5], 1.0f) &&
+                     MATH_AlmostEqF32(a.m[10], 1.0f) &&
                      MATH_AlmostEqF32(a.m[15], 1.0f));
 }
 

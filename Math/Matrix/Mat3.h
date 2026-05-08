@@ -226,14 +226,21 @@ static inline DT_bool MATH_Mat3IsInf(MATH_Mat3 a) {
 }
 
 static inline DT_bool MATH_Mat3IsOrthonormal(MATH_Mat3 a) {
-    MATH_Vec2 c0 = {.x = a.m[0], .y = a.m[1]};
-    MATH_Vec2 c1 = {.x = a.m[3], .y = a.m[4]};
-    DT_f32 dot = MATH_Vec2Dot(c0, c1);
-    DT_f32 len0 = MATH_Vec2Len(c0);
-    DT_f32 len1 = MATH_Vec2Len(c1);
+    MATH_Vec3 c0 = {.x = a.m[0], .y = a.m[1], .z = a.m[2]};
+    MATH_Vec3 c1 = {.x = a.m[3], .y = a.m[4], .z = a.m[5]};
+    MATH_Vec3 c2 = {.x = a.m[6], .y = a.m[7], .z = a.m[8]};
 
-    return (DT_bool)(MATH_IsZeroF32(dot) && MATH_AlmostEqF32(len0, 1.0f) &&
-                     MATH_AlmostEqF32(len1, 1.0f));
+    DT_f32 d01 = MATH_Vec3Dot(c0, c1);
+    DT_f32 d02 = MATH_Vec3Dot(c0, c2);
+    DT_f32 d12 = MATH_Vec3Dot(c1, c2);
+
+    DT_f32 l0 = MATH_Vec3LenSq(c0);
+    DT_f32 l1 = MATH_Vec3LenSq(c1);
+    DT_f32 l2 = MATH_Vec3LenSq(c2);
+
+    return (DT_bool)(MATH_IsZeroF32(d01) && MATH_IsZeroF32(d02) &&
+                     MATH_IsZeroF32(d12) && MATH_AlmostEqF32(l0, 1.0f) &&
+                     MATH_AlmostEqF32(l1, 1.0f) && MATH_AlmostEqF32(l2, 1.0f));
 }
 
 static inline DT_bool MATH_Mat3IsAffine(MATH_Mat3 a) {
@@ -242,7 +249,38 @@ static inline DT_bool MATH_Mat3IsAffine(MATH_Mat3 a) {
 }
 
 static inline DT_bool MATH_Mat3IsAffineOrthonormal(MATH_Mat3 a) {
-    return (DT_bool)(MATH_Mat3IsOrthonormal(a) && MATH_Mat3IsAffine(a));
+    MATH_Vec2 c0 = {.x = a.m[0], .y = a.m[1]};
+    MATH_Vec2 c1 = {.x = a.m[3], .y = a.m[4]};
+
+    DT_f32 d01 = MATH_Vec2Dot(c0, c1);
+
+    DT_f32 l0 = MATH_Vec2LenSq(c0);
+    DT_f32 l1 = MATH_Vec2LenSq(c1);
+
+    return (DT_bool)(MATH_IsZeroF32(a.m[2]) && MATH_IsZeroF32(a.m[5]) &&
+                     MATH_AlmostEqF32(a.m[8], 1.0f) && MATH_IsZeroF32(d01) &&
+                     MATH_AlmostEqF32(l0, 1.0f) && MATH_AlmostEqF32(l1, 1.0f));
+}
+
+static inline DT_bool MATH_Mat3IsSymmetric(MATH_Mat3 a) {
+    return (DT_bool)(MATH_AlmostEqF32(a.m[1], a.m[3]) &&
+                     MATH_AlmostEqF32(a.m[2], a.m[6]) &&
+                     MATH_AlmostEqF32(a.m[5], a.m[7]));
+}
+
+static inline DT_bool MATH_Mat3IsDiagonal(MATH_Mat3 a) {
+    return (DT_bool)(MATH_IsZeroF32(a.m[1]) && MATH_IsZeroF32(a.m[3]) &&
+                     MATH_IsZeroF32(a.m[2]) && MATH_IsZeroF32(a.m[6]) &&
+                     MATH_IsZeroF32(a.m[5]) && MATH_IsZeroF32(a.m[7]));
+}
+
+static inline DT_bool MATH_Mat3IsIdentity(MATH_Mat3 a) {
+    return (DT_bool)(MATH_IsZeroF32(a.m[1]) && MATH_IsZeroF32(a.m[3]) &&
+                     MATH_IsZeroF32(a.m[2]) && MATH_IsZeroF32(a.m[6]) &&
+                     MATH_IsZeroF32(a.m[5]) && MATH_IsZeroF32(a.m[7]) &&
+                     MATH_AlmostEqF32(a.m[0], 1.0f) &&
+                     MATH_AlmostEqF32(a.m[4], 1.0f) &&
+                     MATH_AlmostEqF32(a.m[8], 1.0f));
 }
 
 /* ----  BASIC OPS  ---- */
