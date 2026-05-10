@@ -166,89 +166,49 @@ PRP_FN_API DT_bool PRP_FN_CALL MATH_Mat3IsOrthonormal(MATH_Mat3 a);
 
 /* ----  BASIC OPS  ---- */
 
-static inline MATH_Mat3 MATH_Mat3Abs(MATH_Mat3 a) {
-    a.membs[0] = MATH_AbsF32(a.membs[0]);
-    a.membs[1] = MATH_AbsF32(a.membs[1]);
-    a.membs[2] = MATH_AbsF32(a.membs[2]);
-    a.membs[3] = MATH_AbsF32(a.membs[3]);
-    a.membs[4] = MATH_AbsF32(a.membs[4]);
-    a.membs[5] = MATH_AbsF32(a.membs[5]);
-    a.membs[6] = MATH_AbsF32(a.membs[6]);
-    a.membs[7] = MATH_AbsF32(a.membs[7]);
-    a.membs[8] = MATH_AbsF32(a.membs[8]);
+#define MAT3_INTERNAL_DEFINE_UNARY_OP(op_name, op)                             \
+    static inline MATH_Mat3 MATH_Mat3##op_name(MATH_Mat3 a) {                  \
+        a.membs[0] = op(a.membs[0]);                                           \
+        a.membs[1] = op(a.membs[1]);                                           \
+        a.membs[2] = op(a.membs[2]);                                           \
+        a.membs[3] = op(a.membs[3]);                                           \
+        a.membs[4] = op(a.membs[4]);                                           \
+        a.membs[5] = op(a.membs[5]);                                           \
+        a.membs[6] = op(a.membs[6]);                                           \
+        a.membs[7] = op(a.membs[7]);                                           \
+        a.membs[8] = op(a.membs[8]);                                           \
+                                                                               \
+        return a;                                                              \
+    }
 
-    return a;
-}
+MAT3_INTERNAL_DEFINE_UNARY_OP(Abs, MATH_AbsF32);
+MAT3_INTERNAL_DEFINE_UNARY_OP(Sign, MATH_SignF32);
+MAT3_INTERNAL_DEFINE_UNARY_OP(Neg, -);
 
-static inline MATH_Mat3 MATH_Mat3Sign(MATH_Mat3 a) {
-    a.membs[0] = MATH_SignF32(a.membs[0]);
-    a.membs[1] = MATH_SignF32(a.membs[1]);
-    a.membs[2] = MATH_SignF32(a.membs[2]);
-    a.membs[3] = MATH_SignF32(a.membs[3]);
-    a.membs[4] = MATH_SignF32(a.membs[4]);
-    a.membs[5] = MATH_SignF32(a.membs[5]);
-    a.membs[6] = MATH_SignF32(a.membs[6]);
-    a.membs[7] = MATH_SignF32(a.membs[7]);
-    a.membs[8] = MATH_SignF32(a.membs[8]);
+#undef MAT3_INTERNAL_DEFINE_UNARY_OP
 
-    return a;
-}
+#define MAT3_INTERNAL_DEFINE_ELEMS_OP(op_name, op)                             \
+    static inline MATH_Mat3 MATH_Mat3Elems##op_name(MATH_Mat3 a,               \
+                                                    MATH_Mat3 b) {             \
+        a.membs[0] = (a.membs[0])op(b.membs[0]);                               \
+        a.membs[1] = (a.membs[1])op(b.membs[1]);                               \
+        a.membs[2] = (a.membs[2])op(b.membs[2]);                               \
+        a.membs[3] = (a.membs[3])op(b.membs[3]);                               \
+        a.membs[4] = (a.membs[4])op(b.membs[4]);                               \
+        a.membs[5] = (a.membs[5])op(b.membs[5]);                               \
+        a.membs[6] = (a.membs[6])op(b.membs[6]);                               \
+        a.membs[7] = (a.membs[7])op(b.membs[7]);                               \
+        a.membs[8] = (a.membs[8])op(b.membs[8]);                               \
+                                                                               \
+        return a;                                                              \
+    }
 
-static inline MATH_Mat3 MATH_Mat3AddElems(MATH_Mat3 a, MATH_Mat3 b) {
-    a.membs[0] += b.membs[0];
-    a.membs[1] += b.membs[1];
-    a.membs[2] += b.membs[2];
-    a.membs[3] += b.membs[3];
-    a.membs[4] += b.membs[4];
-    a.membs[5] += b.membs[5];
-    a.membs[6] += b.membs[6];
-    a.membs[7] += b.membs[7];
-    a.membs[8] += b.membs[8];
+MAT3_INTERNAL_DEFINE_ELEMS_OP(Add, +);
+MAT3_INTERNAL_DEFINE_ELEMS_OP(Sub, -);
+MAT3_INTERNAL_DEFINE_ELEMS_OP(Mul, *);
+MAT3_INTERNAL_DEFINE_ELEMS_OP(Div, /);
 
-    return a;
-}
-
-static inline MATH_Mat3 MATH_Mat3SubElems(MATH_Mat3 a, MATH_Mat3 b) {
-    a.membs[0] -= b.membs[0];
-    a.membs[1] -= b.membs[1];
-    a.membs[2] -= b.membs[2];
-    a.membs[3] -= b.membs[3];
-    a.membs[4] -= b.membs[4];
-    a.membs[5] -= b.membs[5];
-    a.membs[6] -= b.membs[6];
-    a.membs[7] -= b.membs[7];
-    a.membs[8] -= b.membs[8];
-
-    return a;
-}
-
-static inline MATH_Mat3 MATH_Mat3MulElems(MATH_Mat3 a, MATH_Mat3 b) {
-    a.membs[0] *= b.membs[0];
-    a.membs[1] *= b.membs[1];
-    a.membs[2] *= b.membs[2];
-    a.membs[3] *= b.membs[3];
-    a.membs[4] *= b.membs[4];
-    a.membs[5] *= b.membs[5];
-    a.membs[6] *= b.membs[6];
-    a.membs[7] *= b.membs[7];
-    a.membs[8] *= b.membs[8];
-
-    return a;
-}
-
-static inline MATH_Mat3 MATH_Mat3DivElems(MATH_Mat3 a, MATH_Mat3 b) {
-    a.membs[0] /= b.membs[0];
-    a.membs[1] /= b.membs[1];
-    a.membs[2] /= b.membs[2];
-    a.membs[3] /= b.membs[3];
-    a.membs[4] /= b.membs[4];
-    a.membs[5] /= b.membs[5];
-    a.membs[6] /= b.membs[6];
-    a.membs[7] /= b.membs[7];
-    a.membs[8] /= b.membs[8];
-
-    return a;
-}
+#undef MAT3_INTERNAL_DEFINE_ELEMS_OP
 
 static inline MATH_Mat3 MATH_Mat3DivElemsSafe(MATH_Mat3 a, MATH_Mat3 b,
                                               DT_f32 fallback) {
@@ -265,63 +225,27 @@ static inline MATH_Mat3 MATH_Mat3DivElemsSafe(MATH_Mat3 a, MATH_Mat3 b,
     return a;
 }
 
-static inline MATH_Mat3 MATH_Mat3AddScalar(MATH_Mat3 a, DT_f32 s) {
-    a.membs[0] += s;
-    a.membs[1] += s;
-    a.membs[2] += s;
-    a.membs[3] += s;
-    a.membs[4] += s;
-    a.membs[5] += s;
-    a.membs[6] += s;
-    a.membs[7] += s;
-    a.membs[8] += s;
+#define MAT3_INTERNAL_DEFINE_SCALAR_OP(op_name, op)                            \
+    static inline MATH_Mat3 MATH_Mat3Scalar##op_name(MATH_Mat3 a, DT_f32 s) {  \
+        a.membs[0] = (a.membs[0])op(s);                                        \
+        a.membs[1] = (a.membs[1])op(s);                                        \
+        a.membs[2] = (a.membs[2])op(s);                                        \
+        a.membs[3] = (a.membs[3])op(s);                                        \
+        a.membs[4] = (a.membs[4])op(s);                                        \
+        a.membs[5] = (a.membs[5])op(s);                                        \
+        a.membs[6] = (a.membs[6])op(s);                                        \
+        a.membs[7] = (a.membs[7])op(s);                                        \
+        a.membs[8] = (a.membs[8])op(s);                                        \
+                                                                               \
+        return a;                                                              \
+    }
 
-    return a;
-}
+MAT3_INTERNAL_DEFINE_SCALAR_OP(Add, +);
+MAT3_INTERNAL_DEFINE_SCALAR_OP(Sub, -);
+MAT3_INTERNAL_DEFINE_SCALAR_OP(Mul, *);
+MAT3_INTERNAL_DEFINE_SCALAR_OP(Div, /);
 
-static inline MATH_Mat3 MATH_Mat3SubScalar(MATH_Mat3 a, DT_f32 s) {
-    a.membs[0] -= s;
-    a.membs[1] -= s;
-    a.membs[2] -= s;
-    a.membs[3] -= s;
-    a.membs[4] -= s;
-    a.membs[5] -= s;
-    a.membs[6] -= s;
-    a.membs[7] -= s;
-    a.membs[8] -= s;
-
-    return a;
-}
-
-static inline MATH_Mat3 MATH_Mat3MulScalar(MATH_Mat3 a, DT_f32 s) {
-    a.membs[0] *= s;
-    a.membs[1] *= s;
-    a.membs[2] *= s;
-    a.membs[3] *= s;
-    a.membs[4] *= s;
-    a.membs[5] *= s;
-    a.membs[6] *= s;
-    a.membs[7] *= s;
-    a.membs[8] *= s;
-
-    return a;
-}
-
-static inline MATH_Mat3 MATH_Mat3DivScalar(MATH_Mat3 a, DT_f32 s) {
-    DT_f32 inv_scalar = 1.0f / s;
-
-    a.membs[0] *= inv_scalar;
-    a.membs[1] *= inv_scalar;
-    a.membs[2] *= inv_scalar;
-    a.membs[3] *= inv_scalar;
-    a.membs[4] *= inv_scalar;
-    a.membs[5] *= inv_scalar;
-    a.membs[6] *= inv_scalar;
-    a.membs[7] *= inv_scalar;
-    a.membs[8] *= inv_scalar;
-
-    return a;
-}
+#undef MAT3_INTERNAL_DEFINE_SCALAR_OP
 
 static inline MATH_Mat3 MATH_Mat3DivScalarSafe(MATH_Mat3 a, DT_f32 s,
                                                DT_f32 fallback) {
@@ -329,21 +253,7 @@ static inline MATH_Mat3 MATH_Mat3DivScalarSafe(MATH_Mat3 a, DT_f32 s,
         return MATH_Mat3CreateFillScalar(fallback);
     }
 
-    return MATH_Mat3DivScalar(a, s);
-}
-
-static inline MATH_Mat3 MATH_Mat3Neg(MATH_Mat3 a) {
-    a.membs[0] = -a.membs[0];
-    a.membs[1] = -a.membs[1];
-    a.membs[2] = -a.membs[2];
-    a.membs[3] = -a.membs[3];
-    a.membs[4] = -a.membs[4];
-    a.membs[5] = -a.membs[5];
-    a.membs[6] = -a.membs[6];
-    a.membs[7] = -a.membs[7];
-    a.membs[8] = -a.membs[8];
-
-    return a;
+    return MATH_Mat3ScalarDiv(a, s);
 }
 
 PRP_FN_API MATH_Mat3 PRP_FN_CALL MATH_Mat3Mul(MATH_Mat3 a, MATH_Mat3 b);

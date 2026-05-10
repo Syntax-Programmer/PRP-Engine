@@ -232,131 +232,63 @@ PRP_FN_API DT_bool PRP_FN_CALL MATH_Mat4IsOrthonormal(MATH_Mat4 a);
 
 /* ----  BASIC OPS  ---- */
 
-static inline MATH_Mat4 MATH_Mat4Abs(MATH_Mat4 a) {
-    a.membs[0] = MATH_AbsF32(a.membs[0]);
-    a.membs[1] = MATH_AbsF32(a.membs[1]);
-    a.membs[2] = MATH_AbsF32(a.membs[2]);
-    a.membs[3] = MATH_AbsF32(a.membs[3]);
-    a.membs[4] = MATH_AbsF32(a.membs[4]);
-    a.membs[5] = MATH_AbsF32(a.membs[5]);
-    a.membs[6] = MATH_AbsF32(a.membs[6]);
-    a.membs[7] = MATH_AbsF32(a.membs[7]);
-    a.membs[8] = MATH_AbsF32(a.membs[8]);
-    a.membs[9] = MATH_AbsF32(a.membs[9]);
-    a.membs[10] = MATH_AbsF32(a.membs[10]);
-    a.membs[11] = MATH_AbsF32(a.membs[11]);
-    a.membs[12] = MATH_AbsF32(a.membs[12]);
-    a.membs[13] = MATH_AbsF32(a.membs[13]);
-    a.membs[14] = MATH_AbsF32(a.membs[14]);
-    a.membs[15] = MATH_AbsF32(a.membs[15]);
+#define MAT4_INTERNAL_DEFINE_UNARY_OP(op_name, op)                             \
+    static inline MATH_Mat4 MATH_Mat4##op_name(MATH_Mat4 a) {                  \
+        a.membs[0] = op(a.membs[0]);                                           \
+        a.membs[1] = op(a.membs[1]);                                           \
+        a.membs[2] = op(a.membs[2]);                                           \
+        a.membs[3] = op(a.membs[3]);                                           \
+        a.membs[4] = op(a.membs[4]);                                           \
+        a.membs[5] = op(a.membs[5]);                                           \
+        a.membs[6] = op(a.membs[6]);                                           \
+        a.membs[7] = op(a.membs[7]);                                           \
+        a.membs[8] = op(a.membs[8]);                                           \
+        a.membs[9] = op(a.membs[9]);                                           \
+        a.membs[10] = op(a.membs[10]);                                         \
+        a.membs[11] = op(a.membs[11]);                                         \
+        a.membs[12] = op(a.membs[12]);                                         \
+        a.membs[13] = op(a.membs[13]);                                         \
+        a.membs[14] = op(a.membs[14]);                                         \
+        a.membs[15] = op(a.membs[15]);                                         \
+                                                                               \
+        return a;                                                              \
+    }
 
-    return a;
-}
+MAT4_INTERNAL_DEFINE_UNARY_OP(Abs, MATH_AbsF32);
+MAT4_INTERNAL_DEFINE_UNARY_OP(Sign, MATH_SignF32);
+MAT4_INTERNAL_DEFINE_UNARY_OP(Neg, -);
 
-static inline MATH_Mat4 MATH_Mat4Sign(MATH_Mat4 a) {
-    a.membs[0] = MATH_SignF32(a.membs[0]);
-    a.membs[1] = MATH_SignF32(a.membs[1]);
-    a.membs[2] = MATH_SignF32(a.membs[2]);
-    a.membs[3] = MATH_SignF32(a.membs[3]);
-    a.membs[4] = MATH_SignF32(a.membs[4]);
-    a.membs[5] = MATH_SignF32(a.membs[5]);
-    a.membs[6] = MATH_SignF32(a.membs[6]);
-    a.membs[7] = MATH_SignF32(a.membs[7]);
-    a.membs[8] = MATH_SignF32(a.membs[8]);
-    a.membs[9] = MATH_SignF32(a.membs[9]);
-    a.membs[10] = MATH_SignF32(a.membs[10]);
-    a.membs[11] = MATH_SignF32(a.membs[11]);
-    a.membs[12] = MATH_SignF32(a.membs[12]);
-    a.membs[13] = MATH_SignF32(a.membs[13]);
-    a.membs[14] = MATH_SignF32(a.membs[14]);
-    a.membs[15] = MATH_SignF32(a.membs[15]);
+#undef MAT4_INTERNAL_DEFINE_UNARY_OP
 
-    return a;
-}
+#define MAT4_INTERNAL_DEFINE_ELEMS_OP(op_name, op)                             \
+    static inline MATH_Mat4 MATH_Mat4Elems##op_name(MATH_Mat4 a,               \
+                                                    MATH_Mat4 b) {             \
+        a.membs[0] = (a.membs[0])op(b.membs[0]);                               \
+        a.membs[1] = (a.membs[1])op(b.membs[1]);                               \
+        a.membs[2] = (a.membs[2])op(b.membs[2]);                               \
+        a.membs[3] = (a.membs[3])op(b.membs[3]);                               \
+        a.membs[4] = (a.membs[4])op(b.membs[4]);                               \
+        a.membs[5] = (a.membs[5])op(b.membs[5]);                               \
+        a.membs[6] = (a.membs[6])op(b.membs[6]);                               \
+        a.membs[7] = (a.membs[7])op(b.membs[7]);                               \
+        a.membs[8] = (a.membs[8])op(b.membs[8]);                               \
+        a.membs[9] = (a.membs[9])op(b.membs[9]);                               \
+        a.membs[10] = (a.membs[10])op(b.membs[10]);                            \
+        a.membs[11] = (a.membs[11])op(b.membs[11]);                            \
+        a.membs[12] = (a.membs[12])op(b.membs[12]);                            \
+        a.membs[13] = (a.membs[13])op(b.membs[13]);                            \
+        a.membs[14] = (a.membs[14])op(b.membs[14]);                            \
+        a.membs[15] = (a.membs[15])op(b.membs[15]);                            \
+                                                                               \
+        return a;                                                              \
+    }
 
-static inline MATH_Mat4 MATH_Mat4AddElems(MATH_Mat4 a, MATH_Mat4 b) {
-    a.membs[0] += b.membs[0];
-    a.membs[1] += b.membs[1];
-    a.membs[2] += b.membs[2];
-    a.membs[3] += b.membs[3];
-    a.membs[4] += b.membs[4];
-    a.membs[5] += b.membs[5];
-    a.membs[6] += b.membs[6];
-    a.membs[7] += b.membs[7];
-    a.membs[8] += b.membs[8];
-    a.membs[9] += b.membs[9];
-    a.membs[10] += b.membs[10];
-    a.membs[11] += b.membs[11];
-    a.membs[12] += b.membs[12];
-    a.membs[13] += b.membs[13];
-    a.membs[14] += b.membs[14];
-    a.membs[15] += b.membs[15];
+MAT4_INTERNAL_DEFINE_ELEMS_OP(Add, +);
+MAT4_INTERNAL_DEFINE_ELEMS_OP(Sub, -);
+MAT4_INTERNAL_DEFINE_ELEMS_OP(Mul, *);
+MAT4_INTERNAL_DEFINE_ELEMS_OP(Div, /);
 
-    return a;
-}
-
-static inline MATH_Mat4 MATH_Mat4SubElems(MATH_Mat4 a, MATH_Mat4 b) {
-    a.membs[0] -= b.membs[0];
-    a.membs[1] -= b.membs[1];
-    a.membs[2] -= b.membs[2];
-    a.membs[3] -= b.membs[3];
-    a.membs[4] -= b.membs[4];
-    a.membs[5] -= b.membs[5];
-    a.membs[6] -= b.membs[6];
-    a.membs[7] -= b.membs[7];
-    a.membs[8] -= b.membs[8];
-    a.membs[9] -= b.membs[9];
-    a.membs[10] -= b.membs[10];
-    a.membs[11] -= b.membs[11];
-    a.membs[12] -= b.membs[12];
-    a.membs[13] -= b.membs[13];
-    a.membs[14] -= b.membs[14];
-    a.membs[15] -= b.membs[15];
-
-    return a;
-}
-
-static inline MATH_Mat4 MATH_Mat4MulElems(MATH_Mat4 a, MATH_Mat4 b) {
-    a.membs[0] *= b.membs[0];
-    a.membs[1] *= b.membs[1];
-    a.membs[2] *= b.membs[2];
-    a.membs[3] *= b.membs[3];
-    a.membs[4] *= b.membs[4];
-    a.membs[5] *= b.membs[5];
-    a.membs[6] *= b.membs[6];
-    a.membs[7] *= b.membs[7];
-    a.membs[8] *= b.membs[8];
-    a.membs[9] *= b.membs[9];
-    a.membs[10] *= b.membs[10];
-    a.membs[11] *= b.membs[11];
-    a.membs[12] *= b.membs[12];
-    a.membs[13] *= b.membs[13];
-    a.membs[14] *= b.membs[14];
-    a.membs[15] *= b.membs[15];
-
-    return a;
-}
-
-static inline MATH_Mat4 MATH_Mat4DivElems(MATH_Mat4 a, MATH_Mat4 b) {
-    a.membs[0] /= b.membs[0];
-    a.membs[1] /= b.membs[1];
-    a.membs[2] /= b.membs[2];
-    a.membs[3] /= b.membs[3];
-    a.membs[4] /= b.membs[4];
-    a.membs[5] /= b.membs[5];
-    a.membs[6] /= b.membs[6];
-    a.membs[7] /= b.membs[7];
-    a.membs[8] /= b.membs[8];
-    a.membs[9] /= b.membs[9];
-    a.membs[10] /= b.membs[10];
-    a.membs[11] /= b.membs[11];
-    a.membs[12] /= b.membs[12];
-    a.membs[13] /= b.membs[13];
-    a.membs[14] /= b.membs[14];
-    a.membs[15] /= b.membs[15];
-
-    return a;
-}
+#undef MAT4_INTERNAL_DEFINE_ELEMS_OP
 
 static inline MATH_Mat4 MATH_Mat4DivElemsSafe(MATH_Mat4 a, MATH_Mat4 b,
                                               DT_f32 fallback) {
@@ -380,91 +312,34 @@ static inline MATH_Mat4 MATH_Mat4DivElemsSafe(MATH_Mat4 a, MATH_Mat4 b,
     return a;
 }
 
-static inline MATH_Mat4 MATH_Mat4AddScalar(MATH_Mat4 a, DT_f32 s) {
-    a.membs[0] += s;
-    a.membs[1] += s;
-    a.membs[2] += s;
-    a.membs[3] += s;
-    a.membs[4] += s;
-    a.membs[5] += s;
-    a.membs[6] += s;
-    a.membs[7] += s;
-    a.membs[8] += s;
-    a.membs[9] += s;
-    a.membs[10] += s;
-    a.membs[11] += s;
-    a.membs[12] += s;
-    a.membs[13] += s;
-    a.membs[14] += s;
-    a.membs[15] += s;
+#define MAT4_INTERNAL_DEFINE_SCALAR_OP(op_name, op)                            \
+    static inline MATH_Mat4 MATH_Mat4Scalar##op_name(MATH_Mat4 a, DT_f32 s) {  \
+        a.membs[0] = (a.membs[0])op(s);                                        \
+        a.membs[1] = (a.membs[1])op(s);                                        \
+        a.membs[2] = (a.membs[2])op(s);                                        \
+        a.membs[3] = (a.membs[3])op(s);                                        \
+        a.membs[4] = (a.membs[4])op(s);                                        \
+        a.membs[5] = (a.membs[5])op(s);                                        \
+        a.membs[6] = (a.membs[6])op(s);                                        \
+        a.membs[7] = (a.membs[7])op(s);                                        \
+        a.membs[8] = (a.membs[8])op(s);                                        \
+        a.membs[9] = (a.membs[9])op(s);                                        \
+        a.membs[10] = (a.membs[10])op(s);                                      \
+        a.membs[11] = (a.membs[11])op(s);                                      \
+        a.membs[12] = (a.membs[12])op(s);                                      \
+        a.membs[13] = (a.membs[13])op(s);                                      \
+        a.membs[14] = (a.membs[14])op(s);                                      \
+        a.membs[15] = (a.membs[15])op(s);                                      \
+                                                                               \
+        return a;                                                              \
+    }
 
-    return a;
-}
+MAT4_INTERNAL_DEFINE_SCALAR_OP(Add, +);
+MAT4_INTERNAL_DEFINE_SCALAR_OP(Sub, -);
+MAT4_INTERNAL_DEFINE_SCALAR_OP(Mul, *);
+MAT4_INTERNAL_DEFINE_SCALAR_OP(Div, /);
 
-static inline MATH_Mat4 MATH_Mat4SubScalar(MATH_Mat4 a, DT_f32 s) {
-    a.membs[0] -= s;
-    a.membs[1] -= s;
-    a.membs[2] -= s;
-    a.membs[3] -= s;
-    a.membs[4] -= s;
-    a.membs[5] -= s;
-    a.membs[6] -= s;
-    a.membs[7] -= s;
-    a.membs[8] -= s;
-    a.membs[9] -= s;
-    a.membs[10] -= s;
-    a.membs[11] -= s;
-    a.membs[12] -= s;
-    a.membs[13] -= s;
-    a.membs[14] -= s;
-    a.membs[15] -= s;
-
-    return a;
-}
-
-static inline MATH_Mat4 MATH_Mat4MulScalar(MATH_Mat4 a, DT_f32 s) {
-    a.membs[0] *= s;
-    a.membs[1] *= s;
-    a.membs[2] *= s;
-    a.membs[3] *= s;
-    a.membs[4] *= s;
-    a.membs[5] *= s;
-    a.membs[6] *= s;
-    a.membs[7] *= s;
-    a.membs[8] *= s;
-    a.membs[9] *= s;
-    a.membs[10] *= s;
-    a.membs[11] *= s;
-    a.membs[12] *= s;
-    a.membs[13] *= s;
-    a.membs[14] *= s;
-    a.membs[15] *= s;
-
-    return a;
-}
-
-static inline MATH_Mat4 MATH_Mat4DivScalar(MATH_Mat4 a, DT_f32 s) {
-    DT_f32 inv_scalar = 1.0f / s;
-
-    a.membs[0] *= inv_scalar;
-    a.membs[1] *= inv_scalar;
-    a.membs[2] *= inv_scalar;
-    a.membs[3] *= inv_scalar;
-    a.membs[4] *= inv_scalar;
-    a.membs[5] *= inv_scalar;
-    a.membs[6] *= inv_scalar;
-    a.membs[7] *= inv_scalar;
-    a.membs[8] *= inv_scalar;
-    a.membs[9] *= inv_scalar;
-    a.membs[10] *= inv_scalar;
-    a.membs[11] *= inv_scalar;
-    a.membs[12] *= inv_scalar;
-    a.membs[13] *= inv_scalar;
-    a.membs[14] *= inv_scalar;
-    a.membs[15] *= inv_scalar;
-
-    return a;
-}
+#undef MAT4_INTERNAL_DEFINE_SCALAR_OP
 
 static inline MATH_Mat4 MATH_Mat4DivScalarSafe(MATH_Mat4 a, DT_f32 s,
                                                DT_f32 fallback) {
@@ -472,28 +347,7 @@ static inline MATH_Mat4 MATH_Mat4DivScalarSafe(MATH_Mat4 a, DT_f32 s,
         return MATH_Mat4CreateFillScalar(fallback);
     }
 
-    return MATH_Mat4DivScalar(a, s);
-}
-
-static inline MATH_Mat4 MATH_Mat4Neg(MATH_Mat4 a) {
-    a.membs[0] = -a.membs[0];
-    a.membs[1] = -a.membs[1];
-    a.membs[2] = -a.membs[2];
-    a.membs[3] = -a.membs[3];
-    a.membs[4] = -a.membs[4];
-    a.membs[5] = -a.membs[5];
-    a.membs[6] = -a.membs[6];
-    a.membs[7] = -a.membs[7];
-    a.membs[8] = -a.membs[8];
-    a.membs[9] = -a.membs[9];
-    a.membs[10] = -a.membs[10];
-    a.membs[11] = -a.membs[11];
-    a.membs[12] = -a.membs[12];
-    a.membs[13] = -a.membs[13];
-    a.membs[14] = -a.membs[14];
-    a.membs[15] = -a.membs[15];
-
-    return a;
+    return MATH_Mat4ScalarDiv(a, s);
 }
 
 PRP_FN_API MATH_Mat4 PRP_FN_CALL MATH_Mat4Mul(MATH_Mat4 a, MATH_Mat4 b);
