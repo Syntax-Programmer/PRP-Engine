@@ -6,6 +6,7 @@ extern "C" {
 
 #include "../../../Diagnostics/Assert.h"
 #include "../../../Utils/Defs.h"
+#include "../../EulerAngle.h"
 #include "../../Vector/Vec3.h"
 #include "../Mat3/Defs.h"
 #include "Defs.h"
@@ -60,42 +61,34 @@ static inline MATH_Mat4 MATH_Mat4CreateRotationAxisZ(DT_f32 angle) {
                                  0.0f, 0.0f, 0.0f, 1.0f}};
 }
 
-typedef enum {
-    MATH_EULER_XYZ,
-    MATH_EULER_ZXY,
-    MATH_EULER_YZX,
-    MATH_EULER_YXZ,
-    MATH_EULER_ZYX,
-    MATH_EULER_XZY,
-} MATH_Mat4EulerRotOrder;
-
 PRP_FN_API MATH_Mat4 PRP_FN_CALL
-MATH_Mat4CreateRotationEulerXYZ(MATH_Vec3 angles);
+MATH_Mat4CreateRotationEulerXYZ(MATH_EulerAngle angles);
 PRP_FN_API MATH_Mat4 PRP_FN_CALL
-MATH_Mat4CreateRotationEulerZXY(MATH_Vec3 angles);
+MATH_Mat4CreateRotationEulerZXY(MATH_EulerAngle angles);
 PRP_FN_API MATH_Mat4 PRP_FN_CALL
-MATH_Mat4CreateRotationEulerYZX(MATH_Vec3 angles);
+MATH_Mat4CreateRotationEulerYZX(MATH_EulerAngle angles);
 PRP_FN_API MATH_Mat4 PRP_FN_CALL
-MATH_Mat4CreateRotationEulerYXZ(MATH_Vec3 angles);
+MATH_Mat4CreateRotationEulerYXZ(MATH_EulerAngle angles);
 PRP_FN_API MATH_Mat4 PRP_FN_CALL
-MATH_Mat4CreateRotationEulerZYX(MATH_Vec3 angles);
+MATH_Mat4CreateRotationEulerZYX(MATH_EulerAngle angles);
 PRP_FN_API MATH_Mat4 PRP_FN_CALL
-MATH_Mat4CreateRotationEulerXZY(MATH_Vec3 angles);
+MATH_Mat4CreateRotationEulerXZY(MATH_EulerAngle angles);
 
 static inline MATH_Mat4
-MATH_Mat4CreateRotationEuler(MATH_Vec3 angles, MATH_Mat4EulerRotOrder order) {
+MATH_Mat4CreateRotationEuler(MATH_EulerAngle angles,
+                             MATH_EulerAngleOrder order) {
     switch (order) {
-    case MATH_EULER_XYZ:
+    case MATH_EULER_ANGLE_ORDER_XYZ:
         return MATH_Mat4CreateRotationEulerXYZ(angles);
-    case MATH_EULER_ZXY:
+    case MATH_EULER_ANGLE_ORDER_ZXY:
         return MATH_Mat4CreateRotationEulerZXY(angles);
-    case MATH_EULER_YZX:
+    case MATH_EULER_ANGLE_ORDER_YZX:
         return MATH_Mat4CreateRotationEulerYZX(angles);
-    case MATH_EULER_YXZ:
+    case MATH_EULER_ANGLE_ORDER_YXZ:
         return MATH_Mat4CreateRotationEulerYXZ(angles);
-    case MATH_EULER_ZYX:
+    case MATH_EULER_ANGLE_ORDER_ZYX:
         return MATH_Mat4CreateRotationEulerZYX(angles);
-    case MATH_EULER_XZY:
+    case MATH_EULER_ANGLE_ORDER_XZY:
         return MATH_Mat4CreateRotationEulerXZY(angles);
     default:
         DIAG_ASSERT(0 && "Invalid MATH_EulerOrder provided.");
@@ -117,8 +110,8 @@ PRP_FN_API MATH_Mat4 PRP_FN_CALL MATH_Mat4CreateTRSAxis(MATH_Vec3 pos,
                                                         DT_f32 rot_rad,
                                                         MATH_Vec3 scale);
 PRP_FN_API MATH_Mat4 PRP_FN_CALL
-MATH_Mat4CreateTRSEuler(MATH_Vec3 pos, MATH_Vec3 rot_angles,
-                        MATH_Mat4EulerRotOrder rot_order, MATH_Vec3 scale);
+MATH_Mat4CreateTRSEuler(MATH_Vec3 pos, MATH_EulerAngle rot_angles,
+                        MATH_EulerAngleOrder rot_order, MATH_Vec3 scale);
 
 /* ----  COMPARE FUNCTIONS  ---- */
 

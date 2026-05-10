@@ -331,10 +331,10 @@ PRP_FN_API MATH_Mat4 PRP_FN_CALL MATH_Mat4CreateRotationAxis(MATH_Vec3 axis,
 }
 
 PRP_FN_API MATH_Mat4 PRP_FN_CALL
-MATH_Mat4CreateRotationEulerXYZ(MATH_Vec3 angles) {
-    DT_f32 cx = MATH_CosF32(angles.x), sx = MATH_SinF32(angles.x);
-    DT_f32 cy = MATH_CosF32(angles.y), sy = MATH_SinF32(angles.y);
-    DT_f32 cz = MATH_CosF32(angles.z), sz = MATH_SinF32(angles.z);
+MATH_Mat4CreateRotationEulerXYZ(MATH_EulerAngle angles) {
+    DT_f32 cx = MATH_CosF32(angles.x_rad), sx = MATH_SinF32(angles.x_rad);
+    DT_f32 cy = MATH_CosF32(angles.y_rad), sy = MATH_SinF32(angles.y_rad);
+    DT_f32 cz = MATH_CosF32(angles.z_rad), sz = MATH_SinF32(angles.z_rad);
 
     MATH_Mat4 m = MATH_Mat4CreateIdentity();
     m.membs[0] = cy * cz;
@@ -353,10 +353,10 @@ MATH_Mat4CreateRotationEulerXYZ(MATH_Vec3 angles) {
 }
 
 PRP_FN_API MATH_Mat4 PRP_FN_CALL
-MATH_Mat4CreateRotationEulerZXY(MATH_Vec3 angles) {
-    DT_f32 cx = MATH_CosF32(angles.x), sx = MATH_SinF32(angles.x);
-    DT_f32 cy = MATH_CosF32(angles.y), sy = MATH_SinF32(angles.y);
-    DT_f32 cz = MATH_CosF32(angles.z), sz = MATH_SinF32(angles.z);
+MATH_Mat4CreateRotationEulerZXY(MATH_EulerAngle angles) {
+    DT_f32 cx = MATH_CosF32(angles.x_rad), sx = MATH_SinF32(angles.x_rad);
+    DT_f32 cy = MATH_CosF32(angles.y_rad), sy = MATH_SinF32(angles.y_rad);
+    DT_f32 cz = MATH_CosF32(angles.z_rad), sz = MATH_SinF32(angles.z_rad);
 
     MATH_Mat4 m = MATH_Mat4CreateIdentity();
     m.membs[0] = (cx * cz) + (sx * sy * sz);
@@ -375,10 +375,10 @@ MATH_Mat4CreateRotationEulerZXY(MATH_Vec3 angles) {
 }
 
 PRP_FN_API MATH_Mat4 PRP_FN_CALL
-MATH_Mat4CreateRotationEulerYZX(MATH_Vec3 angles) {
-    DT_f32 cx = MATH_CosF32(angles.x), sx = MATH_SinF32(angles.x);
-    DT_f32 cy = MATH_CosF32(angles.y), sy = MATH_SinF32(angles.y);
-    DT_f32 cz = MATH_CosF32(angles.z), sz = MATH_SinF32(angles.z);
+MATH_Mat4CreateRotationEulerYZX(MATH_EulerAngle angles) {
+    DT_f32 cx = MATH_CosF32(angles.x_rad), sx = MATH_SinF32(angles.x_rad);
+    DT_f32 cy = MATH_CosF32(angles.y_rad), sy = MATH_SinF32(angles.y_rad);
+    DT_f32 cz = MATH_CosF32(angles.z_rad), sz = MATH_SinF32(angles.z_rad);
 
     MATH_Mat4 m = MATH_Mat4CreateIdentity();
     m.membs[0] = cy * cz;
@@ -397,10 +397,10 @@ MATH_Mat4CreateRotationEulerYZX(MATH_Vec3 angles) {
 }
 
 PRP_FN_API MATH_Mat4 PRP_FN_CALL
-MATH_Mat4CreateRotationEulerYXZ(MATH_Vec3 angles) {
-    DT_f32 cx = MATH_CosF32(angles.x), sx = MATH_SinF32(angles.x);
-    DT_f32 cy = MATH_CosF32(angles.y), sy = MATH_SinF32(angles.y);
-    DT_f32 cz = MATH_CosF32(angles.z), sz = MATH_SinF32(angles.z);
+MATH_Mat4CreateRotationEulerYXZ(MATH_EulerAngle angles) {
+    DT_f32 cx = MATH_CosF32(angles.x_rad), sx = MATH_SinF32(angles.x_rad);
+    DT_f32 cy = MATH_CosF32(angles.y_rad), sy = MATH_SinF32(angles.y_rad);
+    DT_f32 cz = MATH_CosF32(angles.z_rad), sz = MATH_SinF32(angles.z_rad);
 
     MATH_Mat4 m = MATH_Mat4CreateIdentity();
     m.membs[0] = (cy * cz) + (sx * sy * sz);
@@ -419,10 +419,10 @@ MATH_Mat4CreateRotationEulerYXZ(MATH_Vec3 angles) {
 }
 
 PRP_FN_API MATH_Mat4 PRP_FN_CALL
-MATH_Mat4CreateRotationEulerZYX(MATH_Vec3 angles) {
-    DT_f32 cx = MATH_CosF32(angles.x), sx = MATH_SinF32(angles.x);
-    DT_f32 cy = MATH_CosF32(angles.y), sy = MATH_SinF32(angles.y);
-    DT_f32 cz = MATH_CosF32(angles.z), sz = MATH_SinF32(angles.z);
+MATH_Mat4CreateRotationEulerZYX(MATH_EulerAngle angles) {
+    DT_f32 cx = MATH_CosF32(angles.x_rad), sx = MATH_SinF32(angles.x_rad);
+    DT_f32 cy = MATH_CosF32(angles.y_rad), sy = MATH_SinF32(angles.y_rad);
+    DT_f32 cz = MATH_CosF32(angles.z_rad), sz = MATH_SinF32(angles.z_rad);
 
     MATH_Mat4 m = MATH_Mat4CreateIdentity();
     m.membs[0] = (cy * cz);
@@ -441,10 +441,10 @@ MATH_Mat4CreateRotationEulerZYX(MATH_Vec3 angles) {
 }
 
 PRP_FN_API MATH_Mat4 PRP_FN_CALL
-MATH_Mat4CreateRotationEulerXZY(MATH_Vec3 angles) {
-    DT_f32 cx = MATH_CosF32(angles.x), sx = MATH_SinF32(angles.x);
-    DT_f32 cy = MATH_CosF32(angles.y), sy = MATH_SinF32(angles.y);
-    DT_f32 cz = MATH_CosF32(angles.z), sz = MATH_SinF32(angles.z);
+MATH_Mat4CreateRotationEulerXZY(MATH_EulerAngle angles) {
+    DT_f32 cx = MATH_CosF32(angles.x_rad), sx = MATH_SinF32(angles.x_rad);
+    DT_f32 cy = MATH_CosF32(angles.y_rad), sy = MATH_SinF32(angles.y_rad);
+    DT_f32 cz = MATH_CosF32(angles.z_rad), sz = MATH_SinF32(angles.z_rad);
 
     MATH_Mat4 m = MATH_Mat4CreateIdentity();
     m.membs[0] = cy * cz;
@@ -487,8 +487,8 @@ PRP_FN_API MATH_Mat4 PRP_FN_CALL MATH_Mat4CreateTRSAxis(MATH_Vec3 pos,
 }
 
 PRP_FN_API MATH_Mat4 PRP_FN_CALL
-MATH_Mat4CreateTRSEuler(MATH_Vec3 pos, MATH_Vec3 rot_angles,
-                        MATH_Mat4EulerRotOrder rot_order, MATH_Vec3 scale) {
+MATH_Mat4CreateTRSEuler(MATH_Vec3 pos, MATH_EulerAngle rot_angles,
+                        MATH_EulerAngleOrder rot_order, MATH_Vec3 scale) {
     MATH_Mat4 m = MATH_Mat4CreateRotationEuler(rot_angles, rot_order);
     // applying scale on it.
     m.membs[0] *= scale.x;
