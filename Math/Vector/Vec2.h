@@ -38,12 +38,6 @@ static inline MATH_Vec2 MATH_Vec2CreateScalar(DT_f32 s) {
     return (MATH_Vec2){s, s};
 }
 
-static inline MATH_Vec2 MATH_Vec2Neg(MATH_Vec2 a) {
-    return (MATH_Vec2){.x = -a.x, .y = -a.y};
-}
-
-/* ----  COMPARE FUNCTIONS  ---- */
-
 static inline MATH_Vec2 MATH_Vec2MinComps(MATH_Vec2 a, MATH_Vec2 b) {
     return (MATH_Vec2){.x = MATH_MinF32(a.x, b.x), .y = MATH_MinF32(a.y, b.y)};
 }
@@ -51,6 +45,8 @@ static inline MATH_Vec2 MATH_Vec2MinComps(MATH_Vec2 a, MATH_Vec2 b) {
 static inline MATH_Vec2 MATH_Vec2MaxComps(MATH_Vec2 a, MATH_Vec2 b) {
     return (MATH_Vec2){.x = MATH_MaxF32(a.x, b.x), .y = MATH_MaxF32(a.y, b.y)};
 }
+
+/* ----  COMPARE FUNCTIONS  ---- */
 
 static inline DT_f32 MATH_Vec2Min(MATH_Vec2 a) { return MATH_MinF32(a.x, a.y); }
 
@@ -84,6 +80,10 @@ static inline MATH_Vec2 MATH_Vec2Abs(MATH_Vec2 a) {
 
 static inline MATH_Vec2 MATH_Vec2Sign(MATH_Vec2 a) {
     return (MATH_Vec2){MATH_SignF32(a.x), MATH_SignF32(a.y)};
+}
+
+static inline MATH_Vec2 MATH_Vec2Neg(MATH_Vec2 a) {
+    return (MATH_Vec2){.x = -a.x, .y = -a.y};
 }
 
 static inline MATH_Vec2 MATH_Vec2AddComps(MATH_Vec2 a, MATH_Vec2 b) {

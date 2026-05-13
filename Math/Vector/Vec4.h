@@ -63,12 +63,6 @@ static inline MATH_Vec4 MATH_Vec4HomogenizeSafe(MATH_Vec4 a, DT_f32 fallback) {
     return a;
 }
 
-static inline MATH_Vec4 MATH_Vec4Neg(MATH_Vec4 a) {
-    return (MATH_Vec4){.x = -a.x, .y = -a.y, .z = -a.z, .w = -a.w};
-}
-
-/* ----  COMPARE FUNCTIONS  ---- */
-
 static inline MATH_Vec4 MATH_Vec4MinComps(MATH_Vec4 a, MATH_Vec4 b) {
     return (MATH_Vec4){.x = MATH_MinF32(a.x, b.x),
                        .y = MATH_MinF32(a.y, b.y),
@@ -82,6 +76,8 @@ static inline MATH_Vec4 MATH_Vec4MaxComps(MATH_Vec4 a, MATH_Vec4 b) {
                        .z = MATH_MaxF32(a.z, b.z),
                        .w = MATH_MaxF32(a.w, b.w)};
 }
+
+/* ----  COMPARE FUNCTIONS  ---- */
 
 static inline DT_f32 MATH_Vec4Min(MATH_Vec4 a) {
     return MATH_MinF32(MATH_MinF32(a.x, a.y), MATH_MinF32(a.z, a.w));
@@ -125,6 +121,10 @@ static inline MATH_Vec4 MATH_Vec4Abs(MATH_Vec4 a) {
 static inline MATH_Vec4 MATH_Vec4Sign(MATH_Vec4 a) {
     return (MATH_Vec4){MATH_SignF32(a.x), MATH_SignF32(a.y), MATH_SignF32(a.z),
                        MATH_SignF32(a.w)};
+}
+
+static inline MATH_Vec4 MATH_Vec4Neg(MATH_Vec4 a) {
+    return (MATH_Vec4){.x = -a.x, .y = -a.y, .z = -a.z, .w = -a.w};
 }
 
 static inline MATH_Vec4 MATH_Vec4AddComps(MATH_Vec4 a, MATH_Vec4 b) {
