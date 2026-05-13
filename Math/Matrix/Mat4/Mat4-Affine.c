@@ -27,6 +27,16 @@ PRP_FN_API MATH_Mat4 PRP_FN_CALL MATH_Mat4CreateRotationAxis(MATH_Vec3 axis,
     return m;
 }
 
+PRP_FN_API MATH_Mat4 PRP_FN_CALL MATH_Mat4CreateRotationAxisSafe(
+    MATH_Vec3 axis, DT_f32 angle, MATH_Mat4 fallback) {
+    if (MATH_IsZeroF32(axis.x) && MATH_IsZeroF32(axis.y) &&
+        MATH_IsZeroF32(axis.z)) {
+        return fallback;
+    }
+
+    return MATH_Mat4CreateRotationAxis(axis, angle);
+}
+
 PRP_FN_API MATH_Mat4 PRP_FN_CALL
 MATH_Mat4CreateRotationEulerXYZ(MATH_EulerAngle angles) {
     DT_f32 cx = MATH_CosF32(angles.x_rad), sx = MATH_SinF32(angles.x_rad);
@@ -362,6 +372,22 @@ PRP_FN_API MATH_Mat4 PRP_FN_CALL MATH_Mat4AffineOrthonormalize(MATH_Mat4 a) {
     a.membs[15] = 1.0f;
 
     return a;
+}
+
+PRP_FN_API MATH_Mat4 PRP_FN_CALL
+MATH_Mat4AffineOrthonormalizeSafe(MATH_Mat4 a, MATH_Mat4 fallback) {
+    if ((MATH_IsZeroF32(a.membs[0]) && MATH_IsZeroF32(a.membs[1]) &&
+         MATH_IsZeroF32(a.membs[2])) ||
+
+        (MATH_IsZeroF32(a.membs[4]) && MATH_IsZeroF32(a.membs[5]) &&
+         MATH_IsZeroF32(a.membs[6])) ||
+
+        (MATH_IsZeroF32(a.membs[8]) && MATH_IsZeroF32(a.membs[9]) &&
+         MATH_IsZeroF32(a.membs[10]))) {
+        return fallback;
+    }
+
+    return MATH_Mat4AffineOrthonormalize(a);
 }
 
 /* ----  ALGEBRAIC EXTRACTIONS  ---- */

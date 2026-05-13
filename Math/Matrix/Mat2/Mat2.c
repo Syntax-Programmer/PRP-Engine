@@ -6,11 +6,11 @@ PRP_FN_API DT_bool PRP_FN_CALL MATH_Mat2IsOrthonormal(MATH_Mat2 a) {
     MATH_Vec2 c0 = {.x = a.membs[0], .y = a.membs[1]};
     MATH_Vec2 c1 = {.x = a.membs[2], .y = a.membs[3]};
     DT_f32 dot = MATH_Vec2Dot(c0, c1);
-    DT_f32 len0 = MATH_Vec2Len(c0);
-    DT_f32 len1 = MATH_Vec2Len(c1);
+    DT_f32 l0 = MATH_Vec2LenSq(c0);
+    DT_f32 l1 = MATH_Vec2LenSq(c1);
 
-    return (DT_bool)(MATH_IsZeroF32(dot) && MATH_AlmostEqF32(len0, 1.0f) &&
-                     MATH_AlmostEqF32(len1, 1.0f));
+    return (DT_bool)(MATH_IsZeroF32(dot) && MATH_AlmostEqF32(l0, 1.0f) &&
+                     MATH_AlmostEqF32(l1, 1.0f));
 }
 
 /* ----  BASIC OPS  ---- */
@@ -59,12 +59,11 @@ PRP_FN_API MATH_Mat2 PRP_FN_CALL MATH_Mat2Inv(MATH_Mat2 a,
 PRP_FN_API MATH_Mat2 PRP_FN_CALL MATH_Mat2Orthonormalize(MATH_Mat2 a) {
     MATH_Vec2 c0 = {a.membs[0], a.membs[1]};
     MATH_Vec2 c1 = {a.membs[2], a.membs[3]};
-    c0 = MATH_Vec2Normalize(c0);
 
+    c0 = MATH_Vec2Normalize(c0);
     DT_f32 proj = MATH_Vec2Dot(c1, c0);
     c1.x -= c0.x * proj;
     c1.y -= c0.y * proj;
-
     c1 = MATH_Vec2Normalize(c1);
 
     a.membs[0] = c0.x;
@@ -73,4 +72,15 @@ PRP_FN_API MATH_Mat2 PRP_FN_CALL MATH_Mat2Orthonormalize(MATH_Mat2 a) {
     a.membs[3] = c1.y;
 
     return a;
+}
+
+PRP_FN_API MATH_Mat2 PRP_FN_CALL
+MATH_Mat2OrthonormalizeSafe(MATH_Mat2 a, MATH_Mat2 fallback) {
+    if ((MATH_IsZeroF32(a.membs[0]) && MATH_IsZeroF32(a.membs[1])) ||
+
+        (MATH_IsZeroF32(a.membs[2]) && MATH_IsZeroF32(a.membs[3]))) {
+        return fallback;
+    }
+
+    return MATH_Mat2Orthonormalize(a);
 }

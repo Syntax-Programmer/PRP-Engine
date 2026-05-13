@@ -39,18 +39,42 @@ PRP_FN_API DT_f32 PRP_FN_CALL MATH_Mat2ExtractRotation(MATH_Mat2 a);
 PRP_FN_API MATH_Vec2 PRP_FN_CALL MATH_Mat2ExtractScale(MATH_Mat2 a);
 PRP_FN_API MATH_Mat2 PRP_FN_CALL MATH_Mat2NormBasis(MATH_Mat2 a);
 
-static inline MATH_Vec2 MATH_Mat2GetRight(MATH_Mat2 a) {
+static inline MATH_Vec2 MATH_Mat2Right(MATH_Mat2 a) {
     return (MATH_Vec2){
         .x = a.membs[0],
         .y = a.membs[1],
     };
 }
 
-static inline MATH_Vec2 MATH_Mat2GetUp(MATH_Mat2 a) {
+static inline DT_f32 MATH_Mat2RightLen(MATH_Mat2 a) {
+    DT_f32 a00 = a.membs[0], a10 = a.membs[1];
+
+    return MATH_SqrtF32((a00 * a00) + (a10 * a10));
+}
+
+static inline DT_f32 MATH_Mat2RightLenSq(MATH_Mat2 a) {
+    DT_f32 a00 = a.membs[0], a10 = a.membs[1];
+
+    return (a00 * a00) + (a10 * a10);
+}
+
+static inline MATH_Vec2 MATH_Mat2Up(MATH_Mat2 a) {
     return (MATH_Vec2){
         .x = a.membs[2],
         .y = a.membs[3],
     };
+}
+
+static inline DT_f32 MATH_Mat2UpLen(MATH_Mat2 a) {
+    DT_f32 a01 = a.membs[2], a11 = a.membs[3];
+
+    return MATH_SqrtF32((a01 * a01) + (a11 * a11));
+}
+
+static inline DT_f32 MATH_Mat2UpLenSq(MATH_Mat2 a) {
+    DT_f32 a01 = a.membs[2], a11 = a.membs[3];
+
+    return (a01 * a01) + (a11 * a11);
 }
 
 #ifdef __cplusplus

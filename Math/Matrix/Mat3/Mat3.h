@@ -210,7 +210,7 @@ MAT3_INTERNAL_DEFINE_ELEMS_OP(Div, /);
 
 #undef MAT3_INTERNAL_DEFINE_ELEMS_OP
 
-static inline MATH_Mat3 MATH_Mat3DivElemsSafe(MATH_Mat3 a, MATH_Mat3 b,
+static inline MATH_Mat3 MATH_Mat3ElemsDivSafe(MATH_Mat3 a, MATH_Mat3 b,
                                               DT_f32 fallback) {
     a.membs[0] = MATH_SafeDivF32(a.membs[0], b.membs[0], fallback);
     a.membs[1] = MATH_SafeDivF32(a.membs[1], b.membs[1], fallback);
@@ -247,7 +247,7 @@ MAT3_INTERNAL_DEFINE_SCALAR_OP(Div, /);
 
 #undef MAT3_INTERNAL_DEFINE_SCALAR_OP
 
-static inline MATH_Mat3 MATH_Mat3DivScalarSafe(MATH_Mat3 a, DT_f32 s,
+static inline MATH_Mat3 MATH_Mat3ScalarDivSafe(MATH_Mat3 a, DT_f32 s,
                                                DT_f32 fallback) {
     if (MATH_IsZeroF32(s)) {
         return MATH_Mat3CreateFillScalar(fallback);
@@ -402,6 +402,8 @@ static inline DT_f32 MATH_Mat3FrobeniusNormSq(MATH_Mat3 a) {
 }
 
 PRP_FN_API MATH_Mat3 PRP_FN_CALL MATH_Mat3Orthonormalize(MATH_Mat3 a);
+PRP_FN_API MATH_Mat3 PRP_FN_CALL
+MATH_Mat3OrthonormalizeSafe(MATH_Mat3 a, MATH_Mat3 fallback);
 
 #ifdef __cplusplus
 }

@@ -161,3 +161,19 @@ PRP_FN_API MATH_Mat3 PRP_FN_CALL MATH_Mat3Orthonormalize(MATH_Mat3 a) {
     return (MATH_Mat3){
         .membs = {c0.x, c0.y, c0.z, c1.x, c1.y, c1.z, c2.x, c2.y, c2.z}};
 }
+
+PRP_FN_API MATH_Mat3 PRP_FN_CALL
+MATH_Mat3OrthonormalizeSafe(MATH_Mat3 a, MATH_Mat3 fallback) {
+    if ((MATH_IsZeroF32(a.membs[0]) && MATH_IsZeroF32(a.membs[1]) &&
+         MATH_IsZeroF32(a.membs[2])) ||
+
+        (MATH_IsZeroF32(a.membs[3]) && MATH_IsZeroF32(a.membs[4]) &&
+         MATH_IsZeroF32(a.membs[5])) ||
+
+        (MATH_IsZeroF32(a.membs[6]) && MATH_IsZeroF32(a.membs[7]) &&
+         MATH_IsZeroF32(a.membs[8]))) {
+        return fallback;
+    }
+
+    return MATH_Mat3Orthonormalize(a);
+}

@@ -112,6 +112,8 @@ PRP_FN_API MATH_Mat3 PRP_FN_CALL
 MATH_Mat3InvAffine(MATH_Mat3 a, MATH_Mat3 det_zero_fallback);
 PRP_FN_API MATH_Mat3 PRP_FN_CALL MATH_Mat3InvAffineOrthonormal(MATH_Mat3 a);
 PRP_FN_API MATH_Mat3 PRP_FN_CALL MATH_Mat3AffineOrthonormalize(MATH_Mat3 a);
+PRP_FN_API MATH_Mat3 PRP_FN_CALL
+MATH_Mat3AffineOrthonormalizeSafe(MATH_Mat3 a, MATH_Mat3 fallback);
 
 /* ----  ALGEBRAIC EXTRACTIONS  ---- */
 
@@ -126,18 +128,42 @@ PRP_FN_API DT_f32 PRP_FN_CALL MATH_Mat3ExtractRotation(MATH_Mat3 a);
 PRP_FN_API MATH_Vec2 PRP_FN_CALL MATH_Mat3ExtractScale(MATH_Mat3 a);
 PRP_FN_API MATH_Mat3 PRP_FN_CALL MATH_Mat3NormBasis(MATH_Mat3 a);
 
-static inline MATH_Vec2 MATH_Mat3GetRight(MATH_Mat3 a) {
+static inline MATH_Vec2 MATH_Mat3Right(MATH_Mat3 a) {
     return (MATH_Vec2){
         .x = a.membs[0],
         .y = a.membs[1],
     };
 }
 
-static inline MATH_Vec2 MATH_Mat3GetUp(MATH_Mat3 a) {
+static inline DT_f32 MATH_Mat3RightLen(MATH_Mat3 a) {
+    DT_f32 a00 = a.membs[0], a10 = a.membs[1];
+
+    return MATH_SqrtF32((a00 * a00) + (a10 * a10));
+}
+
+static inline DT_f32 MATH_Mat3RightLenSq(MATH_Mat3 a) {
+    DT_f32 a00 = a.membs[0], a10 = a.membs[1];
+
+    return (a00 * a00) + (a10 * a10);
+}
+
+static inline MATH_Vec2 MATH_Mat3Up(MATH_Mat3 a) {
     return (MATH_Vec2){
         .x = a.membs[3],
         .y = a.membs[4],
     };
+}
+
+static inline DT_f32 MATH_Mat3UpLen(MATH_Mat3 a) {
+    DT_f32 a01 = a.membs[3], a11 = a.membs[4];
+
+    return MATH_SqrtF32((a01 * a01) + (a11 * a11));
+}
+
+static inline DT_f32 MATH_Mat3UpLenSq(MATH_Mat3 a) {
+    DT_f32 a01 = a.membs[3], a11 = a.membs[4];
+
+    return (a01 * a01) + (a11 * a11);
 }
 
 #ifdef __cplusplus

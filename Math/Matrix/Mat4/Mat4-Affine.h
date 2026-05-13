@@ -21,6 +21,8 @@ static inline MATH_Mat4 MATH_Mat4CreateTranslation(MATH_Vec3 pos) {
 
 PRP_FN_API MATH_Mat4 PRP_FN_CALL MATH_Mat4CreateRotationAxis(MATH_Vec3 axis,
                                                              DT_f32 angle);
+PRP_FN_API MATH_Mat4 PRP_FN_CALL MATH_Mat4CreateRotationAxisSafe(
+    MATH_Vec3 axis, DT_f32 angle, MATH_Mat4 fallback);
 
 static inline MATH_Mat4 MATH_Mat4CreateRotationAxisX(DT_f32 angle) {
     DT_f32 c = MATH_CosF32(angle);
@@ -142,6 +144,8 @@ PRP_FN_API MATH_Mat4 PRP_FN_CALL
 MATH_Mat4InvAffine(MATH_Mat4 a, MATH_Mat4 det_zero_fallback);
 PRP_FN_API MATH_Mat4 PRP_FN_CALL MATH_Mat4InvAffineOrthonormal(MATH_Mat4 a);
 PRP_FN_API MATH_Mat4 PRP_FN_CALL MATH_Mat4AffineOrthonormalize(MATH_Mat4 a);
+PRP_FN_API MATH_Mat4 PRP_FN_CALL
+MATH_Mat4AffineOrthonormalizeSafe(MATH_Mat4 a, MATH_Mat4 fallback);
 
 /* ----  ALGEBRAIC EXTRACTIONS  ---- */
 
@@ -157,12 +161,24 @@ PRP_FN_API MATH_Mat3 PRP_FN_CALL MATH_Mat4ExtractRotation(MATH_Mat4 a);
 PRP_FN_API MATH_Vec3 PRP_FN_CALL MATH_Mat4ExtractScale(MATH_Mat4 a);
 PRP_FN_API MATH_Mat4 PRP_FN_CALL MATH_Mat4NormBasis(MATH_Mat4 a);
 
-static inline MATH_Vec3 MATH_Mat4GetRight(MATH_Mat4 a) {
+static inline MATH_Vec3 MATH_Mat4Right(MATH_Mat4 a) {
     return (MATH_Vec3){
         .x = a.membs[0],
         .y = a.membs[1],
         .z = a.membs[2],
     };
+}
+
+static inline DT_f32 MATH_Mat4RightLen(MATH_Mat4 a) {
+    DT_f32 a00 = a.membs[0], a10 = a.membs[1], a20 = a.membs[2];
+
+    return MATH_SqrtF32((a00 * a00) + (a10 * a10) + (a20 * a20));
+}
+
+static inline DT_f32 MATH_Mat4RightLenSq(MATH_Mat4 a) {
+    DT_f32 a00 = a.membs[0], a10 = a.membs[1], a20 = a.membs[2];
+
+    return (a00 * a00) + (a10 * a10) + (a20 * a20);
 }
 
 static inline MATH_Vec3 MATH_Mat4GetUp(MATH_Mat4 a) {
@@ -173,12 +189,36 @@ static inline MATH_Vec3 MATH_Mat4GetUp(MATH_Mat4 a) {
     };
 }
 
-static inline MATH_Vec3 MATH_Mat4GetForward(MATH_Mat4 a) {
+static inline DT_f32 MATH_Mat4UpLen(MATH_Mat4 a) {
+    DT_f32 a01 = a.membs[4], a11 = a.membs[5], a21 = a.membs[6];
+
+    return MATH_SqrtF32((a01 * a01) + (a11 * a11) + (a21 * a21));
+}
+
+static inline DT_f32 MATH_Mat4UpLenSq(MATH_Mat4 a) {
+    DT_f32 a01 = a.membs[4], a11 = a.membs[5], a21 = a.membs[6];
+
+    return (a01 * a01) + (a11 * a11) + (a21 * a21);
+}
+
+static inline MATH_Vec3 MATH_Mat4Forward(MATH_Mat4 a) {
     return (MATH_Vec3){
         .x = a.membs[8],
         .y = a.membs[9],
         .z = a.membs[10],
     };
+}
+
+static inline DT_f32 MATH_Mat4ForwardLen(MATH_Mat4 a) {
+    DT_f32 a02 = a.membs[8], a12 = a.membs[9], a22 = a.membs[10];
+
+    return MATH_SqrtF32((a02 * a02) + (a12 * a12) + (a22 * a22));
+}
+
+static inline DT_f32 MATH_Mat4ForwardLenSq(MATH_Mat4 a) {
+    DT_f32 a02 = a.membs[8], a12 = a.membs[9], a22 = a.membs[10];
+
+    return (a02 * a02) + (a12 * a12) + (a22 * a22);
 }
 
 #ifdef __cplusplus

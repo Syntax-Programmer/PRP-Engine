@@ -146,7 +146,7 @@ MAT2_INTERNAL_DEFINE_ELEMS_OP(Div, /);
 
 #undef MAT2_INTERNAL_DEFINE_ELEMS_OP
 
-static inline MATH_Mat2 MATH_Mat2DivElemsSafe(MATH_Mat2 a, MATH_Mat2 b,
+static inline MATH_Mat2 MATH_Mat2ElemsDivSafe(MATH_Mat2 a, MATH_Mat2 b,
                                               DT_f32 fallback) {
     a.membs[0] = MATH_SafeDivF32(a.membs[0], b.membs[0], fallback);
     a.membs[1] = MATH_SafeDivF32(a.membs[1], b.membs[1], fallback);
@@ -173,7 +173,7 @@ MAT2_INTERNAL_DEFINE_SCALAR_OP(Div, /);
 
 #undef MAT2_INTERNAL_DEFINE_SCALAR_OP
 
-static inline MATH_Mat2 MATH_Mat2DivScalarSafe(MATH_Mat2 a, DT_f32 s,
+static inline MATH_Mat2 MATH_Mat2ScalarDivSafe(MATH_Mat2 a, DT_f32 s,
                                                DT_f32 fallback) {
     if (MATH_IsZeroF32(s)) {
         return MATH_Mat2CreateFillScalar(fallback);
@@ -300,6 +300,8 @@ static inline DT_f32 MATH_Mat2FrobeniusNormSq(MATH_Mat2 a) {
 }
 
 PRP_FN_API MATH_Mat2 PRP_FN_CALL MATH_Mat2Orthonormalize(MATH_Mat2 a);
+PRP_FN_API MATH_Mat2 PRP_FN_CALL
+MATH_Mat2OrthonormalizeSafe(MATH_Mat2 a, MATH_Mat2 fallback);
 
 #ifdef __cplusplus
 }

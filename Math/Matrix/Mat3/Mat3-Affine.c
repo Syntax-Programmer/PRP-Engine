@@ -77,6 +77,17 @@ PRP_FN_API MATH_Mat3 PRP_FN_CALL MATH_Mat3AffineOrthonormalize(MATH_Mat3 a) {
     return a;
 }
 
+PRP_FN_API MATH_Mat3 PRP_FN_CALL
+MATH_Mat3AffineOrthonormalizeSafe(MATH_Mat3 a, MATH_Mat3 fallback) {
+    if ((MATH_IsZeroF32(a.membs[0]) && MATH_IsZeroF32(a.membs[1])) ||
+        
+        (MATH_IsZeroF32(a.membs[3]) && MATH_IsZeroF32(a.membs[4]))) {
+        return fallback;
+    }
+
+    return MATH_Mat3AffineOrthonormalize(a);
+}
+
 /* ----  ALGEBRAIC EXTRACTIONS  ---- */
 
 PRP_FN_API DT_f32 PRP_FN_CALL MATH_Mat3ExtractRotation(MATH_Mat3 a) {

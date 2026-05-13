@@ -290,7 +290,7 @@ MAT4_INTERNAL_DEFINE_ELEMS_OP(Div, /);
 
 #undef MAT4_INTERNAL_DEFINE_ELEMS_OP
 
-static inline MATH_Mat4 MATH_Mat4DivElemsSafe(MATH_Mat4 a, MATH_Mat4 b,
+static inline MATH_Mat4 MATH_Mat4ElemsDivSafe(MATH_Mat4 a, MATH_Mat4 b,
                                               DT_f32 fallback) {
     a.membs[0] = MATH_SafeDivF32(a.membs[0], b.membs[0], fallback);
     a.membs[1] = MATH_SafeDivF32(a.membs[1], b.membs[1], fallback);
@@ -341,7 +341,7 @@ MAT4_INTERNAL_DEFINE_SCALAR_OP(Div, /);
 
 #undef MAT4_INTERNAL_DEFINE_SCALAR_OP
 
-static inline MATH_Mat4 MATH_Mat4DivScalarSafe(MATH_Mat4 a, DT_f32 s,
+static inline MATH_Mat4 MATH_Mat4ScalarDivSafe(MATH_Mat4 a, DT_f32 s,
                                                DT_f32 fallback) {
     if (MATH_IsZeroF32(s)) {
         return MATH_Mat4CreateFillScalar(fallback);
@@ -528,6 +528,8 @@ static inline DT_f32 MATH_Mat4FrobeniusNormSq(MATH_Mat4 a) {
 }
 
 PRP_FN_API MATH_Mat4 PRP_FN_CALL MATH_Mat4Orthonormalize(MATH_Mat4 a);
+PRP_FN_API MATH_Mat4 PRP_FN_CALL
+MATH_Mat4OrthonormalizeSafe(MATH_Mat4 a, MATH_Mat4 fallback);
 
 #ifdef __cplusplus
 }
