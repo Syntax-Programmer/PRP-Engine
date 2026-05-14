@@ -291,6 +291,10 @@ static inline MATH_Vec3 MATH_Vec3NormalizeSafe(MATH_Vec3 a,
     return MATH_Vec3MulScalar(a, 1.0f / len);
 }
 
+static inline DT_bool MATH_Vec3IsNormalized(MATH_Vec3 a) {
+    return (DT_bool)(MATH_AlmostEqF32(MATH_Vec3LenSq(a), 1.0f));
+}
+
 static inline DT_f32 MATH_Vec3Distance(MATH_Vec3 a, MATH_Vec3 b) {
     return MATH_Vec3Len(MATH_Vec3SubComps(a, b));
 }
