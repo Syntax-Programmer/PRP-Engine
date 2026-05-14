@@ -76,9 +76,11 @@ PRP_FN_API MATH_Mat2 PRP_FN_CALL MATH_Mat2Orthonormalize(MATH_Mat2 a) {
 
 PRP_FN_API MATH_Mat2 PRP_FN_CALL
 MATH_Mat2OrthonormalizeSafe(MATH_Mat2 a, MATH_Mat2 fallback) {
-    if ((MATH_IsZeroF32(a.membs[0]) && MATH_IsZeroF32(a.membs[1])) ||
+    if (MATH_IsZeroF32(
+            MATH_Vec2LenSq((MATH_Vec2){.x = a.membs[0], .y = a.membs[1]})) ||
 
-        (MATH_IsZeroF32(a.membs[2]) && MATH_IsZeroF32(a.membs[3]))) {
+        MATH_IsZeroF32(
+            MATH_Vec2LenSq((MATH_Vec2){.x = a.membs[2], .y = a.membs[3]}))) {
         return fallback;
     }
 

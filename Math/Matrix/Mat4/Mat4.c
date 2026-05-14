@@ -306,17 +306,25 @@ PRP_FN_API MATH_Mat4 PRP_FN_CALL MATH_Mat4Orthonormalize(MATH_Mat4 a) {
 
 PRP_FN_API MATH_Mat4 PRP_FN_CALL
 MATH_Mat4OrthonormalizeSafe(MATH_Mat4 a, MATH_Mat4 fallback) {
-    if ((MATH_IsZeroF32(a.membs[0]) && MATH_IsZeroF32(a.membs[1]) &&
-         MATH_IsZeroF32(a.membs[2]) && MATH_IsZeroF32(a.membs[3])) ||
+    if (MATH_IsZeroF32(MATH_Vec4LenSq((MATH_Vec4){.x = a.membs[0],
+                                                  .y = a.membs[1],
+                                                  .z = a.membs[2],
+                                                  .w = a.membs[3]})) ||
 
-        (MATH_IsZeroF32(a.membs[4]) && MATH_IsZeroF32(a.membs[5]) &&
-         MATH_IsZeroF32(a.membs[6]) && MATH_IsZeroF32(a.membs[7])) ||
+        MATH_IsZeroF32(MATH_Vec4LenSq((MATH_Vec4){.x = a.membs[4],
+                                                  .y = a.membs[5],
+                                                  .z = a.membs[6],
+                                                  .w = a.membs[7]})) ||
 
-        (MATH_IsZeroF32(a.membs[8]) && MATH_IsZeroF32(a.membs[9]) &&
-         MATH_IsZeroF32(a.membs[10]) && MATH_IsZeroF32(a.membs[11])) ||
+        MATH_IsZeroF32(MATH_Vec4LenSq((MATH_Vec4){.x = a.membs[8],
+                                                  .y = a.membs[9],
+                                                  .z = a.membs[10],
+                                                  .w = a.membs[11]})) ||
 
-        MATH_IsZeroF32(a.membs[12]) && MATH_IsZeroF32(a.membs[13]) &&
-            MATH_IsZeroF32(a.membs[14]) && MATH_IsZeroF32(a.membs[15])) {
+        MATH_IsZeroF32(MATH_Vec4LenSq((MATH_Vec4){.x = a.membs[12],
+                                                  .y = a.membs[13],
+                                                  .z = a.membs[14],
+                                                  .w = a.membs[15]}))) {
         return fallback;
     }
 

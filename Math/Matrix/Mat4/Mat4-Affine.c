@@ -29,8 +29,7 @@ PRP_FN_API MATH_Mat4 PRP_FN_CALL MATH_Mat4CreateRotationAxis(MATH_Vec3 axis,
 
 PRP_FN_API MATH_Mat4 PRP_FN_CALL MATH_Mat4CreateRotationAxisSafe(
     MATH_Vec3 axis, DT_f32 angle, MATH_Mat4 fallback) {
-    if (MATH_IsZeroF32(axis.x) && MATH_IsZeroF32(axis.y) &&
-        MATH_IsZeroF32(axis.z)) {
+    if (MATH_IsZeroF32(MATH_Vec3LenSq(axis))) {
         return fallback;
     }
 
@@ -376,14 +375,14 @@ PRP_FN_API MATH_Mat4 PRP_FN_CALL MATH_Mat4AffineOrthonormalize(MATH_Mat4 a) {
 
 PRP_FN_API MATH_Mat4 PRP_FN_CALL
 MATH_Mat4AffineOrthonormalizeSafe(MATH_Mat4 a, MATH_Mat4 fallback) {
-    if ((MATH_IsZeroF32(a.membs[0]) && MATH_IsZeroF32(a.membs[1]) &&
-         MATH_IsZeroF32(a.membs[2])) ||
+    if (MATH_IsZeroF32(MATH_Vec3LenSq(
+            (MATH_Vec3){.x = a.membs[0], .y = a.membs[1], .z = a.membs[2]})) ||
 
-        (MATH_IsZeroF32(a.membs[4]) && MATH_IsZeroF32(a.membs[5]) &&
-         MATH_IsZeroF32(a.membs[6])) ||
+        MATH_IsZeroF32(MATH_Vec3LenSq(
+            (MATH_Vec3){.x = a.membs[4], .y = a.membs[5], .z = a.membs[6]})) ||
 
-        (MATH_IsZeroF32(a.membs[8]) && MATH_IsZeroF32(a.membs[9]) &&
-         MATH_IsZeroF32(a.membs[10]))) {
+        MATH_IsZeroF32(MATH_Vec3LenSq(
+            (MATH_Vec3){.x = a.membs[8], .y = a.membs[9], .z = a.membs[10]}))) {
         return fallback;
     }
 
