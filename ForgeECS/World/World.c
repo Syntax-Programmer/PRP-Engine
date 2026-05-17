@@ -1,5 +1,5 @@
 #include "World.h"
-#include "World-Internals.h"
+#include "../Internals/World/World-Internals.h"
 
 /* ----  WORLDS ---- */
 
