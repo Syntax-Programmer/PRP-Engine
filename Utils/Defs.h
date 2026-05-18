@@ -5,7 +5,6 @@ extern "C" {
 #endif
 
 #include <stddef.h>
-#include <stdlib.h>
 
 #define PRP_INVALID_SIZE ((DT_size)(-1))
 #define PRP_INVALID_INDEX ((DT_size)(-1))

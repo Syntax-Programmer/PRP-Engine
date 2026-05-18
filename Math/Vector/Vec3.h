@@ -4,8 +4,8 @@
 extern "C" {
 #endif
 
-#include "../Float.h"
-#include "../Transcendental.h"
+#include "Math/Float.h"
+#include "Math/Transcendental.h"
 
 typedef struct {
     DT_f32 x;

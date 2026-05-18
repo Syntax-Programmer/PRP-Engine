@@ -46,7 +46,7 @@ static PRP_Result QueryFindMatches(Query *query) {
                                                behavior->set, query->exc)) &&
                            DT_BitmapHasAllUnchecked(behavior->set, query->inc);
         if (is_match) {
-            PRP_Result code = DT_ArrPushUnchecked(query->behavior_matches, &i);
+            code = DT_ArrPushUnchecked(query->behavior_matches, &i);
             if (code != PRP_OK) {
                 DT_ArrDeleteUnchecked(&query->behavior_matches);
                 return code;

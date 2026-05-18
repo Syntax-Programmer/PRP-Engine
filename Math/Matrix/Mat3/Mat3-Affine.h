@@ -4,9 +4,9 @@
 extern "C" {
 #endif
 
-#include "../../../Utils/Defs.h"
-#include "../../Vector/Vec2.h"
 #include "Defs.h"
+#include "Math/Vector/Vec2.h"
+#include "Utils/Defs.h"
 
 /* ----  CONSTRUCTORS  ---- */
 

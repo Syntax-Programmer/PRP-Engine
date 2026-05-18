@@ -4,8 +4,8 @@
 extern "C" {
 #endif
 
-#include "../Data-Types/Typedefs.h"
-#include "../Utils/Defs.h"
+#include "Data-Types/Typedefs.h"
+#include "Utils/Defs.h"
 
 /**
  * DT_Hm

@@ -4,7 +4,9 @@
 extern "C" {
 #endif
 
-#include "../FECS-Internals.h"
+#include "Data-Types/Arr.h"
+#include "Data-Types/Bitmap.h"
+#include "ForgeECS/Defs.h"
 
 /* ----  WORLDS ---- */
 

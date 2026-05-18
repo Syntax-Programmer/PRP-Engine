@@ -4,11 +4,11 @@
 extern "C" {
 #endif
 
-#include "../../Data-Types/Typedefs.h"
-#include "../../Diagnostics/Assert.h"
-#include "../../Utils/Defs.h"
-#include "../EulerAngle.h"
-#include "../Vector/Vec3.h"
+#include "Data-Types/Typedefs.h"
+#include "Diagnostics/Assert.h"
+#include "Math/EulerAngle.h"
+#include "Math/Vector/Vec3.h"
+#include "Utils/Defs.h"
 
 typedef struct {
     DT_f32 x;

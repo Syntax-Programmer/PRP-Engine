@@ -1,5 +1,5 @@
 #include "Arr.h"
-#include "../Diagnostics/Assert.h"
+#include "Diagnostics/Assert.h"
 #include <string.h>
 
 struct _Arr {

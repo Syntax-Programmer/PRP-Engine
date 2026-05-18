@@ -4,8 +4,8 @@
 extern "C" {
 #endif
 
-#include "../Float.h"
-#include "../Transcendental.h"
+#include "Math/Float.h"
+#include "Math/Transcendental.h"
 
 typedef struct {
     DT_f32 x;
@@ -246,7 +246,6 @@ static inline MATH_Vec2 MATH_Vec2NormalizeSafe(MATH_Vec2 a,
 static inline DT_bool MATH_Vec2IsNormalized(MATH_Vec2 a) {
     return (DT_bool)(MATH_AlmostEqF32(MATH_Vec2LenSq(a), 1.0f));
 }
-
 
 static inline DT_f32 MATH_Vec2Distance(MATH_Vec2 a, MATH_Vec2 b) {
     return MATH_Vec2Len(MATH_Vec2SubComps(a, b));

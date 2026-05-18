@@ -5,6 +5,7 @@ extern "C" {
 #endif
 
 #include "Consts.h"
+#include <math.h>
 
 /* ----  OPS  ---- */
 

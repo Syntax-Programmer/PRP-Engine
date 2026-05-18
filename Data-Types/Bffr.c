@@ -1,6 +1,5 @@
 #include "Bffr.h"
-#include "../Diagnostics/Assert.h"
-#include "Typedefs.h"
+#include "Diagnostics/Assert.h"
 #include <string.h>
 
 struct _Bffr {

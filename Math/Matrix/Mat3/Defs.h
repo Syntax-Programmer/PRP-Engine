@@ -4,7 +4,7 @@
 extern "C" {
 #endif
 
-#include "../../../Data-Types/Typedefs.h"
+#include "Data-Types/Typedefs.h"
 
 #define MATH_MAT3_SIZE (3)
 #define MATH_MAT3_ELEM_COUNT (9)

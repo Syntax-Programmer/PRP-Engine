@@ -1,3 +1,4 @@
+#include "ForgeECS/Internals/FECS-Internals.h"
 #include "World-Internals.h"
 #include <string.h>
 
@@ -271,9 +272,9 @@ PRP_Result LayoutSpawnEntities(World *world, DT_size layout_idx, DT_size count,
         DT_u32 mask = chunk->free_slot;
 
         DT_size left = count - alloc_count;
-        DT_u32 pop = DT_BitwordPopCnt(mask);
+        DT_u32 pop = (DT_u32)DT_BitwordPopCnt(mask);
         while (pop > left) {
-            DT_u32 msb = 31u - DT_BitwordCLZ(mask);
+            DT_u32 msb = 31u - (DT_u32)DT_BitwordCLZ(mask);
             mask ^= (1u << msb);
             pop--;
         }
@@ -341,7 +342,7 @@ static PRP_Result EntityBatchValidityCb(DT_void *chunk_view, DT_void *layout) {
     Chunk *chunk = CHUNK(l, view->chunk_idx);
     DT_u32 mask = view->occupied_slots;
     while (mask) {
-        DT_u32 slot = DT_BitwordCTZ(mask);
+        DT_u32 slot = (DT_u32)DT_BitwordCTZ(mask);
         if (view->gens[slot] != chunk->gens[slot] ||
             PRP_BIT_IS_SET(chunk->free_slot, BIT_MASK(slot))) {
             return PRP_ERR_INV_STATE;
@@ -389,7 +390,7 @@ PRP_Result LayoutKillEntities(World *world, FECS_EntityBatch **pEntities) {
         Chunk *chunk = CHUNK(layout, view->chunk_idx);
         DT_u32 mask = view->occupied_slots;
         while (mask) {
-            DT_u32 slot = DT_BitwordCTZ(mask);
+            DT_u32 slot = (DT_u32)DT_BitwordCTZ(mask);
             if (view->gens[slot] != chunk->gens[slot] ||
                 PRP_BIT_IS_SET(chunk->free_slot, BIT_MASK(slot))) {
                 if (mask != view->occupied_slots) {
@@ -493,7 +494,7 @@ PRP_Result LayoutForEachEntities(World *world, FECS_EntityBatch *entities,
         Chunk *chunk = CHUNK(layout, view->chunk_idx);
         DT_u32 mask = view->occupied_slots;
         while (mask) {
-            DT_u32 slot = DT_BitwordCTZ(mask);
+            DT_u32 slot = (DT_u32)DT_BitwordCTZ(mask);
             if (view->gens[slot] != chunk->gens[slot] ||
                 PRP_BIT_IS_SET(chunk->free_slot, BIT_MASK(slot))) {
                 return PRP_ERR_INV_ARG;

@@ -1,5 +1,5 @@
 #include "Pool.h"
-#include "../Diagnostics/Assert.h"
+#include "Diagnostics/Assert.h"
 #include <string.h>
 
 struct _Pool {

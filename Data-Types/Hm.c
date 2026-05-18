@@ -1,6 +1,5 @@
 #include "Hm.h"
-#include "../Diagnostics/Assert.h"
-#include "Typedefs.h"
+#include "Diagnostics/Assert.h"
 #include <string.h>
 
 // If 67% of the layout is filled, it is grown.

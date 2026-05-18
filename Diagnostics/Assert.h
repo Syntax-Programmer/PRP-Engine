@@ -6,7 +6,6 @@ extern "C" {
 
 #include "Log.h"
 #include <pthread.h>
-#include <stdlib.h>
 
 // Platform specific debug break.
 #if defined(_MSC_VER)

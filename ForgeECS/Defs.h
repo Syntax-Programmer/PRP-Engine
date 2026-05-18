@@ -4,8 +4,7 @@
 extern "C" {
 #endif
 
-#include "../Data-Types/Arr.h"
-#include "../Data-Types/Bitmap.h"
+#include "Data-Types/Arr.h"
 
 /* ----  ENTITIES ---- */
 

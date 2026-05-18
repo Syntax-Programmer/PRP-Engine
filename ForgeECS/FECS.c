@@ -58,7 +58,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL FECS_BehaviorRegister(DT_Arr *comp_idxs,
     if (code != PRP_OK) {
         DT_ArrForEachUnchecked(g_ctx->queries, QueryCascadingErrorCleanup,
                                pIdx);
-        Behavior *behavior;
+        Behavior *behavior = DT_null;
         DT_ArrPopUnchecked(g_ctx->behaviors, behavior);
         BehaviorDelete(behavior, DT_null);
         return code;

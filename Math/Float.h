@@ -50,10 +50,10 @@ static inline DT_bool MATH_IsZeroF64(DT_f64 x) {
     return (DT_bool)(MATH_AbsF64(x) <= MATH_F64_SAFE_EPS);
 }
 
-static inline DT_bool MATH_IsNaNF32(DT_f32 x) { return (DT_bool)isnanf(x); }
+static inline DT_bool MATH_IsNaNF32(DT_f32 x) { return (DT_bool)isnan(x); }
 static inline DT_bool MATH_IsNaNF64(DT_f64 x) { return (DT_bool)isnan(x); }
 
-static inline DT_bool MATH_IsInfF32(DT_f32 x) { return (DT_bool)isinff(x); }
+static inline DT_bool MATH_IsInfF32(DT_f32 x) { return (DT_bool)isinf(x); }
 static inline DT_bool MATH_IsInfF64(DT_f64 x) { return (DT_bool)isinf(x); }
 
 static inline DT_bool MATH_AlmostEqAbsF32(DT_f32 a, DT_f32 b) {

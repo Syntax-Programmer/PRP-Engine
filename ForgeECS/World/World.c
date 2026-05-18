@@ -1,5 +1,6 @@
 #include "World.h"
-#include "../Internals/World/World-Internals.h"
+#include "ForgeECS/Internals/FECS-Internals.h"
+#include "ForgeECS/Internals/World/World-Internals.h"
 
 /* ----  WORLDS ---- */
 

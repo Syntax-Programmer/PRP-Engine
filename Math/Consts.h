@@ -4,9 +4,8 @@
 extern "C" {
 #endif
 
-#include "../Data-Types/Typedefs.h"
+#include "Data-Types/Typedefs.h"
 #include <float.h>
-#include <math.h>
 
 /* ----  PI AND ITS VARIANTS  ---- */
 

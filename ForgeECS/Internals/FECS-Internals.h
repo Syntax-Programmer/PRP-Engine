@@ -4,11 +4,11 @@
 extern "C" {
 #endif
 
-#include "../../Data-Types/Arr.h"
-#include "../../Data-Types/Bitmap.h"
-#include "../../Data-Types/DSArr.h"
-#include "../../Diagnostics/Assert.h"
-#include "../Defs.h"
+#include "Data-Types/Arr.h"
+#include "Data-Types/Bitmap.h"
+#include "Data-Types/DSArr.h"
+#include "Diagnostics/Assert.h"
+#include "ForgeECS/Defs.h"
 
 /*
  * A general rule for any developer visiting this file:

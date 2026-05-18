@@ -4,12 +4,12 @@
 extern "C" {
 #endif
 
-#include "../../../Diagnostics/Assert.h"
-#include "../../../Utils/Defs.h"
-#include "../../EulerAngle.h"
-#include "../../Vector/Vec3.h"
-#include "../Mat3/Defs.h"
 #include "Defs.h"
+#include "Diagnostics/Assert.h"
+#include "Math/EulerAngle.h"
+#include "Math/Matrix/Mat3/Defs.h"
+#include "Math/Vector/Vec3.h"
+#include "Utils/Defs.h"
 
 /* ----  CONSTRUCTORS  ---- */
 

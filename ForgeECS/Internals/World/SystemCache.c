@@ -1,3 +1,4 @@
+#include "ForgeECS/Internals/FECS-Internals.h"
 #include "World-Internals.h"
 
 /**

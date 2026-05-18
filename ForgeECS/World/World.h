@@ -4,8 +4,8 @@
 extern "C" {
 #endif
 
-#include "../../Data-Types/DSArr.h"
-#include "../Defs.h"
+#include "Data-Types/DSArr.h"
+#include "ForgeECS/Defs.h"
 
 /**
  * Creates a new empty world.
