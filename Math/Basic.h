@@ -4,7 +4,7 @@
 extern "C" {
 #endif
 
-#include "Data-Types/Typedefs.h"
+#include "DataTypes/Typedefs.h"
 #include <math.h>
 
 /* ----  GENERIC FUNCTIONS  ---- */

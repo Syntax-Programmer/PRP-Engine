@@ -4,8 +4,8 @@
 extern "C" {
 #endif
 
-#include "Data-Types/Arr.h"
-#include "World/World.h"
+#include "DataTypes/Arr.h"
+#include "ForgeWorld/World.h"
 
 /**
  * In this ECS library, the order you define things changes how performance is

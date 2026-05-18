@@ -4,9 +4,9 @@
 extern "C" {
 #endif
 
-#include "Data-Types/Arr.h"
-#include "Data-Types/Bitmap.h"
-#include "Data-Types/DSArr.h"
+#include "DataTypes/Arr.h"
+#include "DataTypes/Bitmap.h"
+#include "DataTypes/DSArr.h"
 #include "Diagnostics/Assert.h"
 #include "ForgeECS/Defs.h"
 

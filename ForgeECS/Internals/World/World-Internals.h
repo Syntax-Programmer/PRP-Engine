@@ -4,8 +4,8 @@
 extern "C" {
 #endif
 
-#include "Data-Types/Arr.h"
-#include "Data-Types/Bitmap.h"
+#include "DataTypes/Arr.h"
+#include "DataTypes/Bitmap.h"
 #include "ForgeECS/Defs.h"
 
 /* ----  WORLDS ---- */

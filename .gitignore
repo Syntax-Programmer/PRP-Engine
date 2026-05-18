@@ -60,4 +60,5 @@ Makefile
 Drafts/
 .clang-format
 main.c
-build/
+Build/
+External/

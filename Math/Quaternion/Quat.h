@@ -4,7 +4,7 @@
 extern "C" {
 #endif
 
-#include "Data-Types/Typedefs.h"
+#include "DataTypes/Typedefs.h"
 #include "Diagnostics/Assert.h"
 #include "Math/EulerAngle.h"
 #include "Math/Vector/Vec3.h"

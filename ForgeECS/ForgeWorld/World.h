@@ -4,7 +4,7 @@
 extern "C" {
 #endif
 
-#include "Data-Types/DSArr.h"
+#include "DataTypes/DSArr.h"
 #include "ForgeECS/Defs.h"
 
 /**
