@@ -1,6 +1,6 @@
 #include "FECS.h"
 #include "Internals/FECS-Internals.h"
-#include "Internals/World/World-Internals.h"
+#include "Internals/ForgeWorld/World-Internals.h"
 
 /* ----  COMPS ---- */
 
