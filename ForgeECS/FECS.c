@@ -1,4 +1,5 @@
 #include "FECS.h"
+#include "DataTypes/Arr.h"
 #include "Internals/FECS-Internals.h"
 #include "Internals/ForgeWorld/World-Internals.h"
 
@@ -130,6 +131,10 @@ PRP_FN_API DT_void PRP_FN_CALL FECS_LockSchemaDefs(DT_void) {
     }
 
     g_ctx->schema_lock = DT_true;
+    DT_ArrShrinkFitUnchecked(g_ctx->comps);
+    DT_ArrShrinkFitUnchecked(g_ctx->behaviors);
+    DT_ArrShrinkFitUnchecked(g_ctx->queries);
+    DT_ArrShrinkFitUnchecked(g_ctx->systems);
 }
 
 PRP_FN_API PRP_Result PRP_FN_CALL FECS_Init(DT_void) {
