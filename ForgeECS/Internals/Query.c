@@ -3,19 +3,19 @@
 /**
  * Finds behavior matches for the query.
  *
- * @param query Query instance.
+ * @param pQuery Query instance.
  *
  * @return PRP_OK on success.
  * @return PRP_ERR_RES_EXHAUSTED if max cap is reached.
  * @return PRP_ERR_OOM if allocation fails.
  */
-static PRP_Result QueryFindMatches(Query *query);
+static PRP_Result QueryFindMatches(Query *pQuery);
 
-static PRP_Result QueryFindMatches(Query *query) {
+static PRP_Result QueryFindMatches(Query *pQuery) {
     PRP_Result code;
     const DT_size QUERY_INIT_SIZE = 4;
-    code = DT_ArrCreateUnchecked(sizeof(DT_size), QUERY_INIT_SIZE,
-                                 &query->behavior_matches);
+    code = DT_ArrCreateUnchecked(sizeof(FECS_BehaviorId), QUERY_INIT_SIZE,
+                                 &pQuery->behavior_id_matches);
     if (code != PRP_OK) {
         return code;
     }
@@ -24,13 +24,13 @@ static PRP_Result QueryFindMatches(Query *query) {
     const Behavior *behaviors = DT_ArrRawUnchecked(g_ctx->behaviors, &len);
     for (DT_size i = 0; i < len; i++) {
         const Behavior *behavior = &behaviors[i];
-        DT_bool is_match = (!query->exc || !DT_BitmapHasAnyUnchecked(
-                                               behavior->set, query->exc)) &&
-                           DT_BitmapHasAllUnchecked(behavior->set, query->inc);
+        DT_bool is_match = (!pQuery->exc || !DT_BitmapHasAnyUnchecked(
+                                                behavior->set, pQuery->exc)) &&
+                           DT_BitmapHasAllUnchecked(behavior->set, pQuery->inc);
         if (is_match) {
-            code = DT_ArrPushUnchecked(query->behavior_matches, &i);
+            code = DT_ArrPushUnchecked(pQuery->behavior_id_matches, &i);
             if (code != PRP_OK) {
-                DT_ArrDeleteUnchecked(&query->behavior_matches);
+                DT_ArrDeleteUnchecked(&pQuery->behavior_id_matches);
                 return code;
             }
         }
@@ -39,9 +39,10 @@ static PRP_Result QueryFindMatches(Query *query) {
     return PRP_OK;
 }
 
-PRP_Result QueryRegister(const DT_size *inc_comps, DT_size inc_comps_count,
-                         const DT_size *exc_comps, DT_size exc_comps_count,
-                         DT_size *pIdx) {
+PRP_Result QueryRegister(const FECS_CompId *pInc_comp_ids,
+                         DT_size inc_comps_count,
+                         const FECS_CompId *pExc_comp_ids,
+                         DT_size exc_comps_count, FECS_QueryId *pQuery_id) {
     Query data = {0};
     DT_size total_comps = DT_ArrLen(g_ctx->comps);
     PRP_Result code;
@@ -50,7 +51,7 @@ PRP_Result QueryRegister(const DT_size *inc_comps, DT_size inc_comps_count,
     if (code != PRP_OK) {
         goto err_path;
     }
-    if (exc_comps && exc_comps_count > 0) {
+    if (pExc_comp_ids && exc_comps_count > 0) {
         code = DT_BitmapCreateUnchecked(total_comps, &data.exc);
         if (code != PRP_OK) {
             goto err_path;
@@ -62,26 +63,26 @@ PRP_Result QueryRegister(const DT_size *inc_comps, DT_size inc_comps_count,
     }
 
     for (DT_size i = 0; i < inc_comps_count; i++) {
-        if (inc_comps[i] >= total_comps) {
+        if (pInc_comp_ids[i] >= total_comps) {
             code = PRP_ERR_INV_ARG;
             goto err_path;
         }
-        DT_BitmapSetUnchecked(data.inc, inc_comps[i]);
+        DT_BitmapSetUnchecked(data.inc, pInc_comp_ids[i]);
     }
     if (data.exc) {
         for (DT_size i = 0; i < exc_comps_count; i++) {
-            if (exc_comps[i] >= total_comps) {
+            if (pExc_comp_ids[i] >= total_comps) {
                 code = PRP_ERR_INV_ARG;
                 goto err_path;
             }
-            if (DT_BitmapIsSetUnchecked(data.inc, exc_comps[i])) {
+            if (DT_BitmapIsSetUnchecked(data.inc, pExc_comp_ids[i])) {
                 code = PRP_ERR_INV_ARG;
                 DIAG_LOG_ERROR(
                     DIAG_LOG_CODE_INVALID_ARG,
                     "The given inc and exc comps have overlapping comps");
                 goto err_path;
             }
-            DT_BitmapSetUnchecked(data.exc, exc_comps[i]);
+            DT_BitmapSetUnchecked(data.exc, pExc_comp_ids[i]);
         }
     }
 
@@ -90,7 +91,7 @@ PRP_Result QueryRegister(const DT_size *inc_comps, DT_size inc_comps_count,
         goto err_path;
     }
 
-    *pIdx = DT_ArrLen(g_ctx->queries) - 1;
+    *pQuery_id = DT_ArrLen(g_ctx->queries) - 1;
 
     return PRP_OK;
 
@@ -101,45 +102,47 @@ err_path:
     if (data.exc) {
         DT_BitmapDeleteUnchecked(&data.exc);
     }
-    if (data.behavior_matches) {
-        DT_ArrDeleteUnchecked(&data.behavior_matches);
+    if (data.behavior_id_matches) {
+        DT_ArrDeleteUnchecked(&data.behavior_id_matches);
     }
 
     return code;
 }
 
-DT_bool QueryIsRegistered(const DT_size *inc_comps, DT_size inc_comps_count,
-                          const DT_size *exc_comps, DT_size exc_comps_count,
-                          DT_size *pOut) {
+DT_bool QueryIsRegistered(const FECS_CompId *pInc_comp_ids,
+                          DT_size inc_comps_count,
+                          const FECS_CompId *pExc_comp_ids,
+                          DT_size exc_comps_count, FECS_QueryId *pFound_id) {
     DT_size queries_len;
-    const Query *queries = DT_ArrRawUnchecked(g_ctx->queries, &queries_len);
+    const Query *pQueries = DT_ArrRawUnchecked(g_ctx->queries, &queries_len);
 
     for (DT_size i = 0; i < queries_len; i++) {
-        const Query *query = &queries[i];
-        if ((exc_comps_count && !query->exc) ||
-            (!exc_comps_count && query->exc)) {
+        const Query *pQuery = &pQueries[i];
+        if ((exc_comps_count && !pQuery->exc) ||
+            (!exc_comps_count && pQuery->exc)) {
             continue;
         }
-        if (DT_BitmapSetCount(query->inc) != inc_comps_count ||
-            (query->exc && DT_BitmapSetCount(query->exc) != exc_comps_count)) {
+        if (DT_BitmapSetCount(pQuery->inc) != inc_comps_count ||
+            (pQuery->exc &&
+             DT_BitmapSetCount(pQuery->exc) != exc_comps_count)) {
             continue;
         }
 
         DT_bool is_registered = DT_true;
         for (DT_size j = 0; j < inc_comps_count; j++) {
-            if (!DT_BitmapIsSetUnchecked(query->inc, inc_comps[j])) {
+            if (!DT_BitmapIsSetUnchecked(pQuery->inc, pInc_comp_ids[j])) {
                 is_registered = DT_false;
                 break;
             }
         }
         for (DT_size j = 0; is_registered && j < exc_comps_count; j++) {
-            if (!DT_BitmapIsSetUnchecked(query->exc, exc_comps[j])) {
+            if (!DT_BitmapIsSetUnchecked(pQuery->exc, pExc_comp_ids[j])) {
                 is_registered = DT_false;
                 break;
             }
         }
         if (is_registered) {
-            *pOut = i;
+            *pFound_id = i;
             return DT_true;
         }
     }
@@ -147,49 +150,51 @@ DT_bool QueryIsRegistered(const DT_size *inc_comps, DT_size inc_comps_count,
     return DT_false;
 }
 
-PRP_Result QueryCascadeUpdateBehavior(DT_void *q, DT_void *b) {
-    Query *query = q;
-    DT_size behavior_idx = *(DT_size *)b;
-    Behavior *behavior = DT_ArrGetUnchecked(g_ctx->behaviors, behavior_idx);
+PRP_Result QueryCascadeUpdateBehavior(DT_void *pQuery, DT_void *pBehavior) {
+    Query *pQuery_instance = pQuery;
+    FECS_BehaviorId behavior_id = *(FECS_BehaviorId *)pBehavior;
+    Behavior *behavior = DT_ArrGetUnchecked(g_ctx->behaviors, behavior_id);
 
     DT_bool is_match =
-        (!query->exc || !DT_BitmapHasAnyUnchecked(behavior->set, query->exc)) &&
-        DT_BitmapHasAllUnchecked(behavior->set, query->inc);
+        (!pQuery_instance->exc ||
+         !DT_BitmapHasAnyUnchecked(behavior->set, pQuery_instance->exc)) &&
+        DT_BitmapHasAllUnchecked(behavior->set, pQuery_instance->inc);
 
     if (!is_match) {
         return PRP_OK;
     }
 
-    return DT_ArrPushUnchecked(query->behavior_matches, &behavior_idx);
+    return DT_ArrPushUnchecked(pQuery_instance->behavior_id_matches,
+                               &behavior_id);
 }
 
-PRP_Result QueryCascadingErrorCleanup(DT_void *q, DT_void *b) {
-    Query *query = q;
-    DT_size behavior_idx = *(DT_size *)b;
-    DT_size matches_len = DT_ArrLen(query->behavior_matches);
+PRP_Result QueryCascadingErrorCleanup(DT_void *pQuery, DT_void *pBehavior) {
+    Query *pQuery_instance = pQuery;
+    FECS_BehaviorId behavior_id = *(FECS_BehaviorId *)pBehavior;
+    DT_size matches_len = DT_ArrLen(pQuery_instance->behavior_id_matches);
     if (!matches_len) {
         return PRP_OK;
     }
 
-    DT_size last_idx = *(DT_size *)DT_ArrGetUnchecked(query->behavior_matches,
-                                                      matches_len - 1);
-    if (last_idx == behavior_idx) {
-        DT_ArrPopUnchecked(query->behavior_matches, DT_null);
+    FECS_BehaviorId last_id = *(DT_size *)DT_ArrGetUnchecked(
+        pQuery_instance->behavior_id_matches, matches_len - 1);
+    if (last_id == behavior_id) {
+        DT_ArrPopUnchecked(pQuery_instance->behavior_id_matches, DT_null);
     }
 
     return PRP_OK;
 }
 
-PRP_Result QueryDelete(DT_void *query, DT_void *_) {
+PRP_Result QueryDelete(DT_void *pQuery, DT_void *_) {
     (DT_void) _;
-    Query *q = query;
+    Query *pQuery_instance = pQuery;
 
-    DT_BitmapDeleteUnchecked(&q->inc);
-    if (q->exc) {
-        DT_BitmapDeleteUnchecked(&q->exc);
+    DT_BitmapDeleteUnchecked(&pQuery_instance->inc);
+    if (pQuery_instance->exc) {
+        DT_BitmapDeleteUnchecked(&pQuery_instance->exc);
     }
-    if (q->behavior_matches) {
-        DT_ArrDeleteUnchecked(&q->behavior_matches);
+    if (pQuery_instance->behavior_id_matches) {
+        DT_ArrDeleteUnchecked(&pQuery_instance->behavior_id_matches);
     }
 
     return PRP_OK;

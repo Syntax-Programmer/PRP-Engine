@@ -188,9 +188,9 @@ PRP_FN_API DT_bool PRP_FN_CALL DT_DSArrIsValid(const DT_DSArr *ds_arr) {
 
 PRP_FN_API PRP_Result PRP_FN_CALL DT_DSArrCreateUnchecked(
     DT_size memb_size, PRP_Result (*elem_del_cb)(DT_void *elem),
-    DT_DSArr **out) {
+    DT_DSArr **pDs_arr) {
     DIAG_ASSERT(memb_size > 0);
-    DIAG_ASSERT(out != DT_null);
+    DIAG_ASSERT(pDs_arr != DT_null);
 
     DT_DSArr *ds_arr = calloc(1, sizeof(DT_DSArr));
     if (!ds_arr) {
@@ -218,7 +218,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_DSArrCreateUnchecked(
     ds_arr->id_layer.free_index = 0;
     ds_arr->id_layer.free_count = cap;
 
-    *out = ds_arr;
+    *pDs_arr = ds_arr;
 
     return PRP_OK;
 
@@ -238,12 +238,12 @@ err_path:
 
 PRP_FN_API PRP_Result PRP_FN_CALL DT_DSArrCreateChecked(
     DT_size memb_size, PRP_Result (*elem_del_cb)(DT_void *elem),
-    DT_DSArr **out) {
-    if (!memb_size || !out) {
+    DT_DSArr **pDs_arr) {
+    if (!memb_size || !pDs_arr) {
         return PRP_ERR_INV_ARG;
     }
 
-    return DT_DSArrCreateUnchecked(memb_size, elem_del_cb, out);
+    return DT_DSArrCreateUnchecked(memb_size, elem_del_cb, pDs_arr);
 }
 
 PRP_FN_API DT_void PRP_FN_CALL DT_DSArrDeleteUnchecked(DT_DSArr **pDs_arr) {
@@ -603,14 +603,14 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_DSArrReserveChecked(DT_DSArr *ds_arr,
 }
 
 PRP_FN_API PRP_Result PRP_FN_CALL DT_DSArrForEachUnchecked(
-    DT_DSArr *ds_arr, PRP_Result (*cb)(DT_void *pVal, DT_void *user_data),
-    DT_void *user_data) {
+    DT_DSArr *ds_arr, PRP_Result (*cb)(DT_void *pVal, DT_void *pUser_data),
+    DT_void *pUser_data) {
     ASSERT_INVARIANT_EXPR(ds_arr);
     DIAG_ASSERT(cb != DT_null);
 
     DT_u8 *mem = ds_arr->data_layer.elems;
     for (DT_u32 i = 0; i < ds_arr->data_layer.len; i++) {
-        PRP_Result code = cb(mem, user_data);
+        PRP_Result code = cb(mem, pUser_data);
         if (code != PRP_OK) {
             return code;
         }
@@ -621,11 +621,11 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_DSArrForEachUnchecked(
 }
 
 PRP_FN_API PRP_Result PRP_FN_CALL DT_DSArrForEachChecked(
-    DT_DSArr *ds_arr, PRP_Result (*cb)(DT_void *pVal, DT_void *user_data),
-    DT_void *user_data) {
+    DT_DSArr *ds_arr, PRP_Result (*cb)(DT_void *pVal, DT_void *pUser_data),
+    DT_void *pUser_data) {
     if (!DT_DSArrIsValid(ds_arr) || !cb) {
         return PRP_ERR_INV_ARG;
     }
 
-    return DT_DSArrForEachUnchecked(ds_arr, cb, user_data);
+    return DT_DSArrForEachUnchecked(ds_arr, cb, pUser_data);
 }

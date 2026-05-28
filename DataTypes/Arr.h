@@ -39,7 +39,7 @@ PRP_FN_API DT_bool PRP_FN_CALL DT_ArrIsValid(const DT_Arr *arr);
  *
  * @param memb_size Size (in bytes) of each element.
  * @param cap       Initial capacity.
- * @param out       Output pointer receiving the array.
+ * @param pArr      Output pointer receiving the array.
  *
  * @return PRP_OK on success.
  * @return PRP_ERR_OOM if allocation fails.
@@ -49,13 +49,13 @@ PRP_FN_API DT_bool PRP_FN_CALL DT_ArrIsValid(const DT_Arr *arr);
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrCreateUnchecked(DT_size memb_size,
                                                         DT_size cap,
-                                                        DT_Arr **out);
+                                                        DT_Arr **pArr);
 /**
  * Creates a dynamic array with validation.
  *
  * @param memb_size Size (in bytes) of each element.
  * @param cap       Initial capacity.
- * @param out       Output pointer receiving the array.
+ * @param pArr      Output pointer receiving the array.
  *
  * @return PRP_OK on success.
  * @return PRP_ERR_OOM if allocation fails.
@@ -63,12 +63,12 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrCreateUnchecked(DT_size memb_size,
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrCreateChecked(DT_size memb_size,
                                                       DT_size cap,
-                                                      DT_Arr **out);
+                                                      DT_Arr **pArr);
 /**
  * Deep clones the given array.
  *
- * @param arr The array to clone.
- * @param out Output pointer receiving the array.
+ * @param arr  The array to clone.
+ * @param pArr Output pointer receiving the array.
  *
  * @return PRP_OK on success.
  * @return PRP_ERR_OOM if allocation fails.
@@ -77,26 +77,26 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrCreateChecked(DT_size memb_size,
  * - Asserts on invalid arguments in debug.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrCloneUnchecked(const DT_Arr *arr,
-                                                       DT_Arr **out);
+                                                       DT_Arr **pArr);
 /**
  * Deep clones the given array with validation.
  *
- * @param arr The array to clone.
- * @param out Output pointer receiving the array.
+ * @param arr  The array to clone.
+ * @param pArr Output pointer receiving the array.
  *
  * @return PRP_OK on success.
  * @return PRP_ERR_OOM if allocation fails.
  * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrCloneChecked(const DT_Arr *arr,
-                                                     DT_Arr **out);
+                                                     DT_Arr **pArr);
 /**
  * Creates the dynamic array with specified data.
  *
  * @param memb_size Size (in bytes) of each element.
  * @param membs     The array of data to initialize with.
  * @param len       Len of the membs array.
- * @param out       Output pointer receiving the array.
+ * @param pArr      Output pointer receiving the array.
  *
  * @return PRP_OK on success.
  * @return PRP_ERR_OOM if allocation fails.
@@ -105,21 +105,21 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrCloneChecked(const DT_Arr *arr,
  * - Asserts on invalid arguments in debug.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrCreateWithDataUnchecked(
-    DT_size memb_size, const DT_void *membs, DT_size len, DT_Arr **out);
+    DT_size memb_size, const DT_void *membs, DT_size len, DT_Arr **pArr);
 /**
  * Creates the dynamic array with specified data.
  *
  * @param memb_size Size (in bytes) of each element.
  * @param membs     The array of data to initialize with.
  * @param len       Len of the membs array.
- * @param out       Output pointer receiving the array.
+ * @param pArr      Output pointer receiving the array.
  *
  * @return PRP_OK on success.
  * @return PRP_ERR_OOM if allocation fails.
  * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrCreateWithDataChecked(
-    DT_size memb_size, const DT_void *membs, DT_size len, DT_Arr **out);
+    DT_size memb_size, const DT_void *membs, DT_size len, DT_Arr **pArr);
 
 /**
  * Deletes the array and nullifies the pointer.
@@ -538,9 +538,9 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrShrinkFitChecked(DT_Arr *arr);
 /**
  * Iterates over all elements of the array.
  *
- * @param arr       Array instance.
- * @param cb        Callback invoked per element.
- * @param user_data User-provided context.
+ * @param arr        Array instance.
+ * @param cb         Callback invoked per element.
+ * @param pUser_data User-provided context.
  *
  * @return PRP_OK if iteration completes.
  * @return Callback error if cb returns non-PRP_OK.
@@ -549,22 +549,22 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrShrinkFitChecked(DT_Arr *arr);
  * - Asserts on invalid arguments in debug.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrForEachUnchecked(
-    DT_Arr *arr, PRP_Result (*cb)(DT_void *pVal, DT_void *user_data),
-    DT_void *user_data);
+    DT_Arr *arr, PRP_Result (*cb)(DT_void *pVal, DT_void *pUser_data),
+    DT_void *pUser_data);
 /**
  * Iterates over all elements of the array.
  *
- * @param arr       Array instance.
- * @param cb        Callback invoked per element.
- * @param user_data User-provided context.
+ * @param arr        Array instance.
+ * @param cb         Callback invoked per element.
+ * @param pUser_data User-provided context.
  *
  * @return PRP_OK if iteration completes.
  * @return Callback error if cb returns non-PRP_OK.
  * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrForEachChecked(
-    DT_Arr *arr, PRP_Result (*cb)(DT_void *pVal, DT_void *user_data),
-    DT_void *user_data);
+    DT_Arr *arr, PRP_Result (*cb)(DT_void *pVal, DT_void *pUser_data),
+    DT_void *pUser_data);
 
 #ifdef __cplusplus
 }

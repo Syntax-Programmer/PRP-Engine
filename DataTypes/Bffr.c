@@ -19,10 +19,10 @@ PRP_FN_API DT_bool PRP_FN_CALL DT_BffrIsValid(const DT_Bffr *bffr) {
 
 PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrCreateUnchecked(DT_size memb_size,
                                                          DT_size cap,
-                                                         DT_Bffr **out) {
+                                                         DT_Bffr **pBffr) {
     DIAG_ASSERT(memb_size > 0);
     DIAG_ASSERT(cap > 0);
-    DIAG_ASSERT(out != DT_null);
+    DIAG_ASSERT(pBffr != DT_null);
 
     if (cap > DT_BFFR_MAX_CAP(memb_size)) {
         return PRP_ERR_OOM;
@@ -40,45 +40,45 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrCreateUnchecked(DT_size memb_size,
     bffr->memb_size = memb_size;
     bffr->cap = cap;
 
-    *out = bffr;
+    *pBffr = bffr;
 
     return PRP_OK;
 }
 
 PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrCreateChecked(DT_size memb_size,
                                                        DT_size cap,
-                                                       DT_Bffr **out) {
-    if (!memb_size || !cap || !out) {
+                                                       DT_Bffr **pBffr) {
+    if (!memb_size || !cap || !pBffr) {
         return PRP_ERR_INV_ARG;
     }
 
-    return DT_BffrCreateUnchecked(memb_size, cap, out);
+    return DT_BffrCreateUnchecked(memb_size, cap, pBffr);
 }
 
 PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrCloneUnchecked(const DT_Bffr *bffr,
-                                                        DT_Bffr **out) {
+                                                        DT_Bffr **pBffr) {
     ASSERT_INVARIANT_EXPR(bffr);
-    DIAG_ASSERT(out != DT_null);
+    DIAG_ASSERT(pBffr != DT_null);
 
     // Unchecked since we checked for invariants above.
-    PRP_Result code = DT_BffrCreateUnchecked(bffr->memb_size, bffr->cap, out);
+    PRP_Result code = DT_BffrCreateUnchecked(bffr->memb_size, bffr->cap, pBffr);
     if (code != PRP_OK) {
         return code;
     }
 
-    DT_Bffr *cpy = *out;
+    DT_Bffr *cpy = *pBffr;
     memcpy(cpy->mem, bffr->mem, bffr->memb_size * bffr->cap);
 
     return PRP_OK;
 }
 
 PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrCloneChecked(const DT_Bffr *bffr,
-                                                      DT_Bffr **out) {
-    if (!DT_BffrIsValid(bffr) || !out) {
+                                                      DT_Bffr **pBffr) {
+    if (!DT_BffrIsValid(bffr) || !pBffr) {
         return PRP_ERR_INV_ARG;
     }
 
-    return DT_BffrCloneUnchecked(bffr, out);
+    return DT_BffrCloneUnchecked(bffr, pBffr);
 }
 
 PRP_FN_API DT_void PRP_FN_CALL DT_BffrDeleteUnchecked(DT_Bffr **pBffr) {

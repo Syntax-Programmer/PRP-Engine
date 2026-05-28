@@ -92,6 +92,7 @@ PRP_FN_API DT_bool PRP_FN_CALL DT_BitmapIsValid(const DT_Bitmap *bmp);
  * Creates a dynamic bitmap.
  *
  * @param bit_cap Initial bit capacity.
+ * @param pBmp    Output pointer receiving the bitmap.
  *
  * @return PRP_OK on success.
  * @return PRP_ERR_OOM if allocation fails.
@@ -100,23 +101,24 @@ PRP_FN_API DT_bool PRP_FN_CALL DT_BitmapIsValid(const DT_Bitmap *bmp);
  * - Asserts on invalid arguments in debug.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapCreateUnchecked(DT_size bit_cap,
-                                                           DT_Bitmap **out);
+                                                           DT_Bitmap **pBmp);
 /**
  * Creates a dynamic bitmap.
  *
  * @param bit_cap Initial bit capacity.
+ * @param pBmp    Output pointer receiving the bitmap.
  *
  * @return PRP_OK on success.
  * @return PRP_ERR_OOM if allocation fails.
  * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapCreateChecked(DT_size bit_cap,
-                                                         DT_Bitmap **out);
+                                                         DT_Bitmap **pBmp);
 /**
  * Deep clones the given bitmap.
  *
- * @param bmp The bitmap to clone.
- * @param out Output pointer receiving the bitmap.
+ * @param bmp  The bitmap to clone.
+ * @param pBmp Output pointer receiving the bitmap.
  *
  * @return PRP_OK on success.
  * @return PRP_ERR_OOM if allocation fails.
@@ -125,19 +127,19 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapCreateChecked(DT_size bit_cap,
  * - Asserts on invalid arguments in debug.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapCloneUnchecked(const DT_Bitmap *bmp,
-                                                          DT_Bitmap **out);
+                                                          DT_Bitmap **pBmp);
 /**
  * Deep clones the given bitmap.
  *
- * @param bmp The bitmap to clone.
- * @param out Output pointer receiving the bitmap.
+ * @param bmp  The bitmap to clone.
+ * @param pBmp Output pointer receiving the bitmap.
  *
  * @return PRP_OK on success.
  * @return PRP_ERR_OOM if allocation fails.
  * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapCloneChecked(const DT_Bitmap *bmp,
-                                                        DT_Bitmap **out);
+                                                        DT_Bitmap **pBmp);
 
 /**
  * Deletes the bitmap and nullifies the pointer.

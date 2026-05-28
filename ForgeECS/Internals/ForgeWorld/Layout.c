@@ -8,45 +8,46 @@
  * Deletes the chunks inside layout.
  * Called via DT_ArrForEach_...
  *
- * @param ptr Chunk** to free.
+ * @param ppChunk Chunk** to free.
  *
  * @return PRP_OK on success.
  */
-static PRP_Result ChunkPtrDelCb(DT_void *ptr, DT_void *_);
+static PRP_Result ChunkPtrDelCb(DT_void *ppChunk, DT_void *_);
 /**
  * Adds new chunk to layout.
  *
- * @param layout Layout instance.
+ * @param pLayout Layout instance.
  *
  * @return PRP_OK on success.
  * @return PRP_ERR_RES_EXHAUSTED if max cap is reached.
  * @return PRP_ERR_OOM if allocation fails.
  */
-static PRP_Result ChunkCreate(Layout *layout);
+static PRP_Result ChunkCreate(Layout *pLayout);
 /**
  * Initializes a new layout.
  *
- * @param layout       Layout instance.
- * @param behavior_idx The underlying behavior of the layout.
+ * @param pLayout     Layout instance.
+ * @param behavior_id The underlying behavior of the layout.
  *
  * @return PRP_OK on success.
  * @return PRP_ERR_RES_EXHAUSTED if max cap is reached.
  * @return PRP_ERR_OOM if allocation fails.
  */
-static PRP_Result LayoutInitialize(Layout *layout, DT_size behavior_idx);
+static PRP_Result LayoutInitialize(Layout *pLayout,
+                                   FECS_BehaviorId behavior_id);
 
-static PRP_Result ChunkCreate(Layout *layout) {
-    Behavior *behavior =
-        DT_ArrGetUnchecked(g_ctx->behaviors, layout->behavior_idx);
-    Chunk *chunk = malloc(behavior->chunk_size);
-    if (!chunk) {
+static PRP_Result ChunkCreate(Layout *pLayout) {
+    Behavior *pBehavior =
+        DT_ArrGetUnchecked(g_ctx->behaviors, pLayout->behavior_id);
+    Chunk *pChunk = malloc(pBehavior->chunk_size);
+    if (!pChunk) {
         return PRP_ERR_OOM;
     }
 
-    DT_size push_idx = DT_ArrLen(layout->chunk_ptrs);
-    PRP_Result code = DT_ArrPushUnchecked(layout->chunk_ptrs, &chunk);
+    DT_size push_idx = DT_ArrLen(pLayout->pChunk_ptrs);
+    PRP_Result code = DT_ArrPushUnchecked(pLayout->pChunk_ptrs, &pChunk);
     if (code != PRP_OK) {
-        free(chunk);
+        free(pChunk);
         return code;
     }
 
@@ -61,8 +62,8 @@ static PRP_Result ChunkCreate(Layout *layout) {
      *  We can use sizeof(Chunk) inthis bcuz the chunk data is a flex array memb
      * and doesn't count in the size of struct.
      */
-    memset(chunk, 0XFF, sizeof(Chunk));
-    DT_size bit_cap = DT_BitmapBitCap(layout->free_chunks);
+    memset(pChunk, 0XFF, sizeof(Chunk));
+    DT_size bit_cap = DT_BitmapBitCap(pLayout->pFree_chunk_idxs);
     if (push_idx >= bit_cap) {
         DT_size new_bit_cap;
         if (DT_BITMAP_MAX_BIT_CAP / 2 < bit_cap) {
@@ -70,32 +71,35 @@ static PRP_Result ChunkCreate(Layout *layout) {
         } else {
             new_bit_cap = bit_cap * 2;
         }
-        code = DT_BitmapChangeSizeUnchecked(layout->free_chunks, new_bit_cap);
+        code = DT_BitmapChangeSizeUnchecked(pLayout->pFree_chunk_idxs,
+                                            new_bit_cap);
         if (code != PRP_OK) {
-            DT_ArrPopUnchecked(layout->chunk_ptrs, DT_null);
-            free(chunk);
+            DT_ArrPopUnchecked(pLayout->pChunk_ptrs, DT_null);
+            free(pChunk);
             return code;
         }
     }
-    DT_BitmapSetUnchecked(layout->free_chunks, push_idx);
+    DT_BitmapSetUnchecked(pLayout->pFree_chunk_idxs, push_idx);
 
     return PRP_OK;
 }
 
-static PRP_Result LayoutInitialize(Layout *layout, DT_size behavior_idx) {
-    layout->behavior_idx = behavior_idx;
+static PRP_Result LayoutInitialize(Layout *pLayout,
+                                   FECS_BehaviorId behavior_id) {
+    pLayout->behavior_id = behavior_id;
     PRP_Result code;
 
     code = DT_ArrCreateUnchecked(sizeof(Chunk *), DT_ARR_DEFAULT_CAP,
-                                 &layout->chunk_ptrs);
+                                 &pLayout->pChunk_ptrs);
     if (code != PRP_OK) {
         goto err_path;
     }
-    code = DT_BitmapCreateUnchecked(DT_ARR_DEFAULT_CAP, &layout->free_chunks);
+    code = DT_BitmapCreateUnchecked(DT_ARR_DEFAULT_CAP,
+                                    &pLayout->pFree_chunk_idxs);
     if (code != PRP_OK) {
         goto err_path;
     }
-    code = ChunkCreate(layout);
+    code = ChunkCreate(pLayout);
     if (code != PRP_OK) {
         goto err_path;
     }
@@ -103,67 +107,69 @@ static PRP_Result LayoutInitialize(Layout *layout, DT_size behavior_idx) {
     return PRP_OK;
 
 err_path:
-    if (layout->chunk_ptrs) {
-        DT_ArrForEachUnchecked(layout->chunk_ptrs, ChunkPtrDelCb, DT_null);
-        DT_ArrDeleteUnchecked(&layout->chunk_ptrs);
+    if (pLayout->pChunk_ptrs) {
+        DT_ArrForEachUnchecked(pLayout->pChunk_ptrs, ChunkPtrDelCb, DT_null);
+        DT_ArrDeleteUnchecked(&pLayout->pChunk_ptrs);
     }
-    if (layout->free_chunks) {
-        DT_BitmapDeleteUnchecked(&layout->free_chunks);
+    if (pLayout->pFree_chunk_idxs) {
+        DT_BitmapDeleteUnchecked(&pLayout->pFree_chunk_idxs);
     }
 
     return code;
 }
 
-PRP_Result LayoutCreate(World *world, DT_size behavior_idx, DT_size *pIdx) {
+PRP_Result LayoutCreate(World *pWorld, FECS_BehaviorId behavior_id,
+                        FECS_LayoutId *pLayout_id) {
     Layout data = {0};
-    PRP_Result code = LayoutInitialize(&data, behavior_idx);
+    PRP_Result code = LayoutInitialize(&data, behavior_id);
     if (code != PRP_OK) {
         return code;
     }
 
-    code = DT_ArrPushUnchecked(world->layouts, &data);
+    code = DT_ArrPushUnchecked(pWorld->layouts, &data);
     if (code != PRP_OK) {
         LayoutDelete(&data, DT_null);
         return code;
     }
 
-    *pIdx = DT_ArrLen(world->layouts) - 1;
+    *pLayout_id = DT_ArrLen(pWorld->layouts) - 1;
 
     return PRP_OK;
 }
 
-static PRP_Result ChunkPtrDelCb(DT_void *ptr, DT_void *_) {
+static PRP_Result ChunkPtrDelCb(DT_void *ppChunk, DT_void *_) {
     (DT_void) _;
+    Chunk *pChunk = *(Chunk **)ppChunk;
 
-    Chunk **pChunk_ptr = ptr;
-    free(*pChunk_ptr);
+    free(pChunk);
 
     return PRP_OK;
 }
 
-PRP_Result LayoutDelete(DT_void *layout, DT_void *_) {
+PRP_Result LayoutDelete(DT_void *pLayout, DT_void *_) {
     (DT_void) _;
-    Layout *l = layout;
+    Layout *pLayout_instance = pLayout;
 
-    DT_ArrForEachUnchecked(l->chunk_ptrs, ChunkPtrDelCb, DT_null);
-    DT_ArrDeleteUnchecked(&l->chunk_ptrs);
-    DT_BitmapDeleteUnchecked(&l->free_chunks);
+    DT_ArrForEachUnchecked(pLayout_instance->pChunk_ptrs, ChunkPtrDelCb,
+                           DT_null);
+    DT_ArrDeleteUnchecked(&pLayout_instance->pChunk_ptrs);
+    DT_BitmapDeleteUnchecked(&pLayout_instance->pFree_chunk_idxs);
 
 #if !defined(PRP_NDEBUG)
-    l->behavior_idx = PRP_INVALID_INDEX;
+    pLayout_instance->behavior_id = PRP_INVALID_INDEX;
 #endif
 
     return PRP_OK;
 }
 
-DT_bool LayoutIsAlreadyExisting(World *world, DT_size behavior_idx,
-                                DT_size *pOut) {
+DT_bool LayoutIsAlreadyExisting(World *pWorld, FECS_BehaviorId behavior_id,
+                                FECS_LayoutId *pFound_id) {
     DT_size len;
-    const Layout *layouts = DT_ArrRawUnchecked(world->layouts, &len);
+    const Layout *pLayouts = DT_ArrRawUnchecked(pWorld->layouts, &len);
 
     for (DT_size i = 0; i < len; i++) {
-        if (layouts[i].behavior_idx == behavior_idx) {
-            *pOut = i;
+        if (pLayouts[i].behavior_id == behavior_id) {
+            *pFound_id = i;
             return DT_true;
         }
     }
@@ -173,8 +179,8 @@ DT_bool LayoutIsAlreadyExisting(World *world, DT_size behavior_idx,
 
 /* ----  ENTITY ---- */
 
-#define CHUNK(layout, chunk_idx)                                               \
-    (*(Chunk **)DT_ArrGetUnchecked((layout)->chunk_ptrs, (chunk_idx)))
+#define CHUNK(pLayout, chunk_idx)                                              \
+    (*(Chunk **)DT_ArrGetUnchecked((pLayout)->pChunk_ptrs, (chunk_idx)))
 
 #define ENTITY_SLOT_MASK ((DT_size)31)
 #define ENTITY_SLOT_BITS (5)
@@ -183,7 +189,7 @@ DT_bool LayoutIsAlreadyExisting(World *world, DT_size behavior_idx,
     (((DT_size)(chunk_idx) << ENTITY_SLOT_BITS) |                              \
      ((DT_size)(slot_idx) & ENTITY_SLOT_MASK))
 
-#define MAX_ENTITY_CAP(layout) (DT_ArrLen(layout->chunk_ptrs) * CHUNK_CAP)
+#define MAX_ENTITY_CAP(pLayout) (DT_ArrLen(pLayout->pChunk_ptrs) * CHUNK_CAP)
 
 /**
  * A chunk view is data upon a chunk's entire free slots allocated at once.
@@ -197,144 +203,149 @@ typedef struct {
 /**
  * Checks if the chunk view of a entity batch is valid.
  *
- * @param chunk_view A chunk view from entity batch.
- * @param layout     The layout the entities/chunk_views belong to.
+ * @param pChunk_view A chunk view from entity batch.
+ * @param pLayout     The layout the entities/chunk_views belong to.
  *
  * @return PRP_OK on success.
  * @return PRP_ERR_INV_STATE if the chunk view contains invlaid entities.
  */
-static PRP_Result EntityBatchValidityCb(DT_void *chunk_view, DT_void *layout);
+static PRP_Result EntityBatchValidityCb(DT_void *pChunk_view, DT_void *pLayout);
 
-PRP_Result LayoutSpawnEntity(World *world, DT_size layout_idx,
+PRP_Result LayoutSpawnEntity(World *pWorld, FECS_LayoutId layout_id,
                              FECS_Entity *pEntity) {
-    Layout *layout = DT_ArrGetUnchecked(world->layouts, layout_idx);
-    DT_size free_chunk = DT_BitmapFFS(layout->free_chunks);
-    if (free_chunk == PRP_INVALID_INDEX) {
-        PRP_Result code = ChunkCreate(layout);
+    Layout *pLayout = DT_ArrGetUnchecked(pWorld->layouts, layout_id);
+    DT_size free_chunk_idx = DT_BitmapFFS(pLayout->pFree_chunk_idxs);
+    if (free_chunk_idx == PRP_INVALID_INDEX) {
+        PRP_Result code = ChunkCreate(pLayout);
         if (code != PRP_OK) {
             return code;
         }
-        free_chunk = DT_BitmapFFS(layout->free_chunks);
+        free_chunk_idx = DT_BitmapFFS(pLayout->pFree_chunk_idxs);
     }
 
-    Chunk *chunk = CHUNK(layout, free_chunk);
-    DT_u32 free_slot = (DT_u32)DT_BitwordFFS((DT_Bitword)chunk->free_slot);
+    Chunk *pChunk = CHUNK(pLayout, free_chunk_idx);
+    DT_u32 free_slot_idx = (DT_u32)DT_BitwordFFS((DT_Bitword)pChunk->free_slot);
 
-    pEntity->layout_idx = layout_idx;
-    pEntity->gen = chunk->gens[free_slot];
-    pEntity->entity_idx = ENTITY_IDX(free_chunk, free_slot);
-    PRP_BIT_CLR(chunk->free_slot, BIT_MASK(free_slot));
-    if (!chunk->free_slot) {
-        DT_BitmapClrUnchecked(layout->free_chunks, free_chunk);
+    pEntity->layout_id = layout_id;
+    pEntity->gen = pChunk->gens[free_slot_idx];
+    pEntity->entity_idx = ENTITY_IDX(free_chunk_idx, free_slot_idx);
+    PRP_BIT_CLR(pChunk->free_slot, BIT_MASK(free_slot_idx));
+    if (!pChunk->free_slot) {
+        DT_BitmapClrUnchecked(pLayout->pFree_chunk_idxs, free_chunk_idx);
     }
 
     return PRP_OK;
 }
 
-PRP_Result LayoutSpawnEntities(World *world, DT_size layout_idx, DT_size count,
-                               FECS_EntityBatch **pEntities) {
-    Layout *layout = DT_ArrGetUnchecked(world->layouts, layout_idx);
+PRP_Result LayoutSpawnEntities(World *pWorld, FECS_LayoutId layout_id,
+                               DT_size entity_count,
+                               FECS_EntityBatch **ppBatch) {
+    Layout *pLayout = DT_ArrGetUnchecked(pWorld->layouts, layout_id);
 
-    DT_size min_cap = (count + CHUNK_CAP - 1) / CHUNK_CAP;
-    FECS_EntityBatch *batch = malloc(sizeof(FECS_EntityBatch));
-    if (!batch) {
+    DT_size min_cap = (entity_count + CHUNK_CAP - 1) / CHUNK_CAP;
+    FECS_EntityBatch *pBatch = malloc(sizeof(FECS_EntityBatch));
+    if (!pBatch) {
         return PRP_ERR_OOM;
     }
     PRP_Result code =
-        DT_ArrCreateUnchecked(sizeof(ChunkView), min_cap, &batch->chunks);
+        DT_ArrCreateUnchecked(sizeof(ChunkView), min_cap, &pBatch->chunk_views);
     if (code != PRP_OK) {
-        free(batch);
+        free(pBatch);
         return code;
     }
 
-    batch->layout_idx = layout_idx;
+    pBatch->layout_id = layout_id;
     DT_size alloc_count = 0;
-    while (alloc_count != count) {
-        DT_size free_chunk = DT_BitmapFFS(layout->free_chunks);
-        if (free_chunk == PRP_INVALID_INDEX) {
-            code = ChunkCreate(layout);
+    while (alloc_count != entity_count) {
+        DT_size free_chunk_idx = DT_BitmapFFS(pLayout->pFree_chunk_idxs);
+        if (free_chunk_idx == PRP_INVALID_INDEX) {
+            code = ChunkCreate(pLayout);
             if (code != PRP_OK) {
                 goto err_path;
             }
-            free_chunk = DT_BitmapFFS(layout->free_chunks);
+            free_chunk_idx = DT_BitmapFFS(pLayout->pFree_chunk_idxs);
         }
-        Chunk *chunk = CHUNK(layout, free_chunk);
-        DT_u32 mask = chunk->free_slot;
+        Chunk *pChunk = CHUNK(pLayout, free_chunk_idx);
+        // This is correct since every free slot will now become occupied.
+        DT_u32 occupied_slots_mask = pChunk->free_slot;
 
-        DT_size left = count - alloc_count;
-        DT_u32 pop = (DT_u32)DT_BitwordPopCnt(mask);
+        DT_size left = entity_count - alloc_count;
+        DT_u32 pop = (DT_u32)DT_BitwordPopCnt(occupied_slots_mask);
         while (pop > left) {
-            DT_u32 msb = 31u - (DT_u32)DT_BitwordCLZ(mask);
-            mask ^= (1u << msb);
+            DT_u32 msb = 31u - (DT_u32)DT_BitwordCLZ(occupied_slots_mask);
+            occupied_slots_mask ^= (1u << msb);
             pop--;
         }
 
-        ChunkView view = {.chunk_idx = free_chunk, .occupied_slots = mask};
+        ChunkView view = {.chunk_idx = free_chunk_idx,
+                          .occupied_slots = occupied_slots_mask};
         // Easier to copy the entire thing than parse it.
-        memcpy(view.gens, chunk->gens, CHUNK_CAP * sizeof(DT_u32));
+        memcpy(view.gens, pChunk->gens, CHUNK_CAP * sizeof(DT_u32));
 
-        code = DT_ArrPushUnchecked(batch->chunks, &view);
+        code = DT_ArrPushUnchecked(pBatch->chunk_views, &view);
         if (code != PRP_OK) {
             goto err_path;
         }
-        alloc_count += DT_BitwordPopCnt(mask);
-        PRP_BIT_CLR(chunk->free_slot, mask);
-        if (!chunk->free_slot) {
-            DT_BitmapClrUnchecked(layout->free_chunks, free_chunk);
+        alloc_count += DT_BitwordPopCnt(occupied_slots_mask);
+        PRP_BIT_CLR(pChunk->free_slot, occupied_slots_mask);
+        if (!pChunk->free_slot) {
+            DT_BitmapClrUnchecked(pLayout->pFree_chunk_idxs, free_chunk_idx);
         }
     }
-    *pEntities = batch;
+    *ppBatch = pBatch;
 
     return PRP_OK;
 
 err_path:
     if (alloc_count == 0) {
-        DT_ArrDeleteUnchecked(&batch->chunks);
-        free(batch);
+        DT_ArrDeleteUnchecked(&pBatch->chunk_views);
+        free(pBatch);
         return code;
     }
     DIAG_LOG_WARN(DIAG_LOG_CODE_FALLBACK_USED,
                   "Cannot create a batch of %zu entities, a batch "
                   "with %zu entities is being created.",
-                  count, alloc_count);
-    *pEntities = batch;
+                  entity_count, alloc_count);
+    *ppBatch = pBatch;
     return PRP_OK;
 }
 
-DT_bool LayoutIsEntityValid(World *world, const FECS_Entity entity) {
-    if (entity.layout_idx >= DT_ArrLen(world->layouts)) {
+DT_bool LayoutIsEntityValid(World *pWorld, const FECS_Entity entity) {
+    if (entity.layout_id >= DT_ArrLen(pWorld->layouts)) {
         return DT_false;
     }
-    Layout *layout = DT_ArrGetUnchecked(world->layouts, entity.layout_idx);
+    Layout *pLayout = DT_ArrGetUnchecked(pWorld->layouts, entity.layout_id);
 
-    if (entity.entity_idx >= MAX_ENTITY_CAP(layout)) {
+    if (entity.entity_idx >= MAX_ENTITY_CAP(pLayout)) {
         return DT_false;
     }
     DT_size chunk_idx = entity.entity_idx >> ENTITY_SLOT_BITS;
-    Chunk *chunk = CHUNK(layout, chunk_idx);
+    Chunk *pChunk = CHUNK(pLayout, chunk_idx);
     DT_u8 slot_idx = entity.entity_idx & ENTITY_SLOT_MASK;
 
-    if (chunk->gens[slot_idx] != entity.gen ||
-        PRP_BIT_IS_SET(chunk->free_slot, BIT_MASK(slot_idx))) {
+    if (pChunk->gens[slot_idx] != entity.gen ||
+        PRP_BIT_IS_SET(pChunk->free_slot, BIT_MASK(slot_idx))) {
         return DT_false;
     }
 
     return DT_true;
 }
 
-static PRP_Result EntityBatchValidityCb(DT_void *chunk_view, DT_void *layout) {
-    ChunkView *view = chunk_view;
-    Layout *l = layout;
+static PRP_Result EntityBatchValidityCb(DT_void *pChunk_view,
+                                        DT_void *pLayout) {
+    ChunkView *pChunk_view_instance = pChunk_view;
+    Layout *pLayout_instance = pLayout;
 
-    if (view->chunk_idx >= DT_ArrLen(l->chunk_ptrs)) {
+    if (pChunk_view_instance->chunk_idx >=
+        DT_ArrLen(pLayout_instance->pChunk_ptrs)) {
         return PRP_ERR_INV_STATE;
     }
-    Chunk *chunk = CHUNK(l, view->chunk_idx);
-    DT_u32 mask = view->occupied_slots;
+    Chunk *pChunk = CHUNK(pLayout_instance, pChunk_view_instance->chunk_idx);
+    DT_u32 mask = pChunk_view_instance->occupied_slots;
     while (mask) {
         DT_u32 slot = (DT_u32)DT_BitwordCTZ(mask);
-        if (view->gens[slot] != chunk->gens[slot] ||
-            PRP_BIT_IS_SET(chunk->free_slot, BIT_MASK(slot))) {
+        if (pChunk_view_instance->gens[slot] != pChunk->gens[slot] ||
+            PRP_BIT_IS_SET(pChunk->free_slot, BIT_MASK(slot))) {
             return PRP_ERR_INV_STATE;
         }
         mask &= mask - 1;
@@ -343,133 +354,138 @@ static PRP_Result EntityBatchValidityCb(DT_void *chunk_view, DT_void *layout) {
     return PRP_OK;
 }
 
-DT_bool LayoutAreEntitiesValid(World *world, const FECS_EntityBatch *entities) {
-    if (entities->layout_idx >= DT_ArrLen(world->layouts)) {
+DT_bool LayoutAreEntitiesValid(World *pWorld, const FECS_EntityBatch *pBatch) {
+    if (pBatch->layout_id >= DT_ArrLen(pWorld->layouts)) {
         return DT_false;
     }
-    Layout *layout = DT_ArrGetUnchecked(world->layouts, entities->layout_idx);
-    PRP_Result code =
-        DT_ArrForEachUnchecked(entities->chunks, EntityBatchValidityCb, layout);
+    Layout *pLayout = DT_ArrGetUnchecked(pWorld->layouts, pBatch->layout_id);
+    PRP_Result code = DT_ArrForEachUnchecked(pBatch->chunk_views,
+                                             EntityBatchValidityCb, pLayout);
 
     return code == PRP_OK;
 }
 
-DT_void LayoutKillEntity(World *world, FECS_Entity entity) {
-    Layout *layout = DT_ArrGetUnchecked(world->layouts, entity.layout_idx);
+DT_void LayoutKillEntity(World *pWorld, FECS_Entity entity) {
+    Layout *pLayout = DT_ArrGetUnchecked(pWorld->layouts, entity.layout_id);
     DT_size chunk_idx = entity.entity_idx >> ENTITY_SLOT_BITS;
-    Chunk *chunk = CHUNK(layout, chunk_idx);
+    Chunk *pChunk = CHUNK(pLayout, chunk_idx);
     DT_u8 slot_idx = entity.entity_idx & ENTITY_SLOT_MASK;
 
     // Wrap around of gen is valid behavior.
-    chunk->gens[slot_idx]++;
-    PRP_BIT_SET(chunk->free_slot, BIT_MASK(slot_idx));
-    DT_BitmapSetUnchecked(layout->free_chunks, chunk_idx);
+    pChunk->gens[slot_idx]++;
+    PRP_BIT_SET(pChunk->free_slot, BIT_MASK(slot_idx));
+    DT_BitmapSetUnchecked(pLayout->pFree_chunk_idxs, chunk_idx);
 }
 
-PRP_Result LayoutKillEntities(World *world, FECS_EntityBatch **pEntities) {
-    FECS_EntityBatch *entities = *pEntities;
-    Layout *layout = DT_ArrGetUnchecked(world->layouts, entities->layout_idx);
+PRP_Result LayoutKillEntities(World *pWorld, FECS_EntityBatch **ppBatch) {
+    FECS_EntityBatch *pBatch = *ppBatch;
+    Layout *pLayout = DT_ArrGetUnchecked(pWorld->layouts, pBatch->layout_id);
 
     DT_size len;
-    const ChunkView *views = DT_ArrRawUnchecked(entities->chunks, &len);
+    const ChunkView *pChunk_views =
+        DT_ArrRawUnchecked(pBatch->chunk_views, &len);
     for (DT_size i = 0; i < len; i++) {
-        const ChunkView *view = &views[i];
-        if (view->chunk_idx >= DT_ArrLen(layout->chunk_ptrs)) {
+        const ChunkView *pChunk_view = &pChunk_views[i];
+        if (pChunk_view->chunk_idx >= DT_ArrLen(pLayout->pChunk_ptrs)) {
             return PRP_ERR_INV_ARG;
         }
-        Chunk *chunk = CHUNK(layout, view->chunk_idx);
-        DT_u32 mask = view->occupied_slots;
-        while (mask) {
-            DT_u32 slot = (DT_u32)DT_BitwordCTZ(mask);
-            if (view->gens[slot] != chunk->gens[slot] ||
-                PRP_BIT_IS_SET(chunk->free_slot, BIT_MASK(slot))) {
-                if (mask != view->occupied_slots) {
+        Chunk *pChunk = CHUNK(pLayout, pChunk_view->chunk_idx);
+        DT_u32 occupied_slots_mask = pChunk_view->occupied_slots;
+        while (occupied_slots_mask) {
+            DT_u32 slot_idx = (DT_u32)DT_BitwordCTZ(occupied_slots_mask);
+            if (pChunk_view->gens[slot_idx] != pChunk->gens[slot_idx] ||
+                PRP_BIT_IS_SET(pChunk->free_slot, BIT_MASK(slot_idx))) {
+                if (occupied_slots_mask != pChunk_view->occupied_slots) {
                     // We deleted some entities so chunk is free.
-                    DT_BitmapSetUnchecked(layout->free_chunks, view->chunk_idx);
+                    DT_BitmapSetUnchecked(pLayout->pFree_chunk_idxs,
+                                          pChunk_view->chunk_idx);
                 }
                 return PRP_ERR_INV_ARG;
             }
-            mask &= mask - 1;
-            PRP_BIT_SET(chunk->free_slot, BIT_MASK(slot));
-            chunk->gens[slot]++;
+            occupied_slots_mask &= occupied_slots_mask - 1;
+            PRP_BIT_SET(pChunk->free_slot, BIT_MASK(slot_idx));
+            pChunk->gens[slot_idx]++;
         }
-        DT_BitmapSetUnchecked(layout->free_chunks, view->chunk_idx);
+        DT_BitmapSetUnchecked(pLayout->pFree_chunk_idxs,
+                              pChunk_view->chunk_idx);
     }
-    DT_ArrDeleteUnchecked(&entities->chunks);
-    free(entities);
-    *pEntities = DT_null;
+    DT_ArrDeleteUnchecked(&pBatch->chunk_views);
+    free(pBatch);
+    *ppBatch = DT_null;
 
     return PRP_OK;
 }
 
-PRP_Result LayoutGetEntityComp(World *world, const FECS_Entity entity,
-                               DT_size comp_idx, DT_void **dest) {
-    Layout *layout = DT_ArrGetUnchecked(world->layouts, entity.layout_idx);
+PRP_Result LayoutGetEntityComp(World *pWorld, const FECS_Entity entity,
+                               FECS_CompId comp_id, DT_void **ppDest_ptr) {
+    Layout *pLayout = DT_ArrGetUnchecked(pWorld->layouts, entity.layout_id);
     DT_size chunk_idx = entity.entity_idx >> ENTITY_SLOT_BITS;
-    Chunk *chunk = CHUNK(layout, chunk_idx);
+    Chunk *pChunk = CHUNK(pLayout, chunk_idx);
     DT_u8 slot_idx = entity.entity_idx & ENTITY_SLOT_MASK;
 
     DT_size comp_size =
-        ((ComponentMetadata *)DT_ArrGetUnchecked(g_ctx->comps, comp_idx))->size;
-    DT_size comp_stride = BehaviorGetCompStride(layout->behavior_idx, comp_idx);
+        ((Component *)DT_ArrGetUnchecked(g_ctx->comps, comp_id))->size;
+    DT_size comp_stride = BehaviorGetCompStride(pLayout->behavior_id, comp_id);
     if (comp_stride == PRP_INVALID_SIZE) {
         return PRP_ERR_INV_ARG;
     }
 
-    *dest = (DT_u8 *)chunk->mem + comp_stride + (slot_idx * comp_size);
+    *ppDest_ptr = (DT_u8 *)pChunk->mem + comp_stride + (slot_idx * comp_size);
 
     return PRP_OK;
 }
 
-PRP_Result LayoutSetEntityComp(World *world, FECS_Entity entity,
-                               DT_size comp_idx, const DT_void *data) {
-    Layout *layout = DT_ArrGetUnchecked(world->layouts, entity.layout_idx);
+PRP_Result LayoutSetEntityComp(World *pWorld, FECS_Entity entity,
+                               FECS_CompId comp_id, const DT_void *pData) {
+    Layout *pLayout = DT_ArrGetUnchecked(pWorld->layouts, entity.layout_id);
     DT_size chunk_idx = entity.entity_idx >> ENTITY_SLOT_BITS;
-    Chunk *chunk = CHUNK(layout, chunk_idx);
+    Chunk *pChunk = CHUNK(pLayout, chunk_idx);
     DT_u8 slot_idx = entity.entity_idx & ENTITY_SLOT_MASK;
 
     DT_size comp_size =
-        ((ComponentMetadata *)DT_ArrGetUnchecked(g_ctx->comps, comp_idx))->size;
-    DT_size comp_stride = BehaviorGetCompStride(layout->behavior_idx, comp_idx);
+        ((Component *)DT_ArrGetUnchecked(g_ctx->comps, comp_id))->size;
+    DT_size comp_stride = BehaviorGetCompStride(pLayout->behavior_id, comp_id);
     if (comp_stride == PRP_INVALID_SIZE) {
         return PRP_ERR_INV_ARG;
     }
-    DT_u8 *ptr = (DT_u8 *)chunk->mem + comp_stride + (slot_idx * comp_size);
-    memcpy(ptr, data, comp_size);
+    DT_u8 *ptr = (DT_u8 *)pChunk->mem + comp_stride + (slot_idx * comp_size);
+    memcpy(ptr, pData, comp_size);
 
     return PRP_OK;
 }
 
-PRP_Result LayoutForEachEntities(World *world, FECS_EntityBatch *entities,
-                                 DT_size comp_idx,
-                                 PRP_Result (*cb)(DT_void *comp_data,
-                                                  DT_void *user_data),
-                                 DT_void *user_data) {
-    Layout *layout = DT_ArrGetUnchecked(world->layouts, entities->layout_idx);
+PRP_Result LayoutForEachEntities(World *pWorld, FECS_EntityBatch *pBatch,
+                                 FECS_CompId comp_id,
+                                 PRP_Result (*cb)(DT_void *pComp_data,
+                                                  DT_void *pUser_data),
+                                 DT_void *pUser_data) {
+    Layout *pLayout = DT_ArrGetUnchecked(pWorld->layouts, pBatch->layout_id);
     DT_size comp_size =
-        ((ComponentMetadata *)DT_ArrGetUnchecked(g_ctx->comps, comp_idx))->size;
-    DT_size comp_stride = BehaviorGetCompStride(layout->behavior_idx, comp_idx);
+        ((Component *)DT_ArrGetUnchecked(g_ctx->comps, comp_id))->size;
+    DT_size comp_stride = BehaviorGetCompStride(pLayout->behavior_id, comp_id);
     if (comp_stride == PRP_INVALID_SIZE) {
         return PRP_ERR_INV_ARG;
     }
     DT_size len;
-    const ChunkView *views = DT_ArrRawUnchecked(entities->chunks, &len);
+    const ChunkView *pChunk_views =
+        DT_ArrRawUnchecked(pBatch->chunk_views, &len);
     for (DT_size i = 0; i < len; i++) {
-        const ChunkView *view = &views[i];
-        if (view->chunk_idx >= DT_ArrLen(layout->chunk_ptrs)) {
+        const ChunkView *pChunk_view = &pChunk_views[i];
+        if (pChunk_view->chunk_idx >= DT_ArrLen(pLayout->pChunk_ptrs)) {
             return PRP_ERR_INV_ARG;
         }
-        Chunk *chunk = CHUNK(layout, view->chunk_idx);
-        DT_u32 mask = view->occupied_slots;
-        while (mask) {
-            DT_u32 slot = (DT_u32)DT_BitwordCTZ(mask);
-            if (view->gens[slot] != chunk->gens[slot] ||
-                PRP_BIT_IS_SET(chunk->free_slot, BIT_MASK(slot))) {
+        Chunk *pChunk = CHUNK(pLayout, pChunk_view->chunk_idx);
+        DT_u32 occupied_slots_mask = pChunk_view->occupied_slots;
+        while (occupied_slots_mask) {
+            DT_u32 slot_idx = (DT_u32)DT_BitwordCTZ(occupied_slots_mask);
+            if (pChunk_view->gens[slot_idx] != pChunk->gens[slot_idx] ||
+                PRP_BIT_IS_SET(pChunk->free_slot, BIT_MASK(slot_idx))) {
                 return PRP_ERR_INV_ARG;
             }
-            mask &= mask - 1;
-            DT_u8 *ptr = (DT_u8 *)chunk->mem + comp_stride + (slot * comp_size);
-            PRP_Result code = cb(ptr, user_data);
+            occupied_slots_mask &= occupied_slots_mask - 1;
+            DT_u8 *ptr =
+                (DT_u8 *)pChunk->mem + comp_stride + (slot_idx * comp_size);
+            PRP_Result code = cb(ptr, pUser_data);
             if (code != PRP_OK) {
                 return code;
             }

@@ -53,10 +53,10 @@ PRP_FN_API DT_bool PRP_FN_CALL DT_ArrIsValid(const DT_Arr *arr) {
 
 PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrCreateUnchecked(DT_size memb_size,
                                                         DT_size cap,
-                                                        DT_Arr **out) {
+                                                        DT_Arr **pArr) {
     DIAG_ASSERT(memb_size > 0);
     DIAG_ASSERT(cap > 0);
-    DIAG_ASSERT(out != DT_null);
+    DIAG_ASSERT(pArr != DT_null);
 
     if (cap > DT_ARR_MAX_CAP(memb_size)) {
         return PRP_ERR_OOM;
@@ -75,33 +75,33 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrCreateUnchecked(DT_size memb_size,
     arr->cap = cap;
     arr->len = 0;
 
-    *out = arr;
+    *pArr = arr;
 
     return PRP_OK;
 }
 
 PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrCreateChecked(DT_size memb_size,
                                                       DT_size cap,
-                                                      DT_Arr **out) {
-    if (!memb_size || !cap || !out) {
+                                                      DT_Arr **pArr) {
+    if (!memb_size || !cap || !pArr) {
         return PRP_ERR_INV_ARG;
     }
 
-    return DT_ArrCreateUnchecked(memb_size, cap, out);
+    return DT_ArrCreateUnchecked(memb_size, cap, pArr);
 }
 
 PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrCloneUnchecked(const DT_Arr *arr,
-                                                       DT_Arr **out) {
+                                                       DT_Arr **pArr) {
     ASSERT_INVARIANT_EXPR(arr);
-    DIAG_ASSERT(out != DT_null);
+    DIAG_ASSERT(pArr != DT_null);
 
     // Unchecked since we checked for invariants above.
-    PRP_Result code = DT_ArrCreateUnchecked(arr->memb_size, arr->cap, out);
+    PRP_Result code = DT_ArrCreateUnchecked(arr->memb_size, arr->cap, pArr);
     if (code != PRP_OK) {
         return code;
     }
 
-    DT_Arr *cpy = *out;
+    DT_Arr *cpy = *pArr;
     cpy->len = arr->len;
     memcpy(cpy->mem, arr->mem, arr->memb_size * arr->len);
 
@@ -109,26 +109,26 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrCloneUnchecked(const DT_Arr *arr,
 }
 
 PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrCloneChecked(const DT_Arr *arr,
-                                                     DT_Arr **out) {
-    if (!DT_ArrIsValid(arr) || !out) {
+                                                     DT_Arr **pArr) {
+    if (!DT_ArrIsValid(arr) || !pArr) {
         return PRP_ERR_INV_ARG;
     }
 
-    return DT_ArrCloneUnchecked(arr, out);
+    return DT_ArrCloneUnchecked(arr, pArr);
 }
 
 PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrCreateWithDataUnchecked(
-    DT_size memb_size, const DT_void *membs, DT_size len, DT_Arr **out) {
+    DT_size memb_size, const DT_void *membs, DT_size len, DT_Arr **pArr) {
     DIAG_ASSERT(memb_size > 0);
     DIAG_ASSERT(len > 0);
-    DIAG_ASSERT(out != DT_null);
+    DIAG_ASSERT(pArr != DT_null);
 
-    PRP_Result code = DT_ArrCreateUnchecked(memb_size, len, out);
+    PRP_Result code = DT_ArrCreateUnchecked(memb_size, len, pArr);
     if (code != PRP_OK) {
         return code;
     }
 
-    DT_Arr *arr = *out;
+    DT_Arr *arr = *pArr;
     memcpy(arr->mem, membs, memb_size * len);
     arr->len = len;
 
@@ -136,12 +136,12 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrCreateWithDataUnchecked(
 }
 
 PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrCreateWithDataChecked(
-    DT_size memb_size, const DT_void *membs, DT_size len, DT_Arr **out) {
-    if (!memb_size || !len || !out) {
+    DT_size memb_size, const DT_void *membs, DT_size len, DT_Arr **pArr) {
+    if (!memb_size || !len || !pArr) {
         return PRP_ERR_INV_ARG;
     }
 
-    return DT_ArrCreateWithDataUnchecked(memb_size, membs, len, out);
+    return DT_ArrCreateWithDataUnchecked(memb_size, membs, len, pArr);
 }
 
 PRP_FN_API DT_void PRP_FN_CALL DT_ArrDeleteUnchecked(DT_Arr **pArr) {
@@ -520,14 +520,14 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrShrinkFitChecked(DT_Arr *arr) {
 }
 
 PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrForEachUnchecked(
-    DT_Arr *arr, PRP_Result (*cb)(DT_void *pVal, DT_void *user_data),
-    DT_void *user_data) {
+    DT_Arr *arr, PRP_Result (*cb)(DT_void *pVal, DT_void *pUser_data),
+    DT_void *pUser_data) {
     ASSERT_INVARIANT_EXPR(arr);
     DIAG_ASSERT(cb != DT_null);
 
     DT_u8 *mem = arr->mem;
     for (DT_size i = 0; i < arr->len; i++) {
-        PRP_Result code = cb(mem, user_data);
+        PRP_Result code = cb(mem, pUser_data);
         if (code != PRP_OK) {
             return code;
         }
@@ -538,11 +538,11 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrForEachUnchecked(
 }
 
 PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrForEachChecked(
-    DT_Arr *arr, PRP_Result (*cb)(DT_void *pVal, DT_void *user_data),
-    DT_void *user_data) {
+    DT_Arr *arr, PRP_Result (*cb)(DT_void *pVal, DT_void *pUser_data),
+    DT_void *pUser_data) {
     if (!DT_ArrIsValid(arr) || !cb) {
         return PRP_ERR_INV_ARG;
     }
 
-    return DT_ArrForEachUnchecked(arr, cb, user_data);
+    return DT_ArrForEachUnchecked(arr, cb, pUser_data);
 }

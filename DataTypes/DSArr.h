@@ -51,7 +51,7 @@ PRP_FN_API DT_bool PRP_FN_CALL DT_DSArrIsValid(const DT_DSArr *ds_arr);
  *
  * @param memb_size   Size (in bytes) of each element.
  * @param elem_del_cb Optional cb to free internall alloc of element..
- * @param out         Output pointer receiving the array.
+ * @param pDs_arr     Output pointer receiving the array.
  *
  * @return PRP_OK on success.
  * @return PRP_ERR_OOM if allocation fails.
@@ -61,21 +61,21 @@ PRP_FN_API DT_bool PRP_FN_CALL DT_DSArrIsValid(const DT_DSArr *ds_arr);
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_DSArrCreateUnchecked(
     DT_size memb_size, PRP_Result (*elem_del_cb)(DT_void *elem),
-    DT_DSArr **out);
+    DT_DSArr **pDs_arr);
 /**
  * Creates a dynamic array.
  *
  * @param memb_size   Size (in bytes) of each element.
  * @param elem_del_cb Optional cb to free internall alloc of element..
- * @param out         Output pointer receiving the array.
+ * @param pDs_arr     Output pointer receiving the array.
  *
  * @return PRP_OK on success.
  * @return PRP_ERR_OOM if allocation fails.
  * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
-PRP_FN_API PRP_Result PRP_FN_CALL
-DT_DSArrCreateChecked(DT_size memb_size,
-                      PRP_Result (*elem_del_cb)(DT_void *elem), DT_DSArr **out);
+PRP_FN_API PRP_Result PRP_FN_CALL DT_DSArrCreateChecked(
+    DT_size memb_size, PRP_Result (*elem_del_cb)(DT_void *elem),
+    DT_DSArr **pDs_arr);
 /**
  * Deletes the ds array and nullifies the pointer.
  *
@@ -245,9 +245,9 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_DSArrReserveChecked(DT_DSArr *ds_arr,
 /**
  * Iterates over all elements of the array.
  *
- * @param arr       DSArr instance.
- * @param cb        Callback invoked per element.
- * @param user_data User-provided context.
+ * @param arr        DSArr instance.
+ * @param cb         Callback invoked per element.
+ * @param pUser_data User-provided context.
  *
  * @return PRP_OK if iteration completes.
  * @return Callback error if cb returns non-PRP_OK.
@@ -256,22 +256,22 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_DSArrReserveChecked(DT_DSArr *ds_arr,
  * - Asserts on invalid arguments in debug.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_DSArrForEachUnchecked(
-    DT_DSArr *ds_arr, PRP_Result (*cb)(DT_void *pVal, DT_void *user_data),
-    DT_void *user_data);
+    DT_DSArr *ds_arr, PRP_Result (*cb)(DT_void *pVal, DT_void *pUser_data),
+    DT_void *pUser_data);
 /**
  * Iterates over all elements of the array.
  *
- * @param arr       DSArr instance.
- * @param cb        Callback invoked per element.
- * @param user_data User-provided context.
+ * @param arr        DSArr instance.
+ * @param cb         Callback invoked per element.
+ * @parampUser_data User-provided context.
  *
  * @return PRP_OK if iteration completes.
  * @return Callback error if cb returns non-PRP_OK.
  * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_DSArrForEachChecked(
-    DT_DSArr *ds_arr, PRP_Result (*cb)(DT_void *pVal, DT_void *user_data),
-    DT_void *user_data);
+    DT_DSArr *ds_arr, PRP_Result (*cb)(DT_void *pVal, DT_void *pUser_data),
+    DT_void *pUser_data);
 
 #ifdef __cplusplus
 }

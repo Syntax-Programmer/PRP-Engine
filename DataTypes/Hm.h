@@ -34,7 +34,7 @@ PRP_FN_API DT_bool PRP_FN_CALL DT_HmIsValid(const DT_Hm *hm);
  * @param key_cmp_cb  Function used to compare keys.
  * @param key_del_cb  Callback to destroy keys (can be DT_null if not needed).
  * @param val_del_cb  Callback to destroy values (can be DT_null if not needed).
- * @param out         Output pointer receiving the created hashmap.
+ * @param pHm         Output pointer receiving the created hashmap.
  *
  * @return PRP_OK on success.
  * @return PRP_ERR_OOM if allocation fails.
@@ -46,7 +46,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_HmCreateUnchecked(
     DT_u64 (*hash_fn)(const DT_void *key),
     DT_bool (*key_cmp_cb)(const DT_void *k1, const DT_void *k2),
     PRP_Result (*key_del_cb)(DT_void *key),
-    PRP_Result (*val_del_cb)(DT_void *val), DT_Hm **out);
+    PRP_Result (*val_del_cb)(DT_void *val), DT_Hm **pHm);
 
 /**
  * Creates a hashmap with validation.
@@ -55,7 +55,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_HmCreateUnchecked(
  * @param key_cmp_cb  Function used to compare keys.
  * @param key_del_cb  Callback to destroy keys.
  * @param val_del_cb  Callback to destroy values.
- * @param out         Output pointer receiving the created hashmap.
+ * @param pHm         Output pointer receiving the created hashmap.
  *
  * @return PRP_OK on success.
  * @return PRP_ERR_INV_ARG if arguments are invalid.
@@ -65,7 +65,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL
 DT_HmCreateChecked(DT_u64 (*hash_fn)(const DT_void *key),
                    DT_bool (*key_cmp_cb)(const DT_void *k1, const DT_void *k2),
                    PRP_Result (*key_del_cb)(DT_void *key),
-                   PRP_Result (*val_del_cb)(DT_void *val), DT_Hm **out);
+                   PRP_Result (*val_del_cb)(DT_void *val), DT_Hm **pHm);
 
 /**
  * Deletes the hashmap and nullifies the pointer.
@@ -196,9 +196,9 @@ PRP_FN_API DT_size PRP_FN_CALL DT_HmMaxCap(DT_void);
 /**
  * Iterates over all key-value pairs.
  *
- * @param hm        Hashmap instance.
- * @param cb        Callback invoked per element.
- * @param user_data User-provided context.
+ * @param hm         Hashmap instance.
+ * @param cb         Callback invoked per element.
+ * @param pUser_data User-provided context.
  *
  * @return PRP_OK if iteration completes.
  * @return Callback error if cb returns non-PRP_OK.
@@ -207,23 +207,25 @@ PRP_FN_API DT_size PRP_FN_CALL DT_HmMaxCap(DT_void);
  * - Asserts on invalid arguments in debug.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_HmForEachUnchecked(
-    DT_Hm *hm, PRP_Result (*cb)(DT_void *key, DT_void *val, DT_void *user_data),
-    DT_void *user_data);
+    DT_Hm *hm,
+    PRP_Result (*cb)(DT_void *key, DT_void *val, DT_void *pUser_data),
+    DT_void *pUser_data);
 
 /**
  * Iterates over all key-value pairs with validation.
  *
- * @param hm        Hashmap instance.
- * @param cb        Callback invoked per element.
- * @param user_data User-provided context.
+ * @param hm         Hashmap instance.
+ * @param cb         Callback invoked per element.
+ * @param pUser_data User-provided context.
  *
  * @return PRP_OK if iteration completes.
  * @return Callback error if cb returns non-PRP_OK.
  * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_HmForEachChecked(
-    DT_Hm *hm, PRP_Result (*cb)(DT_void *key, DT_void *val, DT_void *user_data),
-    DT_void *user_data);
+    DT_Hm *hm,
+    PRP_Result (*cb)(DT_void *key, DT_void *val, DT_void *pUser_data),
+    DT_void *pUser_data);
 
 /**
  * Resets the hashmap.

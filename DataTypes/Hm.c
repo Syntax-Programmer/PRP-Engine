@@ -124,12 +124,12 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_HmCreateUnchecked(
     DT_u64 (*hash_fn)(const DT_void *key),
     DT_bool (*key_cmp_cb)(const DT_void *k1, const DT_void *k2),
     PRP_Result (*key_del_cb)(DT_void *key),
-    PRP_Result (*val_del_cb)(DT_void *val), DT_Hm **out) {
+    PRP_Result (*val_del_cb)(DT_void *val), DT_Hm **pHm) {
     DIAG_ASSERT(hash_fn != DT_null);
     DIAG_ASSERT(key_cmp_cb != DT_null);
     DIAG_ASSERT(key_del_cb != DT_null);
     DIAG_ASSERT(val_del_cb != DT_null);
-    DIAG_ASSERT(out != DT_null);
+    DIAG_ASSERT(pHm != DT_null);
 
     DT_Hm *hm = calloc(1, sizeof(DT_Hm));
     if (!hm) {
@@ -156,7 +156,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_HmCreateUnchecked(
     // using 0XFF since memset works per byte and it performs correctly.
     memset(hm->layout, LAYOUT_EMPTYING_MASK, sizeof(DT_size) * INIT_LAYOUT_CAP);
 
-    *out = hm;
+    *pHm = hm;
 
     return PRP_OK;
 }
@@ -165,13 +165,13 @@ PRP_FN_API PRP_Result PRP_FN_CALL
 DT_HmCreateChecked(DT_u64 (*hash_fn)(const DT_void *key),
                    DT_bool (*key_cmp_cb)(const DT_void *k1, const DT_void *k2),
                    PRP_Result (*key_del_cb)(DT_void *key),
-                   PRP_Result (*val_del_cb)(DT_void *val), DT_Hm **out) {
-    if (!hash_fn || !key_cmp_cb || !key_del_cb || !val_del_cb || !out) {
+                   PRP_Result (*val_del_cb)(DT_void *val), DT_Hm **pHm) {
+    if (!hash_fn || !key_cmp_cb || !key_del_cb || !val_del_cb || !pHm) {
         return PRP_ERR_INV_ARG;
     }
 
     return DT_HmCreateUnchecked(hash_fn, key_cmp_cb, key_del_cb, val_del_cb,
-                                out);
+                                pHm);
 }
 
 PRP_FN_API DT_void PRP_FN_CALL DT_HmDeleteUnchecked(DT_Hm **pHm) {
@@ -425,14 +425,15 @@ PRP_FN_API DT_size PRP_FN_CALL DT_HmLen(const DT_Hm *hm) {
 PRP_FN_API DT_size PRP_FN_CALL DT_HmMaxCap(DT_void) { return MAX_ELEM_CAP; }
 
 PRP_FN_API PRP_Result PRP_FN_CALL DT_HmForEachUnchecked(
-    DT_Hm *hm, PRP_Result (*cb)(DT_void *key, DT_void *val, DT_void *user_data),
-    DT_void *user_data) {
+    DT_Hm *hm,
+    PRP_Result (*cb)(DT_void *key, DT_void *val, DT_void *pUser_data),
+    DT_void *pUser_data) {
     ASSERT_INVARIANT_EXPR(hm);
     DIAG_ASSERT(cb != DT_null);
 
     for (DT_size i = 0; i < hm->elem_len; i++) {
         Elem elem = hm->elems[i];
-        PRP_Result code = cb(elem.key, elem.val, user_data);
+        PRP_Result code = cb(elem.key, elem.val, pUser_data);
         if (code != PRP_OK) {
             return code;
         }
@@ -442,13 +443,14 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_HmForEachUnchecked(
 }
 
 PRP_FN_API PRP_Result PRP_FN_CALL DT_HmForEachChecked(
-    DT_Hm *hm, PRP_Result (*cb)(DT_void *key, DT_void *val, DT_void *user_data),
-    DT_void *user_data) {
+    DT_Hm *hm,
+    PRP_Result (*cb)(DT_void *key, DT_void *val, DT_void *pUser_data),
+    DT_void *pUser_data) {
     if (!DT_HmIsValid(hm) || !cb) {
         return PRP_ERR_INV_ARG;
     }
 
-    return DT_HmForEachUnchecked(hm, cb, user_data);
+    return DT_HmForEachUnchecked(hm, cb, pUser_data);
 }
 
 PRP_FN_API DT_void PRP_FN_CALL DT_HmResetUnchecked(DT_Hm *hm) {

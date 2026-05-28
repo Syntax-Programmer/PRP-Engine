@@ -94,7 +94,7 @@ extern Context *g_ctx;
 typedef struct {
     DT_size size;
     DT_char name[COMP_NAME_MAX_SIZE];
-} ComponentMetadata;
+} Component;
 
 /*
  * NOTE: The name and size being a AOS type layout can cause locality issues but
@@ -104,25 +104,26 @@ typedef struct {
 /**
  * Registers a new component into the FECS.
  *
- * @param name The name of the component.
- * @param size Size (in bytes) of the component.
- * @param pIdx The pointer to hold the index of the comp.
+ * @param name     The name of the component.
+ * @param size     Size (in bytes) of the component.
+ * @param pComp_id The pointer to hold the index of the comp.
  *
  * @return PRP_OK on success.
  * @return PRP_ERR_RES_EXHAUSTED if max cap is reached.
  * @return PRP_ERR_OOM if allocation fails.
  */
-PRP_Result CompRegister(const DT_char *name, DT_size size, DT_size *pIdx);
+PRP_Result CompRegister(const DT_char *name, DT_size size,
+                        FECS_CompId *pComp_id);
 /**
  * Checks if given comp details are already taken.
  *
- * @param name The name of the component.
- * @param size Size (in bytes) of the component.
+ * @param name      The name of the component.
+ * @param pFound_id Id of the component if already registred.
  *
  * @return DT_true if already registered.
  * @return DT_false if it doesn't exist already.
  */
-DT_bool CompIsRegistered(const DT_char *name, DT_size *pOut);
+DT_bool CompIsRegistered(const DT_char *name, FECS_CompId *pFound_id);
 
 /* ----  BEHAVIOR ---- */
 
@@ -163,48 +164,48 @@ typedef struct {
 /**
  * Registers a new behavior into the FECS.
  *
- * @param comp_idxs  Array of comp behavior includes. **Array will be sorted.**
- * @param comp_count Len of the comp_idxs array.
- * @param pIdx       The pointer to hold the index of the behavior.
+ * @param pComp_ids    Array of comp behavior includes. *Array will be sorted.*
+ * @param comp_count   Len of the comp_idxs array.
+ * @param pBehavior_id The pointer to hold the index of the behavior.
  *
  * @return PRP_OK on success.
  * @return PRP_ERR_RES_EXHAUSTED if max cap is reached.
  * @return PRP_ERR_OOM if allocation fails.
  * @return PRP_ERR_INV_ARG if comps in the given arrays are invalid.
  */
-PRP_Result BehaviorRegister(DT_size *comp_idxs, DT_size comp_count,
-                            DT_size *pIdx);
+PRP_Result BehaviorRegister(FECS_CompId *pComp_ids, DT_size comp_count,
+                            FECS_BehaviorId *pBehavior_id);
 /**
  * Checks if given behavior already exists.
  *
- * @param comp_idxs  Array of comp behavior includes. **Array will be sorted.**
- * @param comp_count Len of the comp_idxs array.
- * @param pOut       The pointer to store the index of the existing behavior.
+ * @param pComp_ids   Array of comp behavior includes.
+ * @param comp_count  Len of the comp_idxs array.
+ * @param pFound_id   The pointer to store the index of the existing behavior.
  *
  * @return DT_true if already registered.
  * @return DT_false if it doesn't exist already.
  */
-DT_bool BehaviorIsRegistered(DT_size *comp_idxs, DT_size comp_count,
-                             DT_size *pOut);
+DT_bool BehaviorIsRegistered(FECS_CompId *pComp_ids, DT_size comp_count,
+                             FECS_BehaviorId *pFound_id);
 /**
  * Deletes the internals of given behavior.
  * Called via DT_ArrForEach_...
  *
- * @param behavior The behavior to delete.
+ * @param pBehavior The behavior to delete.
  *
  * @return PRP_OK on success.
  */
-PRP_Result BehaviorDelete(DT_void *behavior, DT_void *_);
+PRP_Result BehaviorDelete(DT_void *pBehavior, DT_void *_);
 /**
  * Fetches the stride of component in the given behavior.
  *
- * @param beahvior_idx The behavior to fetch stride from.
- * @param comp_idx     The comp to fetch stride of.
+ * @param beahvior_id The behavior to fetch stride from.
+ * @param comp_id     The comp to fetch stride of.
  *
  * @return PRP_INVALID_SIZE if comp doesn't exist in behavior.
  * @return The stride of the comp in the behavior otherwise.
  */
-DT_size BehaviorGetCompStride(DT_size behavior_idx, DT_size comp_idx);
+DT_size BehaviorGetCompStride(FECS_BehaviorId behavior_id, FECS_CompId comp_id);
 
 /* ----  QUERY ---- */
 
@@ -212,97 +213,101 @@ typedef struct {
     DT_Bitmap *inc;
     // This will be null if we don't wan't to exc
     DT_Bitmap *exc;
-    DT_Arr *behavior_matches;
+    DT_Arr *behavior_id_matches;
 } Query;
 
 /**
  * Registers a new query into the FECS.
  * Comps in inc_comps and exc_comps can't overlap.
  *
- * @param inc_comps       Array of comps query includes.
+ * @param pInc_comp_ids   Array of comps query includes.
  * @param inc_comps_count Len of the inc_comps array.
- * @param exc_comps       Array of comps query excludes.
+ * @param pExc_comp_ids   Array of comps query excludes.
  * @param exc_comps_count Len of the exc_comps array.
- * @param pIdx            The pointer to hold the index of the query.
+ * @param pQuery_id       The pointer to hold the index of the query.
  *
  * @return PRP_OK on success.
  * @return PRP_ERR_RES_EXHAUSTED if max cap is reached.
  * @return PRP_ERR_OOM if allocation fails.
  * @return PRP_ERR_INV_ARG if comps in the given arrays are invalid.
  */
-PRP_Result QueryRegister(const DT_size *inc_comps, DT_size inc_comps_count,
-                         const DT_size *exc_comps, DT_size exc_comps_count,
-                         DT_size *pIdx);
+PRP_Result QueryRegister(const FECS_CompId *pInc_comp_ids,
+                         DT_size inc_comps_count,
+                         const FECS_CompId *pExc_comp_ids,
+                         DT_size exc_comps_count, FECS_QueryId *pQuery_id);
 /**
  * Checks if given query already exists.
  *
- * @param inc_comps       Array of comps query includes.
+ * @param pInc_comp_ids   Array of comps query includes.
  * @param inc_comps_count Len of the inc_comps array.
- * @param exc_comps       Array of comps query excludes.
+ * @param pExc_comp_ids   Array of comps query excludes.
  * @param exc_comps_count Len of the exc_comps array.
- * @param pOut            The pointer to store the index of the existing query.
+ * @param pFound_id       The pointer to store the index of the existing query.
  *
  * @return DT_true if already registered.
  * @return DT_false if it doesn't exist already.
  */
-DT_bool QueryIsRegistered(const DT_size *inc_comps, DT_size inc_comps_count,
-                          const DT_size *exc_comps, DT_size exc_comps_count,
-                          DT_size *pOut);
+DT_bool QueryIsRegistered(const FECS_CompId *pInc_comp_ids,
+                          DT_size inc_comps_count,
+                          const FECS_CompId *pExc_comp_ids,
+                          DT_size exc_comps_count, FECS_QueryId *pFound_id);
 /**
  * Cascades a newly created behavior into all the queries.
  * Called via DT_ArrForEach_...
  *
- * @param q The query instance.
- * @param b The behavior index to cascasde.
+ * @param pQuery    The query instance.
+ * @param pBehavior The behavior index to cascasde.
  *
  * @return PRP_OK on success.
  * @return PRP_ERR_RES_EXHAUSTED if max cap is reached.
  * @return PRP_ERR_OOM if allocation fails.
  */
-PRP_Result QueryCascadeUpdateBehavior(DT_void *q, DT_void *b);
+PRP_Result QueryCascadeUpdateBehavior(DT_void *pQuery, DT_void *pBehavior);
 /**
  * Cleans up the queries if the cascading fails.
  * Called via DT_ArrForEach_...
  *
- * @param q The query instance.
- * @param b The behavior for which cleanup happens.
+ * @param pQuery    The query instance.
+ * @param pBehavior The behavior for which cleanup happens.
  *
  * @return PRP_OK on success.
  */
-PRP_Result QueryCascadingErrorCleanup(DT_void *q, DT_void *b);
+PRP_Result QueryCascadingErrorCleanup(DT_void *pQuery, DT_void *pBehavior);
 /**
  * Deletes the internals of given query.
  * Called via DT_ArrForEach_...
  *
- * @param query The query to delete.
+ * @param pQuery The query to delete.
  *
  * @return PRP_OK on success.
  */
-PRP_Result QueryDelete(DT_void *query, DT_void *_);
+PRP_Result QueryDelete(DT_void *pQuery, DT_void *_);
 
 /* ----  SYSTEMS ---- */
 
 /**
  * Registers a new system into the FECS.
  *
- * @param system The system function to register.
- * @param pIdx   The pointer to hold the index of the system.
+ * @param system_func The system function to register.
+ * @param pSystem_id  The pointer to hold the index of the system.
  *
  * @return PRP_OK on success.
  * @return PRP_ERR_RES_EXHAUSTED if max cap is reached.
  * @return PRP_ERR_OOM if allocation fails.
  */
-PRP_Result SystemRegister(FECS_System system, DT_size *pIdx);
+PRP_Result SystemRegister(FECS_SystemFunc system_func,
+                          FECS_SystemId *pSystem_id);
 /**
  * Checks if given system func is already registered.
  *
- * @param system The system function to check for.
- * @param pOut   The pointer to store the index of the existing system.
+ * @param system_func The system function to check for.
+ * @param pFound_id   The pointer to store the index of the existing system.
  *
  * @return DT_true if already registered.
  * @return DT_false if it doesn't exist already.
  */
-DT_bool SystemIsRegistered(FECS_System system, DT_size *pIdx);
+DT_bool SystemIsRegistered(FECS_SystemFunc system_func,
+                           FECS_SystemId *pFound_id);
 
 #ifdef __cplusplus
 }

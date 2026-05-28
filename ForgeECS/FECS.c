@@ -1,7 +1,5 @@
 #include "FECS.h"
-#include "DataTypes/Arr.h"
-#include "DataTypes/Typedefs.h"
-#include "Diagnostics/Assert.h"
+#include "ForgeECS/Defs.h"
 #include "Internals/FECS-Internals.h"
 #include "Internals/ForgeWorld/World-Internals.h"
 
@@ -9,7 +7,7 @@
 
 PRP_FN_API PRP_Result PRP_FN_CALL FECS_CompRegister(const DT_char *name,
                                                     DT_size size,
-                                                    DT_size *pIdx) {
+                                                    FECS_CompId *pComp_id) {
     if (!CTX_INVARIANT_EXPR) {
         DIAG_PANIC("The engine is corrupted/not-initilized correctly.");
     }
@@ -18,50 +16,49 @@ PRP_FN_API PRP_Result PRP_FN_CALL FECS_CompRegister(const DT_char *name,
     }
     DIAG_ASSERT(name != DT_null);
     DIAG_ASSERT(size > 0);
-    DIAG_ASSERT(pIdx != DT_null);
-    if (!name || !size || !pIdx) {
+    DIAG_ASSERT(pComp_id != DT_null);
+    if (!name || !size || !pComp_id) {
         return PRP_ERR_INV_ARG;
     }
 
-    if (CompIsRegistered(name, pIdx)) {
+    if (CompIsRegistered(name, pComp_id)) {
         DIAG_LOG_ERROR(DIAG_LOG_CODE_INVALID_ARG,
                        "The given component name is already registered.");
         return PRP_ERR_ALREADY_EXISTS;
     }
 
-    return CompRegister(name, size, pIdx);
+    return CompRegister(name, size, pComp_id);
 }
 
 /* ----  BEHAVIOR ---- */
 
-PRP_FN_API PRP_Result PRP_FN_CALL FECS_BehaviorRegister(DT_size *comp_idxs,
-                                                        DT_size comp_count,
-                                                        DT_size *pIdx) {
+PRP_FN_API PRP_Result PRP_FN_CALL FECS_BehaviorRegister(
+    FECS_CompId *pComp_ids, DT_size comp_count, FECS_BehaviorId *pBehavior_id) {
     if (!CTX_INVARIANT_EXPR) {
         DIAG_PANIC("The engine is corrupted/not-initilized correctly.");
     }
     if (g_ctx->schema_lock) {
         return PRP_ERR_INV_STATE;
     }
-    DIAG_ASSERT(comp_idxs != DT_null);
+    DIAG_ASSERT(pComp_ids != DT_null);
     DIAG_ASSERT(comp_count > 0);
-    DIAG_ASSERT(pIdx != DT_null);
-    if (!comp_idxs || !comp_count || !pIdx) {
+    DIAG_ASSERT(pBehavior_id != DT_null);
+    if (!pComp_ids || !comp_count || !pBehavior_id) {
         return PRP_ERR_INV_ARG;
     }
 
-    if (BehaviorIsRegistered(comp_idxs, comp_count, pIdx)) {
+    if (BehaviorIsRegistered(pComp_ids, comp_count, pBehavior_id)) {
         return PRP_OK;
     }
-    PRP_Result code = BehaviorRegister(comp_idxs, comp_count, pIdx);
+    PRP_Result code = BehaviorRegister(pComp_ids, comp_count, pBehavior_id);
     if (code != PRP_OK) {
         return code;
     }
     code = DT_ArrForEachUnchecked(g_ctx->queries, QueryCascadeUpdateBehavior,
-                                  pIdx);
+                                  pBehavior_id);
     if (code != PRP_OK) {
         DT_ArrForEachUnchecked(g_ctx->queries, QueryCascadingErrorCleanup,
-                               pIdx);
+                               pBehavior_id);
         Behavior *behavior = DT_null;
         DT_ArrPopUnchecked(g_ctx->behaviors, behavior);
         BehaviorDelete(behavior, DT_null);
@@ -73,58 +70,57 @@ PRP_FN_API PRP_Result PRP_FN_CALL FECS_BehaviorRegister(DT_size *comp_idxs,
 
 /* ----  QUERY ---- */
 
-PRP_FN_API PRP_Result PRP_FN_CALL FECS_QueryRegister(const DT_size *inc_comps,
-                                                     DT_size inc_comps_count,
-                                                     const DT_size *exc_comps,
-                                                     DT_size exc_comps_count,
-                                                     DT_size *pIdx) {
+PRP_FN_API PRP_Result PRP_FN_CALL
+FECS_QueryRegister(const FECS_CompId *pInc_comp_ids, DT_size inc_comps_count,
+                   const FECS_CompId *pExc_comp_ids, DT_size exc_comps_count,
+                   FECS_QueryId *pQuery_id) {
     if (!CTX_INVARIANT_EXPR) {
         DIAG_PANIC("The engine is corrupted/not-initilized correctly.");
     }
     if (g_ctx->schema_lock) {
         return PRP_ERR_INV_STATE;
     }
-    DIAG_ASSERT(inc_comps != DT_null);
+    DIAG_ASSERT(pInc_comp_ids != DT_null);
     DIAG_ASSERT(inc_comps_count > 0);
-    if (exc_comps) {
+    if (pExc_comp_ids) {
         DIAG_ASSERT(exc_comps_count > 0);
     }
-    DIAG_ASSERT(pIdx != DT_null);
-    if (!inc_comps || !inc_comps_count || (exc_comps && !exc_comps_count) ||
-        !pIdx) {
+    DIAG_ASSERT(pQuery_id != DT_null);
+    if (!pInc_comp_ids || !inc_comps_count ||
+        (pExc_comp_ids && !exc_comps_count) || !pQuery_id) {
         return PRP_ERR_INV_ARG;
     }
 
-    if (QueryIsRegistered(inc_comps, inc_comps_count, exc_comps,
-                          exc_comps_count, pIdx)) {
+    if (QueryIsRegistered(pInc_comp_ids, inc_comps_count, pExc_comp_ids,
+                          exc_comps_count, pQuery_id)) {
         return PRP_OK;
     }
 
-    return QueryRegister(inc_comps, inc_comps_count, exc_comps, exc_comps_count,
-                         pIdx);
+    return QueryRegister(pInc_comp_ids, inc_comps_count, pExc_comp_ids,
+                         exc_comps_count, pQuery_id);
 }
 
 /* ----  SYSTEMS ---- */
 
-PRP_FN_API PRP_Result PRP_FN_CALL FECS_SystemRegister(FECS_System system,
-                                                      DT_size *pIdx) {
+PRP_FN_API PRP_Result PRP_FN_CALL
+FECS_SystemRegister(FECS_SystemFunc system_func, FECS_SystemId *pSystem_id) {
     if (!CTX_INVARIANT_EXPR) {
         DIAG_PANIC("The engine is corrupted/not-initilized correctly.");
     }
     if (g_ctx->schema_lock) {
         return PRP_ERR_INV_STATE;
     }
-    DIAG_ASSERT(system != DT_null);
-    DIAG_ASSERT(pIdx != DT_null);
-    if (!system || !pIdx) {
+    DIAG_ASSERT(system_func != DT_null);
+    DIAG_ASSERT(pSystem_id != DT_null);
+    if (!system_func || !pSystem_id) {
         return PRP_ERR_INV_ARG;
     }
 
-    if (SystemIsRegistered(system, pIdx)) {
+    if (SystemIsRegistered(system_func, pSystem_id)) {
         return PRP_OK;
     }
 
-    return SystemRegister(system, pIdx);
+    return SystemRegister(system_func, pSystem_id);
 }
 
 /* ----  FECS ---- */
@@ -155,7 +151,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL FECS_Init(DT_void) {
     g_ctx->schema_lock = DT_false;
     PRP_Result code;
 
-    code = DT_ArrCreateUnchecked(sizeof(ComponentMetadata), DT_ARR_DEFAULT_CAP,
+    code = DT_ArrCreateUnchecked(sizeof(Component), DT_ARR_DEFAULT_CAP,
                                  &g_ctx->comps);
     if (code != PRP_OK) {
         goto err_path;
@@ -170,7 +166,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL FECS_Init(DT_void) {
     if (code != PRP_OK) {
         goto err_path;
     }
-    code = DT_ArrCreateUnchecked(sizeof(FECS_System), DT_ARR_DEFAULT_CAP,
+    code = DT_ArrCreateUnchecked(sizeof(FECS_SystemFunc), DT_ARR_DEFAULT_CAP,
                                  &g_ctx->systems);
     if (code != PRP_OK) {
         goto err_path;

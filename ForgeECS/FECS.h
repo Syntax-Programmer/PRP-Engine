@@ -4,6 +4,7 @@
 extern "C" {
 #endif
 
+#include "Defs.h"
 #include "ForgeWorld/World.h"
 
 /**
@@ -30,9 +31,9 @@ extern "C" {
 /**
  * Registers a new component into the FECS.
  *
- * @param name The name of the component.
- * @param size Size (in bytes) of the component.
- * @param pIdx The pointer to hold the index of the behavior.
+ * @param name     The name of the component.
+ * @param size     Size (in bytes) of the component.
+ * @param pComp_id The pointer to hold the index of the comp.
  *
  * @return PRP_OK on success.
  * @return PRP_ERR_INV_STATE if the schema lock is already initiated.
@@ -43,16 +44,16 @@ extern "C" {
  */
 PRP_FN_API PRP_Result PRP_FN_CALL FECS_CompRegister(const DT_char *name,
                                                     DT_size size,
-                                                    DT_size *pIdx);
+                                                    FECS_CompId *pComp_id);
 
 /* ----  BEHAVIOR ---- */
 
 /**
  * Registers a new behavior into the FECS.
  *
- * @param comp_idxs  Array of comp behavior includes. **Array will be sorted.**
- * @param comp_count Len of the comp_idxs array.
- * @param pIdx       The pointer to hold the index of the behavior.
+ * @param pComp_ids    Array of comp behavior includes. *Array will be sorted.*
+ * @param comp_count   Len of the comp_idxs array.
+ * @param pBehavior_id The pointer to hold the index of the behavior.
  *
  * @return PRP_OK on success.
  * @return PRP_ERR_INV_STATE if the schema lock is already initiated.
@@ -61,20 +62,19 @@ PRP_FN_API PRP_Result PRP_FN_CALL FECS_CompRegister(const DT_char *name,
  *         reached.
  * @return PRP_ERR_OOM if allocation fails.
  */
-PRP_FN_API PRP_Result PRP_FN_CALL FECS_BehaviorRegister(DT_size *comp_idxs,
-                                                        DT_size comp_count,
-                                                        DT_size *pIdx);
+PRP_FN_API PRP_Result PRP_FN_CALL FECS_BehaviorRegister(
+    FECS_CompId *pComp_ids, DT_size comp_count, FECS_BehaviorId *pBehavior_id);
 
 /* ----  QUERY ---- */
 
 /**
  * Registers a new query into the FECS.
  *
- * @param inc_comps       Array of comps query includes.
+ * @param pInc_comp_ids   Array of comps query includes.
  * @param inc_comps_count Len of the inc_comps array.
- * @param exc_comps       Array of comps query excludes.
+ * @param pExc_comp_ids   Array of comps query excludes.
  * @param exc_comps_count Len of the exc_comps array.
- * @param pIdx            The pointer to hold the index of the query.
+ * @param pQuery_id       The pointer to hold the index of the query.
  *
  * @return PRP_OK on success.
  * @return PRP_ERR_INV_STATE if the schema lock is already initiated.
@@ -83,19 +83,18 @@ PRP_FN_API PRP_Result PRP_FN_CALL FECS_BehaviorRegister(DT_size *comp_idxs,
  *         reached.
  * @return PRP_ERR_OOM if allocation fails.
  */
-PRP_FN_API PRP_Result PRP_FN_CALL FECS_QueryRegister(const DT_size *inc_comps,
-                                                     DT_size inc_comps_count,
-                                                     const DT_size *exc_comps,
-                                                     DT_size exc_comps_count,
-                                                     DT_size *pIdx);
+PRP_FN_API PRP_Result PRP_FN_CALL
+FECS_QueryRegister(const FECS_CompId *pInc_comp_ids, DT_size inc_comps_count,
+                   const FECS_CompId *pExc_comp_ids, DT_size exc_comps_count,
+                   FECS_QueryId *pQuery_id);
 
 /* ----  SYSTEMS ---- */
 
 /**
  * Registers a new system into the FECS.
  *
- * @param system The system function to register.
- * @param pIdx   The pointer to hold the index of the system.
+ * @param system_func The system function to register.
+ * @param pSystem_id  The pointer to hold the index of the system.
  *
  * @return PRP_OK on success.
  * @return PRP_ERR_INV_STATE if the schema lock is already initiated.
@@ -104,8 +103,8 @@ PRP_FN_API PRP_Result PRP_FN_CALL FECS_QueryRegister(const DT_size *inc_comps,
  *         reached.
  * @return PRP_ERR_OOM if allocation fails.
  */
-PRP_FN_API PRP_Result PRP_FN_CALL FECS_SystemRegister(FECS_System system,
-                                                      DT_size *pIdx);
+PRP_FN_API PRP_Result PRP_FN_CALL
+FECS_SystemRegister(FECS_SystemFunc system_func, FECS_SystemId *pSystem_id);
 
 /* ----  FECS ---- */
 

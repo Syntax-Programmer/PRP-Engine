@@ -129,9 +129,9 @@ PRP_FN_API DT_bool PRP_FN_CALL DT_BitmapIsValid(const DT_Bitmap *bmp) {
 }
 
 PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapCreateUnchecked(DT_size bit_cap,
-                                                           DT_Bitmap **out) {
+                                                           DT_Bitmap **pBmp) {
     DIAG_ASSERT(bit_cap > 0 && bit_cap <= DT_BITMAP_MAX_BIT_CAP);
-    DIAG_ASSERT(out != DT_null);
+    DIAG_ASSERT(pBmp != DT_null);
 
     DT_Bitmap *bmp = malloc(sizeof(DT_Bitmap));
     if (!bmp) {
@@ -147,30 +147,30 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapCreateUnchecked(DT_size bit_cap,
     bmp->first_set = PRP_INVALID_INDEX;
     bmp->bit_cap = bit_cap;
 
-    *out = bmp;
+    *pBmp = bmp;
 
     return PRP_OK;
 }
 
 PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapCreateChecked(DT_size bit_cap,
-                                                         DT_Bitmap **out) {
-    if (!bit_cap || bit_cap > DT_BITMAP_MAX_BIT_CAP || !out) {
+                                                         DT_Bitmap **pBmp) {
+    if (!bit_cap || bit_cap > DT_BITMAP_MAX_BIT_CAP || !pBmp) {
         return PRP_ERR_INV_ARG;
     }
 
-    return DT_BitmapCreateUnchecked(bit_cap, out);
+    return DT_BitmapCreateUnchecked(bit_cap, pBmp);
 }
 
 PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapCloneUnchecked(const DT_Bitmap *bmp,
-                                                          DT_Bitmap **out) {
+                                                          DT_Bitmap **pBmp) {
     ASSERT_INVARIANT_EXPR(bmp);
-    DIAG_ASSERT(out != DT_null);
+    DIAG_ASSERT(pBmp != DT_null);
 
-    PRP_Result code = DT_BitmapCreateUnchecked(bmp->bit_cap, out);
+    PRP_Result code = DT_BitmapCreateUnchecked(bmp->bit_cap, pBmp);
     if (code != PRP_OK) {
         return code;
     }
-    DT_Bitmap *cpy = *out;
+    DT_Bitmap *cpy = *pBmp;
     cpy->set_c = bmp->set_c;
     cpy->first_set = bmp->first_set;
     memcpy(cpy->words, bmp->words, sizeof(DT_Bitword) * cpy->word_cap);
@@ -179,12 +179,12 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapCloneUnchecked(const DT_Bitmap *bmp,
 }
 
 PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapCloneChecked(const DT_Bitmap *bmp,
-                                                        DT_Bitmap **out) {
+                                                        DT_Bitmap **pBmp) {
     if (!DT_BitmapIsValid(bmp)) {
         return PRP_ERR_INV_ARG;
     }
 
-    return DT_BitmapCloneUnchecked(bmp, out);
+    return DT_BitmapCloneUnchecked(bmp, pBmp);
 }
 
 PRP_FN_API DT_void PRP_FN_CALL DT_BitmapDeleteUnchecked(DT_Bitmap **pBmp) {
@@ -1005,7 +1005,7 @@ DT_BitmapChangeSizeUnchecked(DT_Bitmap *bmp, DT_size new_bit_cap) {
     bmp->set_c -= set_c_neg;
     if (bmp->first_set >= bmp->bit_cap) {
         /*
-         * Bcuz if first_set index is weeded out in the size change the set_c is
+         * Bcuz if first_set index is weeded pBmp in the size change the set_c is
          * 0 and we can just skip the function calls entirely.
          */
         bmp->first_set = PRP_INVALID_INDEX;

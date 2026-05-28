@@ -5,6 +5,19 @@ extern "C" {
 #endif
 
 #include "DataTypes/Arr.h"
+#include "DataTypes/DSArr.h"
+
+/* ----  INDEX TYPEDEFS ---- */
+
+typedef DT_size FECS_CompId;
+typedef DT_size FECS_BehaviorId;
+typedef DT_size FECS_QueryId;
+typedef DT_size FECS_SystemId;
+
+typedef DT_size FECS_SystemCacheId;
+typedef DT_size FECS_LayoutId;
+
+typedef DT_DSId FECS_WorldId;
 
 /* ----  ENTITIES ---- */
 
@@ -16,7 +29,7 @@ extern "C" {
  * - Is always unique at any given point in time.
  */
 typedef struct {
-    DT_size layout_idx;
+    FECS_LayoutId layout_id;
     DT_size entity_idx;
     DT_u32 gen;
 } FECS_Entity;
@@ -29,8 +42,8 @@ typedef struct {
  * - Can contain any number of entities at a time(decided during creation).
  */
 typedef struct {
-    DT_size layout_idx;
-    DT_Arr *chunks;
+    FECS_LayoutId layout_id;
+    DT_Arr *chunk_views;
 } FECS_EntityBatch;
 
 /* ----  SYSTEM ---- */
@@ -43,8 +56,8 @@ typedef struct SystemData FECS_SystemData;
 /**
  * A function that acts upon entities alive at the time of execution.
  */
-typedef DT_void (*FECS_System)(const FECS_SystemData *system_data,
-                               DT_void *user_data);
+typedef DT_void (*FECS_SystemFunc)(const FECS_SystemData *pSystem_data,
+                                   DT_void *pUser_data);
 
 #ifdef __cplusplus
 }

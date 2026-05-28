@@ -39,7 +39,7 @@ PRP_FN_API DT_bool PRP_FN_CALL DT_BffrIsValid(const DT_Bffr *bffr);
  *
  * @param memb_size Size (in bytes) of each element.
  * @param cap       Initial capacity.
- * @param out       Output pointer receiving the arraybuffer.
+ * @param pBffr     Output pointer receiving the arraybuffer.
  *
  * @return PRP_OK on success.
  * @return PRP_ERR_OOM if allocation fails.
@@ -49,13 +49,13 @@ PRP_FN_API DT_bool PRP_FN_CALL DT_BffrIsValid(const DT_Bffr *bffr);
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrCreateUnchecked(DT_size memb_size,
                                                          DT_size cap,
-                                                         DT_Bffr **out);
+                                                         DT_Bffr **pBffr);
 /**
  * Creates a dynamic buffer.
  *
  * @param memb_size Size (in bytes) of each element.
  * @param cap       Initial capacity.
- * @param out       Output pointer receiving the arraybuffer.
+ * @param pBffr     Output pointer receiving the buffer.
  *
  * @return PRP_OK on success.
  * @return PRP_ERR_OOM if allocation fails.
@@ -63,12 +63,12 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrCreateUnchecked(DT_size memb_size,
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrCreateChecked(DT_size memb_size,
                                                        DT_size cap,
-                                                       DT_Bffr **out);
+                                                       DT_Bffr **pBffr);
 /**
  * Deep clones the given buffer.
  *
- * @param bffr The buffer to clone.
- * @param out  Output pointer receiving the array.
+ * @param bffr  The buffer to clone.
+ * @param pBffr Output pointer receiving the buffer.
  *
  * @return PRP_OK on success.
  * @return PRP_ERR_OOM if allocation fails.
@@ -77,12 +77,12 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrCreateChecked(DT_size memb_size,
  * - Asserts on invalid arguments in debug.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrCloneUnchecked(const DT_Bffr *bffr,
-                                                        DT_Bffr **out);
+                                                        DT_Bffr **pBffr);
 /**
  * Deep clones the given buffer with validation.
  *
- * @param bffr The buffer to clone.
- * @param out  Output pointer receiving the array.
+ * @param bffr  The buffer to clone.
+ * @param pBffr Output pointer receiving the buffer.
  *
  * @return PRP_OK on success.
  * @return PRP_ERR_OOM if allocation fails.
@@ -92,7 +92,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrCloneUnchecked(const DT_Bffr *bffr,
  * - Asserts on invalid arguments in debug.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrCloneChecked(const DT_Bffr *bffr,
-                                                      DT_Bffr **out);
+                                                      DT_Bffr **pBffr);
 
 /**
  * Deletes the buffer and nullifies the pointer.
