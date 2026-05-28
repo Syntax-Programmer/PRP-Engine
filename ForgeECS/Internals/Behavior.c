@@ -20,16 +20,15 @@ static DT_void SortCompIdxs(DT_size *comp_idxs, DT_size len) {
     }
 }
 
-PRP_Result BehaviorRegister(DT_Arr *comp_idxs, DT_size *pIdx) {
-    DT_size len;
-    DT_size *arr = (DT_size *)(DT_ArrRawUnchecked(comp_idxs, &len));
+PRP_Result BehaviorRegister(DT_size *comp_idxs, DT_size comp_count,
+                            DT_size *pIdx) {
     PRP_Result code;
     Behavior data = {0};
     code = DT_BitmapCreateUnchecked(DT_ArrLen(g_ctx->comps), &data.set);
     if (code != PRP_OK) {
         goto err_path;
     }
-    data.strides = malloc(sizeof(DT_size) * len);
+    data.strides = malloc(sizeof(DT_size) * comp_count);
     if (!data.strides) {
         code = PRP_ERR_OOM;
         goto err_path;
@@ -39,11 +38,11 @@ PRP_Result BehaviorRegister(DT_Arr *comp_idxs, DT_size *pIdx) {
      * Since sorting is just order changing and doesn't change the metadata, it
      * can be done wihtout disturbing validity of arrays.
      */
-    SortCompIdxs(arr, len);
+    SortCompIdxs(comp_idxs, comp_count);
     DT_size comps_len = DT_ArrLen(g_ctx->comps);
     DT_size stride = 0;
-    for (DT_size i = 0; i < len; i++) {
-        DT_size comp_idx = arr[i];
+    for (DT_size i = 0; i < comp_count; i++) {
+        DT_size comp_idx = comp_idxs[i];
         if (comp_idx >= comps_len) {
             code = PRP_ERR_INV_ARG;
             goto err_path;
@@ -78,22 +77,21 @@ err_path:
     return code;
 }
 
-DT_bool BehaviorIsRegistered(DT_Arr *comp_idxs, DT_size *pOut) {
-    DT_size comps_len;
-    const DT_size *comps = DT_ArrRawUnchecked(comp_idxs, &comps_len);
+DT_bool BehaviorIsRegistered(DT_size *comp_idxs, DT_size comp_count,
+                             DT_size *pOut) {
     DT_size behaviors_len;
     const Behavior *behaviors =
         DT_ArrRawUnchecked(g_ctx->behaviors, &behaviors_len);
 
     for (DT_size i = 0; i < behaviors_len; i++) {
         const Behavior *behavior = &behaviors[i];
-        if (DT_BitmapSetCount(behavior->set) != comps_len) {
+        if (DT_BitmapSetCount(behavior->set) != comp_count) {
             continue;
         }
 
         DT_bool is_registered = DT_true;
-        for (DT_size j = 0; j < comps_len; j++) {
-            if (!DT_BitmapIsSetUnchecked(behavior->set, comps[j])) {
+        for (DT_size j = 0; j < comp_count; j++) {
+            if (!DT_BitmapIsSetUnchecked(behavior->set, comp_idxs[j])) {
                 is_registered = DT_false;
                 break;
             }

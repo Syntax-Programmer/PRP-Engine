@@ -4,7 +4,6 @@
 extern "C" {
 #endif
 
-#include "DataTypes/Arr.h"
 #include "ForgeWorld/World.h"
 
 /**
@@ -51,8 +50,9 @@ PRP_FN_API PRP_Result PRP_FN_CALL FECS_CompRegister(const DT_char *name,
 /**
  * Registers a new behavior into the FECS.
  *
- * @param comp_idxs Array of comp behavior includes. Array will mutate.
- * @param pIdx      The pointer to hold the index of the behavior.
+ * @param comp_idxs  Array of comp behavior includes. **Array will be sorted.**
+ * @param comp_count Len of the comp_idxs array.
+ * @param pIdx       The pointer to hold the index of the behavior.
  *
  * @return PRP_OK on success.
  * @return PRP_ERR_INV_STATE if the schema lock is already initiated.
@@ -61,7 +61,8 @@ PRP_FN_API PRP_Result PRP_FN_CALL FECS_CompRegister(const DT_char *name,
  *         reached.
  * @return PRP_ERR_OOM if allocation fails.
  */
-PRP_FN_API PRP_Result PRP_FN_CALL FECS_BehaviorRegister(DT_Arr *comp_idxs,
+PRP_FN_API PRP_Result PRP_FN_CALL FECS_BehaviorRegister(DT_size *comp_idxs,
+                                                        DT_size comp_count,
                                                         DT_size *pIdx);
 
 /* ----  QUERY ---- */
@@ -69,9 +70,11 @@ PRP_FN_API PRP_Result PRP_FN_CALL FECS_BehaviorRegister(DT_Arr *comp_idxs,
 /**
  * Registers a new query into the FECS.
  *
- * @param inc_comps Array of comps query includes.
- * @param exc_comps Array of comps query excludes.
- * @param pIdx      The pointer to hold the index of the query.
+ * @param inc_comps       Array of comps query includes.
+ * @param inc_comps_count Len of the inc_comps array.
+ * @param exc_comps       Array of comps query excludes.
+ * @param exc_comps_count Len of the exc_comps array.
+ * @param pIdx            The pointer to hold the index of the query.
  *
  * @return PRP_OK on success.
  * @return PRP_ERR_INV_STATE if the schema lock is already initiated.
@@ -80,8 +83,10 @@ PRP_FN_API PRP_Result PRP_FN_CALL FECS_BehaviorRegister(DT_Arr *comp_idxs,
  *         reached.
  * @return PRP_ERR_OOM if allocation fails.
  */
-PRP_FN_API PRP_Result PRP_FN_CALL FECS_QueryRegister(const DT_Arr *inc_comps,
-                                                     const DT_Arr *exc_comps,
+PRP_FN_API PRP_Result PRP_FN_CALL FECS_QueryRegister(const DT_size *inc_comps,
+                                                     DT_size inc_comps_count,
+                                                     const DT_size *exc_comps,
+                                                     DT_size exc_comps_count,
                                                      DT_size *pIdx);
 
 /* ----  SYSTEMS ---- */

@@ -1,5 +1,7 @@
 #include "FECS.h"
 #include "DataTypes/Arr.h"
+#include "DataTypes/Typedefs.h"
+#include "Diagnostics/Assert.h"
 #include "Internals/FECS-Internals.h"
 #include "Internals/ForgeWorld/World-Internals.h"
 
@@ -32,7 +34,8 @@ PRP_FN_API PRP_Result PRP_FN_CALL FECS_CompRegister(const DT_char *name,
 
 /* ----  BEHAVIOR ---- */
 
-PRP_FN_API PRP_Result PRP_FN_CALL FECS_BehaviorRegister(DT_Arr *comp_idxs,
+PRP_FN_API PRP_Result PRP_FN_CALL FECS_BehaviorRegister(DT_size *comp_idxs,
+                                                        DT_size comp_count,
                                                         DT_size *pIdx) {
     if (!CTX_INVARIANT_EXPR) {
         DIAG_PANIC("The engine is corrupted/not-initilized correctly.");
@@ -40,17 +43,17 @@ PRP_FN_API PRP_Result PRP_FN_CALL FECS_BehaviorRegister(DT_Arr *comp_idxs,
     if (g_ctx->schema_lock) {
         return PRP_ERR_INV_STATE;
     }
-    DIAG_ASSERT_MSG(DT_ArrIsValid(comp_idxs) == DT_true,
-                    "The given comp_idxs array is not valid internally.");
+    DIAG_ASSERT(comp_idxs != DT_null);
+    DIAG_ASSERT(comp_count > 0);
     DIAG_ASSERT(pIdx != DT_null);
-    if (!DT_ArrIsValid(comp_idxs) || !pIdx) {
+    if (!comp_idxs || !comp_count || !pIdx) {
         return PRP_ERR_INV_ARG;
     }
 
-    if (BehaviorIsRegistered(comp_idxs, pIdx)) {
+    if (BehaviorIsRegistered(comp_idxs, comp_count, pIdx)) {
         return PRP_OK;
     }
-    PRP_Result code = BehaviorRegister(comp_idxs, pIdx);
+    PRP_Result code = BehaviorRegister(comp_idxs, comp_count, pIdx);
     if (code != PRP_OK) {
         return code;
     }
@@ -70,8 +73,10 @@ PRP_FN_API PRP_Result PRP_FN_CALL FECS_BehaviorRegister(DT_Arr *comp_idxs,
 
 /* ----  QUERY ---- */
 
-PRP_FN_API PRP_Result PRP_FN_CALL FECS_QueryRegister(const DT_Arr *inc_comps,
-                                                     const DT_Arr *exc_comps,
+PRP_FN_API PRP_Result PRP_FN_CALL FECS_QueryRegister(const DT_size *inc_comps,
+                                                     DT_size inc_comps_count,
+                                                     const DT_size *exc_comps,
+                                                     DT_size exc_comps_count,
                                                      DT_size *pIdx) {
     if (!CTX_INVARIANT_EXPR) {
         DIAG_PANIC("The engine is corrupted/not-initilized correctly.");
@@ -79,23 +84,24 @@ PRP_FN_API PRP_Result PRP_FN_CALL FECS_QueryRegister(const DT_Arr *inc_comps,
     if (g_ctx->schema_lock) {
         return PRP_ERR_INV_STATE;
     }
-    DIAG_ASSERT_MSG(DT_ArrIsValid(inc_comps) == DT_true,
-                    "The given inc_comps array is not valid internally.");
+    DIAG_ASSERT(inc_comps != DT_null);
+    DIAG_ASSERT(inc_comps_count > 0);
     if (exc_comps) {
-        DIAG_ASSERT_MSG(DT_ArrIsValid(exc_comps) == DT_true,
-                        "The given exc_comps array is not valid internally.");
+        DIAG_ASSERT(exc_comps_count > 0);
     }
     DIAG_ASSERT(pIdx != DT_null);
-    if (!DT_ArrIsValid(inc_comps) || (exc_comps && !DT_ArrIsValid(exc_comps)) ||
+    if (!inc_comps || !inc_comps_count || (exc_comps && !exc_comps_count) ||
         !pIdx) {
         return PRP_ERR_INV_ARG;
     }
 
-    if (QueryIsRegistered(inc_comps, exc_comps, pIdx)) {
+    if (QueryIsRegistered(inc_comps, inc_comps_count, exc_comps,
+                          exc_comps_count, pIdx)) {
         return PRP_OK;
     }
 
-    return QueryRegister(inc_comps, exc_comps, pIdx);
+    return QueryRegister(inc_comps, inc_comps_count, exc_comps, exc_comps_count,
+                         pIdx);
 }
 
 /* ----  SYSTEMS ---- */

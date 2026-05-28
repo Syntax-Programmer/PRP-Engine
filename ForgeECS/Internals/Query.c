@@ -10,24 +10,6 @@
  * @return PRP_ERR_OOM if allocation fails.
  */
 static PRP_Result QueryFindMatches(Query *query);
-/**
- * Internal routine to register a query.
- *
- * @param inc_comps Array of comps query includes.
- * @param inc_len   Len of inc_comps.
- * @param exc_comps Array of comps query excludes.
- * @param exc_len   Len of exc_comps.
- * @param pIdx      The pointer to hold the index of the query.
- *
- * @return PRP_OK on success.
- * @return PRP_ERR_RES_EXHAUSTED if max cap is reached.
- * @return PRP_ERR_OOM if allocation fails.
- * @return PRP_ERR_INV_ARG if comps in the given arrays are invalid, or
- *                         exc_comps and inc_comps have overlapping components.
- */
-static PRP_Result QueryRegisterInternal(DT_size *inc_comps, DT_size inc_len,
-                                        DT_size *exc_comps, DT_size exc_len,
-                                        DT_size *pIdx);
 
 static PRP_Result QueryFindMatches(Query *query) {
     PRP_Result code;
@@ -57,9 +39,9 @@ static PRP_Result QueryFindMatches(Query *query) {
     return PRP_OK;
 }
 
-static PRP_Result QueryRegisterInternal(DT_size *inc_comps, DT_size inc_len,
-                                        DT_size *exc_comps, DT_size exc_len,
-                                        DT_size *pIdx) {
+PRP_Result QueryRegister(const DT_size *inc_comps, DT_size inc_comps_count,
+                         const DT_size *exc_comps, DT_size exc_comps_count,
+                         DT_size *pIdx) {
     Query data = {0};
     DT_size total_comps = DT_ArrLen(g_ctx->comps);
     PRP_Result code;
@@ -68,7 +50,7 @@ static PRP_Result QueryRegisterInternal(DT_size *inc_comps, DT_size inc_len,
     if (code != PRP_OK) {
         goto err_path;
     }
-    if (exc_comps && exc_len > 0) {
+    if (exc_comps && exc_comps_count > 0) {
         code = DT_BitmapCreateUnchecked(total_comps, &data.exc);
         if (code != PRP_OK) {
             goto err_path;
@@ -79,7 +61,7 @@ static PRP_Result QueryRegisterInternal(DT_size *inc_comps, DT_size inc_len,
         goto err_path;
     }
 
-    for (DT_size i = 0; i < inc_len; i++) {
+    for (DT_size i = 0; i < inc_comps_count; i++) {
         if (inc_comps[i] >= total_comps) {
             code = PRP_ERR_INV_ARG;
             goto err_path;
@@ -87,7 +69,7 @@ static PRP_Result QueryRegisterInternal(DT_size *inc_comps, DT_size inc_len,
         DT_BitmapSetUnchecked(data.inc, inc_comps[i]);
     }
     if (data.exc) {
-        for (DT_size i = 0; i < exc_len; i++) {
+        for (DT_size i = 0; i < exc_comps_count; i++) {
             if (exc_comps[i] >= total_comps) {
                 code = PRP_ERR_INV_ARG;
                 goto err_path;
@@ -126,50 +108,32 @@ err_path:
     return code;
 }
 
-PRP_Result QueryRegister(const DT_Arr *inc_comps, const DT_Arr *exc_comps,
-                         DT_size *pIdx) {
-    DT_size inc_len;
-    DT_size *arr1 = (DT_size *)(DT_ArrRawUnchecked(inc_comps, &inc_len));
-    DT_size exc_len = 0;
-    DT_size *arr2 = DT_null;
-    if (exc_comps) {
-        arr2 = (DT_size *)(DT_ArrRawUnchecked(exc_comps, &exc_len));
-    }
-
-    return QueryRegisterInternal(arr1, inc_len, arr2, exc_len, pIdx);
-}
-
-DT_bool QueryIsRegistered(const DT_Arr *inc_comps, const DT_Arr *exc_comps,
+DT_bool QueryIsRegistered(const DT_size *inc_comps, DT_size inc_comps_count,
+                          const DT_size *exc_comps, DT_size exc_comps_count,
                           DT_size *pOut) {
-    DT_size inc_comps_len = 0, exc_comps_len = 0;
-    const DT_size *inc_raw = DT_ArrRawUnchecked(inc_comps, &inc_comps_len);
-    const DT_size *exc_raw = DT_null;
-    if (exc_comps) {
-        exc_raw = DT_ArrRawUnchecked(exc_comps, &exc_comps_len);
-    }
-
     DT_size queries_len;
     const Query *queries = DT_ArrRawUnchecked(g_ctx->queries, &queries_len);
 
     for (DT_size i = 0; i < queries_len; i++) {
         const Query *query = &queries[i];
-        if ((exc_comps_len && !query->exc) || (!exc_comps_len && query->exc)) {
+        if ((exc_comps_count && !query->exc) ||
+            (!exc_comps_count && query->exc)) {
             continue;
         }
-        if (DT_BitmapSetCount(query->inc) != inc_comps_len ||
-            (query->exc && DT_BitmapSetCount(query->exc) != exc_comps_len)) {
+        if (DT_BitmapSetCount(query->inc) != inc_comps_count ||
+            (query->exc && DT_BitmapSetCount(query->exc) != exc_comps_count)) {
             continue;
         }
 
         DT_bool is_registered = DT_true;
-        for (DT_size j = 0; j < inc_comps_len; j++) {
-            if (!DT_BitmapIsSetUnchecked(query->inc, inc_raw[j])) {
+        for (DT_size j = 0; j < inc_comps_count; j++) {
+            if (!DT_BitmapIsSetUnchecked(query->inc, inc_comps[j])) {
                 is_registered = DT_false;
                 break;
             }
         }
-        for (DT_size j = 0; is_registered && j < exc_comps_len; j++) {
-            if (!DT_BitmapIsSetUnchecked(query->exc, exc_raw[j])) {
+        for (DT_size j = 0; is_registered && j < exc_comps_count; j++) {
+            if (!DT_BitmapIsSetUnchecked(query->exc, exc_comps[j])) {
                 is_registered = DT_false;
                 break;
             }

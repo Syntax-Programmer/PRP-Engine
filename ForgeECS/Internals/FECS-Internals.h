@@ -163,25 +163,29 @@ typedef struct {
 /**
  * Registers a new behavior into the FECS.
  *
- * @param comp_idxs Array of comp behavior includes. Array will mutate.
- * @param pIdx      The pointer to hold the index of the behavior.
+ * @param comp_idxs  Array of comp behavior includes. **Array will be sorted.**
+ * @param comp_count Len of the comp_idxs array.
+ * @param pIdx       The pointer to hold the index of the behavior.
  *
  * @return PRP_OK on success.
  * @return PRP_ERR_RES_EXHAUSTED if max cap is reached.
  * @return PRP_ERR_OOM if allocation fails.
  * @return PRP_ERR_INV_ARG if comps in the given arrays are invalid.
  */
-PRP_Result BehaviorRegister(DT_Arr *comp_idxs, DT_size *pIdx);
+PRP_Result BehaviorRegister(DT_size *comp_idxs, DT_size comp_count,
+                            DT_size *pIdx);
 /**
  * Checks if given behavior already exists.
  *
- * @param comp_idxs Array of comp behavior includes.
- * @param pOut      The pointer to store the index of the existing behavior.
+ * @param comp_idxs  Array of comp behavior includes. **Array will be sorted.**
+ * @param comp_count Len of the comp_idxs array.
+ * @param pOut       The pointer to store the index of the existing behavior.
  *
  * @return DT_true if already registered.
  * @return DT_false if it doesn't exist already.
  */
-DT_bool BehaviorIsRegistered(DT_Arr *comp_idxs, DT_size *pOut);
+DT_bool BehaviorIsRegistered(DT_size *comp_idxs, DT_size comp_count,
+                             DT_size *pOut);
 /**
  * Deletes the internals of given behavior.
  * Called via DT_ArrForEach_...
@@ -205,28 +209,34 @@ typedef struct {
  * Registers a new query into the FECS.
  * Comps in inc_comps and exc_comps can't overlap.
  *
- * @param inc_comps Array of comps query includes.
- * @param exc_comps Array of comps query excludes.
- * @param pIdx      The pointer to hold the index of the query.
+ * @param inc_comps       Array of comps query includes.
+ * @param inc_comps_count Len of the inc_comps array.
+ * @param exc_comps       Array of comps query excludes.
+ * @param exc_comps_count Len of the exc_comps array.
+ * @param pIdx            The pointer to hold the index of the query.
  *
  * @return PRP_OK on success.
  * @return PRP_ERR_RES_EXHAUSTED if max cap is reached.
  * @return PRP_ERR_OOM if allocation fails.
  * @return PRP_ERR_INV_ARG if comps in the given arrays are invalid.
  */
-PRP_Result QueryRegister(const DT_Arr *inc_comps, const DT_Arr *exc_comps,
+PRP_Result QueryRegister(const DT_size *inc_comps, DT_size inc_comps_count,
+                         const DT_size *exc_comps, DT_size exc_comps_count,
                          DT_size *pIdx);
 /**
  * Checks if given query already exists.
  *
- * @param inc_comps Array of comps query includes.
- * @param exc_comps Array of comps query excludes.
- * @param pOut      The pointer to store the index of the existing query.
+ * @param inc_comps       Array of comps query includes.
+ * @param inc_comps_count Len of the inc_comps array.
+ * @param exc_comps       Array of comps query excludes.
+ * @param exc_comps_count Len of the exc_comps array.
+ * @param pOut            The pointer to store the index of the existing query.
  *
  * @return DT_true if already registered.
  * @return DT_false if it doesn't exist already.
  */
-DT_bool QueryIsRegistered(const DT_Arr *inc_comps, const DT_Arr *exc_comps,
+DT_bool QueryIsRegistered(const DT_size *inc_comps, DT_size inc_comps_count,
+                          const DT_size *exc_comps, DT_size exc_comps_count,
                           DT_size *pOut);
 /**
  * Cascades a newly created behavior into all the queries.

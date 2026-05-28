@@ -2,6 +2,18 @@
 #include "World-Internals.h"
 
 /**
+ * Internal state with everything needed to execute system and user
+ * interactablity.
+ */
+struct SystemData {
+    Behavior *behavior;
+    DT_void *user_data;
+    FECS_System system;
+    DT_void *chunk_ptr;
+    DT_u32 occupied_slots;
+};
+
+/**
  * Binary search to an element in the given array.
  *
  * @param behaviors Array to search into.
@@ -128,18 +140,6 @@ PRP_Result SystemCacheDelete(DT_void *system_cache, DT_void *_) {
 
     return PRP_OK;
 }
-
-/**
- * Internal state with everything needed to execute system and user
- * interactablity.
- */
-struct SystemData {
-    Behavior *behavior;
-    DT_void *user_data;
-    FECS_System system;
-    DT_void *chunk_ptr;
-    DT_u32 occupied_slots;
-};
 
 static PRP_Result SystemExecForEachCb(DT_void *pChunk, DT_void *system_data) {
     Chunk *chunk = *(Chunk **)pChunk;
