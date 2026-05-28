@@ -1,5 +1,6 @@
 #include "Bitmap.h"
 #include "Diagnostics/Assert.h"
+#include "Utils/Defs.h"
 #include <string.h>
 
 /* ----  BITWORD UTILS ---- */
@@ -276,6 +277,35 @@ PRP_FN_API DT_void PRP_FN_CALL DT_BitmapSetUnchecked(DT_Bitmap *bmp,
         // New first_set found.
         bmp->first_set = i;
     }
+}
+
+PRP_FN_API DT_size PRP_FN_CALL DT_BitmapBitRankUnchecked(const DT_Bitmap *bmp,
+                                                         DT_size i) {
+    ASSERT_INVARIANT_EXPR(bmp);
+    DIAG_ASSERT(i < bmp->bit_cap);
+
+    DT_size idx = 0;
+    for (DT_size j = 0; j < WORD_I(i); j++) {
+        idx += DT_BitwordPopCnt(bmp->words[j]);
+    }
+    idx += DT_BitwordPopCnt(bmp->words[WORD_I(i)] & (BIT_MASK(i) - 1));
+
+    return idx;
+}
+
+PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapBitRankChecked(const DT_Bitmap *bmp,
+                                                          DT_size i,
+                                                          DT_size *pRank) {
+    if (!DT_BitmapIsValid(bmp)) {
+        return PRP_ERR_INV_ARG;
+    }
+    if (i >= bmp->bit_cap) {
+        return PRP_ERR_OOB;
+    }
+
+    *pRank = DT_BitmapBitRankUnchecked(bmp, i);
+
+    return PRP_OK;
 }
 
 PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapSetChecked(DT_Bitmap *bmp,
@@ -666,8 +696,9 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapIsEmptyChecked(const DT_Bitmap *bmp,
     }
 
     *pRslt = (bmp->set_c == 0);
+    f
 
-    return PRP_OK;
+        return PRP_OK;
 }
 
 PRP_FN_API DT_bool PRP_FN_CALL DT_BitmapIsFullUnchecked(const DT_Bitmap *bmp) {

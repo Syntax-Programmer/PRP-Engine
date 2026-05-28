@@ -224,6 +224,33 @@ PRP_FN_API DT_size PRP_FN_CALL DT_BitmapFFS(const DT_Bitmap *bmp);
 PRP_FN_API DT_size PRP_FN_CALL DT_BitmapBitCap(const DT_Bitmap *bmp);
 
 /**
+ * Finds exclusive rank of the given bit.
+ *
+ * @param bmp Bitmap instance.
+ * @param i   Bit to get rank of.
+ *
+ * @return Rank of the bitmap.
+ *
+ * @note Unchecked variant:
+ * - Asserts on invalid arguments in debug.
+ */
+PRP_FN_API DT_size PRP_FN_CALL DT_BitmapBitRankUnchecked(const DT_Bitmap *bmp,
+                                                         DT_size i);
+/**
+ * Finds exclusive rank of the given bit.
+ *
+ * @param bmp   Bitmap instance.
+ * @param i     Bit to get rank of.
+ * @param pRank Output pointer to the rank of given bit.
+ *
+ * @return PRP_OK on success.
+ * @return PRP_ERR_INV_ARG if arguments are invalid.
+ * @return PRP_ERR_OOB if index out of bounds.
+ */
+PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapBitRankChecked(const DT_Bitmap *bmp,
+                                                          DT_size i,
+                                                          DT_size *pRank);
+/**
  * Sets bit of the given index.
  *
  * @param bmp Bitmap instance.
@@ -240,7 +267,7 @@ PRP_FN_API DT_void PRP_FN_CALL DT_BitmapSetUnchecked(DT_Bitmap *bmp, DT_size i);
  * @param i   Index into the bitmap.
  *
  * @return PRP_OK on success.
- * @return PRP_ERR_INV_ARG is arguments are invalid.
+ * @return PRP_ERR_INV_ARG if arguments are invalid.
  * @return PRP_ERR_OOB if index out of bounds.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapSetChecked(DT_Bitmap *bmp,
@@ -262,7 +289,7 @@ PRP_FN_API DT_void PRP_FN_CALL DT_BitmapClrUnchecked(DT_Bitmap *bmp, DT_size i);
  * @param i   Index into the bitmap.
  *
  * @return PRP_OK on success.
- * @return PRP_ERR_INV_ARG is arguments are invalid.
+ * @return PRP_ERR_INV_ARG if arguments are invalid.
  * @return PRP_ERR_OOB if index out of bounds.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapClrChecked(DT_Bitmap *bmp,
@@ -285,7 +312,7 @@ PRP_FN_API DT_void PRP_FN_CALL DT_BitmapToggleUnchecked(DT_Bitmap *bmp,
  * @param i   Index into the bitmap.
  *
  * @return PRP_OK on success.
- * @return PRP_ERR_INV_ARG is arguments are invalid.
+ * @return PRP_ERR_INV_ARG if arguments are invalid.
  * @return PRP_ERR_OOB if index out of bounds.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapToggleChecked(DT_Bitmap *bmp,
@@ -311,7 +338,7 @@ PRP_FN_API DT_bool PRP_FN_CALL DT_BitmapIsSetUnchecked(const DT_Bitmap *bmp,
  * @param pRslt The pointer to where the result is stored.
  *
  * @return PRP_OK on success.
- * @return PRP_ERR_INV_ARG is arguments are invalid.
+ * @return PRP_ERR_INV_ARG if arguments are invalid.
  * @return PRP_ERR_OOB if index out of bounds.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapIsSetChecked(const DT_Bitmap *bmp,
