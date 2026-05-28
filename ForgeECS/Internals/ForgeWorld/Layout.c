@@ -195,16 +195,6 @@ typedef struct {
 } ChunkView;
 
 /**
- * Fetches the stride of component in the given behavior.
- *
- * @param beahvior_idx The behavior to fetch stride from.
- * @param comp_idx     The comp to fetch stride of.
- *
- * @return PRP_INVALID_SIZE if comp doesn't exist in behavior.
- * @return The stride of the comp in the behavior otherwise.
- */
-static DT_size GetCompStride(DT_size behavior_idx, DT_size comp_idx);
-/**
  * Checks if the chunk view of a entity batch is valid.
  *
  * @param chunk_view A chunk view from entity batch.
@@ -412,28 +402,6 @@ PRP_Result LayoutKillEntities(World *world, FECS_EntityBatch **pEntities) {
     return PRP_OK;
 }
 
-static DT_size GetCompStride(DT_size behavior_idx, DT_size comp_idx) {
-    Behavior *behavior = DT_ArrGetUnchecked(g_ctx->behaviors, behavior_idx);
-    DT_size bit_cap, word_cap;
-    const DT_Bitword *set_raw =
-        DT_BitmapRawUnchecked(behavior->set, &word_cap, &bit_cap);
-    if (comp_idx >= bit_cap ||
-        !DT_BitmapIsSetUnchecked(behavior->set, comp_idx)) {
-        return PRP_INVALID_SIZE;
-    }
-
-    DT_size idx = 0;
-    for (DT_size i = 0; i < WORD_I(comp_idx); i++) {
-        idx += DT_BitwordPopCnt(set_raw[i]);
-    }
-    // The mask skips the comp_idx in the popcnt, so the index computed is
-    // correct indxe and it is not off by one.
-    idx +=
-        DT_BitwordPopCnt(set_raw[WORD_I(comp_idx)] & (BIT_MASK(comp_idx) - 1));
-
-    return behavior->strides[idx];
-}
-
 PRP_Result LayoutGetEntityComp(World *world, const FECS_Entity entity,
                                DT_size comp_idx, DT_void **dest) {
     Layout *layout = DT_ArrGetUnchecked(world->layouts, entity.layout_idx);
@@ -443,7 +411,7 @@ PRP_Result LayoutGetEntityComp(World *world, const FECS_Entity entity,
 
     DT_size comp_size =
         ((ComponentMetadata *)DT_ArrGetUnchecked(g_ctx->comps, comp_idx))->size;
-    DT_size comp_stride = GetCompStride(layout->behavior_idx, comp_idx);
+    DT_size comp_stride = BehaviorGetCompStride(layout->behavior_idx, comp_idx);
     if (comp_stride == PRP_INVALID_SIZE) {
         return PRP_ERR_INV_ARG;
     }
@@ -462,7 +430,7 @@ PRP_Result LayoutSetEntityComp(World *world, FECS_Entity entity,
 
     DT_size comp_size =
         ((ComponentMetadata *)DT_ArrGetUnchecked(g_ctx->comps, comp_idx))->size;
-    DT_size comp_stride = GetCompStride(layout->behavior_idx, comp_idx);
+    DT_size comp_stride = BehaviorGetCompStride(layout->behavior_idx, comp_idx);
     if (comp_stride == PRP_INVALID_SIZE) {
         return PRP_ERR_INV_ARG;
     }
@@ -480,7 +448,7 @@ PRP_Result LayoutForEachEntities(World *world, FECS_EntityBatch *entities,
     Layout *layout = DT_ArrGetUnchecked(world->layouts, entities->layout_idx);
     DT_size comp_size =
         ((ComponentMetadata *)DT_ArrGetUnchecked(g_ctx->comps, comp_idx))->size;
-    DT_size comp_stride = GetCompStride(layout->behavior_idx, comp_idx);
+    DT_size comp_stride = BehaviorGetCompStride(layout->behavior_idx, comp_idx);
     if (comp_stride == PRP_INVALID_SIZE) {
         return PRP_ERR_INV_ARG;
     }

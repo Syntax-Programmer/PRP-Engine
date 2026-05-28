@@ -195,6 +195,16 @@ DT_bool BehaviorIsRegistered(DT_size *comp_idxs, DT_size comp_count,
  * @return PRP_OK on success.
  */
 PRP_Result BehaviorDelete(DT_void *behavior, DT_void *_);
+/**
+ * Fetches the stride of component in the given behavior.
+ *
+ * @param beahvior_idx The behavior to fetch stride from.
+ * @param comp_idx     The comp to fetch stride of.
+ *
+ * @return PRP_INVALID_SIZE if comp doesn't exist in behavior.
+ * @return The stride of the comp in the behavior otherwise.
+ */
+DT_size BehaviorGetCompStride(DT_size behavior_idx, DT_size comp_idx);
 
 /* ----  QUERY ---- */
 

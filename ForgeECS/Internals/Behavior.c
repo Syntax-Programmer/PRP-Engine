@@ -119,3 +119,15 @@ PRP_Result BehaviorDelete(DT_void *behavior, DT_void *_) {
 
     return PRP_OK;
 }
+
+DT_size BehaviorGetCompStride(DT_size behavior_idx, DT_size comp_idx) {
+    Behavior *behavior = DT_ArrGetUnchecked(g_ctx->behaviors, behavior_idx);
+    if (comp_idx >= DT_BitmapBitCap(behavior->set) ||
+        !DT_BitmapIsSetUnchecked(behavior->set, comp_idx)) {
+        return PRP_INVALID_SIZE;
+    }
+
+    DT_size idx = DT_BitmapBitRankUnchecked(behavior->set, comp_idx);
+
+    return behavior->strides[idx];
+}

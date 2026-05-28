@@ -169,6 +169,7 @@ DT_void SystemExec(World *world, const SystemCache *system_cache,
         const Layout *layout = &layouts[layout_idx];
         Behavior *behavior =
             DT_ArrGetUnchecked(g_ctx->behaviors, layout->behavior_idx);
+
         system_data.behavior = behavior;
 
         DT_ArrForEachUnchecked(layout->chunk_ptrs, SystemExecForEachCb,
