@@ -696,9 +696,8 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapIsEmptyChecked(const DT_Bitmap *bmp,
     }
 
     *pRslt = (bmp->set_c == 0);
-    f
 
-        return PRP_OK;
+    return PRP_OK;
 }
 
 PRP_FN_API DT_bool PRP_FN_CALL DT_BitmapIsFullUnchecked(const DT_Bitmap *bmp) {
