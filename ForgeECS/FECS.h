@@ -57,7 +57,8 @@ PRP_FN_API PRP_Result PRP_FN_CALL FECS_CompRegister(const DT_char *name,
  *
  * @return PRP_OK on success.
  * @return PRP_ERR_INV_STATE if the schema lock is already initiated.
- * @return PRP_ERR_INV_ARG if arguments are invalid.
+ * @return PRP_ERR_INV_ARG if arguments are invalid or pComp_ids contains
+ *                         invalid/duplicate entries.
  * @return PRP_ERR_RES_EXHAUSTED if max cap of behaviors or query matches is
  *         reached.
  * @return PRP_ERR_OOM if allocation fails.
@@ -78,10 +79,15 @@ PRP_FN_API PRP_Result PRP_FN_CALL FECS_BehaviorRegister(
  *
  * @return PRP_OK on success.
  * @return PRP_ERR_INV_STATE if the schema lock is already initiated.
- * @return PRP_ERR_INV_ARG if arguments are invalid.
+ * @return PRP_ERR_INV_ARG if arguments are invalid or pInc_comp_ids or
+ *                         pExc_comp_ids contains invalid/duplicate entries.
  * @return PRP_ERR_RES_EXHAUSTED if max cap of behaviors or query matches is
  *         reached.
  * @return PRP_ERR_OOM if allocation fails.
+ *
+ * @note:
+ * - If pInc_comp_ids or pExc_comp_ids contain duplicate elements, they will be
+ *   de-duplicated since checking for duplicates is expensive in this case.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL
 FECS_QueryRegister(const FECS_CompId *pInc_comp_ids, DT_size inc_comps_count,

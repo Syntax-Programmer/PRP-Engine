@@ -4,6 +4,7 @@
 extern "C" {
 #endif
 
+#include "Allocators/Arena.h"
 #include "DataTypes/Arr.h"
 #include "DataTypes/Bitmap.h"
 #include "DataTypes/DSArr.h"
@@ -69,6 +70,29 @@ typedef struct {
      * so storing it in a ds arr is worth it.
      */
     DT_DSArr *worlds;
+    /*
+     * The arena is allocated once during FECS initialization and remains alive
+     * for the lifetime of the FECS.
+     * This arena serves as temporary workspace for FECS internals and is
+     * intended to replace transient heap allocations in hot code paths.
+     *
+     * Minimum arena size:
+     *     len(g_ctx->comps) * sizeof(DT_void*)
+     * This guarantee is currently required by SystemExec, which uses the arena
+     * to construct temporary component-array bindings during system execution.
+     * The arena may also be reused by other FECS internals for temporary
+     * working memory, provided allocations do not exceed the arena's capacity.
+     *
+     * NOTE:
+     * The arena capacity must never be reduced below:
+     *     len(g_ctx->comps) * sizeof(DT_void*)
+     * unless the SystemExec implementation is redesigned.
+     *
+     * NOTE:
+     * Any memory obtained from this arena may become invalid after an arena
+     * reset. Long-lived FECS data must not be allocated from this arena.
+     */
+    MEM_Arena *ecs_arena;
 } Context;
 
 extern Context *g_ctx;
@@ -171,7 +195,8 @@ typedef struct {
  * @return PRP_OK on success.
  * @return PRP_ERR_RES_EXHAUSTED if max cap is reached.
  * @return PRP_ERR_OOM if allocation fails.
- * @return PRP_ERR_INV_ARG if comps in the given arrays are invalid.
+ * @return PRP_ERR_INV_ARG if comps in the given arrays are invalid or are
+ *                          dupplicate.
  */
 PRP_Result BehaviorRegister(FECS_CompId *pComp_ids, DT_size comp_count,
                             FECS_BehaviorId *pBehavior_id);
@@ -229,7 +254,12 @@ typedef struct {
  * @return PRP_OK on success.
  * @return PRP_ERR_RES_EXHAUSTED if max cap is reached.
  * @return PRP_ERR_OOM if allocation fails.
- * @return PRP_ERR_INV_ARG if comps in the given arrays are invalid.
+ * @return PRP_ERR_INV_ARG if comps in the given arrays are invalid or if
+ *                         pInc_comp_ids and pExc_comp_ids have overlapping ids.
+ *
+ * @note:
+ * - If pInc_comp_ids or pExc_comp_ids contain duplicate elements, they will be
+ *   de-duplicated since checking for duplicates is expensive in this case.
  */
 PRP_Result QueryRegister(const FECS_CompId *pInc_comp_ids,
                          DT_size inc_comps_count,

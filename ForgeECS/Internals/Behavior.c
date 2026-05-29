@@ -1,3 +1,4 @@
+#include "DataTypes/Typedefs.h"
 #include "FECS-Internals.h"
 
 /**
@@ -40,18 +41,26 @@ PRP_Result BehaviorRegister(FECS_CompId *pComp_ids, DT_size comp_count,
      */
     SortCompIdxs(pComp_ids, comp_count);
     DT_size comps_len = DT_ArrLen(g_ctx->comps);
-    DT_size stride = 0;
-    for (DT_size i = 0; i < comp_count; i++) {
+
+    data.strides[0] = 0;
+    DT_size comp_size =
+        ((Component *)DT_ArrGetUnchecked(g_ctx->comps, pComp_ids[0]))->size;
+    DT_size stride = comp_size * CHUNK_CAP;
+    // Using ptr arithmetic to correctly to add the strides of unique comps.
+    DT_size *pStride_dest = &data.strides[1];
+
+    for (DT_size i = 1; i < comp_count; i++) {
         FECS_CompId comp_id = pComp_ids[i];
-        if (comp_id >= comps_len) {
+        if (comp_id >= comps_len || comp_id == pComp_ids[i - 1]) {
             code = PRP_ERR_INV_ARG;
             goto err_path;
         }
         DT_BitmapSetUnchecked(data.set, comp_id);
 
-        DT_size comp_size =
+        comp_size =
             ((Component *)DT_ArrGetUnchecked(g_ctx->comps, comp_id))->size;
-        data.strides[i] = stride;
+        *pStride_dest = stride;
+        pStride_dest++;
         stride += CHUNK_CAP * comp_size;
     }
     data.chunk_size = stride + sizeof(Chunk);
