@@ -34,7 +34,7 @@ PRP_FN_API DT_bool PRP_FN_CALL MEM_PoolIsValid(const MEM_Pool *pool);
  *
  * @param memb_size Size (in bytes) of each element.
  * @param cap       Maximum number of elements.
- * @param out       Output pointer receiving the created pool.
+ * @param pPool     Output pointer receiving the created pool.
  *
  * @return PRP_OK on success.
  * @return PRP_ERR_OOM if allocation fails or size exceeds limits.
@@ -45,14 +45,14 @@ PRP_FN_API DT_bool PRP_FN_CALL MEM_PoolIsValid(const MEM_Pool *pool);
  */
 PRP_FN_API PRP_Result PRP_FN_CALL MEM_PoolCreateUnchecked(DT_size memb_size,
                                                           DT_size cap,
-                                                          MEM_Pool **out);
+                                                          MEM_Pool **pPool);
 
 /**
  * Creates a pool allocator with validation.
  *
  * @param memb_size Size (in bytes) of each element.
  * @param cap       Maximum number of elements.
- * @param out       Output pointer receiving the created pool.
+ * @param pPool     Output pointer receiving the created pool.
  *
  * @return PRP_OK on success.
  * @return PRP_ERR_INV_ARG if arguments are invalid.
@@ -60,7 +60,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL MEM_PoolCreateUnchecked(DT_size memb_size,
  */
 PRP_FN_API PRP_Result PRP_FN_CALL MEM_PoolCreateChecked(DT_size memb_size,
                                                         DT_size cap,
-                                                        MEM_Pool **out);
+                                                        MEM_Pool **pPool);
 
 /**
  * Deletes the pool and nullifies the pointer.

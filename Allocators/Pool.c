@@ -24,10 +24,10 @@ PRP_FN_API DT_bool PRP_FN_CALL MEM_PoolIsValid(const MEM_Pool *pool) {
 
 PRP_FN_API PRP_Result PRP_FN_CALL MEM_PoolCreateUnchecked(DT_size memb_size,
                                                           DT_size cap,
-                                                          MEM_Pool **out) {
+                                                          MEM_Pool **pPool) {
     DIAG_ASSERT(memb_size > 0);
     DIAG_ASSERT(cap > 0);
-    DIAG_ASSERT(out != DT_null);
+    DIAG_ASSERT(pPool != DT_null);
 
     memb_size = PRP_MAX(memb_size, sizeof(DT_void *));
     if (cap > MAX_CAP(memb_size)) {
@@ -50,19 +50,19 @@ PRP_FN_API PRP_Result PRP_FN_CALL MEM_PoolCreateUnchecked(DT_size memb_size,
     *((DT_u8 **)curr) = pool->free_list;
     pool->free_list = pool->mem;
 
-    *out = pool;
+    *pPool = pool;
 
     return PRP_OK;
 }
 
 PRP_FN_API PRP_Result PRP_FN_CALL MEM_PoolCreateChecked(DT_size memb_size,
                                                         DT_size cap,
-                                                        MEM_Pool **out) {
-    if (!memb_size || !cap || !out) {
+                                                        MEM_Pool **pPool) {
+    if (!memb_size || !cap || !pPool) {
         return PRP_ERR_INV_ARG;
     }
 
-    return MEM_PoolCreateUnchecked(memb_size, cap, out);
+    return MEM_PoolCreateUnchecked(memb_size, cap, pPool);
 }
 
 PRP_FN_API DT_void PRP_FN_CALL MEM_PoolDeleteUnchecked(MEM_Pool **pPool) {

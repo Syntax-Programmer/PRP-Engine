@@ -24,10 +24,10 @@ PRP_FN_API DT_size PRP_FN_CALL MEM_ArenaMaxSize(DT_void) {
 }
 
 PRP_FN_API PRP_Result PRP_FN_CALL MEM_ArenaCreateUnchecked(DT_size size,
-                                                           MEM_Arena **out) {
+                                                           MEM_Arena **pArena) {
     DIAG_ASSERT(size > 0);
     DIAG_ASSERT(size <= MAX_ALLOCABLE_SIZE);
-    DIAG_ASSERT(out != DT_null);
+    DIAG_ASSERT(pArena != DT_null);
 
     MEM_Arena *arena = malloc(sizeof(MEM_Arena) + size);
     if (!arena) {
@@ -35,18 +35,18 @@ PRP_FN_API PRP_Result PRP_FN_CALL MEM_ArenaCreateUnchecked(DT_size size,
     }
     arena->size = size;
     arena->ofs = 0;
-    *out = arena;
+    *pArena = arena;
 
     return PRP_OK;
 }
 
 PRP_FN_API PRP_Result PRP_FN_CALL MEM_ArenaCreateChecked(DT_size size,
-                                                         MEM_Arena **out) {
-    if (!size || size > MAX_ALLOCABLE_SIZE || !out) {
+                                                         MEM_Arena **pArena) {
+    if (!size || size > MAX_ALLOCABLE_SIZE || !pArena) {
         return PRP_ERR_INV_ARG;
     }
 
-    return MEM_ArenaCreateUnchecked(size, out);
+    return MEM_ArenaCreateUnchecked(size, pArena);
 }
 
 PRP_FN_API DT_void PRP_FN_CALL MEM_ArenaDeleteUnchecked(MEM_Arena **pArena) {

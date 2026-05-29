@@ -39,8 +39,8 @@ PRP_FN_API DT_size PRP_FN_CALL MEM_ArenaMaxSize(DT_void);
 /**
  * Creates a new arena.
  *
- * @param size Total size (in bytes) of the arena.
- * @param out  Output pointer that receives the created arena.
+ * @param size   Total size (in bytes) of the arena.
+ * @param pArena Output pointer that receives the created arena.
  *
  * @return PRP_OK on success.
  * @return PRP_ERR_INV_ARG if arguments are invalid.
@@ -51,20 +51,20 @@ PRP_FN_API DT_size PRP_FN_CALL MEM_ArenaMaxSize(DT_void);
  * - Caller must ensure validity.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL MEM_ArenaCreateUnchecked(DT_size size,
-                                                           MEM_Arena **out);
+                                                           MEM_Arena **pArena);
 
 /**
  * Creates a new arena with full argument validation.
  *
- * @param size Total size (in bytes) of the arena.
- * @param out  Output pointer that receives the created arena.
+ * @param size   Total size (in bytes) of the arena.
+ * @param pArena Output pointer that receives the created arena.
  *
  * @return PRP_OK on success.
  * @return PRP_ERR_INV_ARG if arguments are invalid.
  * @return PRP_ERR_OOM if allocation fails.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL MEM_ArenaCreateChecked(DT_size size,
-                                                         MEM_Arena **out);
+                                                         MEM_Arena **pArena);
 
 /**
  * Deletes the arena and nullifies the pointer.
