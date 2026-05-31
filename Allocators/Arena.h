@@ -94,7 +94,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL MEM_ArenaDeleteChecked(MEM_Arena **pArena);
  *
  * @param arena Arena to allocate from.
  * @param size  Number of bytes to allocate.
- * @param dest  Output pointer receiving allocated memory.
+ * @param pDest Output pointer receiving allocated memory.
  *
  * @return PRP_OK on success.
  * @return PRP_ERR_RES_EXHAUSTED if insufficient space remains.
@@ -109,7 +109,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL MEM_ArenaDeleteChecked(MEM_Arena **pArena);
  */
 PRP_FN_API PRP_Result PRP_FN_CALL MEM_ArenaAllocUnchecked(MEM_Arena *arena,
                                                           DT_size size,
-                                                          DT_void **dest);
+                                                          DT_void **pDest);
 
 /**
  * Allocates a block of memory from the arena with validation.
@@ -118,7 +118,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL MEM_ArenaAllocUnchecked(MEM_Arena *arena,
  *
  * @param arena Arena to allocate from.
  * @param size  Number of bytes to allocate.
- * @param dest  Output pointer receiving allocated memory.
+ * @param pDest Output pointer receiving allocated memory.
  *
  * @return PRP_OK on success.
  * @return PRP_ERR_INV_ARG if arguments are invalid.
@@ -130,14 +130,14 @@ PRP_FN_API PRP_Result PRP_FN_CALL MEM_ArenaAllocUnchecked(MEM_Arena *arena,
  */
 PRP_FN_API PRP_Result PRP_FN_CALL MEM_ArenaAllocChecked(MEM_Arena *arena,
                                                         DT_size size,
-                                                        DT_void **dest);
+                                                        DT_void **pDest);
 
 /**
  * Allocates a zero-initialized block of memory from the arena.
  *
  * @param arena Arena to allocate from.
  * @param size  Number of bytes to allocate.
- * @param dest  Output pointer receiving allocated memory.
+ * @param pDest Output pointer receiving allocated memory.
  *
  * @return PRP_OK on success.
  * @return PRP_ERR_RES_EXHAUSTED if insufficient space remains.
@@ -152,14 +152,14 @@ PRP_FN_API PRP_Result PRP_FN_CALL MEM_ArenaAllocChecked(MEM_Arena *arena,
  */
 PRP_FN_API PRP_Result PRP_FN_CALL MEM_ArenaCallocUnchecked(MEM_Arena *arena,
                                                            DT_size size,
-                                                           DT_void **dest);
+                                                           DT_void **pDest);
 
 /**
  * Allocates a zero-initialized block of memory with validation.
  *
  * @param arena Arena to allocate from.
  * @param size  Number of bytes to allocate.
- * @param dest  Output pointer receiving allocated memory.
+ * @param pDest Output pointer receiving allocated memory.
  *
  * @return PRP_OK on success.
  * @return PRP_ERR_INV_ARG if arguments are invalid.
@@ -171,7 +171,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL MEM_ArenaCallocUnchecked(MEM_Arena *arena,
  */
 PRP_FN_API PRP_Result PRP_FN_CALL MEM_ArenaCallocChecked(MEM_Arena *arena,
                                                          DT_size size,
-                                                         DT_void **dest);
+                                                         DT_void **pDest);
 
 /**
  * Resets the arena.

@@ -87,8 +87,8 @@ PRP_FN_API PRP_Result PRP_FN_CALL MEM_PoolDeleteChecked(MEM_Pool **pPool);
  *
  * The returned memory is uninitialized.
  *
- * @param pool Pool to allocate from.
- * @param dest Output pointer receiving allocated memory.
+ * @param pool  Pool to allocate from.
+ * @param pDest Output pointer receiving allocated memory.
  *
  * @return PRP_OK on success.
  * @return PRP_ERR_RES_EXHAUSTED if no free blocks remain.
@@ -97,29 +97,29 @@ PRP_FN_API PRP_Result PRP_FN_CALL MEM_PoolDeleteChecked(MEM_Pool **pPool);
  * - Asserts on invalid arguments in debug.
  *
  * @warning
- * dest MUST be a void**. Passing T** is undefined behavior.
+ * pDest MUST be a void**. Passing T** is undefined behavior.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL MEM_PoolAllocUnchecked(MEM_Pool *pool,
-                                                         DT_void **dest);
+                                                         DT_void **pDest);
 
 /**
  * Allocates a block from the pool with validation.
  *
- * @param pool Pool to allocate from.
- * @param dest Output pointer receiving allocated memory.
+ * @param pool  Pool to allocate from.
+ * @param pDest Output pointer receiving allocated memory.
  *
  * @return PRP_OK on success.
  * @return PRP_ERR_INV_ARG if arguments are invalid.
  * @return PRP_ERR_RES_EXHAUSTED if no free blocks remain.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL MEM_PoolAllocChecked(MEM_Pool *pool,
-                                                       DT_void **dest);
+                                                       DT_void **pDest);
 
 /**
  * Allocates a zero-initialized block from the pool.
  *
- * @param pool Pool to allocate from.
- * @param dest Output pointer receiving allocated memory.
+ * @param pool  Pool to allocate from.
+ * @param pDest Output pointer receiving allocated memory.
  *
  * @return PRP_OK on success.
  * @return PRP_ERR_RES_EXHAUSTED if no free blocks remain.
@@ -128,20 +128,20 @@ PRP_FN_API PRP_Result PRP_FN_CALL MEM_PoolAllocChecked(MEM_Pool *pool,
  * - Asserts on invalid arguments in debug.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL MEM_PoolCallocUnchecked(MEM_Pool *pool,
-                                                          DT_void **dest);
+                                                          DT_void **pDest);
 
 /**
  * Allocates a zero-initialized block from the pool with validation.
  *
- * @param pool Pool to allocate from.
- * @param dest Output pointer receiving allocated memory.
+ * @param pool  Pool to allocate from.
+ * @param pDest Output pointer receiving allocated memory.
  *
  * @return PRP_OK on success.
  * @return PRP_ERR_INV_ARG if arguments are invalid.
  * @return PRP_ERR_RES_EXHAUSTED if no free blocks remain.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL MEM_PoolCallocChecked(MEM_Pool *pool,
-                                                        DT_void **dest);
+                                                        DT_void **pDest);
 
 /**
  * Frees a previously allocated block back to the pool.

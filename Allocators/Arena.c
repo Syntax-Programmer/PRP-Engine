@@ -70,10 +70,10 @@ PRP_FN_API PRP_Result PRP_FN_CALL MEM_ArenaDeleteChecked(MEM_Arena **pArena) {
 
 PRP_FN_API PRP_Result PRP_FN_CALL MEM_ArenaAllocUnchecked(MEM_Arena *arena,
                                                           DT_size size,
-                                                          DT_void **dest) {
+                                                          DT_void **pDest) {
     ASSERT_INVARIANT_EXPR(arena);
     DIAG_ASSERT(size > 0);
-    DIAG_ASSERT(dest != DT_null);
+    DIAG_ASSERT(pDest != DT_null);
 
     if (size > arena->size - arena->ofs) {
         return PRP_ERR_RES_EXHAUSTED;
@@ -81,27 +81,27 @@ PRP_FN_API PRP_Result PRP_FN_CALL MEM_ArenaAllocUnchecked(MEM_Arena *arena,
 
     DT_void *ptr = arena->mem + arena->ofs;
     arena->ofs += size;
-    *dest = ptr;
+    *pDest = ptr;
 
     return PRP_OK;
 }
 
 PRP_FN_API PRP_Result PRP_FN_CALL MEM_ArenaAllocChecked(MEM_Arena *arena,
                                                         DT_size size,
-                                                        DT_void **dest) {
-    if (!MEM_ArenaIsValid(arena) || !size || !dest) {
+                                                        DT_void **pDest) {
+    if (!MEM_ArenaIsValid(arena) || !size || !pDest) {
         return PRP_ERR_INV_ARG;
     }
 
-    return MEM_ArenaAllocUnchecked(arena, size, dest);
+    return MEM_ArenaAllocUnchecked(arena, size, pDest);
 }
 
 PRP_FN_API PRP_Result PRP_FN_CALL MEM_ArenaCallocUnchecked(MEM_Arena *arena,
                                                            DT_size size,
-                                                           DT_void **dest) {
+                                                           DT_void **pDest) {
     ASSERT_INVARIANT_EXPR(arena);
     DIAG_ASSERT(size > 0);
-    DIAG_ASSERT(dest != DT_null);
+    DIAG_ASSERT(pDest != DT_null);
 
     if (size > arena->size - arena->ofs) {
         return PRP_ERR_RES_EXHAUSTED;
@@ -110,19 +110,19 @@ PRP_FN_API PRP_Result PRP_FN_CALL MEM_ArenaCallocUnchecked(MEM_Arena *arena,
     DT_void *ptr = arena->mem + arena->ofs;
     arena->ofs += size;
     memset(ptr, 0, size);
-    *dest = ptr;
+    *pDest = ptr;
 
     return PRP_OK;
 }
 
 PRP_FN_API PRP_Result PRP_FN_CALL MEM_ArenaCallocChecked(MEM_Arena *arena,
                                                          DT_size size,
-                                                         DT_void **dest) {
-    if (!MEM_ArenaIsValid(arena) || !size || !dest) {
+                                                         DT_void **pDest) {
+    if (!MEM_ArenaIsValid(arena) || !size || !pDest) {
         return PRP_ERR_INV_ARG;
     }
 
-    return MEM_ArenaCallocUnchecked(arena, size, dest);
+    return MEM_ArenaCallocUnchecked(arena, size, pDest);
 }
 
 PRP_FN_API DT_void PRP_FN_CALL MEM_ArenaResetUnchecked(MEM_Arena *arena) {

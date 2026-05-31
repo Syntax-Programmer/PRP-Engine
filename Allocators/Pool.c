@@ -88,9 +88,9 @@ PRP_FN_API PRP_Result PRP_FN_CALL MEM_PoolDeleteChecked(MEM_Pool **pPool) {
 }
 
 PRP_FN_API PRP_Result PRP_FN_CALL MEM_PoolAllocUnchecked(MEM_Pool *pool,
-                                                         DT_void **dest) {
+                                                         DT_void **pDest) {
     ASSERT_INVARIANT_EXPR(pool);
-    DIAG_ASSERT(dest != DT_null);
+    DIAG_ASSERT(pDest != DT_null);
 
     if (!pool->free_list) {
         return PRP_ERR_RES_EXHAUSTED;
@@ -98,24 +98,24 @@ PRP_FN_API PRP_Result PRP_FN_CALL MEM_PoolAllocUnchecked(MEM_Pool *pool,
 
     DT_void *ptr = pool->free_list;
     pool->free_list = *((DT_u8 **)pool->free_list);
-    *dest = ptr;
+    *pDest = ptr;
 
     return PRP_OK;
 }
 
 PRP_FN_API PRP_Result PRP_FN_CALL MEM_PoolAllocChecked(MEM_Pool *pool,
-                                                       DT_void **dest) {
-    if (!MEM_PoolIsValid(pool) || !dest) {
+                                                       DT_void **pDest) {
+    if (!MEM_PoolIsValid(pool) || !pDest) {
         return PRP_ERR_INV_ARG;
     }
 
-    return MEM_PoolAllocUnchecked(pool, dest);
+    return MEM_PoolAllocUnchecked(pool, pDest);
 }
 
 PRP_FN_API PRP_Result PRP_FN_CALL MEM_PoolCallocUnchecked(MEM_Pool *pool,
-                                                          DT_void **dest) {
+                                                          DT_void **pDest) {
     ASSERT_INVARIANT_EXPR(pool);
-    DIAG_ASSERT(dest != DT_null);
+    DIAG_ASSERT(pDest != DT_null);
 
     if (!pool->free_list) {
         return PRP_ERR_RES_EXHAUSTED;
@@ -124,18 +124,18 @@ PRP_FN_API PRP_Result PRP_FN_CALL MEM_PoolCallocUnchecked(MEM_Pool *pool,
     DT_void *ptr = pool->free_list;
     pool->free_list = *((DT_u8 **)pool->free_list);
     memset(ptr, 0, pool->memb_size);
-    *dest = ptr;
+    *pDest = ptr;
 
     return PRP_OK;
 }
 
 PRP_FN_API PRP_Result PRP_FN_CALL MEM_PoolCallocChecked(MEM_Pool *pool,
-                                                        DT_void **dest) {
-    if (!MEM_PoolIsValid(pool) || !dest) {
+                                                        DT_void **pDest) {
+    if (!MEM_PoolIsValid(pool) || !pDest) {
         return PRP_ERR_INV_ARG;
     }
 
-    return MEM_PoolCallocUnchecked(pool, dest);
+    return MEM_PoolCallocUnchecked(pool, pDest);
 }
 
 PRP_FN_API DT_void PRP_FN_CALL MEM_PoolFreeUnchecked(MEM_Pool *pool,
