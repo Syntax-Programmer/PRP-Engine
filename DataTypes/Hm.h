@@ -7,6 +7,35 @@ extern "C" {
 #include "DataTypes/Typedefs.h"
 #include "Utils/Defs.h"
 
+/* ----  STD HASH FUNCS ---- */
+
+/**
+ * Hash func can be used to hash a string using FNV1a64 hashing.
+ *
+ * @param key The key to hash.
+ *
+ * @return The hash created of the key.
+ *
+ * @note Generic Use Case Tip:
+ * - This can be used to hash any generic byte stream, just cast it to a char
+ * ptr and make sure the last byte is nul byte.
+ */
+DT_u64 DT_HmHashStrFNV1a64(const DT_void *str_key);
+/**
+ * Hash func can be used to hash a u64 using SplitMix64 hashing.
+ *
+ * @param key The key to hash.
+ *
+ * @return The hash created of the key.
+ *
+ * @note Generic Use Case Tip:
+ * - This can be used to hash ptrs, ints(any size), uints(any size) if the user
+ * is okay of them being used as u64 ints.
+ */
+DT_u64 DT_HmHashSplitMix64(const DT_void *u64_key);
+
+/* ----  HASHMAP ---- */
+
 /**
  * DT_Hm
  *

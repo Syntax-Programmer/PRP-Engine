@@ -1,6 +1,38 @@
 #include "Hm.h"
+#include "DataTypes/Typedefs.h"
 #include "Diagnostics/Assert.h"
 #include <string.h>
+
+/* ----  STD HASH FUNCS ---- */
+
+DT_u64 DT_HashStr(const DT_void *str_key) {
+    const DT_char *key = str_key;
+    const DT_u64 FNV1A64_OFFSET_BASIS = 14695981039346656037ULL;
+    const DT_u64 FNV1A64_PRIME = 1099511628211ULL;
+
+    DT_u64 hash = FNV1A64_OFFSET_BASIS;
+
+    while (*key) {
+        hash ^= (DT_u8)*key++;
+        hash *= FNV1A64_PRIME;
+    }
+
+    return hash;
+}
+
+DT_u64 DT_HmHashSplitMix64(const DT_void *u64_key) {
+    DT_u64 x = *(const DT_u64 *)u64_key;
+
+    x ^= x >> 30;
+    x *= 0xbf58476d1ce4e5b9ULL;
+    x ^= x >> 27;
+    x *= 0x94d049bb133111ebULL;
+    x ^= x >> 31;
+
+    return x;
+}
+
+/* ----  HASHMAP ---- */
 
 // If 67% of the layout is filled, it is grown.
 #define LOAD_FACTOR (0.67)
