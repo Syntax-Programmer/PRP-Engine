@@ -101,7 +101,8 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_HmDeleteChecked(DT_Hm **pHm);
  * - Asserts on invalid arguments in debug.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_HmAddUnchecked(DT_Hm *hm, DT_void *key,
-                                                    DT_void *val);
+                                                    DT_void *val,
+                                                    DT_bool fail_on_duplicate);
 
 /**
  * Inserts a key-value pair with validation.
@@ -115,7 +116,8 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_HmAddUnchecked(DT_Hm *hm, DT_void *key,
  * @return PRP_ERR_OOM or PRP_ERR_RES_EXHAUSTED if insertion fails.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_HmAddChecked(DT_Hm *hm, DT_void *key,
-                                                  DT_void *val);
+                                                  DT_void *val,
+                                                  DT_bool fail_on_duplicate);
 
 /**
  * Retrieves the value associated with a key.

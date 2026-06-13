@@ -116,8 +116,7 @@ PRP_FN_API DT_bool PRP_FN_CALL DT_HmIsValid(const DT_Hm *hm) {
             (hm->layout_cap & (hm->layout_cap - 1)) == 0 &&
             hm->elem_cap <= MAX_ELEM_CAP && hm->elem_len <= hm->elem_cap &&
             hm->elem_len <= hm->layout_cap && hm->hash_fn != DT_null &&
-            hm->key_cmp_cb != DT_null && hm->key_del_cb != DT_null &&
-            hm->val_del_cb != DT_null);
+            hm->key_cmp_cb != DT_null);
 }
 
 PRP_FN_API PRP_Result PRP_FN_CALL DT_HmCreateUnchecked(
@@ -127,8 +126,6 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_HmCreateUnchecked(
     PRP_Result (*val_del_cb)(DT_void *val), DT_Hm **pHm) {
     DIAG_ASSERT(hash_fn != DT_null);
     DIAG_ASSERT(key_cmp_cb != DT_null);
-    DIAG_ASSERT(key_del_cb != DT_null);
-    DIAG_ASSERT(val_del_cb != DT_null);
     DIAG_ASSERT(pHm != DT_null);
 
     DT_Hm *hm = calloc(1, sizeof(DT_Hm));
@@ -184,8 +181,10 @@ PRP_FN_API DT_void PRP_FN_CALL DT_HmDeleteUnchecked(DT_Hm **pHm) {
     free(hm->layout);
     for (DT_size i = 0; i < hm->elem_len; i++) {
         Elem elem = hm->elems[i];
-        hm->key_del_cb(elem.key);
-        if (elem.val) {
+        if (hm->key_del_cb) {
+            hm->key_del_cb(elem.key);
+        }
+        if (elem.val && hm->val_del_cb) {
             hm->val_del_cb(elem.val);
         }
     }
@@ -263,7 +262,8 @@ static DT_void GrowHmLayout(DT_Hm *hm) {
 }
 
 PRP_FN_API PRP_Result PRP_FN_CALL DT_HmAddUnchecked(DT_Hm *hm, DT_void *key,
-                                                    DT_void *val) {
+                                                    DT_void *val,
+                                                    DT_bool fail_on_duplicate) {
     ASSERT_INVARIANT_EXPR(hm);
     DIAG_ASSERT(key != DT_null);
 
@@ -288,7 +288,6 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_HmAddUnchecked(DT_Hm *hm, DT_void *key,
     while (hm->layout[i] != EMPTY_I) {
         if (hm->layout[i] == DEAD_I) {
             // Marking dead index for reuse. But searching fwd for key match
-            // check.
             j = i;
         } else {
             DT_size elem_i = hm->layout[i];
@@ -296,7 +295,10 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_HmAddUnchecked(DT_Hm *hm, DT_void *key,
                 PROBE(i, perturb, mask);
                 continue;
             }
-            if (hm->elems[elem_i].val) {
+            if (fail_on_duplicate) {
+                return PRP_ERR_ALREADY_EXISTS;
+            }
+            if (hm->elems[elem_i].val && hm->val_del_cb) {
                 hm->val_del_cb(hm->elems[elem_i].val);
             }
             hm->elems[elem_i].val = val;
@@ -312,12 +314,13 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_HmAddUnchecked(DT_Hm *hm, DT_void *key,
 }
 
 PRP_FN_API PRP_Result PRP_FN_CALL DT_HmAddChecked(DT_Hm *hm, DT_void *key,
-                                                  DT_void *val) {
+                                                  DT_void *val,
+                                                  DT_bool fail_on_duplicate) {
     if (!DT_HmIsValid(hm) || !key) {
         return PRP_ERR_INV_ARG;
     }
 
-    return DT_HmAddUnchecked(hm, key, val);
+    return DT_HmAddUnchecked(hm, key, val, fail_on_duplicate);
 }
 
 PRP_FN_API PRP_Result PRP_FN_CALL DT_HmGetUnchecked(const DT_Hm *hm,
@@ -395,8 +398,10 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_HmDelElemUnchecked(DT_Hm *hm,
     DIAG_VERIFY(code == PRP_OK);
 
     Elem to_del = hm->elems[key_elem_i];
-    hm->key_del_cb(to_del.key);
-    if (to_del.val) {
+    if (hm->key_del_cb) {
+        hm->key_del_cb(to_del.key);
+    }
+    if (to_del.val && hm->val_del_cb) {
         hm->val_del_cb(to_del.val);
     }
 
@@ -460,8 +465,10 @@ PRP_FN_API DT_void PRP_FN_CALL DT_HmResetUnchecked(DT_Hm *hm) {
     memset(hm->layout, LAYOUT_EMPTYING_MASK, sizeof(DT_size) * hm->layout_cap);
     for (DT_size i = 0; i < hm->elem_len; i++) {
         Elem elem = hm->elems[i];
-        hm->key_del_cb(elem.key);
-        if (elem.val) {
+        if (hm->key_del_cb) {
+            hm->key_del_cb(elem.key);
+        }
+        if (elem.val && hm->val_del_cb) {
             hm->val_del_cb(elem.val);
         }
     }

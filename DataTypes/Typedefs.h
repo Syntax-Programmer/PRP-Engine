@@ -5,6 +5,7 @@ extern "C" {
 #endif
 
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 
 /**
@@ -54,6 +55,8 @@ typedef double DT_f64;
 typedef char DT_char;
 
 typedef void DT_void;
+
+typedef FILE *DT_file;
 
 /**
  * This is an system dependent type.
