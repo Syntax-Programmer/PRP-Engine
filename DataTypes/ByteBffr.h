@@ -20,6 +20,8 @@ extern "C" {
  */
 typedef struct _ByteBffr DT_ByteBffr;
 
+#define DT_BYTE_BFFR_DEFAULT_SIZE (128)
+
 /**
  * Checks whether the given  byte-buffer is structurally valid.
  *
