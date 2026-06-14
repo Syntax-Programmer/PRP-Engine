@@ -39,7 +39,7 @@ PRP_FN_API DT_bool PRP_FN_CALL DT_BffrIsValid(const DT_Bffr *bffr);
  *
  * @param memb_size Size (in bytes) of each element.
  * @param cap       Initial capacity.
- * @param pBffr     Output pointer receiving the arraybuffer.
+ * @param pBffr     Output pointer receiving the buffer.
  *
  * @return PRP_OK on success.
  * @return PRP_ERR_OOM if allocation fails.
@@ -109,19 +109,19 @@ PRP_FN_API DT_void PRP_FN_CALL DT_BffrDeleteUnchecked(DT_Bffr **pBffr);
  * @param pBffr Pointer to buffer pointer.
  *
  * @return PRP_OK on success.
- * @return PRP_ERR_INV_ARG if pArr or *pArr is invalid.
+ * @return PRP_ERR_INV_ARG if pBffr or *pBffr is invalid.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrDeleteChecked(DT_Bffr **pBffr);
 
 /**
- * Returns the raw memory pointer of the array contenets.
+ * Returns the raw memory pointer of the buffer contents.
  *
  * The pointer is not guaranteed to be valid after a growth operation
  *
  * @param bffr Buffer instance.
  * @param pCap Pointer to where to store cap of the buffer.
  *
- * @return The raw memory pointer of the array.
+ * @return The raw memory pointer of the buffer.
  *
  * @note Unchecked variant:
  * - Asserts on invalid arguments in debug.
@@ -129,15 +129,13 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrDeleteChecked(DT_Bffr **pBffr);
 PRP_FN_API const DT_void *PRP_FN_CALL DT_BffrRawUnchecked(const DT_Bffr *bffr,
                                                           DT_size *pCap);
 /**
- * Returns the raw memory pointer of the array contenets.
+ * Returns the raw memory pointer of the buffer contents.
  *
  * The pointer is not guaranteed to be valid after a growth operation
  *
  * @param bffr Buffer instance.
  * @param pCap Pointer to where to store cap of the buffer.
  * @param pRaw The pointer to where the raw mem will be stored.
- *
- * @return The raw memory pointer of the array.
  *
  * @return PRP_OK on success.
  * @return PRP_ERR_INV_ARG if arguments invalid.
@@ -180,7 +178,7 @@ PRP_FN_API DT_size PRP_FN_CALL DT_BffrMaxCap(const DT_Bffr *bffr);
  * Retrieves the value of the given index.
  *
  * @param bffr Buffer instance.
- * @param i    The index into the array.
+ * @param i    The index into the buffer.
  *
  * @return The value pointer at the index.
  *
@@ -206,7 +204,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrGetChecked(const DT_Bffr *bffr,
  * Sets the value of the given index.
  *
  * @param bffr  Buffer instance.
- * @param i     The index into the array.
+ * @param i     The index into the buffer.
  * @param pData The pointer to the data to set.
  *
  * @note Unchecked variant:
@@ -218,7 +216,7 @@ PRP_FN_API DT_void PRP_FN_CALL DT_BffrSetUnchecked(DT_Bffr *bffr, DT_size i,
  * Sets the value of the given index.
  *
  * @param bffr  Buffer instance.
- * @param i     The index into the array.
+ * @param i     The index into the buffer.
  * @param pData The pointer to the data to set.
  *
  * @return PRP_OK on success.
@@ -347,7 +345,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrExtendChecked(DT_Bffr *bffr1,
  * @param bffr      Buffer instance.
  * @param i         The first index.
  * @param j         The second index.
- * @param swap_bffr A temp buffer for swapping. Must be equal arr's memb size.
+ * @param swap_bffr A temp buffer for swapping. Must be equal bffr's memb size.
  *
  * @note Unchecked variant:
  * - Asserts on invalid arguments in debug.
