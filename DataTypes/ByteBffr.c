@@ -1,5 +1,6 @@
 #include "ByteBffr.h"
 #include "Diagnostics/Assert.h"
+#include <stdio.h>
 #include <string.h>
 
 struct _ByteBffr {
@@ -263,7 +264,7 @@ DT_ByteBffrExtendUnchecked(DT_ByteBffr *b_bffr1, const DT_ByteBffr *b_bffr2) {
     ASSERT_INVARIANT_EXPR(b_bffr1);
     ASSERT_INVARIANT_EXPR(b_bffr2);
 
-    if (DT_SIZE_MAX - b_bffr1->size < b_bffr2->size) {
+    if (DT_BYTE_BFFR_MAX_SIZE - b_bffr1->size < b_bffr2->size) {
         return PRP_ERR_RES_EXHAUSTED;
     }
     DT_size new_size = b_bffr1->size + b_bffr2->size, old_size = b_bffr1->size;
@@ -344,11 +345,40 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_ByteBffrClearChecked(DT_ByteBffr *b_bffr) {
 }
 
 PRP_FN_API PRP_Result PRP_FN_CALL
+DT_ByteBffrReserveUnchecked(DT_ByteBffr *b_bffr, DT_size ofs, DT_size size) {
+    ASSERT_INVARIANT_EXPR(b_bffr);
+    DIAG_ASSERT(ofs < b_bffr->size);
+    DIAG_ASSERT(DT_BYTE_BFFR_MAX_SIZE - ofs >= size);
+
+    if (b_bffr->size - ofs >= size) {
+        return PRP_OK;
+    }
+    DT_size new_size = size + ofs;
+    return DT_ByteBffrChangeSizeUnchecked(b_bffr, new_size);
+}
+
+PRP_FN_API PRP_Result PRP_FN_CALL DT_ByteBffrReserveChecked(DT_ByteBffr *b_bffr,
+                                                            DT_size ofs,
+                                                            DT_size size) {
+    if (!DT_ByteBffrIsValid(b_bffr)) {
+        return PRP_ERR_INV_ARG;
+    }
+    if (ofs >= b_bffr->size) {
+        return PRP_ERR_OOB;
+    }
+    if (DT_BYTE_BFFR_MAX_SIZE - ofs < size) {
+        return PRP_ERR_RES_EXHAUSTED;
+    }
+
+    return DT_ByteBffrReserveUnchecked(b_bffr, ofs, size);
+}
+
+PRP_FN_API PRP_Result PRP_FN_CALL
 DT_ByteBffrChangeSizeUnchecked(DT_ByteBffr *b_bffr, DT_size new_size) {
     ASSERT_INVARIANT_EXPR(b_bffr);
     DIAG_ASSERT(new_size > 0);
 
-    if (b_bffr->size == DT_SIZE_MAX) {
+    if (b_bffr->size == DT_BYTE_BFFR_MAX_SIZE) {
         return PRP_ERR_RES_EXHAUSTED;
     }
     if (b_bffr->size == new_size) {

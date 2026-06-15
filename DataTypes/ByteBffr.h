@@ -20,6 +20,7 @@ extern "C" {
  */
 typedef struct _ByteBffr DT_ByteBffr;
 
+#define DT_BYTE_BFFR_MAX_SIZE (DT_SIZE_MAX)
 #define DT_BYTE_BFFR_DEFAULT_SIZE (128)
 
 /**
@@ -372,6 +373,38 @@ PRP_FN_API DT_void PRP_FN_CALL DT_ByteBffrClearUnchecked(DT_ByteBffr *b_bffr);
  * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_ByteBffrClearChecked(DT_ByteBffr *b_bffr);
+/**
+ * Reserves size bytes into the byte-buffer from the given offset.
+ *
+ * @param b_bffr Byte-Buffer instance.
+ * @param ofs    The offset from which to reserve the memory.
+ * @param size   The size to reserve into byte-buffer.
+ *
+ * @return PRP_OK on success.
+ * @return PRP_ERR_RES_EXHAUSTED if max size is reached.
+ * @return PRP_ERR_OOM if allocation fails.
+ *
+ * @note Unchecked variant:
+ * - Asserts on invalid arguments in debug.
+ */
+PRP_FN_API PRP_Result PRP_FN_CALL
+DT_ByteBffrReserveUnchecked(DT_ByteBffr *b_bffr, DT_size ofs, DT_size size);
+/**
+ * Reserves size bytes into the byte-buffer from the given offset.
+ *
+ * @param b_bffr Byte-Buffer instance.
+ * @param ofs    The offset from which to reserve the memory.
+ * @param size   The size to reserve into byte-buffer.
+ *
+ * @return PRP_OK on success.
+ * @return PRP_ERR_RES_EXHAUSTED if max size is reached.
+ * @return PRP_ERR_OOM if allocation fails.
+ * @return PRP_ERR_OOB if offset is bigger than the byte-bffr size.
+ * @return PRP_ERR_INV_ARG if arguments are invalid..
+ */
+PRP_FN_API PRP_Result PRP_FN_CALL DT_ByteBffrReserveChecked(DT_ByteBffr *b_bffr,
+                                                            DT_size ofs,
+                                                            DT_size size);
 /**
  * Safely change size of the byte-buffer.
  *
