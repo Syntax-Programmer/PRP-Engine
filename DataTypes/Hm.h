@@ -20,7 +20,7 @@ extern "C" {
  * - This can be used to hash any generic byte stream, just cast it to a char
  * ptr and make sure the last byte is nul byte.
  */
-DT_u64 DT_HmHashStrFNV1a64(const DT_void *str_key);
+DT_u64 DT_HmHashStr(const DT_void *str_key);
 /**
  * Hash func can be used to hash a u64 using SplitMix64 hashing.
  *

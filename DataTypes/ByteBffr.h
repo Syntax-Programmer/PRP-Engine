@@ -377,7 +377,8 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_ByteBffrClearChecked(DT_ByteBffr *b_bffr);
  * Reserves size bytes into the byte-buffer from the given offset.
  *
  * @param b_bffr Byte-Buffer instance.
- * @param ofs    The offset from which to reserve the memory.
+ * @param ofs    The offset from which to reserve the memory. Can be equal to
+ *               size of the byte-bffr, for new memory chunk addition entirely.
  * @param size   The size to reserve into byte-buffer.
  *
  * @return PRP_OK on success.
@@ -393,7 +394,8 @@ DT_ByteBffrReserveUnchecked(DT_ByteBffr *b_bffr, DT_size ofs, DT_size size);
  * Reserves size bytes into the byte-buffer from the given offset.
  *
  * @param b_bffr Byte-Buffer instance.
- * @param ofs    The offset from which to reserve the memory.
+ * @param ofs    The offset from which to reserve the memory.Can be equal to
+ *               size of the byte-bffr, for new memory chunk addition entirely.
  * @param size   The size to reserve into byte-buffer.
  *
  * @return PRP_OK on success.

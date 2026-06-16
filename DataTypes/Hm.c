@@ -4,7 +4,7 @@
 
 /* ----  STD HASH FUNCS ---- */
 
-DT_u64 DT_HashStr(const DT_void *str_key) {
+DT_u64 DT_HmHashStr(const DT_void *str_key) {
     const DT_char *key = str_key;
     const DT_u64 FNV1A64_OFFSET_BASIS = 14695981039346656037ULL;
     const DT_u64 FNV1A64_PRIME = 1099511628211ULL;

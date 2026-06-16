@@ -347,7 +347,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_ByteBffrClearChecked(DT_ByteBffr *b_bffr) {
 PRP_FN_API PRP_Result PRP_FN_CALL
 DT_ByteBffrReserveUnchecked(DT_ByteBffr *b_bffr, DT_size ofs, DT_size size) {
     ASSERT_INVARIANT_EXPR(b_bffr);
-    DIAG_ASSERT(ofs < b_bffr->size);
+    DIAG_ASSERT(ofs <= b_bffr->size);
     DIAG_ASSERT(DT_BYTE_BFFR_MAX_SIZE - ofs >= size);
 
     if (b_bffr->size - ofs >= size) {
@@ -363,7 +363,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_ByteBffrReserveChecked(DT_ByteBffr *b_bffr,
     if (!DT_ByteBffrIsValid(b_bffr)) {
         return PRP_ERR_INV_ARG;
     }
-    if (ofs >= b_bffr->size) {
+    if (ofs > b_bffr->size) {
         return PRP_ERR_OOB;
     }
     if (DT_BYTE_BFFR_MAX_SIZE - ofs < size) {
