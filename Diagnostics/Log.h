@@ -6,7 +6,6 @@ extern "C" {
 
 #include "DataTypes/Typedefs.h"
 #include "Utils/Defs.h"
-#include <stdio.h>
 
 typedef enum {
     DIAG_LOG_CODE_NONE,
