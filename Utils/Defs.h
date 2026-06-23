@@ -25,6 +25,8 @@ extern "C" {
 #define PRP_MAX(x, y) (((x) > (y)) ? (x) : (y))
 #define PRP_MIN(x, y) (((x) > (y)) ? (y) : (x))
 
+#define PRP_ALIGN_UP(val, align) (((val) + ((align) - 1)) & ~((align) - 1))
+
 /**
  * These are added to a function to mark it as being exposed as dlls
  *
