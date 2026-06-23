@@ -359,12 +359,12 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrChangeSizeUnchecked(DT_Bffr *bffr,
     ASSERT_INVARIANT_EXPR(bffr);
     DIAG_ASSERT(new_cap > 0);
 
+    if (bffr->cap == new_cap) {
+        return PRP_OK;
+    }
     DT_size max_cap = DT_BFFR_MAX_CAP(bffr->memb_size);
     if (bffr->cap == max_cap || new_cap > max_cap) {
         return PRP_ERR_RES_EXHAUSTED;
-    }
-    if (bffr->cap == new_cap) {
-        return PRP_OK;
     }
     DT_u8 *mem = realloc(bffr->mem, new_cap * bffr->memb_size);
     if (!mem) {

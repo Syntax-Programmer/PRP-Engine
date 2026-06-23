@@ -9,11 +9,23 @@ struct _Arr {
     DT_u8 *mem;
 };
 
-#define DEFAULT_NEW_CAP(cap) ((cap) * 2)
-
 #define ASSERT_INVARIANT_EXPR(arr)                                             \
     DIAG_ASSERT_MSG(DT_ArrIsValid(arr),                                        \
                     "The given array is either DT_null, or is corrupted.")
+
+/**
+ * Centralized std policy for array cap increases.
+ *
+ * @param curr_cap Current cap of the array.
+ * @param max_cap  The max cap of the array.
+ *
+ * @return New cap of the array.
+ *
+ * @note:
+ * - If returned cap == curr_cap, we have hit the max cap and must not do any
+ * allocation.
+ */
+static DT_size CapIncPolicy(DT_size curr_cap, DT_size max_cap);
 /**
  * Safely change size of the array.
  *
@@ -26,13 +38,21 @@ struct _Arr {
  */
 static PRP_Result ArrChangeSize(DT_Arr *arr, DT_size new_cap);
 
+static DT_size CapIncPolicy(DT_size curr_cap, DT_size max_cap) {
+    if (max_cap / 2 >= curr_cap) {
+        return curr_cap * 2;
+    } else {
+        return max_cap;
+    }
+}
+
 static PRP_Result ArrChangeSize(DT_Arr *arr, DT_size new_cap) {
+    if (arr->cap == new_cap) {
+        return PRP_OK;
+    }
     DT_size max_cap = DT_ARR_MAX_CAP(arr->memb_size);
     if (arr->cap == max_cap || new_cap > max_cap) {
         return PRP_ERR_RES_EXHAUSTED;
-    }
-    if (arr->cap == new_cap) {
-        return PRP_OK;
     }
 
     DT_u8 *mem = realloc(arr->mem, new_cap * arr->memb_size);
@@ -269,7 +289,12 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrPushUnchecked(DT_Arr *arr,
     DIAG_ASSERT(pData != DT_null);
 
     if (arr->len == arr->cap) {
-        PRP_Result code = ArrChangeSize(arr, DEFAULT_NEW_CAP(arr->cap));
+        DT_size new_cap =
+            CapIncPolicy(arr->cap, DT_ARR_MAX_CAP(arr->memb_size));
+        if (new_cap == arr->cap) {
+            return PRP_ERR_RES_EXHAUSTED;
+        }
+        PRP_Result code = ArrChangeSize(arr, new_cap);
         if (code != PRP_OK) {
             return code;
         }
@@ -317,7 +342,12 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrInsertUnchecked(DT_Arr *arr,
     DIAG_ASSERT(i <= arr->len);
 
     if (arr->len == arr->cap) {
-        PRP_Result code = ArrChangeSize(arr, DEFAULT_NEW_CAP(arr->cap));
+        DT_size new_cap =
+            CapIncPolicy(arr->cap, DT_ARR_MAX_CAP(arr->memb_size));
+        if (new_cap == arr->cap) {
+            return PRP_ERR_RES_EXHAUSTED;
+        }
+        PRP_Result code = ArrChangeSize(arr, new_cap);
         if (code != PRP_OK) {
             return code;
         }

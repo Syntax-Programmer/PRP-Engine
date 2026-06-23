@@ -1,6 +1,5 @@
 #include "ByteBffr.h"
 #include "Diagnostics/Assert.h"
-#include <stdio.h>
 #include <string.h>
 
 struct _ByteBffr {
@@ -378,12 +377,13 @@ DT_ByteBffrChangeSizeUnchecked(DT_ByteBffr *b_bffr, DT_size new_size) {
     ASSERT_INVARIANT_EXPR(b_bffr);
     DIAG_ASSERT(new_size > 0);
 
-    if (b_bffr->size == DT_BYTE_BFFR_MAX_SIZE) {
-        return PRP_ERR_RES_EXHAUSTED;
-    }
     if (b_bffr->size == new_size) {
         return PRP_OK;
     }
+    if (b_bffr->size == DT_BYTE_BFFR_MAX_SIZE) {
+        return PRP_ERR_RES_EXHAUSTED;
+    }
+
     DT_u8 *mem = realloc(b_bffr->mem, new_size);
     if (!mem) {
         return PRP_ERR_OOM;
