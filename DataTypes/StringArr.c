@@ -56,7 +56,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_StrArrCreateUnchecked(
     if (!str_arr) {
         return PRP_ERR_OOM;
     }
-    str_arr->pBffr = malloc(sizeof(init_bffr_size));
+    str_arr->pBffr = malloc(init_bffr_size);
     if (!str_arr->pBffr) {
         free(str_arr);
         return PRP_ERR_OOM;
