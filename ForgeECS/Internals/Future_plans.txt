@@ -1,0 +1,2 @@
+rn creating a single entitiy from a layout allocates memory for 32 entities, this is good for if large number of entities are created.
+Add a max entity cap to the layout definition that will help to optimize memory usage.

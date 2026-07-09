@@ -1,0 +1,262 @@
+#include "ForgeECS/FECS.h"
+#include "ForgeECS/Internals/FECS-World/World-Internals.h"
+#include "ForgeECS/Internals/FECS/FECS-Internals.h"
+#include "ForgeECS/Internals/World-Compiler/Compiler-Internals.h"
+
+/* ----  COMPS ---- */
+
+PRP_FN_API PRP_Result PRP_FN_CALL FECS_CompRegister(DT_char *pName,
+                                                    DT_size name_len,
+                                                    DT_size comp_size,
+                                                    FECS_CompId *pComp_id) {
+    if (!CTX_INVARIANT_EXPR) {
+        DIAG_PANIC("The engine is corrupted/not-initilized correctly.");
+    }
+    DIAG_ASSERT(pName != DT_null);
+    DIAG_ASSERT(name_len > 0);
+    DIAG_ASSERT(pComp_id != DT_null);
+
+    if (!pName || !name_len || !pComp_id) {
+        return PRP_ERR_INV_ARG;
+    }
+    *pComp_id = FECS_INVALID_ID;
+
+    PRP_Result code = CompRegister(pName, name_len, comp_size, pComp_id);
+    if (code == PRP_ERR_ALREADY_EXISTS) {
+        DIAG_LOG_ERROR(DIAG_LOG_CODE_INVALID_ARG,
+                       "The Component: %.*s, already exists.", (DT_i32)name_len,
+                       pName);
+    }
+
+    return code;
+}
+
+/* ----  SYSTEMS ---- */
+
+PRP_FN_API PRP_Result PRP_FN_CALL
+FECS_SystemRegister(DT_char *pName, DT_size name_len,
+                    FECS_SystemFunc system_func, FECS_SystemId *pSystem_id) {
+    if (!CTX_INVARIANT_EXPR) {
+        DIAG_PANIC("The engine is corrupted/not-initilized correctly.");
+    }
+    DIAG_ASSERT(pName != DT_null);
+    DIAG_ASSERT(name_len > 0);
+    DIAG_ASSERT(system_func != DT_null);
+    DIAG_ASSERT(pSystem_id != DT_null);
+
+    if (!pName || !name_len || !system_func || !pSystem_id) {
+        return PRP_ERR_INV_ARG;
+    }
+    *pSystem_id = FECS_INVALID_ID;
+
+    PRP_Result code = SystemRegister(pName, name_len, system_func, pSystem_id);
+    if (code == PRP_ERR_ALREADY_EXISTS) {
+        DIAG_LOG_ERROR(DIAG_LOG_CODE_INVALID_ARG,
+                       "The System: %.*s, already exists.", (DT_i32)name_len,
+                       pName);
+    }
+
+    return code;
+}
+
+/* ----  WORLD ---- */
+
+PRP_Result FECS_WorldLoad(const DT_char *pFile_path, FECS_WorldId *pWorld_id) {
+    if (!CTX_INVARIANT_EXPR) {
+        DIAG_PANIC("The engine is corrupted/not-initilized correctly.");
+    }
+    DIAG_ASSERT(pFile_path != DT_null);
+    DIAG_ASSERT(pWorld_id != DT_null);
+
+    if (!pFile_path || !pWorld_id) {
+        return PRP_ERR_INV_ARG;
+    }
+    *pWorld_id = FECS_INVALID_ID;
+
+    FECS_WorldCreateInfo world_create_info;
+    PRP_Result code = CompilerCompile(pFile_path, &world_create_info);
+    if (code != PRP_OK) {
+        return code;
+    }
+
+    FECS_World world;
+    code = WorldCreate(&world_create_info, &world);
+    if (code != PRP_OK) {
+        // The entire create info is consumed regardless.
+        return code;
+    }
+
+    code = DT_DSArrAddUnchecked(g_ctx->pWorlds, &world, pWorld_id);
+    if (code != PRP_OK) {
+        WorldDeleteCb(&world);
+        return code;
+    }
+
+    return PRP_OK;
+}
+
+PRP_Result FECS_WorldUnload(FECS_WorldId *pWorld_id) {
+    if (!CTX_INVARIANT_EXPR) {
+        DIAG_PANIC("The engine is corrupted/not-initilized correctly.");
+    }
+    DIAG_ASSERT(pWorld_id != DT_null);
+
+    if (!pWorld_id) {
+        return PRP_ERR_INV_ARG;
+    }
+
+    return DT_DSArrDelElemChecked(g_ctx->pWorlds, pWorld_id);
+}
+
+PRP_Result FECS_WorldFindLayoutId(FECS_WorldId world_id, const char *pName,
+                                  DT_size name_len, FECS_LayoutId *pLayout_id) {
+    if (!CTX_INVARIANT_EXPR) {
+        DIAG_PANIC("The engine is corrupted/not-initilized correctly.");
+    }
+    DIAG_ASSERT(pName != DT_null);
+    DIAG_ASSERT(name_len > 0);
+    DT_void *pW;
+    PRP_Result code = DT_DSIdToDataChecked(g_ctx->pWorlds, world_id, &pW);
+    if (code != PRP_OK) {
+        return code;
+    }
+
+    *pLayout_id = WorldFindLayout(pW, pName, name_len);
+    if (*pLayout_id == FECS_INVALID_ID) {
+        return PRP_ERR_NOT_FOUND;
+    }
+
+    return PRP_OK;
+}
+
+PRP_Result
+FECS_WorldFindSystemInstanceId(FECS_WorldId world_id, const char *pName,
+                               DT_size name_len,
+                               FECS_SystemInstanceId *pSystem_instance_id) {
+    if (!CTX_INVARIANT_EXPR) {
+        DIAG_PANIC("The engine is corrupted/not-initilized correctly.");
+    }
+    DIAG_ASSERT(pName != DT_null);
+    DIAG_ASSERT(name_len > 0);
+    DT_void *pW;
+    PRP_Result code = DT_DSIdToDataChecked(g_ctx->pWorlds, world_id, &pW);
+    if (code != PRP_OK) {
+        return code;
+    }
+
+    *pSystem_instance_id = WorldFindSystemInstance(pW, pName, name_len);
+    if (*pSystem_instance_id == FECS_INVALID_ID) {
+        return PRP_ERR_NOT_FOUND;
+    }
+
+    return PRP_OK;
+}
+
+/* ----  ENTITIES  ---- */
+
+PRP_Result FECS_EntitySpawn(FECS_WorldId world_id, FECS_LayoutId layout_id,
+                            FECS_EntityId *pEntity);
+PRP_Result FECS_EntityGroupSpawn(FECS_WorldId world_id, FECS_LayoutId layout_id,
+                                 DT_size entity_count,
+                                 FECS_EntityGroupId **ppGroup);
+
+PRP_Result FECS_EntityIsValid(FECS_WorldId world_id, const FECS_EntityId entity,
+                              DT_bool *pRslt);
+PRP_Result FECS_EntityGroupIsValid(FECS_WorldId world_id,
+                                   const FECS_EntityGroupId *pGroup,
+                                   DT_bool *pRslt);
+
+PRP_Result FECS_EntityKill(FECS_WorldId world_id, FECS_EntityId *pEntity);
+PRP_Result FECS_EntityGroupKill(FECS_WorldId world_id,
+                                FECS_EntityGroupId **ppGroup);
+
+PRP_Result FECS_EntityGetComp(FECS_WorldId world_id, const FECS_EntityId entity,
+                              FECS_CompId comp_id, DT_void **ppComp_ptr);
+PRP_Result FECS_EntitySetComp(FECS_WorldId world_id, FECS_EntityId entity,
+                              FECS_CompId comp_id, const DT_void *pComp_data);
+
+PRP_Result FECS_EntityGroupForEach(
+    FECS_WorldId world_id, FECS_EntityGroupId *pGroup, FECS_CompId comp_id,
+    PRP_Result (*cb)(DT_void *pComp_data, DT_void *pUser_data),
+    DT_void *pUser_data);
+
+/* ----  SYSTEM INSTANCE ---- */
+
+/* ----  FECS ---- */
+
+PRP_FN_API PRP_Result PRP_FN_CALL FECS_Init(DT_void) {
+    if (CTX_INVARIANT_EXPR) {
+        return PRP_OK;
+    }
+
+    g_ctx = calloc(1, sizeof(FECS_InternalCtx));
+    if (!g_ctx) {
+        return PRP_ERR_OOM;
+    }
+
+    PRP_Result code = DT_ArrCreateUnchecked(sizeof(DT_size), DT_ARR_DEFAULT_CAP,
+                                            &g_ctx->pComp_sizes);
+    if (code != PRP_OK) {
+        goto err_path;
+    }
+    code = DT_ArrCreateUnchecked(sizeof(FECS_SystemFunc), DT_ARR_DEFAULT_CAP,
+                                 &g_ctx->pSystem_funcs);
+    if (code != PRP_OK) {
+        goto err_path;
+    }
+    code = DT_DSArrCreateUnchecked(sizeof(FECS_World), WorldDeleteCb,
+                                   &g_ctx->pWorlds);
+    if (code != PRP_OK) {
+        goto err_path;
+    }
+    const DT_size INIT_BFFR_SIZE = 256;
+    const DT_size INIT_CAP = 16;
+    code =
+        DT_StrArrCreateUnchecked(INIT_BFFR_SIZE, INIT_CAP, &g_ctx->pComp_names);
+    if (code != PRP_OK) {
+        goto err_path;
+    }
+    code = DT_StrArrCreateUnchecked(INIT_BFFR_SIZE, INIT_CAP,
+                                    &g_ctx->pSystem_names);
+    if (code != PRP_OK) {
+        goto err_path;
+    }
+
+    return PRP_OK;
+
+err_path:
+    if (g_ctx->pComp_sizes) {
+        DT_ArrDeleteUnchecked(&g_ctx->pComp_sizes);
+    }
+    if (g_ctx->pSystem_funcs) {
+        DT_ArrDeleteUnchecked(&g_ctx->pSystem_funcs);
+    }
+    if (g_ctx->pWorlds) {
+        DT_DSArrDeleteUnchecked(&g_ctx->pWorlds);
+    }
+    if (g_ctx->pComp_names) {
+        DT_StrArrDeleteUnchecked(&g_ctx->pComp_names);
+    }
+    if (g_ctx->pSystem_names) {
+        DT_StrArrDeleteUnchecked(&g_ctx->pSystem_names);
+    }
+    free(g_ctx);
+    g_ctx = DT_null;
+
+    return code;
+}
+
+PRP_FN_API DT_void PRP_FN_CALL FECS_Exit(DT_void) {
+    if (!CTX_INVARIANT_EXPR) {
+        DIAG_PANIC("The engine is corrupted/not-initilized correctly.");
+    }
+
+    DT_ArrDeleteUnchecked(&g_ctx->pComp_sizes);
+    DT_ArrDeleteUnchecked(&g_ctx->pSystem_funcs);
+    DT_DSArrDeleteUnchecked(&g_ctx->pWorlds);
+    DT_StrArrDeleteUnchecked(&g_ctx->pComp_names);
+    DT_StrArrDeleteUnchecked(&g_ctx->pSystem_names);
+
+    free(g_ctx);
+    g_ctx = DT_null;
+}
