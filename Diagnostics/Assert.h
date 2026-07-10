@@ -73,7 +73,7 @@ extern "C" {
 #if defined(PRP_NDEBUG)
 
 #define DIAG_ASSERT(expr) ((DT_void)0)
-#define DIAG_ASSERT_MSG(e, msg) ((DT_void)0)
+#define DIAG_ASSERT_MSG(e, msg, ...) ((DT_void)0)
 
 #else
 
