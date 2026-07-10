@@ -30,9 +30,6 @@ extern FECS_InternalCtx *g_ctx;
      DT_StrArrIsValid(g_ctx->pSystem_names) &&                                 \
      DT_ArrLen(g_ctx->pComp_sizes) == DT_StrArrLen(g_ctx->pComp_names) &&      \
      DT_ArrLen(g_ctx->pSystem_funcs) == DT_StrArrLen(g_ctx->pSystem_names))
-#define ASSERT_CTX_INVARIANT_EXPR                                              \
-    DIAG_ASSERT_MSG(CTX_INVARIANT_EXPR,                                        \
-                    "FECS is either not initialized or is corrupted.")
 
 DT_bool FindName(DT_char *pName, DT_size name_len, DT_size max_search_ofs,
                  DT_StrArr *pName_bffr, DT_size *pStr_idx);
