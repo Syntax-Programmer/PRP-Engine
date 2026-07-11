@@ -9,6 +9,11 @@ extern "C" {
 #include "Diagnostics/Assert.h"
 #include "ForgeECS/Internals/Typedefs.h"
 
+/**
+ * All function declared in this header expect all the parameter to be valid and
+ * in perfect condition.
+ */
+
 /* ----  CREATE INFO ---- */
 
 typedef struct {
@@ -137,7 +142,6 @@ typedef struct {
  * @return PRP_OK on success.
  */
 PRP_Result WorldDeleteCb(DT_void *pWorld);
-DT_void WorldCreateInfoDelete(FECS_WorldCreateInfo *pCreate_info);
 /**
  * Creates a fully defined world from the given create info.
  * Consumes the entire create info regardless of success or fail. So no need to

@@ -1,5 +1,4 @@
 #include "ForgeECS/Internals/World-Compiler/Compiler-Internals.h"
-#include <string.h>
 
 #define TOKS_PER_FIELD (2)
 #define EMPTY_DECL_TOK_COUNT (4)
@@ -23,20 +22,98 @@ typedef struct {
     DT_size src_bffr_size;
 } ParserState;
 
+/**
+ * Initializes the parse tables for parsing.
+ *
+ * @param pParse_table The parse table to initialize.
+ * @param pTok_stream  The tok stream to initialze the parse table with.
+ *
+ * @return PRP_OK on success.
+ * @return PRP_ERR_OOM if allocation fails.
+ */
 static PRP_Result ParseTableInit(FECS_WCParseTable *pParse_table,
                                  const FECS_WCTokStream *pTok_stream);
 
+/**
+ * Registers a new identifier into the parse table.
+ *
+ * @param pParser_state The parsing state that defines current state of parsing.
+ *                      The internals will be updated to match new state.
+ * @param pParse_table  The parse table to register identifier into.
+ *
+ * @return The identifier token metadata of the identifier.
+ */
 static FECS_WCIdentifierTok RegisterIdentifier(ParserState *pParser_state,
                                                FECS_WCParseTable *pParse_table);
 
+/**
+ * Performs common initial validity check of a layout/system-instance decl.
+ *
+ * @param pParser_state       The current state of the parsing stage. The
+ *                            internals will be updated to match new state.
+ * @param pTok_count_to_parse Output pointer to number of tokens to parse ahead
+ *                            of the newly updated state.
+ *
+ * @return DT_true if initial checks pass, otherwise DT_false.
+ */
 static DT_bool DeclIsValidInitCheck(ParserState *pParser_state,
                                     DT_size *pTok_count_to_parse);
 
+/**
+ * Used to free layout decl internals.
+ * Called via DT_ArrForEach_...
+ *
+ * @param pVal The layout decl to delete.
+ *
+ * @return PRP_OK on success.
+ */
 static PRP_Result LayoutDelCb(DT_void *pVal, DT_void *_);
+/**
+ * Parses a set of component to check if they match layout decl syntax.
+ *
+ * @param pParser_state The current state of the parsing stage. The internals
+ *                      will be updated to match new state.
+ * @param pParse_table  The parsing table to add the layout decl if we can match
+ *                      and validate it.
+ *
+ * @return PRP_OK on success.
+ * @return PRP_ERR_PARSE if initial decl validity check fails.
+ * @return PRP_ERR_PARSE if the layout decl contains no components.
+ * @return PRP_ERR_PARSE if component decl doesn't match syntax.
+ * @return PRP_ERR_RES_EXHAUSTED if max cap is reached.
+ * @return PRP_ERR_OOM if allocation fails.
+ */
 static PRP_Result ParseLayoutDecl(ParserState *pParser_state,
                                   FECS_WCParseTable *pParse_table);
 
+/**
+ * Used to free system instance decl internals.
+ * Called via DT_ArrForEach_...
+ *
+ * @param pVal The system instance decl to delete.
+ *
+ * @return PRP_OK on success.
+ */
 static PRP_Result SystemInstanceDelCb(DT_void *pVal, DT_void *_);
+/**
+ * Parses a set of component to check if they match system instance decl syntax.
+ *
+ * @param pParser_state The current state of the parsing stage. The internals
+ *                      will be updated to match new state.
+ * @param pParse_table  The parsing table to add the system instance decl if we
+ *                      can match and validate it.
+ *
+ * @return PRP_OK on success.
+ * @return PRP_ERR_PARSE if initial decl validity check fails.
+ * @return PRP_ERR_PARSE if the system instance decl contains no sub decls.
+ * @return PRP_ERR_PARSE if no system func name is defined.
+ * @return PRP_ERR_PARSE if invalid decl inside system instance exist.
+ * @return PRP_ERR_PARSE if not all sub decls exist, where system func and inc
+ *                       comps must not be empty.
+ * @return PRP_ERR_PARSE if component decl doesn't match syntax.
+ * @return PRP_ERR_RES_EXHAUSTED if max cap is reached.
+ * @return PRP_ERR_OOM if allocation fails.
+ */
 static PRP_Result ParseSystemInstanceDecl(ParserState *pParser_state,
                                           FECS_WCParseTable *pParse_table);
 

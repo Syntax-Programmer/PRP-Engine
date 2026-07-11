@@ -1,16 +1,74 @@
 #include "ForgeECS/Internals/World-Compiler/Compiler-Internals.h"
-#include <string.h>
 
+/**
+ * Initializes the tok stream to accomodate for lexing the file.
+ *
+ * @param pTok_stream The token stream to initalize.
+ * @param file        The file pointer to tokenize.
+ * @param file_size   The size of the file buffer.
+ *
+ * @return PRP_OK on success.
+ * @return PRP_ERR_OOM if allocation fails.
+ */
 static PRP_Result TokStreamInit(FECS_WCTokStream *pTok_stream, DT_file file,
                                 DT_size file_size);
 
+/**
+ * Checks if a character can be a valid start for an identifier/keyword.
+ *
+ * @param start_char The character to check.
+ *
+ * @return DT_true if valid, otherwise DT_false.
+ */
 static inline DT_bool IsIdentifierValidStart(DT_char start_char);
+/**
+ * Checks if a character can be a valid character for an identifier/keyword.
+ *
+ * @param tok_char The character to check.
+ *
+ * @return DT_true if valid, otherwise DT_false.
+ */
 static inline DT_bool IsIdentifierValid(DT_char tok_char);
+/**
+ * Checks if a character can be a valid delimiter after an identifier/keyword.
+ *
+ * @param last_char The character to check.
+ *
+ * @return DT_true if valid, otherwise DT_false.
+ */
 static inline DT_bool IsIdentifierValidDelim(DT_char last_char);
 
+/**
+ * Helper function to tokenize identifiers or keywords.
+ *
+ * @param pSrc_bffr     The src buffer to tokenize.
+ * @param src_bffr_size The size of the src buffer.
+ * @param pIdx          The file pointer index to be updated.
+ * @param pTok_stream   The tok stream to store the tokens into.
+ *
+ * @return PRP_OK on success.
+ * @return PRP_ERR_PARSE if the file contains an identifier that contains
+ *                       invalid character following it.
+ * @return PRP_ERR_RES_EXHAUSTED if max cap is reached.
+ * @return PRP_ERR_OOM if allocation fails.
+ */
 static PRP_Result TokenizeMultiCharTok(const DT_char *pSrc_bffr,
                                        DT_size src_bffr_size, DT_size *pIdx,
                                        FECS_WCTokStream *pTok_stream);
+/**
+ * Tokenizes the entire src bffr.
+ *
+ * @param pTok_stream The tok stream to store the tokens into.
+ *
+ * @return PRP_OK on success.
+ * @return PRP_ERR_PARSE if the file contains an identifier that contains
+ *                       invalid character following it.
+ * @return PRP_ERR_PARSE if the file contains an invalid character that doesn't
+ *                       being an identifier or is not one of: ' ', '\t', '\n',
+ *                       '\r'.
+ * @return PRP_ERR_RES_EXHAUSTED if max cap is reached.
+ * @return PRP_ERR_OOM if allocation fails.
+ */
 static PRP_Result TokenizeSrcBffr(FECS_WCTokStream *pTok_stream);
 
 static PRP_Result TokStreamInit(FECS_WCTokStream *pTok_stream, DT_file file,

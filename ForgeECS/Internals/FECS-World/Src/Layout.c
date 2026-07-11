@@ -16,7 +16,7 @@ static PRP_Result CreateChunk(FECS_Layout *pLayout);
  * Initializes internals of a new layout given the mem objects have been
  * inited.
  *
- * @param pLayout     Layout instance.
+ * @param pLayout Layout instance.
  *
  * @return PRP_OK on success.
  * @return PRP_ERR_RES_EXHAUSTED if max cap is reached.

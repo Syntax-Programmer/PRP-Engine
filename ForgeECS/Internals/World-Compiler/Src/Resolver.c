@@ -16,23 +16,103 @@ typedef struct {
     DT_char *pName;
 } CompResolveData;
 
+/**
+ * Destroyes the create info be it partial created or fully.
+ *
+ * @param pCreate_info The create info to delete.
+ */
 static DT_void DestroyCreateInfo(FECS_WorldCreateInfo *pCreate_info);
+/**
+ * Initializes the create info for resolving.
+ *
+ * @param pParse_table The parse table to initialize create info with.
+ * @param pCreate_info The create info to initialize.
+ *
+ * @return PRP_OK on success.
+ * @return PRP_ERR_OOM if allocation fails.
+ */
 static PRP_Result CreateInfoInit(const FECS_WCParseTable *pParse_table,
                                  FECS_WorldCreateInfo *pCreate_info);
 
+/**
+ * Resolves a component name, and adds it to a comp bitset.
+ * Called via DT_ArrForEach_...
+ *
+ * @param pVal       The identifier tok of the comp name.
+ * @param pUser_data CompResolveData instance with all relevant data.
+ *
+ * @return PRP_OK on success.
+ * @return PRP_ERR_NOT_FOUND if the component name couldn't be resolved.
+ */
 static PRP_Result ResolveCompName(DT_void *pVal, DT_void *pUser_data);
 
+/**
+ * Resolve an entire layout decl to create pLayout_create_info bitmap.
+ * Called via DT_ArrForEach_...
+ *
+ * @param pVal       The layout decl to resolve.
+ * @param pUser_data DeclResolveData instance with all relevant data.
+ *
+ * @return PRP_OK on success.
+ * @return PRP_OK if layout already exists. This is to not halt foreach exec.
+ * @return PRP_OK if unregisterd comps exist. This is to not halt foreach exec.
+ * @return PRP_ERR_RES_EXHAUSTED if max cap is reached.
+ * @return PRP_ERR_OOM if allocation fails.
+ */
 static PRP_Result ResolveLayoutDecl(DT_void *pVal, DT_void *pUser_data);
 
+/**
+ * Resolves system instance decl into inc and exc comp bitsets.
+ *
+ * @param pSystem_instance_name    The name of the system instance to resolve.
+ * @param system_instance_name_len The len of the system instance name.
+ * @param pSystem_instance_decl    The system instance decl to resolve.
+ * @param pIdentifier_bffr         The identifier bbfr that stores names of
+ *                                 comps in the pParse_table.
+ * @param ppInc_comp_set           Output resolved inc comp set bitmap.
+ * @param ppExc_comp_set           Output resolved exc comp set bitmap.
+ *
+ * @return PRP_OK on success.
+ * @return PRP_ERR_OOM if allocation fails.
+ * @return PRP_ERR_NOT_FOUND if the component name couldn't be resolved.
+ */
 static PRP_Result CreateSystemInstanceCompSets(
     const DT_char *pSystem_instance_name, DT_size system_instance_name_len,
     FECS_WCSystemInstanceDecl *pSystem_instance_decl,
     DT_ByteBffr *pIdentifier_bffr, DT_Bitmap **ppInc_comp_set,
     DT_Bitmap **ppExc_comp_set);
+/**
+ * Filters existing layouts based on the inc and exc comp sets.
+ *
+ * @param pResolve_data                DeclResolveData instance with all
+ *                                     relevant data.
+ * @param pInc_comp_set                The inc component bit set.
+ * @param pExc_comp_set                The exc component bit set.
+ * @param pSystem_instance_create_info Create info to where load the filtered
+ *                                     layouts.
+ *
+ * @return PRP_OK on success.
+ * @return PRP_ERR_OOM if allocation fails.
+ */
 static PRP_Result
 FilterLayouts(DeclResolveData *pResolve_data, DT_Bitmap *pInc_comp_set,
               DT_Bitmap *pExc_comp_set,
               FECS_SystemInstanceCreateInfo *pSystem_instance_create_info);
+/**
+ * Resolve an entire system instance decl to create system_instance_create_info.
+ * Called via DT_ArrForEach_...
+ *
+ * @param pVal       The system instance decl to resolve.
+ * @param pUser_data DeclResolveData instance with all relevant data.
+ *
+ * @return PRP_OK on success.
+ * @return PRP_OK if system instance already exists. This is to not halt foreach
+ *                exec.
+ * @return PRP_OK if unregisterd comps/system_func exist. This is to not halt
+ *                foreach exec.
+ * @return PRP_ERR_RES_EXHAUSTED if max cap is reached.
+ * @return PRP_ERR_OOM if allocation fails.
+ */
 static PRP_Result ResolveSystemInstanceDecl(DT_void *pVal, DT_void *pUser_data);
 
 static DT_void DestroyCreateInfo(FECS_WorldCreateInfo *pCreate_info) {

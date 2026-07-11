@@ -1,6 +1,15 @@
 #include "ForgeECS/Internals/FECS-World/World-Internals.h"
 #include "DataTypes/Typedefs.h"
 
+/**
+ * Initializes the world struct to accomodate for entire create info.
+ *
+ * @param pCreate_info The create info to initialize world with.
+ * @param pWorld       The world pointer to initialize.
+ *
+ * @return PRP_OK on success.
+ * @return PRP_ERR_OOM if allocation fails.
+ */
 static PRP_Result WorldInit(FECS_WorldCreateInfo *pCreate_info,
                             FECS_World *pWorld);
 
