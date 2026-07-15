@@ -1,6 +1,5 @@
 #include "Bitmap.h"
 #include "Diagnostics/Assert.h"
-#include "Utils/Defs.h"
 #include <string.h>
 
 /* ----  BITWORD UTILS ---- */
@@ -1005,8 +1004,8 @@ DT_BitmapChangeSizeUnchecked(DT_Bitmap *bmp, DT_size new_bit_cap) {
     bmp->set_c -= set_c_neg;
     if (bmp->first_set >= bmp->bit_cap) {
         /*
-         * Bcuz if first_set index is weeded pBmp in the size change the set_c is
-         * 0 and we can just skip the function calls entirely.
+         * Bcuz if first_set index is weeded pBmp in the size change the set_c
+         * is 0 and we can just skip the function calls entirely.
          */
         bmp->first_set = PRP_INVALID_INDEX;
     }
