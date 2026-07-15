@@ -55,7 +55,38 @@ DIAG_STATIC_ASSERT(CHUNK_CAP == sizeof(DT_u32) * 8,
 
 typedef struct {
     DT_Bitmap *pComp_set;
+    /*
+     * This stores the stride of each component's arrays the layout chunk
+     * stores. This is used to identify memory location of specific component
+     * arrays and component for entities.
+     * Cap of this array is equal to:
+     * DT_BitmapSetCount(FECS_Layout::pComp_set);
+     *
+     * And each stride entry corresponds to the corresponding bit set at that
+     * RANK in the pComp_set bitmap.
+     */
     DT_size *pComp_arr_strides;
+    /**
+     * Prefix population counts of FECS_Layout::pComp_set.
+     *
+     * Entry i stores the total number of set bits in bitmap words
+     * [0, i - 1]. In other words:
+     *
+     *     prefix_popcnts[i] =
+     *         popcnt(words[0]) + ... + popcnt(words[i - 1])
+     *
+     * The prefix count for word 0 is implicitly 0. These prefix counts are used
+     * to compute the bit-rank of a component in O(1) time.
+     *
+     * Array capacity:
+     *     WORD_I(DT_BitmapBitCap(FECS_Layout::pComp_set)) + 1
+     *
+     * @note:
+     * - Usage of DT_16 to store popcnts (that ultimately represent the number
+     * of comps set in each bitmap word) sets a hard cap of UINT16_MAX as the
+     * max number of components that can be registered.
+     */
+    DT_u16 *pWord_prefix_popcnts;
     DT_Arr *pChunk_ptrs;
     DT_Bitmap *pFree_chunk_bitset;
     DT_size chunk_total_size;
@@ -103,7 +134,6 @@ typedef struct {
     FECS_SystemId system_id;
     DT_size layout_id_match_count;
     FECS_LayoutId *pLayout_id_matches;
-    DT_bool is_enabled;
 } FECS_SystemInstance;
 
 /**
@@ -294,6 +324,34 @@ PRP_Result EntityGroupForEach(FECS_World *pWorld, FECS_EntityGroupId *pGroup,
                               PRP_Result (*cb)(DT_void *pComp_data,
                                                DT_void *pUser_data),
                               DT_void *pUser_data);
+
+/* ----  SYSTEM INSTANCE EXEC ---- */
+
+/**
+ * Executes the given system instance.
+ *
+ * @param pWorld World, the system instance belongs to.
+ */
+DT_void SystemInstanceExec(FECS_World *pWorld,
+                           FECS_SystemInstanceId system_instance_id,
+                           DT_void *pUser_data);
+/**
+ * Fetches pointer of the component array during system exec using exec
+ * internals.
+ *
+ * @param pExec_internals The internal data needed for system execution.
+ * @param comp_id         The component id to fetch array of.
+ *
+ * @return Valid component array ptr on success.
+ * @return DT_null if comp id doesn't exist in the layout.
+ *
+ * @note:
+ * - The user is not to explictly interact with the returned ptr. It is for
+ * internal use only.
+ */
+DT_void *
+SystemInstanceFetchComp(const FECS_SystemExecInternalData *pExec_internals,
+                        FECS_CompId comp_id);
 
 #ifdef __cplusplus
 }

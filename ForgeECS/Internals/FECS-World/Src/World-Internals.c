@@ -1,5 +1,4 @@
 #include "ForgeECS/Internals/FECS-World/World-Internals.h"
-#include "DataTypes/Typedefs.h"
 
 /**
  * Initializes the world struct to accomodate for entire create info.

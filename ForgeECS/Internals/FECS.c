@@ -1,7 +1,11 @@
 #include "ForgeECS/FECS.h"
+#include "DataTypes/Typedefs.h"
+#include "Diagnostics/Assert.h"
+#include "Diagnostics/Log.h"
 #include "ForgeECS/Internals/FECS-World/World-Internals.h"
 #include "ForgeECS/Internals/FECS/FECS-Internals.h"
 #include "ForgeECS/Internals/World-Compiler/Compiler-Internals.h"
+#include "Utils/Defs.h"
 
 /* ----  COMPS ---- */
 
@@ -425,6 +429,58 @@ PRP_Result FECS_EntityGroupForEach(
 }
 
 /* ----  SYSTEM INSTANCE ---- */
+
+PRP_FN_API PRP_Result PRP_FN_CALL FECS_SystemInstanceExec(
+    FECS_WorldId world_id, FECS_SystemInstanceId system_instance_id,
+    DT_void *pUser_data) {
+    if (!CTX_INVARIANT_EXPR) {
+        DIAG_PANIC("The engine is corrupted/not-initilized correctly.");
+    }
+    DIAG_ASSERT_MSG(DT_DSIdIsValidUnchecked(g_ctx->pWorlds, world_id),
+                    "The given world id: %zu, is not valid.", world_id);
+    FECS_World *pWorld;
+    PRP_Result code =
+        DT_DSIdToDataChecked(g_ctx->pWorlds, world_id, (DT_void **)&pWorld);
+    if (code != PRP_OK) {
+        return PRP_ERR_INV_ARG;
+    }
+    DIAG_ASSERT_MSG(system_instance_id < pWorld->system_instance_count,
+                    "The given system instance id: %zu, is not a valid system "
+                    "instance id in this world.",
+                    system_instance_id);
+    if (system_instance_id >= pWorld->system_instance_count) {
+        return PRP_ERR_INV_ARG;
+    }
+
+    SystemInstanceExec(pWorld, system_instance_id, pUser_data);
+
+    return PRP_OK;
+}
+
+PRP_FN_API PRP_Result PRP_FN_CALL
+FECS_SystemInstanceFetchComp(const FECS_SystemExecInternalData *pExec_internals,
+                             FECS_CompId comp_id, DT_void **ppComp_arr) {
+    if (!CTX_INVARIANT_EXPR) {
+        DIAG_PANIC("The engine is corrupted/not-initilized correctly.");
+    }
+    DIAG_ASSERT(pExec_internals != DT_null);
+    DIAG_ASSERT_MSG(
+        comp_id < DT_ArrLen(g_ctx->pComp_sizes),
+        "The given comp_id: %zu, is not a valid component in the FECS runtime.",
+        comp_id);
+    DIAG_ASSERT(ppComp_arr != DT_null);
+    if (!pExec_internals || !ppComp_arr ||
+        comp_id >= DT_ArrLen(g_ctx->pComp_sizes)) {
+        return PRP_ERR_INV_ARG;
+    }
+
+    *ppComp_arr = SystemInstanceFetchComp(pExec_internals, comp_id);
+    if (!(*ppComp_arr)) {
+        return PRP_ERR_NOT_FOUND;
+    }
+
+    return PRP_OK;
+}
 
 /* ----  FECS ---- */
 

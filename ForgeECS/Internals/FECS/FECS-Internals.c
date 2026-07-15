@@ -1,5 +1,4 @@
 #include "ForgeECS/Internals/FECS/FECS-Internals.h"
-#include "ForgeECS/Internals/Typedefs.h"
 
 FECS_InternalCtx *g_ctx = DT_null;
 
@@ -14,7 +13,10 @@ PRP_Result CompRegister(DT_char *pName, DT_size name_len, DT_size comp_size,
         return PRP_ERR_ALREADY_EXISTS;
     }
 
-    *pComp_id = DT_ArrLen(g_ctx->pComp_sizes);
+    DT_size len = DT_ArrLen(g_ctx->pComp_sizes);
+    if (len >= FECS_COMPONENTS_MAX_CAP) {
+        return PRP_ERR_RES_EXHAUSTED;
+    }
     PRP_Result code =
         DT_StrArrPushUnchecked(g_ctx->pComp_names, pName, name_len);
     if (code != PRP_OK) {
@@ -25,6 +27,7 @@ PRP_Result CompRegister(DT_char *pName, DT_size name_len, DT_size comp_size,
         DT_StrArrPopUnchecked(g_ctx->pComp_names, DT_null, DT_null);
         return code;
     }
+    *pComp_id = len;
 
     return PRP_OK;
 }
@@ -41,7 +44,7 @@ PRP_Result SystemRegister(DT_char *pName, DT_size name_len,
 
         return PRP_ERR_ALREADY_EXISTS;
     }
-    *pSystem_id = DT_ArrLen(g_ctx->pSystem_funcs);
+    DT_size len = DT_ArrLen(g_ctx->pSystem_funcs);
     PRP_Result code =
         DT_StrArrPushUnchecked(g_ctx->pSystem_names, pName, name_len);
     if (code != PRP_OK) {
@@ -52,6 +55,7 @@ PRP_Result SystemRegister(DT_char *pName, DT_size name_len,
         DT_StrArrPopUnchecked(g_ctx->pSystem_names, DT_null, DT_null);
         return code;
     }
+    *pSystem_id = len;
 
     return PRP_OK;
 }

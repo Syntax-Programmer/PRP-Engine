@@ -1,4 +1,3 @@
-#include "DataTypes/Arr.h"
 #include "ForgeECS/Internals/FECS-World/World-Internals.h"
 #include "ForgeECS/Internals/FECS/FECS-Internals.h"
 
@@ -78,16 +77,22 @@ static PRP_Result CreateChunk(FECS_Layout *pLayout) {
 }
 
 static PRP_Result LayoutInitInternals(FECS_Layout *pLayout) {
-    DT_size comps_len, create_info_cap, create_info_bit_cap;
+    DT_size comps_len, comp_set_cap, comp_set_bit_cap;
     const DT_size *pComp_sizes =
         DT_ArrRawUnchecked(g_ctx->pComp_sizes, &comps_len);
     const DT_Bitword *pBitwords = DT_BitmapRawUnchecked(
-        pLayout->pComp_set, &create_info_cap, &create_info_bit_cap);
+        pLayout->pComp_set, &comp_set_cap, &comp_set_bit_cap);
 
+    pLayout->pWord_prefix_popcnts[0] = 0;
     DT_size *pStride_dest = &pLayout->pComp_arr_strides[0];
     DT_size stride = 0;
-    for (DT_size i = 0, j = 0; i < create_info_cap; i++) {
+    for (DT_size i = 0, j = 0; i < comp_set_cap; i++) {
         DT_Bitword word = pBitwords[i];
+        if (i < comp_set_cap - 1) {
+            pLayout->pWord_prefix_popcnts[i + 1] =
+                pLayout->pWord_prefix_popcnts[i] +
+                (DT_u16)DT_BitwordPopCnt(word);
+        }
         while (word) {
             DT_size comp_id = DT_BitwordFFS(word) + j;
             *pStride_dest = stride;
@@ -132,6 +137,12 @@ PRP_Result LayoutCreate(DT_Bitmap *pCreate_info, FECS_Layout *pLayout) {
         code = PRP_ERR_OOM;
         goto err_path;
     }
+    pLayout->pWord_prefix_popcnts =
+        malloc(sizeof(DT_u16) * (WORD_I(DT_BitmapBitCap(pCreate_info)) + 1));
+    if (!pLayout->pWord_prefix_popcnts) {
+        code = PRP_ERR_OOM;
+        goto err_path;
+    }
     code = LayoutInitInternals(pLayout);
     if (code != PRP_OK) {
         goto err_path;
@@ -152,6 +163,9 @@ err_path:
     if (pLayout->pComp_arr_strides) {
         free(pLayout->pComp_arr_strides);
     }
+    if (pLayout->pWord_prefix_popcnts) {
+        free(pLayout->pWord_prefix_popcnts);
+    }
 
     return code;
 }
@@ -166,9 +180,11 @@ DT_void LayoutDelete(FECS_Layout *pLayout) {
     DT_ArrDeleteUnchecked(&pLayout->pChunk_ptrs);
 
     free(pLayout->pComp_arr_strides);
+    free(pLayout->pWord_prefix_popcnts);
 
 #if !defined(PRP_NDEBUG)
     pLayout->pComp_arr_strides = DT_null;
+    pLayout->pWord_prefix_popcnts = DT_null;
 #endif
 }
 

@@ -314,13 +314,12 @@ FilterLayouts(DeclResolveData *pResolve_data, DT_Bitmap *pInc_comp_set,
         DT_Bitmap *pLayout_create_info =
             pResolve_data->pCreate_info->ppLayout_create_infos[i];
 
-        if (DT_BitmapHasAnyUnchecked(pLayout_create_info, pExc_comp_set)) {
+        if (DT_BitmapHasAnyUnchecked(pLayout_create_info, pExc_comp_set) ||
+            !DT_BitmapHasAllUnchecked(pLayout_create_info, pInc_comp_set)) {
             continue;
-        } else if (DT_BitmapHasAllUnchecked(pLayout_create_info,
-                                            pInc_comp_set)) {
-            pSystem_instance_create_info->pLayout_id_matches
-                [pSystem_instance_create_info->layout_id_match_count++] = i;
         }
+        pSystem_instance_create_info->pLayout_id_matches
+            [pSystem_instance_create_info->layout_id_match_count++] = i;
     }
 
     if (pSystem_instance_create_info->layout_id_match_count == 0) {
