@@ -193,8 +193,8 @@ DT_void LayoutDelete(FECS_Layout *pLayout) {
 #define CHUNK(pLayout, chunk_idx)                                              \
     (*(FECS_Chunk **)DT_ArrGetUnchecked((pLayout)->pChunk_ptrs, (chunk_idx)))
 
-#define ENTITY_SLOT_MASK ((DT_size)31)
-#define ENTITY_SLOT_BITS (5)
+#define ENTITY_SLOT_MASK ((DT_size)63)
+#define ENTITY_SLOT_BITS (6)
 // Explicit encoding instead of just multiplying, to show intent.
 #define ENTITY_IDX(chunk_idx, slot_idx)                                        \
     (((DT_size)(chunk_idx) << ENTITY_SLOT_BITS) |                              \
@@ -207,7 +207,7 @@ DT_void LayoutDelete(FECS_Layout *pLayout) {
  */
 typedef struct {
     DT_size chunk_idx;
-    DT_u32 occupied_slots;
+    FECS_ChunkFreeSlotType occupied_slots;
     DT_u32 gens[CHUNK_CAP];
 } ChunkView;
 
@@ -254,8 +254,9 @@ PRP_Result EntitySpawn(FECS_World *pWorld, FECS_LayoutId layout_id,
         free_chunk_idx = DT_BitmapFFS(pLayout->pFree_chunk_bitset);
     }
     FECS_Chunk *pChunk = CHUNK(pLayout, free_chunk_idx);
-    DT_u32 free_slot_idx =
-        (DT_u32)DT_BitwordFFS((DT_Bitword)pChunk->free_slot_bitset);
+    FECS_ChunkFreeSlotType free_slot_idx =
+        (FECS_ChunkFreeSlotType)DT_BitwordFFS(
+            (DT_Bitword)pChunk->free_slot_bitset);
     pEntity->layout_id = layout_id;
     pEntity->gen = pChunk->gens[free_chunk_idx];
     pEntity->entity_idx = ENTITY_IDX(free_chunk_idx, free_slot_idx);
@@ -298,9 +299,10 @@ PRP_Result EntityGroupSpawn(FECS_World *pWorld, FECS_LayoutId layout_id,
         FECS_Chunk *pChunk = CHUNK(pLayout, free_chunk_idx);
 
         // This is correct since every free slot will now become occupied.
-        DT_u32 occupied_slots_mask = pChunk->free_slot_bitset;
+        FECS_ChunkFreeSlotType occupied_slots_mask = pChunk->free_slot_bitset;
         DT_size left = entity_count - alloc_count;
-        DT_u32 pop = (DT_u32)DT_BitwordPopCnt(occupied_slots_mask);
+        FECS_ChunkFreeSlotType pop =
+            (FECS_ChunkFreeSlotType)DT_BitwordPopCnt(occupied_slots_mask);
         for (; pop > left; pop--) {
             occupied_slots_mask &= occupied_slots_mask - 1;
         }
@@ -367,9 +369,10 @@ static PRP_Result EntityGroupValidityCb(DT_void *pVal, DT_void *pUser_data) {
         return PRP_ERR_INV_STATE;
     }
     FECS_Chunk *pChunk = CHUNK(pLayout, pChunk_view->chunk_idx);
-    DT_u32 mask = pChunk_view->occupied_slots;
+    FECS_ChunkFreeSlotType mask = pChunk_view->occupied_slots;
     while (mask) {
-        DT_u32 slot = (DT_u32)DT_BitwordCTZ(mask);
+        FECS_ChunkFreeSlotType slot =
+            (FECS_ChunkFreeSlotType)DT_BitwordCTZ(mask);
         if (pChunk_view->gens[slot] != pChunk->gens[slot] ||
             PRP_BIT_IS_SET(pChunk->free_slot_bitset, BIT_MASK(slot))) {
             return PRP_ERR_INV_STATE;
@@ -414,9 +417,10 @@ static PRP_Result EntityGroupKillCb(DT_void *pVal, DT_void *pUser_data) {
         return PRP_ERR_INV_ARG;
     }
     FECS_Chunk *pChunk = CHUNK(pLayout, pChunk_view->chunk_idx);
-    DT_u32 mask = pChunk_view->occupied_slots;
+    FECS_ChunkFreeSlotType mask = pChunk_view->occupied_slots;
     while (mask) {
-        DT_u32 slot = (DT_u32)DT_BitwordCTZ(mask);
+        FECS_ChunkFreeSlotType slot =
+            (FECS_ChunkFreeSlotType)DT_BitwordCTZ(mask);
         if (pChunk_view->gens[slot] != pChunk->gens[slot] ||
             PRP_BIT_IS_SET(pChunk->free_slot_bitset, BIT_MASK(slot))) {
             if (mask != pChunk_view->occupied_slots) {
@@ -511,9 +515,10 @@ static PRP_Result EntityGroupIterationCb(DT_void *pVal, DT_void *pUser_data) {
         return PRP_ERR_INV_ARG;
     }
     FECS_Chunk *pChunk = CHUNK(pI_data->pLayout, pChunk_view->chunk_idx);
-    DT_u32 mask = pChunk_view->occupied_slots;
+    FECS_ChunkFreeSlotType mask = pChunk_view->occupied_slots;
     while (mask) {
-        DT_u32 slot = (DT_u32)DT_BitwordCTZ(mask);
+        FECS_ChunkFreeSlotType slot =
+            (FECS_ChunkFreeSlotType)DT_BitwordCTZ(mask);
         if (pChunk_view->gens[slot] != pChunk->gens[slot] ||
             PRP_BIT_IS_SET(pChunk->free_slot_bitset, BIT_MASK(slot))) {
             if (mask != pChunk_view->occupied_slots) {

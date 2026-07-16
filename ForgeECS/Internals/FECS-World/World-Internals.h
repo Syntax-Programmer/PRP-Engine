@@ -1,6 +1,5 @@
 #pragma once
 
-#include "Utils/Defs.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -48,15 +47,16 @@ typedef struct {
 
 /* ----  LAYOUTS ---- */
 
-#define CHUNK_CAP (32)
+#define CHUNK_CAP (64)
+typedef DT_u64 FECS_ChunkFreeSlotType;
 
 typedef struct {
     DT_u32 gens[CHUNK_CAP];
-    DT_u32 free_slot_bitset;
+    FECS_ChunkFreeSlotType free_slot_bitset;
     DT_u8 pChunk_mem[];
 } FECS_Chunk;
 
-DIAG_STATIC_ASSERT(CHUNK_CAP == sizeof(DT_u32) * 8,
+DIAG_STATIC_ASSERT(CHUNK_CAP == sizeof(DT_u64) * 8,
                    "free_slot bit width must match CHUNK_CAP");
 
 typedef struct {

@@ -51,7 +51,7 @@ typedef struct {
 /* ----  SYSTEMS ---- */
 
 typedef struct SystemData FECS_SystemExecInternalData;
-typedef DT_u32 FECS_SystemExecOccupancyMask;
+typedef DT_u64 FECS_SystemExecOccupancyMask;
 typedef DT_void (*FECS_SystemFunc)(
     const FECS_SystemExecInternalData *pExec_internals,
     FECS_SystemExecOccupancyMask occupancy_mask, DT_void *pUser_data);

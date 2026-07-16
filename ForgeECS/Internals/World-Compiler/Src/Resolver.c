@@ -1,8 +1,4 @@
-#include "DataTypes/Arr.h"
-#include "DataTypes/Bitmap.h"
-#include "DataTypes/StringArr.h"
 #include "ForgeECS/Internals/FECS/FECS-Internals.h"
-#include "ForgeECS/Internals/Typedefs.h"
 #include "ForgeECS/Internals/World-Compiler/Compiler-Internals.h"
 
 typedef struct {

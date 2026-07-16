@@ -1,6 +1,4 @@
 #include "ForgeECS/FECS.h"
-#include "DataTypes/Arr.h"
-#include "DataTypes/Typedefs.h"
 #include "ForgeECS/Internals/FECS-World/World-Internals.h"
 #include "ForgeECS/Internals/FECS/FECS-Internals.h"
 #include "ForgeECS/Internals/World-Compiler/Compiler-Internals.h"

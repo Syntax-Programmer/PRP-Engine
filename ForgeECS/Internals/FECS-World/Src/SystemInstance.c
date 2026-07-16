@@ -1,7 +1,6 @@
-#include "DataTypes/Typedefs.h"
 #include "ForgeECS/Internals/FECS-World/World-Internals.h"
 #include "ForgeECS/Internals/FECS/FECS-Internals.h"
-#include <stdlib.h>
+#include "ForgeECS/Internals/Typedefs.h"
 
 struct SystemData {
     FECS_SystemFunc func;
@@ -66,7 +65,8 @@ static PRP_Result ExecCb(DT_void *pVal, DT_void *pUser_data) {
     FECS_SystemExecInternalData *pExec_internals = pUser_data;
     pExec_internals->pChunk_mem = (*(FECS_Chunk **)pVal)->pChunk_mem;
     FECS_SystemExecOccupancyMask occupancy_mask =
-        ~(*(FECS_Chunk **)pVal)->free_slot_bitset;
+        (FECS_SystemExecOccupancyMask)(~(*(FECS_Chunk **)pVal)
+                                            ->free_slot_bitset);
     if (occupancy_mask == 0) {
         return PRP_OK;
     }
