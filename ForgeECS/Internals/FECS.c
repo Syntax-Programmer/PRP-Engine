@@ -1,4 +1,6 @@
 #include "ForgeECS/FECS.h"
+#include "DataTypes/Arr.h"
+#include "DataTypes/Typedefs.h"
 #include "ForgeECS/Internals/FECS-World/World-Internals.h"
 #include "ForgeECS/Internals/FECS/FECS-Internals.h"
 #include "ForgeECS/Internals/World-Compiler/Compiler-Internals.h"
@@ -35,7 +37,8 @@ PRP_FN_API PRP_Result PRP_FN_CALL FECS_CompRegister(DT_char *pName,
 
 PRP_FN_API PRP_Result PRP_FN_CALL
 FECS_SystemRegister(DT_char *pName, DT_size name_len,
-                    FECS_SystemFunc system_func, FECS_SystemId *pSystem_id) {
+                    FECS_SystemFunc system_func, DT_size comp_ids_needed_count,
+                    FECS_CompId *pComp_ids_needed, FECS_SystemId *pSystem_id) {
     if (!CTX_INVARIANT_EXPR) {
         DIAG_PANIC("The engine is corrupted/not-initilized correctly.");
     }
@@ -49,7 +52,15 @@ FECS_SystemRegister(DT_char *pName, DT_size name_len,
     }
     *pSystem_id = FECS_INVALID_ID;
 
-    PRP_Result code = SystemRegister(pName, name_len, system_func, pSystem_id);
+    /*
+     * We don't assert for pComp_ids validity too here since that routine is
+     * also handled by the SystemRegister function internally.
+     * This is unlike the EntityGroup functions where we do assert in this
+     * level, and that is intentional.
+     */
+    PRP_Result code =
+        SystemRegister(pName, name_len, system_func, comp_ids_needed_count,
+                       pComp_ids_needed, pSystem_id);
     if (code == PRP_ERR_ALREADY_EXISTS) {
         DIAG_LOG_ERROR(DIAG_LOG_CODE_INVALID_ARG,
                        "The System: %.*s, already exists.", (DT_i32)name_len,
@@ -455,24 +466,19 @@ PRP_FN_API PRP_Result PRP_FN_CALL FECS_SystemInstanceExec(
 
 PRP_FN_API PRP_Result PRP_FN_CALL
 FECS_SystemInstanceFetchComp(const FECS_SystemExecInternalData *pExec_internals,
-                             FECS_CompId comp_id, DT_void **ppComp_arr) {
+                             DT_size idx, DT_void **ppComp_arr) {
     if (!CTX_INVARIANT_EXPR) {
         DIAG_PANIC("The engine is corrupted/not-initilized correctly.");
     }
     DIAG_ASSERT(pExec_internals != DT_null);
-    DIAG_ASSERT_MSG(
-        comp_id < DT_ArrLen(g_ctx->pComp_sizes),
-        "The given comp_id: %zu, is not a valid component in the FECS runtime.",
-        comp_id);
     DIAG_ASSERT(ppComp_arr != DT_null);
-    if (!pExec_internals || !ppComp_arr ||
-        comp_id >= DT_ArrLen(g_ctx->pComp_sizes)) {
+    if (!pExec_internals || !ppComp_arr) {
         return PRP_ERR_INV_ARG;
     }
 
-    *ppComp_arr = SystemInstanceFetchComp(pExec_internals, comp_id);
+    *ppComp_arr = SystemInstanceFetchComp(pExec_internals, idx);
     if (!(*ppComp_arr)) {
-        return PRP_ERR_NOT_FOUND;
+        return PRP_ERR_OOB;
     }
 
     return PRP_OK;
@@ -495,8 +501,8 @@ PRP_FN_API PRP_Result PRP_FN_CALL FECS_Init(DT_void) {
     if (code != PRP_OK) {
         goto err_path;
     }
-    code = DT_ArrCreateUnchecked(sizeof(FECS_SystemFunc), DT_ARR_DEFAULT_CAP,
-                                 &g_ctx->pSystem_funcs);
+    code = DT_ArrCreateUnchecked(sizeof(FECS_SystemInfo), DT_ARR_DEFAULT_CAP,
+                                 &g_ctx->pSystem_infos);
     if (code != PRP_OK) {
         goto err_path;
     }
@@ -524,8 +530,8 @@ err_path:
     if (g_ctx->pComp_sizes) {
         DT_ArrDeleteUnchecked(&g_ctx->pComp_sizes);
     }
-    if (g_ctx->pSystem_funcs) {
-        DT_ArrDeleteUnchecked(&g_ctx->pSystem_funcs);
+    if (g_ctx->pSystem_infos) {
+        DT_ArrDeleteUnchecked(&g_ctx->pSystem_infos);
     }
     if (g_ctx->pWorlds) {
         DT_DSArrDeleteUnchecked(&g_ctx->pWorlds);
@@ -548,7 +554,8 @@ PRP_FN_API DT_void PRP_FN_CALL FECS_Exit(DT_void) {
     }
 
     DT_ArrDeleteUnchecked(&g_ctx->pComp_sizes);
-    DT_ArrDeleteUnchecked(&g_ctx->pSystem_funcs);
+    DT_ArrForEachUnchecked(g_ctx->pSystem_infos, SystemInfoDeleteCb, DT_null);
+    DT_ArrDeleteUnchecked(&g_ctx->pSystem_infos);
     DT_DSArrDeleteUnchecked(&g_ctx->pWorlds);
     DT_StrArrDeleteUnchecked(&g_ctx->pComp_names);
     DT_StrArrDeleteUnchecked(&g_ctx->pSystem_names);

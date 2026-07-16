@@ -1,4 +1,8 @@
+#include "DataTypes/Arr.h"
+#include "DataTypes/Bitmap.h"
+#include "DataTypes/StringArr.h"
 #include "ForgeECS/Internals/FECS/FECS-Internals.h"
+#include "ForgeECS/Internals/Typedefs.h"
 #include "ForgeECS/Internals/World-Compiler/Compiler-Internals.h"
 
 typedef struct {
@@ -377,6 +381,9 @@ static PRP_Result ResolveSystemInstanceDecl(DT_void *pVal,
             (int)system_name_len, pSystem_name);
         return PRP_OK;
     }
+    FECS_SystemInfo *pSystem_info =
+        DT_ArrGetUnchecked(g_ctx->pSystem_infos, system_id);
+
     DT_Bitmap *pInc_comp_set, *pExc_comp_set;
     PRP_Result code = CreateSystemInstanceCompSets(
         pSystem_instance_name, system_instance_name_len, pSystem_instance_decl,
@@ -386,11 +393,33 @@ static PRP_Result ResolveSystemInstanceDecl(DT_void *pVal,
     } else if (code != PRP_OK) {
         return code;
     }
+    for (DT_size i = 0; i < pSystem_info->comp_ids_needed_count; i++) {
+        FECS_CompId needed_comp_id = pSystem_info->pComp_ids_needed[i];
+        if (!DT_BitmapIsSetUnchecked(pInc_comp_set, needed_comp_id)) {
+            DT_BitmapDeleteUnchecked(&pInc_comp_set);
+            DT_BitmapDeleteUnchecked(&pExc_comp_set);
+
+            DT_size comp_name_len;
+            const DT_char *pComp_name = DT_StrArrGetUnchecked(
+                g_ctx->pComp_names, needed_comp_id, &comp_name_len);
+            DIAG_LOG_INFO(
+                DIAG_LOG_CODE_INVALID_STATE,
+                "System Instance: %.*s, uses system: %.*s which requires comp "
+                "id: %zu(%.*s), which the system instance cannot guarantee, "
+                "because inc sub decl doesn't include it the entire system "
+                "instance declaration will be skipped.",
+                (int)system_instance_name_len, pSystem_instance_name,
+                (int)system_name_len, pSystem_name, needed_comp_id,
+                comp_name_len, pComp_name);
+            return PRP_OK;
+        }
+    }
 
     FECS_SystemInstanceCreateInfo system_instance_create_info = {
         .system_id = system_id,
         .layout_id_match_count = 0,
-        .pLayout_id_matches = DT_null};
+        .pLayout_id_matches = DT_null,
+        .stride_dispatch_count = pSystem_info->comp_ids_needed_count};
     code = PRP_OK; // Never hurts to be explicit.
     if (DT_BitmapHasAnyUnchecked(pExc_comp_set, pInc_comp_set)) {
         DIAG_LOG_WARN(DIAG_LOG_CODE_INIT_FAIL,

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Utils/Defs.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -22,18 +23,23 @@ typedef struct {
     // These will be taken ownership of by the world.
     // Caller must not destroy/access after successful SystemInstanceCreate().
     FECS_LayoutId *pLayout_id_matches;
+    /*
+     * Number of strides to compute, this is equal to the comp_ids_needed_count
+     * in the FECS_SystemInfo.
+     */
+    DT_size stride_dispatch_count;
 } FECS_SystemInstanceCreateInfo;
 
 typedef struct {
     DT_size layout_count;
-    // These will be freed only-after creation is successful.
+    // These will be freed.
     DT_Bitmap **ppLayout_create_infos;
     // These will be taken ownership of by the world.
     // Caller must not destroy or access after successful WorldCreate().
     DT_StrArr *pLayout_names;
 
     DT_size system_instance_count;
-    // These will be freed only-after creation is successful.
+    // These will be freed.
     FECS_SystemInstanceCreateInfo *pSystem_instance_create_infos;
     // These will be taken ownership of by the world.
     // Caller must not destroy or access after successful WorldCreate().
@@ -134,6 +140,16 @@ typedef struct {
     FECS_SystemId system_id;
     DT_size layout_id_match_count;
     FECS_LayoutId *pLayout_id_matches;
+    /**
+     * A preallocated buffer for all the strides of components to be loaded into
+     * at the start of each layout.
+     * This will be used during system execution to support how the user access
+     * the component.
+     *
+     * The len of this is exactly tied to system_id, and is exactly equal to the
+     * FECS_SystemInfo::comp_ids_needed_count.
+     */
+    DT_size *pStride_dispatches;
 } FECS_SystemInstance;
 
 /**
@@ -141,9 +157,12 @@ typedef struct {
  *
  * @param pCreate_info     The schema to what the system instance contains.
  * @param pSystem_instance Output pointer to the newly created system instance.
+ *
+ * @return PRP_OK on success.
+ * @return PRP_ERR_OOM if qllocation fails.
  */
-DT_void SystemInstanceCreate(FECS_SystemInstanceCreateInfo *pCreate_info,
-                             FECS_SystemInstance *pSystem_instance);
+PRP_Result SystemInstanceCreate(FECS_SystemInstanceCreateInfo *pCreate_info,
+                                FECS_SystemInstance *pSystem_instance);
 /**
  * Deletes internals-only of the existing system instance.
  *
@@ -340,10 +359,12 @@ DT_void SystemInstanceExec(FECS_World *pWorld,
  * internals.
  *
  * @param pExec_internals The internal data needed for system execution.
- * @param comp_id         The component id to fetch array of.
+ * @param idx             The index into the strides array to fetch comp array.
+ *                        This index corresponds to the user provided
+ *                        pComp_ids_needed array during system registration.
  *
  * @return Valid component array ptr on success.
- * @return DT_null if comp id doesn't exist in the layout.
+ * @return DT_null if idx is out of bounds.
  *
  * @note:
  * - The user is not to explictly interact with the returned ptr. It is for
@@ -351,7 +372,7 @@ DT_void SystemInstanceExec(FECS_World *pWorld,
  */
 DT_void *
 SystemInstanceFetchComp(const FECS_SystemExecInternalData *pExec_internals,
-                        FECS_CompId comp_id);
+                        DT_size idx);
 
 #ifdef __cplusplus
 }

@@ -1,4 +1,5 @@
 #include "ForgeECS/Internals/FECS-World/World-Internals.h"
+#include "Utils/Defs.h"
 
 /**
  * Initializes the world struct to accomodate for entire create info.
@@ -81,10 +82,11 @@ static PRP_Result WorldInit(FECS_WorldCreateInfo *pCreate_info,
 }
 
 PRP_Result WorldCreate(FECS_WorldCreateInfo *pCreate_info, FECS_World *pWorld) {
-    DT_size create_info_idx = PRP_INVALID_INDEX;
+    DT_size layout_create_info_idx = 0;
+    DT_size system_instance_create_info_idx = 0;
+
     PRP_Result code = WorldInit(pCreate_info, pWorld);
     if (code != PRP_OK) {
-        create_info_idx = 0;
         goto free_create_info;
     }
 
@@ -98,33 +100,43 @@ PRP_Result WorldCreate(FECS_WorldCreateInfo *pCreate_info, FECS_World *pWorld) {
                 pWorld->layout_count = i;
                 WorldDeleteCb(pWorld);
 
-                create_info_idx = i + 1;
+                layout_create_info_idx = i + 1;
                 goto free_create_info;
             }
         }
+        layout_create_info_idx = PRP_INVALID_INDEX;
         // If this point is reached all layouts are initializes.
         pWorld->layout_count = pCreate_info->layout_count;
     }
     if (pWorld->pSystem_instances) {
         FECS_SystemInstance *pSystem_instances = pWorld->pSystem_instances;
         for (DT_size i = 0; i < pCreate_info->system_instance_count; i++) {
-            SystemInstanceCreate(
+            code = SystemInstanceCreate(
                 &pCreate_info->pSystem_instance_create_infos[i],
                 &pSystem_instances[i]);
+            if (code != PRP_OK) {
+                pWorld->system_instance_count = i;
+                WorldDeleteCb(pWorld);
+
+                system_instance_create_info_idx = i + 1;
+                goto free_create_info;
+            }
         }
-        // Since the SystemInstanceCreate function cannot fail.
+        system_instance_create_info_idx = PRP_INVALID_INDEX;
         pWorld->system_instance_count = pCreate_info->system_instance_count;
     }
     goto free_create_info;
 
 free_create_info:
-    if (create_info_idx != PRP_INVALID_INDEX) {
-        for (DT_size i = create_info_idx; i < pCreate_info->layout_count; i++) {
+    if (layout_create_info_idx != PRP_INVALID_INDEX) {
+        for (DT_size i = layout_create_info_idx; i < pCreate_info->layout_count;
+             i++) {
             DT_BitmapDeleteUnchecked(&pCreate_info->ppLayout_create_infos[i]);
         }
-        // If create_info_idx is set layout/world init failed, so every system
-        // instance create info needs to be freed.
-        for (DT_size i = 0; i < pCreate_info->system_instance_count; i++) {
+    }
+    if (system_instance_create_info_idx != PRP_INVALID_INDEX) {
+        for (DT_size i = system_instance_create_info_idx;
+             i < pCreate_info->system_instance_count; i++) {
             free(pCreate_info->pSystem_instance_create_infos[i]
                      .pLayout_id_matches);
         }

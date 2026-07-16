@@ -35,23 +35,27 @@ PRP_FN_API PRP_Result PRP_FN_CALL FECS_CompRegister(DT_char *pName,
 /**
  * Registers a new system to the FECS registry.
  *
- * @param pName       The name of the system.
- * @param name_len    The len of the name.
- * @param system_func The function pointer to the system func.
- * @param pSystem_id  Output pointer to the component id.
+ * @param pName                 The name of the system.
+ * @param name_len              The len of the name.
+ * @param system_func           The function pointer to the system func.
+ * @param comp_ids_needed_count The len of the pComp_ids_needed array.
+ * @param pComp_ids_needed      The array of component ids the system will use.
+ * @param pSystem_id            Output pointer to the component id.
  *
  * @return PRP_OK on success.
  * @return PRP_ERR_ALREADY_EXISTS if the system name is already used.
  * @return PRP_ERR_RES_EXHAUSTED if max cap is reached.
  * @return PRP_ERR_OOM if allocation fails.
- * @return PRP_ERR_INV_ARG if arguments are invalid.
+ * @return PRP_ERR_INV_ARG if arguments are invalid or pComp_ids_needed contains
+ *                         invalid comp id(s).
  *
  * @note:
  * -Panics and exits if FECS not initialized correctly.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL
 FECS_SystemRegister(DT_char *pName, DT_size name_len,
-                    FECS_SystemFunc system_func, FECS_SystemId *pSystem_id);
+                    FECS_SystemFunc system_func, DT_size comp_ids_needed_count,
+                    FECS_CompId *pComp_ids_needed, FECS_SystemId *pSystem_id);
 
 /* ----  WORLD ---- */
 
@@ -315,12 +319,14 @@ PRP_FN_API PRP_Result PRP_FN_CALL FECS_SystemInstanceExec(
  *
  * @param pExec_internals The internal data provided during system instance
  *                        execution.
- * @param comp_id         Id to the component to fetch the array of.
+ * @param idx             The index into the strides array to fetch comp array.
+ *                        This index corresponds to the user provided
+ *                        pComp_ids_needed array during system registration.
  * @param ppComp_arr      Output pointer to the component array.
  *
  * @return PRP_OK on success.
- * @return PRP_ERR_NOT_FOUND if the given component doesn't exist in current
- *                           layout executing.
+ * @return PRP_ERR_OOB if give idx is out of bound to the system required
+ *                     strides array.
  * @return PRP_ERR_INV_ARG if arguments are invalid.
  *
  * @note:
@@ -328,7 +334,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL FECS_SystemInstanceExec(
  */
 PRP_FN_API PRP_Result PRP_FN_CALL
 FECS_SystemInstanceFetchComp(const FECS_SystemExecInternalData *pExec_internals,
-                             FECS_CompId comp_id, DT_void **ppComp_arr);
+                             DT_size idx, DT_void **ppComp_arr);
 
 /* ----  FECS ---- */
 
