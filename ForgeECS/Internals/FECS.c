@@ -2,6 +2,7 @@
 #include "ForgeECS/Internals/FECS-World/World-Internals.h"
 #include "ForgeECS/Internals/FECS/FECS-Internals.h"
 #include "ForgeECS/Internals/World-Compiler/Compiler-Internals.h"
+#include "Utils/Defs.h"
 
 /* ----  COMPS ---- */
 
@@ -70,7 +71,8 @@ FECS_SystemRegister(DT_char *pName, DT_size name_len,
 
 /* ----  WORLD ---- */
 
-PRP_Result FECS_WorldLoad(const DT_char *pFile_path, FECS_WorldId *pWorld_id) {
+PRP_FN_API PRP_Result PRP_FN_CALL FECS_WorldLoad(const DT_char *pFile_path,
+                                                 FECS_WorldId *pWorld_id) {
     if (!CTX_INVARIANT_EXPR) {
         DIAG_PANIC("The engine is corrupted/not-initilized correctly.");
     }
@@ -104,7 +106,7 @@ PRP_Result FECS_WorldLoad(const DT_char *pFile_path, FECS_WorldId *pWorld_id) {
     return PRP_OK;
 }
 
-PRP_Result FECS_WorldUnload(FECS_WorldId *pWorld_id) {
+PRP_FN_API PRP_Result PRP_FN_CALL FECS_WorldUnload(FECS_WorldId *pWorld_id) {
     if (!CTX_INVARIANT_EXPR) {
         DIAG_PANIC("The engine is corrupted/not-initilized correctly.");
     }
@@ -119,8 +121,9 @@ PRP_Result FECS_WorldUnload(FECS_WorldId *pWorld_id) {
     return DT_DSArrDelElemChecked(g_ctx->pWorlds, pWorld_id);
 }
 
-PRP_Result FECS_WorldFindLayoutId(FECS_WorldId world_id, const char *pName,
-                                  DT_size name_len, FECS_LayoutId *pLayout_id) {
+PRP_FN_API PRP_Result PRP_FN_CALL
+FECS_WorldFindLayoutId(FECS_WorldId world_id, const char *pName,
+                       DT_size name_len, FECS_LayoutId *pLayout_id) {
     if (!CTX_INVARIANT_EXPR) {
         DIAG_PANIC("The engine is corrupted/not-initilized correctly.");
     }
@@ -148,10 +151,9 @@ PRP_Result FECS_WorldFindLayoutId(FECS_WorldId world_id, const char *pName,
     return PRP_OK;
 }
 
-PRP_Result
-FECS_WorldFindSystemInstanceId(FECS_WorldId world_id, const char *pName,
-                               DT_size name_len,
-                               FECS_SystemInstanceId *pSystem_instance_id) {
+PRP_FN_API PRP_Result PRP_FN_CALL FECS_WorldFindSystemInstanceId(
+    FECS_WorldId world_id, const char *pName, DT_size name_len,
+    FECS_SystemInstanceId *pSystem_instance_id) {
     if (!CTX_INVARIANT_EXPR) {
         DIAG_PANIC("The engine is corrupted/not-initilized correctly.");
     }
@@ -181,8 +183,9 @@ FECS_WorldFindSystemInstanceId(FECS_WorldId world_id, const char *pName,
 
 /* ----  ENTITIES  ---- */
 
-PRP_Result FECS_EntitySpawn(FECS_WorldId world_id, FECS_LayoutId layout_id,
-                            FECS_EntityId *pEntity) {
+PRP_FN_API PRP_Result PRP_FN_CALL FECS_EntitySpawn(FECS_WorldId world_id,
+                                                   FECS_LayoutId layout_id,
+                                                   FECS_EntityId *pEntity) {
     if (!CTX_INVARIANT_EXPR) {
         DIAG_PANIC("The engine is corrupted/not-initilized correctly.");
     }
@@ -209,7 +212,7 @@ PRP_Result FECS_EntitySpawn(FECS_WorldId world_id, FECS_LayoutId layout_id,
     return EntitySpawn(pWorld, layout_id, pEntity);
 }
 
-PRP_Result FECS_EntityGroupSpawn(FECS_WorldId world_id, FECS_LayoutId layout_id,
+PRP_FN_API PRP_Result PRP_FN_CALL FECS_EntityGroupSpawn(FECS_WorldId world_id, FECS_LayoutId layout_id,
                                  DT_size entity_count,
                                  FECS_EntityGroupId **ppGroup) {
     if (!CTX_INVARIANT_EXPR) {
@@ -239,7 +242,7 @@ PRP_Result FECS_EntityGroupSpawn(FECS_WorldId world_id, FECS_LayoutId layout_id,
     return EntityGroupSpawn(pWorld, layout_id, entity_count, ppGroup);
 }
 
-PRP_Result FECS_EntityIsValid(FECS_WorldId world_id, const FECS_EntityId entity,
+PRP_FN_API PRP_Result PRP_FN_CALL FECS_EntityIsValid(FECS_WorldId world_id, const FECS_EntityId entity,
                               DT_bool *pRslt) {
     if (!CTX_INVARIANT_EXPR) {
         DIAG_PANIC("The engine is corrupted/not-initilized correctly.");
@@ -262,7 +265,7 @@ PRP_Result FECS_EntityIsValid(FECS_WorldId world_id, const FECS_EntityId entity,
     return PRP_OK;
 }
 
-PRP_Result FECS_EntityGroupIsValid(FECS_WorldId world_id,
+PRP_FN_API PRP_Result PRP_FN_CALL FECS_EntityGroupIsValid(FECS_WorldId world_id,
                                    const FECS_EntityGroupId *pGroup,
                                    DT_bool *pRslt) {
     if (!CTX_INVARIANT_EXPR) {
@@ -287,7 +290,7 @@ PRP_Result FECS_EntityGroupIsValid(FECS_WorldId world_id,
     return PRP_OK;
 }
 
-PRP_Result FECS_EntityKill(FECS_WorldId world_id, FECS_EntityId *pEntity) {
+PRP_FN_API PRP_Result PRP_FN_CALL FECS_EntityKill(FECS_WorldId world_id, FECS_EntityId *pEntity) {
     if (!CTX_INVARIANT_EXPR) {
         DIAG_PANIC("The engine is corrupted/not-initilized correctly.");
     }
@@ -315,7 +318,7 @@ PRP_Result FECS_EntityKill(FECS_WorldId world_id, FECS_EntityId *pEntity) {
     return PRP_OK;
 }
 
-PRP_Result FECS_EntityGroupKill(FECS_WorldId world_id,
+PRP_FN_API PRP_Result PRP_FN_CALL FECS_EntityGroupKill(FECS_WorldId world_id,
                                 FECS_EntityGroupId **ppGroup) {
     if (!CTX_INVARIANT_EXPR) {
         DIAG_PANIC("The engine is corrupted/not-initilized correctly.");
@@ -340,7 +343,7 @@ PRP_Result FECS_EntityGroupKill(FECS_WorldId world_id,
     return EntityGroupKill(pWorld, ppGroup);
 }
 
-PRP_Result FECS_EntityGetComp(FECS_WorldId world_id, const FECS_EntityId entity,
+PRP_FN_API PRP_Result PRP_FN_CALL FECS_EntityGetComp(FECS_WorldId world_id, const FECS_EntityId entity,
                               FECS_CompId comp_id, DT_void **ppComp_ptr) {
     if (!CTX_INVARIANT_EXPR) {
         DIAG_PANIC("The engine is corrupted/not-initilized correctly.");
@@ -371,7 +374,7 @@ PRP_Result FECS_EntityGetComp(FECS_WorldId world_id, const FECS_EntityId entity,
     return EntityGetComp(pWorld, entity, comp_id, ppComp_ptr);
 }
 
-PRP_Result FECS_EntitySetComp(FECS_WorldId world_id, FECS_EntityId entity,
+PRP_FN_API PRP_Result PRP_FN_CALL FECS_EntitySetComp(FECS_WorldId world_id, FECS_EntityId entity,
                               FECS_CompId comp_id, const DT_void *pComp_data) {
     if (!CTX_INVARIANT_EXPR) {
         DIAG_PANIC("The engine is corrupted/not-initilized correctly.");
@@ -402,7 +405,7 @@ PRP_Result FECS_EntitySetComp(FECS_WorldId world_id, FECS_EntityId entity,
     return EntitySetComp(pWorld, entity, comp_id, pComp_data);
 }
 
-PRP_Result FECS_EntityGroupForEach(
+PRP_FN_API PRP_Result PRP_FN_CALL FECS_EntityGroupForEach(
     FECS_WorldId world_id, FECS_EntityGroupId *pGroup, FECS_CompId comp_id,
     PRP_Result (*cb)(DT_void *pComp_data, DT_void *pUser_data),
     DT_void *pUser_data) {

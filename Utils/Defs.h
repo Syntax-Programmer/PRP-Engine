@@ -33,6 +33,17 @@ extern "C" {
  * Syntax for using it:
  * PRP_FN_API <ret-type> PRP_FN_CALL <fn_name>(<fn-args>);
  */
+// #ifdef _WIN32
+// #ifdef PRP_EXPORTS
+// #define PRP_FN_API __declspec(dllexport)
+// #else
+// #define PRP_FN_API __declspec(dllimport)
+// #endif
+// #define PRP_FN_CALL __stdcall
+// #else
+// #define PRP_FN_API
+// #define PRP_FN_CALL
+// #endif
 #ifdef _WIN32
 #ifdef PRP_EXPORTS
 #define PRP_FN_API __declspec(dllexport)
