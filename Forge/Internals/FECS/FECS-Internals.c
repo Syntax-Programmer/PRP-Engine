@@ -1,5 +1,5 @@
 #include "Forge/Internals/FECS/FECS-Internals.h"
-#include "Forge/Internals/Typedefs.h"
+#include "Diagnostics/Assert.h"
 
 FECS_InternalCtx *g_ctx = DT_null;
 
