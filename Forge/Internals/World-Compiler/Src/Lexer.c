@@ -1,4 +1,4 @@
-#include "ForgeECS/Internals/World-Compiler/Compiler-Internals.h"
+#include "Forge/Internals/World-Compiler/Compiler-Internals.h"
 
 /**
  * Initializes the tok stream to accomodate for lexing the file.

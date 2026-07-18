@@ -6,7 +6,7 @@ extern "C" {
 
 #include "DataTypes/Arr.h"
 #include "DataTypes/ByteBffr.h"
-#include "ForgeECS/Internals/FECS-World/World-Internals.h"
+#include "Forge/Internals/FECS-World/World-Internals.h"
 
 /* ----  LEXER ---- */
 

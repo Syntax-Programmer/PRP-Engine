@@ -1,4 +1,4 @@
-#include "ForgeECS/Internals/FECS-World/World-Internals.h"
+#include "Forge/Internals/FECS-World/World-Internals.h"
 
 /**
  * Initializes the world struct to accomodate for entire create info.

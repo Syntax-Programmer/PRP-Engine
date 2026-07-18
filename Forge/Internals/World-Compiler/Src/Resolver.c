@@ -1,5 +1,5 @@
-#include "ForgeECS/Internals/FECS/FECS-Internals.h"
-#include "ForgeECS/Internals/World-Compiler/Compiler-Internals.h"
+#include "Forge/Internals/FECS/FECS-Internals.h"
+#include "Forge/Internals/World-Compiler/Compiler-Internals.h"
 
 typedef struct {
     DT_ByteBffr *pIdentifier_bffr;

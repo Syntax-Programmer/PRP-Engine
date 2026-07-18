@@ -1,6 +1,5 @@
 #pragma once
 
-#include "Utils/Defs.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -8,7 +7,7 @@ extern "C" {
 #include "DataTypes/Arr.h"
 #include "DataTypes/DSArr.h"
 #include "DataTypes/StringArr.h"
-#include "ForgeECS/Internals/Typedefs.h"
+#include "Forge/Internals/Typedefs.h"
 
 /**
  * All function declared in this header expect all the parameter to be valid and

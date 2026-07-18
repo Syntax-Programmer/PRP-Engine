@@ -1,7 +1,7 @@
-#include "ForgeECS/FECS.h"
-#include "ForgeECS/Internals/FECS-World/World-Internals.h"
-#include "ForgeECS/Internals/FECS/FECS-Internals.h"
-#include "ForgeECS/Internals/World-Compiler/Compiler-Internals.h"
+#include "Forge/FECS.h"
+#include "Forge/Internals/FECS-World/World-Internals.h"
+#include "Forge/Internals/FECS/FECS-Internals.h"
+#include "Forge/Internals/World-Compiler/Compiler-Internals.h"
 
 /* ----  COMPS ---- */
 

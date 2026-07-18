@@ -1,10 +1,5 @@
-#include "ForgeECS/Internals/FECS/FECS-Internals.h"
-#include "DataTypes/Arr.h"
-#include "DataTypes/Typedefs.h"
-#include "Diagnostics/Assert.h"
-#include "ForgeECS/Internals/Typedefs.h"
-#include "Utils/Defs.h"
-#include <complex.h>
+#include "Forge/Internals/FECS/FECS-Internals.h"
+#include "Forge/Internals/Typedefs.h"
 
 FECS_InternalCtx *g_ctx = DT_null;
 

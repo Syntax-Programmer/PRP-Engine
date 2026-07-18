@@ -1,4 +1,4 @@
-#include "ForgeECS/Internals/World-Compiler/Compiler-Internals.h"
+#include "Forge/Internals/World-Compiler/Compiler-Internals.h"
 
 PRP_Result CompilerCompile(const DT_char *pFile_path,
                            FECS_WorldCreateInfo *pCreate_info) {

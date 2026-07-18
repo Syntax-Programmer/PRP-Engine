@@ -7,7 +7,7 @@ extern "C" {
 #include "DataTypes/Bitmap.h"
 #include "DataTypes/StringArr.h"
 #include "Diagnostics/Assert.h"
-#include "ForgeECS/Internals/Typedefs.h"
+#include "Forge/Internals/Typedefs.h"
 
 /**
  * All function declared in this header expect all the parameter to be valid and

@@ -1,5 +1,4 @@
-#include "DataTypes/Typedefs.h"
-#include "ForgeECS/Internals/World-Compiler/Compiler-Internals.h"
+#include "Forge/Internals/World-Compiler/Compiler-Internals.h"
 
 #define TOKS_PER_FIELD (2)
 #define EMPTY_DECL_TOK_COUNT (4)

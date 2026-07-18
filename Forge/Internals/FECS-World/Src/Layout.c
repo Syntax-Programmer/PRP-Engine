@@ -1,5 +1,5 @@
-#include "ForgeECS/Internals/FECS-World/World-Internals.h"
-#include "ForgeECS/Internals/FECS/FECS-Internals.h"
+#include "Forge/Internals/FECS-World/World-Internals.h"
+#include "Forge/Internals/FECS/FECS-Internals.h"
 
 /**
  * Adds new chunk to layout.
