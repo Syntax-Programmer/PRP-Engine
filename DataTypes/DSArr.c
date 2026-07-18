@@ -321,7 +321,9 @@ PRP_FN_API DT_void *PRP_FN_CALL DT_DSIdToDataUnchecked(const DT_DSArr *ds_arr,
                                                        DT_DSId id) {
     ASSERT_INVARIANT_EXPR(ds_arr);
 
-    DT_u32 dummy1, dummy2, slot_data_i, dummy3;
+    // Initializing the slot_data_i doesn't change shit but we do it to satisfy
+    // compiler.
+    DT_u32 dummy1, dummy2, slot_data_i = 0, dummy3;
     PRP_Result code =
         GetIdData(ds_arr, id, &dummy1, &dummy2, &slot_data_i, &dummy3);
     DIAG_ASSERT_MSG(code == PRP_OK,
@@ -437,7 +439,7 @@ static PRP_Result GrowIdLayer(DT_DSArr *ds_arr, DT_u32 to_add) {
     }
     id_to_data_table[new_cap - 1] = ds_arr->id_layer.free_index;
     ds_arr->id_layer.free_index = ds_arr->id_layer.cap;
-    ds_arr->id_layer.free_count += new_cap - ds_arr->id_layer.cap;
+    ds_arr->id_layer.free_count += (DT_u32)new_cap - ds_arr->id_layer.cap;
 
     ds_arr->id_layer.id_to_data_table = id_to_data_table;
     ds_arr->id_layer.cap = (DT_u32)new_cap;
@@ -545,7 +547,8 @@ PRP_FN_API DT_void PRP_FN_CALL DT_DSArrDelElemUnchecked(DT_DSArr *ds_arr,
     ASSERT_INVARIANT_EXPR(ds_arr);
     DIAG_ASSERT(pId != DT_null);
 
-    DT_u32 id_i, dummy1, slot_data_i, slot_gen;
+    // Initializing the doesn't change shit but we do it to satisfy compiler.
+    DT_u32 id_i = 0, dummy1, slot_data_i = 0, slot_gen = 0;
     PRP_Result code =
         GetIdData(ds_arr, *pId, &id_i, &dummy1, &slot_data_i, &slot_gen);
     DIAG_ASSERT_MSG(code == PRP_OK,
@@ -561,7 +564,8 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_DSArrDelElemChecked(DT_DSArr *ds_arr,
         return PRP_ERR_INV_ARG;
     }
 
-    DT_u32 id_i, dummy1, slot_data_i, slot_gen;
+    // Initializing doesn't change shit but we do it to satisfy compiler.
+    DT_u32 id_i = 0, dummy1, slot_data_i = 0, slot_gen = 0;
     PRP_Result code =
         GetIdData(ds_arr, *pId, &id_i, &dummy1, &slot_data_i, &slot_gen);
     if (code != PRP_OK) {

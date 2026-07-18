@@ -2,6 +2,9 @@
 #include <pthread.h>
 #include <stdarg.h>
 
+#define DIAG_MSG_BUFFER_SIZE 512
+#define DIAG_LOG_BUFFER_SIZE 2048
+
 static pthread_mutex_t log_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 #define DIAG_COLOR_RESET "\x1b[0m"
@@ -132,10 +135,10 @@ PRP_FN_API DT_void PRP_FN_CALL DIAG_Log(DIAG_LogLevel lvl, DIAG_LogCode code,
                                         ...) {
     va_list args;
     va_start(args, msg);
-    DT_char bffr[512];
+    DT_char bffr[DIAG_MSG_BUFFER_SIZE];
     vsnprintf(bffr, sizeof(bffr), msg, args);
 
-    DT_char log[512];
+    DT_char log[DIAG_LOG_BUFFER_SIZE];
     snprintf(log, sizeof(log), "%s[%s]  %s::%zu :: %s --[%s]-- %s%s\n",
              LevelToColor(lvl), LevelToStr(lvl), file, line, func,
              CodeToStr(code), bffr, DIAG_COLOR_RESET);

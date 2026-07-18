@@ -1,3 +1,4 @@
+#include "DataTypes/Typedefs.h"
 #include "ForgeECS/Internals/World-Compiler/Compiler-Internals.h"
 
 #define TOKS_PER_FIELD (2)
@@ -198,6 +199,7 @@ static DT_bool DeclIsValidInitCheck(ParserState *pParser_state,
 }
 
 static PRP_Result LayoutDelCb(DT_void *pVal, DT_void *_) {
+    (DT_void) _;
     FECS_WCLayoutDecl *pLayout_decl = pVal;
 
     DT_ArrDeleteUnchecked(&pLayout_decl->pComp_names);
@@ -256,6 +258,7 @@ err_path:
 }
 
 static PRP_Result SystemInstanceDelCb(DT_void *pVal, DT_void *_) {
+    (DT_void) _;
     FECS_WCSystemInstanceDecl *pSystem_instance_decl = pVal;
 
     DT_ArrDeleteUnchecked(&pSystem_instance_decl->pInc_comp_names);
