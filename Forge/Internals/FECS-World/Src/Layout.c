@@ -1,5 +1,6 @@
 #include "Forge/Internals/FECS-World/World-Internals.h"
 #include "Forge/Internals/FECS/FECS-Internals.h"
+#include <sys/types.h>
 
 /**
  * Adds new chunk to layout.
@@ -467,8 +468,16 @@ PRP_Result EntityGetComp(FECS_World *pWorld, const FECS_EntityId entity,
 
     DT_size comp_size =
         (*(DT_size *)DT_ArrGetUnchecked(g_ctx->pComp_sizes, comp_id));
-    DT_size stride_idx = DT_BitmapBitRankUnchecked(pLayout->pComp_set, comp_id);
-    DT_size comp_stride = pLayout->pComp_arr_strides[stride_idx];
+
+    DT_size _;
+    const DT_Bitword *pBitwords =
+        DT_BitmapRawUnchecked(pLayout->pComp_set, &_, &_);
+    DT_size word_i = WORD_I(comp_id);
+    DT_size prefix_popcnt = pLayout->pWord_prefix_popcnts[word_i];
+    DT_u16 rank_in_word =
+        (DT_u16)DT_BitwordPopCnt(pBitwords[word_i] & (BIT_MASK(comp_id) - 1));
+    DT_size comp_stride =
+        pLayout->pComp_arr_strides[prefix_popcnt + rank_in_word];
 
     *ppComp_ptr =
         (DT_u8 *)pChunk->pChunk_mem + comp_stride + (slot_idx * comp_size);
@@ -489,8 +498,16 @@ PRP_Result EntitySetComp(FECS_World *pWorld, FECS_EntityId entity,
 
     DT_size comp_size =
         (*(DT_size *)DT_ArrGetUnchecked(g_ctx->pComp_sizes, comp_id));
-    DT_size stride_idx = DT_BitmapBitRankUnchecked(pLayout->pComp_set, comp_id);
-    DT_size comp_stride = pLayout->pComp_arr_strides[stride_idx];
+
+    DT_size _;
+    const DT_Bitword *pBitwords =
+        DT_BitmapRawUnchecked(pLayout->pComp_set, &_, &_);
+    DT_size word_i = WORD_I(comp_id);
+    DT_size prefix_popcnt = pLayout->pWord_prefix_popcnts[word_i];
+    DT_u16 rank_in_word =
+        (DT_u16)DT_BitwordPopCnt(pBitwords[word_i] & (BIT_MASK(comp_id) - 1));
+    DT_size comp_stride =
+        pLayout->pComp_arr_strides[prefix_popcnt + rank_in_word];
 
     DT_u8 *ptr =
         (DT_u8 *)pChunk->pChunk_mem + comp_stride + (slot_idx * comp_size);
@@ -529,6 +546,7 @@ static PRP_Result EntityGroupIterationCb(DT_void *pVal, DT_void *pUser_data) {
             return PRP_ERR_INV_ARG;
         }
         mask &= mask - 1;
+
         DT_u8 *ptr = (DT_u8 *)pChunk->pChunk_mem + pI_data->comp_stride +
                      (slot * pI_data->comp_size);
         PRP_Result code = pI_data->cb(ptr, pI_data->pUser_data);
@@ -553,9 +571,16 @@ PRP_Result EntityGroupForEach(FECS_World *pWorld, FECS_EntityGroupId *pGroup,
 
     i_data.comp_size =
         (*(DT_size *)DT_ArrGetUnchecked(g_ctx->pComp_sizes, comp_id));
-    DT_size stride_idx =
-        DT_BitmapBitRankUnchecked(i_data.pLayout->pComp_set, comp_id);
-    i_data.comp_stride = i_data.pLayout->pComp_arr_strides[stride_idx];
+
+    DT_size _;
+    const DT_Bitword *pBitwords =
+        DT_BitmapRawUnchecked(i_data.pLayout->pComp_set, &_, &_);
+    DT_size word_i = WORD_I(comp_id);
+    DT_size prefix_popcnt = i_data.pLayout->pWord_prefix_popcnts[word_i];
+    DT_u16 rank_in_word =
+        (DT_u16)DT_BitwordPopCnt(pBitwords[word_i] & (BIT_MASK(comp_id) - 1));
+    i_data.comp_stride =
+        i_data.pLayout->pComp_arr_strides[prefix_popcnt + rank_in_word];
 
     return DT_ArrForEachUnchecked(pGroup->pChunk_views, EntityGroupIterationCb,
                                   &i_data);

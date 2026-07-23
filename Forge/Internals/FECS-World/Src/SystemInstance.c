@@ -101,8 +101,7 @@ DT_void SystemInstanceExec(FECS_World *pWorld,
         for (DT_size j = 0; j < pSystem_info->comp_ids_needed_count; j++) {
             DT_size comp_id = pSystem_info->pComp_ids_needed[j];
             DT_size word_i = WORD_I(comp_id);
-            DT_size prefix_popcnt = exec_internals.pComp_arr_strides[j] =
-                pLayout->pWord_prefix_popcnts[word_i];
+            DT_size prefix_popcnt = pLayout->pWord_prefix_popcnts[word_i];
             DT_u16 rank_in_word = (DT_u16)DT_BitwordPopCnt(
                 pBitwords[word_i] & (BIT_MASK(comp_id) - 1));
 
