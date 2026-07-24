@@ -7,21 +7,21 @@ extern "C" {
 #include "Defs.h"
 #include "Diagnostics/Assert.h"
 #include "Math/Vector/Vec2.h"
-#include "Utils/Defs.h"
+#include "Core/Defs.h"
 
 /* ----  CONSTRUCTORS  ---- */
 
-static inline MATH_Mat2 MATH_Mat2CreateZero(DT_void) { return (MATH_Mat2){0}; }
+static inline MATH_Mat2 MATH_Mat2CreateZero(void) { return (MATH_Mat2){0}; }
 
-static inline MATH_Mat2 MATH_Mat2CreateIdentity(DT_void) {
+static inline MATH_Mat2 MATH_Mat2CreateIdentity(void) {
     return (MATH_Mat2){.membs = {1.0f, 0.0f, 0.0f, 1.0f}};
 }
 
-static inline MATH_Mat2 MATH_Mat2CreateDiagScalar(DT_f32 s) {
+static inline MATH_Mat2 MATH_Mat2CreateDiagScalar(PRP_F32 s) {
     return (MATH_Mat2){.membs = {s, 0.0f, 0.0f, s}};
 }
 
-static inline MATH_Mat2 MATH_Mat2CreateFillScalar(DT_f32 s) {
+static inline MATH_Mat2 MATH_Mat2CreateFillScalar(PRP_F32 s) {
     return (MATH_Mat2){.membs = {s, s, s, s}};
 }
 
@@ -53,62 +53,65 @@ static inline MATH_Mat2 MATH_Mat2MaxElems(MATH_Mat2 a, MATH_Mat2 b) {
 
 /* ----  COMPARE FUNCTIONS  ---- */
 
-static inline DT_f32 MATH_Mat2Min(MATH_Mat2 a) {
-    DT_f32 min1 = MATH_MinF32(a.membs[0], a.membs[1]);
-    DT_f32 min2 = MATH_MinF32(a.membs[2], a.membs[3]);
+static inline PRP_F32 MATH_Mat2Min(MATH_Mat2 a) {
+    PRP_F32 min1 = MATH_MinF32(a.membs[0], a.membs[1]);
+    PRP_F32 min2 = MATH_MinF32(a.membs[2], a.membs[3]);
 
     return MATH_MinF32(min1, min2);
 }
 
-static inline DT_f32 MATH_Mat2Max(MATH_Mat2 a) {
-    DT_f32 min1 = MATH_MaxF32(a.membs[0], a.membs[1]);
-    DT_f32 min2 = MATH_MaxF32(a.membs[2], a.membs[3]);
+static inline PRP_F32 MATH_Mat2Max(MATH_Mat2 a) {
+    PRP_F32 min1 = MATH_MaxF32(a.membs[0], a.membs[1]);
+    PRP_F32 min2 = MATH_MaxF32(a.membs[2], a.membs[3]);
 
     return MATH_MaxF32(min1, min2);
 }
 
-static inline DT_bool MATH_Mat2Eq(MATH_Mat2 a, MATH_Mat2 b) {
-    return (DT_bool)((a.membs[0] == b.membs[0]) && (a.membs[1] == b.membs[1]) &&
-                     (a.membs[2] == b.membs[2]) && (a.membs[3] == b.membs[3]));
+static inline PRP_Bool MATH_Mat2Eq(MATH_Mat2 a, MATH_Mat2 b) {
+    return (PRP_Bool)((a.membs[0] == b.membs[0]) &&
+                      (a.membs[1] == b.membs[1]) &&
+                      (a.membs[2] == b.membs[2]) && (a.membs[3] == b.membs[3]));
 }
 
-static inline DT_bool MATH_Mat2AlmostEq(MATH_Mat2 a, MATH_Mat2 b) {
-    return (DT_bool)(MATH_AlmostEqF32(a.membs[0], b.membs[0]) &&
-                     MATH_AlmostEqF32(a.membs[1], b.membs[1]) &&
-                     MATH_AlmostEqF32(a.membs[2], b.membs[2]) &&
-                     MATH_AlmostEqF32(a.membs[3], b.membs[3]));
+static inline PRP_Bool MATH_Mat2AlmostEq(MATH_Mat2 a, MATH_Mat2 b) {
+    return (PRP_Bool)(MATH_AlmostEqF32(a.membs[0], b.membs[0]) &&
+                      MATH_AlmostEqF32(a.membs[1], b.membs[1]) &&
+                      MATH_AlmostEqF32(a.membs[2], b.membs[2]) &&
+                      MATH_AlmostEqF32(a.membs[3], b.membs[3]));
 }
 
-static inline DT_bool MATH_Mat2IsZero(MATH_Mat2 a) {
-    return (DT_bool)(MATH_IsZeroF32(a.membs[0]) && MATH_IsZeroF32(a.membs[1]) &&
-                     MATH_IsZeroF32(a.membs[2]) && MATH_IsZeroF32(a.membs[3]));
+static inline PRP_Bool MATH_Mat2IsZero(MATH_Mat2 a) {
+    return (PRP_Bool)(MATH_IsZeroF32(a.membs[0]) &&
+                      MATH_IsZeroF32(a.membs[1]) &&
+                      MATH_IsZeroF32(a.membs[2]) && MATH_IsZeroF32(a.membs[3]));
 }
 
-static inline DT_bool MATH_Mat2IsNaN(MATH_Mat2 a) {
-    return (DT_bool)(MATH_IsNaNF32(a.membs[0]) || MATH_IsNaNF32(a.membs[1]) ||
-                     MATH_IsNaNF32(a.membs[2]) || MATH_IsNaNF32(a.membs[3]));
+static inline PRP_Bool MATH_Mat2IsNaN(MATH_Mat2 a) {
+    return (PRP_Bool)(MATH_IsNaNF32(a.membs[0]) || MATH_IsNaNF32(a.membs[1]) ||
+                      MATH_IsNaNF32(a.membs[2]) || MATH_IsNaNF32(a.membs[3]));
 }
 
-static inline DT_bool MATH_Mat2IsInf(MATH_Mat2 a) {
-    return (DT_bool)(MATH_IsInfF32(a.membs[0]) || MATH_IsInfF32(a.membs[1]) ||
-                     MATH_IsInfF32(a.membs[2]) || MATH_IsInfF32(a.membs[3]));
+static inline PRP_Bool MATH_Mat2IsInf(MATH_Mat2 a) {
+    return (PRP_Bool)(MATH_IsInfF32(a.membs[0]) || MATH_IsInfF32(a.membs[1]) ||
+                      MATH_IsInfF32(a.membs[2]) || MATH_IsInfF32(a.membs[3]));
 }
 
-static inline DT_bool MATH_Mat2IsSymmetric(MATH_Mat2 a) {
+static inline PRP_Bool MATH_Mat2IsSymmetric(MATH_Mat2 a) {
     return MATH_AlmostEqF32(a.membs[1], a.membs[2]);
 }
 
-static inline DT_bool MATH_Mat2IsDiagonal(MATH_Mat2 a) {
-    return (DT_bool)(MATH_IsZeroF32(a.membs[1]) && MATH_IsZeroF32(a.membs[2]));
+static inline PRP_Bool MATH_Mat2IsDiagonal(MATH_Mat2 a) {
+    return (PRP_Bool)(MATH_IsZeroF32(a.membs[1]) && MATH_IsZeroF32(a.membs[2]));
 }
 
-static inline DT_bool MATH_Mat2IsIdentity(MATH_Mat2 a) {
-    return (DT_bool)(MATH_IsZeroF32(a.membs[1]) && MATH_IsZeroF32(a.membs[2]) &&
-                     MATH_AlmostEqF32(a.membs[0], 1.0f) &&
-                     MATH_AlmostEqF32(a.membs[3], 1.0f));
+static inline PRP_Bool MATH_Mat2IsIdentity(MATH_Mat2 a) {
+    return (PRP_Bool)(MATH_IsZeroF32(a.membs[1]) &&
+                      MATH_IsZeroF32(a.membs[2]) &&
+                      MATH_AlmostEqF32(a.membs[0], 1.0f) &&
+                      MATH_AlmostEqF32(a.membs[3], 1.0f));
 }
 
-PRP_FN_API DT_bool PRP_FN_CALL MATH_Mat2IsOrthonormal(MATH_Mat2 a);
+PRP_FN_API PRP_Bool PRP_FN_CALL MATH_Mat2IsOrthonormal(MATH_Mat2 a);
 
 /* ----  BASIC OPS  ---- */
 
@@ -147,7 +150,7 @@ MAT2_INTERNAL_DEFINE_ELEMS_OP(Div, /);
 #undef MAT2_INTERNAL_DEFINE_ELEMS_OP
 
 static inline MATH_Mat2 MATH_Mat2ElemsDivSafe(MATH_Mat2 a, MATH_Mat2 b,
-                                              DT_f32 fallback) {
+                                              PRP_F32 fallback) {
     a.membs[0] = MATH_SafeDivF32(a.membs[0], b.membs[0], fallback);
     a.membs[1] = MATH_SafeDivF32(a.membs[1], b.membs[1], fallback);
     a.membs[2] = MATH_SafeDivF32(a.membs[2], b.membs[2], fallback);
@@ -157,7 +160,7 @@ static inline MATH_Mat2 MATH_Mat2ElemsDivSafe(MATH_Mat2 a, MATH_Mat2 b,
 }
 
 #define MAT2_INTERNAL_DEFINE_SCALAR_OP(op_name, op)                            \
-    static inline MATH_Mat2 MATH_Mat2Scalar##op_name(MATH_Mat2 a, DT_f32 s) {  \
+    static inline MATH_Mat2 MATH_Mat2Scalar##op_name(MATH_Mat2 a, PRP_F32 s) { \
         a.membs[0] = (a.membs[0])op(s);                                        \
         a.membs[1] = (a.membs[1])op(s);                                        \
         a.membs[2] = (a.membs[2])op(s);                                        \
@@ -173,8 +176,8 @@ MAT2_INTERNAL_DEFINE_SCALAR_OP(Div, /);
 
 #undef MAT2_INTERNAL_DEFINE_SCALAR_OP
 
-static inline MATH_Mat2 MATH_Mat2ScalarDivSafe(MATH_Mat2 a, DT_f32 s,
-                                               DT_f32 fallback) {
+static inline MATH_Mat2 MATH_Mat2ScalarDivSafe(MATH_Mat2 a, PRP_F32 s,
+                                               PRP_F32 fallback) {
     if (MATH_IsZeroF32(s)) {
         return MATH_Mat2CreateFillScalar(fallback);
     }
@@ -195,13 +198,13 @@ static inline MATH_Vec2 MATH_Mat2MulVec2(MATH_Mat2 a, MATH_Vec2 v) {
     };
 }
 
-static inline DT_f32 MATH_Mat2Trace(MATH_Mat2 a) {
+static inline PRP_F32 MATH_Mat2Trace(MATH_Mat2 a) {
     return a.membs[0] + a.membs[3];
 }
 
 /* ----  ACCESSORS  ---- */
 
-static inline MATH_Vec2 MATH_Mat2GetRow(MATH_Mat2 a, DT_size row) {
+static inline MATH_Vec2 MATH_Mat2GetRow(MATH_Mat2 a, PRP_Size row) {
     DIAG_ASSERT(row < MATH_MAT2_SIZE);
 
     return (MATH_Vec2){
@@ -210,7 +213,7 @@ static inline MATH_Vec2 MATH_Mat2GetRow(MATH_Mat2 a, DT_size row) {
     };
 }
 
-static inline MATH_Vec2 MATH_Mat2GetCol(MATH_Mat2 a, DT_size col) {
+static inline MATH_Vec2 MATH_Mat2GetCol(MATH_Mat2 a, PRP_Size col) {
     DIAG_ASSERT(col < MATH_MAT2_SIZE);
 
     return (MATH_Vec2){
@@ -219,7 +222,8 @@ static inline MATH_Vec2 MATH_Mat2GetCol(MATH_Mat2 a, DT_size col) {
     };
 }
 
-static inline MATH_Mat2 MATH_Mat2SetRow(MATH_Mat2 a, DT_size row, MATH_Vec2 v) {
+static inline MATH_Mat2 MATH_Mat2SetRow(MATH_Mat2 a, PRP_Size row,
+                                        MATH_Vec2 v) {
     DIAG_ASSERT(row < MATH_MAT2_SIZE);
 
     a.membs[0 * MATH_MAT2_SIZE + row] = v.x;
@@ -228,7 +232,8 @@ static inline MATH_Mat2 MATH_Mat2SetRow(MATH_Mat2 a, DT_size row, MATH_Vec2 v) {
     return a;
 }
 
-static inline MATH_Mat2 MATH_Mat2SetCol(MATH_Mat2 a, DT_size col, MATH_Vec2 v) {
+static inline MATH_Mat2 MATH_Mat2SetCol(MATH_Mat2 a, PRP_Size col,
+                                        MATH_Vec2 v) {
     DIAG_ASSERT(col < MATH_MAT2_SIZE);
 
     a.membs[col * MATH_MAT2_SIZE + 0] = v.x;
@@ -237,15 +242,15 @@ static inline MATH_Mat2 MATH_Mat2SetCol(MATH_Mat2 a, DT_size col, MATH_Vec2 v) {
     return a;
 }
 
-static inline DT_f32 MATH_Mat2GetAt(MATH_Mat2 a, DT_size row, DT_size col) {
+static inline PRP_F32 MATH_Mat2GetAt(MATH_Mat2 a, PRP_Size row, PRP_Size col) {
     DIAG_ASSERT(row < MATH_MAT2_SIZE);
     DIAG_ASSERT(col < MATH_MAT2_SIZE);
 
     return a.membs[col * MATH_MAT2_SIZE + row];
 }
 
-static inline MATH_Mat2 MATH_Mat2SetAt(MATH_Mat2 a, DT_size row, DT_size col,
-                                       DT_f32 val) {
+static inline MATH_Mat2 MATH_Mat2SetAt(MATH_Mat2 a, PRP_Size row, PRP_Size col,
+                                       PRP_F32 val) {
     DIAG_ASSERT(row < MATH_MAT2_SIZE);
     DIAG_ASSERT(col < MATH_MAT2_SIZE);
 
@@ -257,7 +262,7 @@ static inline MATH_Mat2 MATH_Mat2SetAt(MATH_Mat2 a, DT_size row, DT_size col,
 /* ----  BASIC ALGEBRA  ---- */
 
 static inline MATH_Mat2 MATH_Mat2Transpose(MATH_Mat2 a) {
-    DT_f32 a01 = a.membs[2];
+    PRP_F32 a01 = a.membs[2];
     a.membs[2] = a.membs[1];
     a.membs[1] = a01;
 
@@ -269,17 +274,17 @@ static inline MATH_Mat2 MATH_Mat2Adjoint(MATH_Mat2 a) {
         .membs = {a.membs[3], -a.membs[1], -a.membs[2], a.membs[0]}};
 }
 
-static inline DT_f32 MATH_Mat2Det(MATH_Mat2 a) {
-    DT_f32 a00 = a.membs[0];
-    DT_f32 a10 = a.membs[1];
-    DT_f32 a01 = a.membs[2];
-    DT_f32 a11 = a.membs[3];
+static inline PRP_F32 MATH_Mat2Det(MATH_Mat2 a) {
+    PRP_F32 a00 = a.membs[0];
+    PRP_F32 a10 = a.membs[1];
+    PRP_F32 a01 = a.membs[2];
+    PRP_F32 a11 = a.membs[3];
 
     return (a00 * a11) - (a01 * a10);
 }
 
-static inline DT_bool MATH_Mat2IsFlipped(MATH_Mat2 a) {
-    return (DT_bool)(MATH_Mat2Det(a) < 0.0f);
+static inline PRP_Bool MATH_Mat2IsFlipped(MATH_Mat2 a) {
+    return (PRP_Bool)(MATH_Mat2Det(a) < 0.0f);
 }
 
 static inline MATH_Mat2 MATH_Mat2InvOrthonormal(MATH_Mat2 a) {
@@ -289,12 +294,12 @@ static inline MATH_Mat2 MATH_Mat2InvOrthonormal(MATH_Mat2 a) {
 PRP_FN_API MATH_Mat2 PRP_FN_CALL MATH_Mat2Inv(MATH_Mat2 a,
                                               MATH_Mat2 det_zero_fallback);
 
-static inline DT_f32 MATH_Mat2FrobeniusNorm(MATH_Mat2 a) {
+static inline PRP_F32 MATH_Mat2FrobeniusNorm(MATH_Mat2 a) {
     return MATH_SqrtF32((a.membs[0] * a.membs[0]) + (a.membs[1] * a.membs[1]) +
                         (a.membs[2] * a.membs[2]) + (a.membs[3] * a.membs[3]));
 }
 
-static inline DT_f32 MATH_Mat2FrobeniusNormSq(MATH_Mat2 a) {
+static inline PRP_F32 MATH_Mat2FrobeniusNormSq(MATH_Mat2 a) {
     return (a.membs[0] * a.membs[0]) + (a.membs[1] * a.membs[1]) +
            (a.membs[2] * a.membs[2]) + (a.membs[3] * a.membs[3]);
 }

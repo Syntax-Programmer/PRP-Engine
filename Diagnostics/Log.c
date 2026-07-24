@@ -25,7 +25,7 @@ static pthread_mutex_t log_mutex = PTHREAD_MUTEX_INITIALIZER;
  * @return The string equivalent of the code, if the code is invalid we get
  * "UNKNOWN DIAGNOSTIC CODE"
  */
-static const DT_char *CodeToStr(DIAG_LogCode code);
+static const PRP_Char8 *CodeToStr(DIAG_LogCode code);
 /**
  * Gives appropriate colors for the different log levels.
  *
@@ -33,7 +33,7 @@ static const DT_char *CodeToStr(DIAG_LogCode code);
  *
  * @return The ascii codes for the colors of the log.
  */
-static const DT_char *LevelToColor(DIAG_LogLevel lvl);
+static const PRP_Char8 *LevelToColor(DIAG_LogLevel lvl);
 /**
  * Converts the DIAG_LogLevel to their corresponding string, to be displayed in
  * the logs.
@@ -43,9 +43,9 @@ static const DT_char *LevelToColor(DIAG_LogLevel lvl);
  * @return The string equivalent of the code, if the code is invalid we classify
  * it as a info log.
  */
-static const DT_char *LevelToStr(DIAG_LogLevel lvl);
+static const PRP_Char8 *LevelToStr(DIAG_LogLevel lvl);
 
-PRP_FN_API DT_void PRP_FN_CALL DIAG_Write(FILE *dest, const DT_char *msg) {
+PRP_FN_API void PRP_FN_CALL DIAG_Write(FILE *dest, const PRP_Char8 *msg) {
     if (!dest) {
         dest = DIAG_DEFAULT_LOG_DEST;
     }
@@ -54,7 +54,7 @@ PRP_FN_API DT_void PRP_FN_CALL DIAG_Write(FILE *dest, const DT_char *msg) {
     pthread_mutex_unlock(&log_mutex);
 }
 
-static const DT_char *CodeToStr(DIAG_LogCode code) {
+static const PRP_Char8 *CodeToStr(DIAG_LogCode code) {
     switch (code) {
     case DIAG_LOG_CODE_NONE:
         return "NO DIAGNOSTIC CONDITION";
@@ -91,7 +91,7 @@ static const DT_char *CodeToStr(DIAG_LogCode code) {
     }
 }
 
-static const DT_char *LevelToColor(DIAG_LogLevel lvl) {
+static const PRP_Char8 *LevelToColor(DIAG_LogLevel lvl) {
     switch (lvl) {
     case DIAG_LOG_LEVEL_TRACE:
         return DIAG_COLOR_TRACE;
@@ -110,7 +110,7 @@ static const DT_char *LevelToColor(DIAG_LogLevel lvl) {
     }
 }
 
-static const DT_char *LevelToStr(DIAG_LogLevel lvl) {
+static const PRP_Char8 *LevelToStr(DIAG_LogLevel lvl) {
     switch (lvl) {
     case DIAG_LOG_LEVEL_TRACE:
         return "TRACE";
@@ -129,16 +129,16 @@ static const DT_char *LevelToStr(DIAG_LogLevel lvl) {
     }
 }
 
-PRP_FN_API DT_void PRP_FN_CALL DIAG_Log(DIAG_LogLevel lvl, DIAG_LogCode code,
-                                        const DT_char *file, DT_size line,
-                                        const DT_char *func, const DT_char *msg,
-                                        ...) {
+PRP_FN_API void PRP_FN_CALL DIAG_Log(DIAG_LogLevel lvl, DIAG_LogCode code,
+                                     const PRP_Char8 *file, PRP_Size line,
+                                     const PRP_Char8 *func,
+                                     const PRP_Char8 *msg, ...) {
     va_list args;
     va_start(args, msg);
-    DT_char bffr[DIAG_MSG_BUFFER_SIZE];
+    PRP_Char8 bffr[DIAG_MSG_BUFFER_SIZE];
     vsnprintf(bffr, sizeof(bffr), msg, args);
 
-    DT_char log[DIAG_LOG_BUFFER_SIZE];
+    PRP_Char8 log[DIAG_LOG_BUFFER_SIZE];
     snprintf(log, sizeof(log), "%s[%s]  %s::%zu :: %s --[%s]-- %s%s\n",
              LevelToColor(lvl), LevelToStr(lvl), file, line, func,
              CodeToStr(code), bffr, DIAG_COLOR_RESET);

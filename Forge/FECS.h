@@ -25,9 +25,9 @@ extern "C" {
  * @note:
  * -Panics and exits if FECS not initialized correctly.
  */
-PRP_FN_API PRP_Result PRP_FN_CALL FECS_CompRegister(DT_char *pName,
-                                                    DT_size name_len,
-                                                    DT_size comp_size,
+PRP_FN_API PRP_Result PRP_FN_CALL FECS_CompRegister(PRP_Char8 *pName,
+                                                    PRP_Size name_len,
+                                                    PRP_Size comp_size,
                                                     FECS_CompId *pComp_id);
 
 /* ----  SYSTEMS ---- */
@@ -53,8 +53,8 @@ PRP_FN_API PRP_Result PRP_FN_CALL FECS_CompRegister(DT_char *pName,
  * -Panics and exits if FECS not initialized correctly.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL
-FECS_SystemRegister(DT_char *pName, DT_size name_len,
-                    FECS_SystemFunc system_func, DT_size comp_ids_needed_count,
+FECS_SystemRegister(PRP_Char8 *pName, PRP_Size name_len,
+                    FECS_SystemFunc system_func, PRP_Size comp_ids_needed_count,
                     FECS_CompId *pComp_ids_needed, FECS_SystemId *pSystem_id);
 
 /* ----  WORLD ---- */
@@ -75,7 +75,7 @@ FECS_SystemRegister(DT_char *pName, DT_size name_len,
  * @note:
  * -Panics and exits if FECS not initialized correctly.
  */
-PRP_FN_API PRP_Result PRP_FN_CALL FECS_WorldLoad(const DT_char *pFile_path,
+PRP_FN_API PRP_Result PRP_FN_CALL FECS_WorldLoad(const PRP_Char8 *pFile_path,
                                                  FECS_WorldId *pWorld_id);
 /**
  * Unloads an existing world from the FECS.
@@ -110,7 +110,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL FECS_WorldUnload(FECS_WorldId *pWorld_id);
  */
 PRP_FN_API PRP_Result PRP_FN_CALL
 FECS_WorldFindLayoutId(FECS_WorldId world_id, const char *pName,
-                       DT_size name_len, FECS_LayoutId *pLayout_id);
+                       PRP_Size name_len, FECS_LayoutId *pLayout_id);
 /**
  * Finds if a world contains a specific system instance seached by its name.
  *
@@ -129,7 +129,7 @@ FECS_WorldFindLayoutId(FECS_WorldId world_id, const char *pName,
  * -Panics and exits if FECS not initialized correctly.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL FECS_WorldFindSystemInstanceId(
-    FECS_WorldId world_id, const char *pName, DT_size name_len,
+    FECS_WorldId world_id, const char *pName, PRP_Size name_len,
     FECS_SystemInstanceId *pSystem_instance_id);
 
 /* ----  ENTITIES  ---- */
@@ -170,7 +170,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL FECS_EntitySpawn(FECS_WorldId world_id,
  */
 PRP_FN_API PRP_Result PRP_FN_CALL
 FECS_EntityGroupSpawn(FECS_WorldId world_id, FECS_LayoutId layout_id,
-                      DT_size entity_count, FECS_EntityGroupId **ppGroup);
+                      PRP_Size entity_count, FECS_EntityGroupId **ppGroup);
 
 /**
  * Checks if the given entity is valid.
@@ -187,7 +187,7 @@ FECS_EntityGroupSpawn(FECS_WorldId world_id, FECS_LayoutId layout_id,
  */
 PRP_FN_API PRP_Result PRP_FN_CALL FECS_EntityIsValid(FECS_WorldId world_id,
                                                      const FECS_EntityId entity,
-                                                     DT_bool *pRslt);
+                                                     PRP_Bool *pRslt);
 /**
  * Checks if the given entity group is valid.
  *
@@ -202,7 +202,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL FECS_EntityIsValid(FECS_WorldId world_id,
  * -Panics and exits if FECS not initialized correctly.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL FECS_EntityGroupIsValid(
-    FECS_WorldId world_id, const FECS_EntityGroupId *pGroup, DT_bool *pRslt);
+    FECS_WorldId world_id, const FECS_EntityGroupId *pGroup, PRP_Bool *pRslt);
 
 /**
  * Kills the given entity and corrupts the entity struct.
@@ -253,7 +253,7 @@ FECS_EntityGroupKill(FECS_WorldId world_id, FECS_EntityGroupId **ppGroup);
 PRP_FN_API PRP_Result PRP_FN_CALL FECS_EntityGetComp(FECS_WorldId world_id,
                                                      const FECS_EntityId entity,
                                                      FECS_CompId comp_id,
-                                                     DT_void **ppComp_ptr);
+                                                     void **ppComp_ptr);
 /**
  * Sets the specified component's pointer that belongs to the entity.
  *
@@ -272,7 +272,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL FECS_EntityGetComp(FECS_WorldId world_id,
 PRP_FN_API PRP_Result PRP_FN_CALL FECS_EntitySetComp(FECS_WorldId world_id,
                                                      FECS_EntityId entity,
                                                      FECS_CompId comp_id,
-                                                     const DT_void *pComp_data);
+                                                     const void *pComp_data);
 
 /**
  * Iterates over the specified component belonging to entities of the group.
@@ -293,8 +293,8 @@ PRP_FN_API PRP_Result PRP_FN_CALL FECS_EntitySetComp(FECS_WorldId world_id,
  */
 PRP_FN_API PRP_Result PRP_FN_CALL FECS_EntityGroupForEach(
     FECS_WorldId world_id, FECS_EntityGroupId *pGroup, FECS_CompId comp_id,
-    PRP_Result (*cb)(DT_void *pComp_data, DT_void *pUser_data),
-    DT_void *pUser_data);
+    PRP_Result (*cb)(void *pComp_data, void *pUser_data),
+    void *pUser_data);
 
 /* ----  SYSTEM INSTANCE ---- */
 
@@ -313,7 +313,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL FECS_EntityGroupForEach(
  */
 PRP_FN_API PRP_Result PRP_FN_CALL FECS_SystemInstanceExec(
     FECS_WorldId world_id, FECS_SystemInstanceId system_instance_id,
-    DT_void *pUser_data);
+    void *pUser_data);
 /**
  * Fetches an component array inside the system function.
  *
@@ -334,7 +334,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL FECS_SystemInstanceExec(
  */
 PRP_FN_API PRP_Result PRP_FN_CALL
 FECS_SystemInstanceFetchComp(const FECS_SystemExecInternalData *pExec_internals,
-                             DT_size idx, DT_void **ppComp_arr);
+                             PRP_Size idx, void **ppComp_arr);
 
 /* ----  FECS ---- */
 
@@ -348,14 +348,14 @@ FECS_SystemInstanceFetchComp(const FECS_SystemExecInternalData *pExec_internals,
  * - If FECS is already initialized this function will just return PRP_OK
  *   without doing anything.
  */
-PRP_FN_API PRP_Result PRP_FN_CALL FECS_Init(DT_void);
+PRP_FN_API PRP_Result PRP_FN_CALL FECS_Init(void);
 /**
  * Destroyes and exits FECS.
  *
  * @note:
  * -Panics and exits if FECS not initialized correctly.
  */
-PRP_FN_API DT_void PRP_FN_CALL FECS_Exit(DT_void);
+PRP_FN_API void PRP_FN_CALL FECS_Exit(void);
 
 #ifdef __cplusplus
 }

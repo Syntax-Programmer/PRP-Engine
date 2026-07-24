@@ -4,12 +4,12 @@
 struct SystemData {
     FECS_SystemFunc func;
 
-    DT_size stides_len;
-    DT_size *pComp_arr_strides;
+    PRP_Size stides_len;
+    PRP_Size *pComp_arr_strides;
 
-    DT_void *pUser_data;
+    void *pUser_data;
 
-    DT_u8 *pChunk_mem;
+    PRP_U8 *pChunk_mem;
 };
 
 /**
@@ -21,14 +21,14 @@ struct SystemData {
  *
  * @return PRP_OK on success or on an empty chunk.
  */
-static PRP_Result ExecCb(DT_void *pVal, DT_void *pUser_data);
+static PRP_Result ExecCb(void *pVal, void *pUser_data);
 
 PRP_Result SystemInstanceCreate(FECS_SystemInstanceCreateInfo *pCreate_info,
                                 FECS_SystemInstance *pSystem_instance) {
     *pSystem_instance = (FECS_SystemInstance){0};
 
     pSystem_instance->pStride_dispatches =
-        malloc(sizeof(DT_size) * pCreate_info->stride_dispatch_count);
+        malloc(sizeof(PRP_Size) * pCreate_info->stride_dispatch_count);
     if (!pSystem_instance->pStride_dispatches) {
         // Cleans after itself. So the generic contract of WorldCreate is ok.
         pCreate_info->layout_id_match_count = 0;
@@ -41,13 +41,13 @@ PRP_Result SystemInstanceCreate(FECS_SystemInstanceCreateInfo *pCreate_info,
     pSystem_instance->pLayout_id_matches = pCreate_info->pLayout_id_matches;
 
     // Invalidating to prevent access via caller again.
-    pCreate_info->pLayout_id_matches = DT_null;
+    pCreate_info->pLayout_id_matches = NULL;
 
     return PRP_OK;
 }
 
-DT_void SystemInstanceDelete(FECS_SystemInstance *pSystem_instance) {
-    DIAG_ASSERT(pSystem_instance != DT_null);
+void SystemInstanceDelete(FECS_SystemInstance *pSystem_instance) {
+    DIAG_ASSERT(pSystem_instance != NULL);
 
     free(pSystem_instance->pStride_dispatches);
     free(pSystem_instance->pLayout_id_matches);
@@ -55,12 +55,12 @@ DT_void SystemInstanceDelete(FECS_SystemInstance *pSystem_instance) {
 #if !defined(PRP_NDEBUG)
     pSystem_instance->system_id = PRP_INVALID_INDEX;
     pSystem_instance->layout_id_match_count = 0;
-    pSystem_instance->pLayout_id_matches = DT_null;
-    pSystem_instance->pStride_dispatches = DT_null;
+    pSystem_instance->pLayout_id_matches = NULL;
+    pSystem_instance->pStride_dispatches = NULL;
 #endif
 }
 
-static PRP_Result ExecCb(DT_void *pVal, DT_void *pUser_data) {
+static PRP_Result ExecCb(void *pVal, void *pUser_data) {
     FECS_SystemExecInternalData *pExec_internals = pUser_data;
     pExec_internals->pChunk_mem = (*(FECS_Chunk **)pVal)->pChunk_mem;
     FECS_SystemExecOccupancyMask occupancy_mask =
@@ -76,9 +76,9 @@ static PRP_Result ExecCb(DT_void *pVal, DT_void *pUser_data) {
     return PRP_OK;
 }
 
-DT_void SystemInstanceExec(FECS_World *pWorld,
-                           FECS_SystemInstanceId system_instance_id,
-                           DT_void *pUser_data) {
+void SystemInstanceExec(FECS_World *pWorld,
+                        FECS_SystemInstanceId system_instance_id,
+                        void *pUser_data) {
     FECS_SystemInstance *pSystem_instance =
         &pWorld->pSystem_instances[system_instance_id];
     FECS_SystemInfo *pSystem_info =
@@ -91,18 +91,18 @@ DT_void SystemInstanceExec(FECS_World *pWorld,
         .stides_len = pSystem_info->comp_ids_needed_count,
         .pComp_arr_strides = pSystem_instance->pStride_dispatches};
 
-    for (DT_size i = 0; i < pSystem_instance->layout_id_match_count; i++) {
+    for (PRP_Size i = 0; i < pSystem_instance->layout_id_match_count; i++) {
         FECS_Layout *pLayout = &pWorld->pLayouts[pLayout_ids[i]];
-        DT_size _;
+        PRP_Size _;
         const DT_Bitword *pBitwords =
             DT_BitmapRawUnchecked(pLayout->pComp_set, &_, &_);
 
         // Precomputing strides for the component that the system needs.
-        for (DT_size j = 0; j < pSystem_info->comp_ids_needed_count; j++) {
-            DT_size comp_id = pSystem_info->pComp_ids_needed[j];
-            DT_size word_i = WORD_I(comp_id);
-            DT_size prefix_popcnt = pLayout->pWord_prefix_popcnts[word_i];
-            DT_u16 rank_in_word = (DT_u16)DT_BitwordPopCnt(
+        for (PRP_Size j = 0; j < pSystem_info->comp_ids_needed_count; j++) {
+            PRP_Size comp_id = pSystem_info->pComp_ids_needed[j];
+            PRP_Size word_i = WORD_I(comp_id);
+            PRP_Size prefix_popcnt = pLayout->pWord_prefix_popcnts[word_i];
+            PRP_U16 rank_in_word = (PRP_U16)DT_BitwordPopCnt(
                 pBitwords[word_i] & (BIT_MASK(comp_id) - 1));
 
             exec_internals.pComp_arr_strides[j] =
@@ -113,11 +113,11 @@ DT_void SystemInstanceExec(FECS_World *pWorld,
     }
 }
 
-DT_void *
+void *
 SystemInstanceFetchComp(const FECS_SystemExecInternalData *pExec_internals,
-                        DT_size idx) {
+                        PRP_Size idx) {
     if (idx >= pExec_internals->stides_len) {
-        return DT_null;
+        return NULL;
     }
 
     return pExec_internals->pChunk_mem +

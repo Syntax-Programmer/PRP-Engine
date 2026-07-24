@@ -4,8 +4,7 @@
 extern "C" {
 #endif
 
-#include "DataTypes/Typedefs.h"
-#include "Utils/Defs.h"
+#include "Core/Defs.h"
 
 /**
  * A dynamically auto-resizing array to store strings.
@@ -27,9 +26,9 @@ typedef struct _StrArr DT_StrArr;
  *
  * @param str_arr Pointer to the string-array.
  *
- * @return DT_true if valid, DT_false otherwise.
+ * @return PRP_True if valid, PRP_False otherwise.
  */
-PRP_FN_API DT_bool PRP_FN_CALL DT_StrArrIsValid(const DT_StrArr *str_arr);
+PRP_FN_API PRP_Bool PRP_FN_CALL DT_StrArrIsValid(const DT_StrArr *str_arr);
 
 /**
  * Creates a dynamic string-array.
@@ -45,7 +44,7 @@ PRP_FN_API DT_bool PRP_FN_CALL DT_StrArrIsValid(const DT_StrArr *str_arr);
  * - Asserts on invalid arguments in debug.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_StrArrCreateUnchecked(
-    DT_size init_bffr_size, DT_size cap, DT_StrArr **pStr_arr);
+    PRP_Size init_bffr_size, PRP_Size cap, DT_StrArr **pStr_arr);
 /**
  * Creates a dynamic string-array.
  *
@@ -57,9 +56,8 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_StrArrCreateUnchecked(
  * @return PRP_ERR_OOM if allocation fails.
  * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
-PRP_FN_API PRP_Result PRP_FN_CALL DT_StrArrCreateChecked(DT_size init_bffr_size,
-                                                         DT_size cap,
-                                                         DT_StrArr **pStr_arr);
+PRP_FN_API PRP_Result PRP_FN_CALL DT_StrArrCreateChecked(
+    PRP_Size init_bffr_size, PRP_Size cap, DT_StrArr **pStr_arr);
 /**
  * Deep clones the given string-array.
  *
@@ -95,7 +93,7 @@ DT_StrArrCloneChecked(const DT_StrArr *str_arr, DT_StrArr **pStr_arr);
  * @note Unchecked variant:
  * - Asserts on invalid arguments in debug.
  */
-PRP_FN_API DT_void PRP_FN_CALL DT_StrArrDeleteUnchecked(DT_StrArr **pStr_arr);
+PRP_FN_API void PRP_FN_CALL DT_StrArrDeleteUnchecked(DT_StrArr **pStr_arr);
 /**
  * Deletes the string-array and nullifies the pointer.
  *
@@ -115,7 +113,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_StrArrDeleteChecked(DT_StrArr **pStr_arr);
  *
  * @note Assumes valid string-array (asserts in debug).
  */
-PRP_FN_API DT_size PRP_FN_CALL DT_StrArrLen(const DT_StrArr *str_arr);
+PRP_FN_API PRP_Size PRP_FN_CALL DT_StrArrLen(const DT_StrArr *str_arr);
 
 /**
  * Retrieves the string at the given index.
@@ -129,8 +127,8 @@ PRP_FN_API DT_size PRP_FN_CALL DT_StrArrLen(const DT_StrArr *str_arr);
  * @note Unchecked variant:
  * - Asserts on invalid arguments in debug.
  */
-PRP_FN_API const DT_char *PRP_FN_CALL
-DT_StrArrGetUnchecked(const DT_StrArr *str_arr, DT_size i, DT_size *pStr_len);
+PRP_FN_API const PRP_Char8 *PRP_FN_CALL
+DT_StrArrGetUnchecked(const DT_StrArr *str_arr, PRP_Size i, PRP_Size *pStr_len);
 /**
  * Retrieves the string at the given index.
  *
@@ -144,9 +142,9 @@ DT_StrArrGetUnchecked(const DT_StrArr *str_arr, DT_size i, DT_size *pStr_len);
  * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_StrArrGetChecked(const DT_StrArr *str_arr,
-                                                      DT_size i,
-                                                      DT_size *pStr_len,
-                                                      const DT_char **pStr);
+                                                      PRP_Size i,
+                                                      PRP_Size *pStr_len,
+                                                      const PRP_Char8 **pStr);
 /**
  * Pushes a new string at the end of the string-array.
  *
@@ -162,8 +160,8 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_StrArrGetChecked(const DT_StrArr *str_arr,
  * - Asserts on invalid arguments in debug.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_StrArrPushUnchecked(DT_StrArr *str_arr,
-                                                         const DT_char *pStr,
-                                                         DT_size str_len);
+                                                         const PRP_Char8 *pStr,
+                                                         PRP_Size str_len);
 /**
  * Pushes a new string at the end of the string-array.
  *
@@ -177,8 +175,8 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_StrArrPushUnchecked(DT_StrArr *str_arr,
  * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_StrArrPushChecked(DT_StrArr *str_arr,
-                                                       const DT_char *pStr,
-                                                       DT_size str_len);
+                                                       const PRP_Char8 *pStr,
+                                                       PRP_Size str_len);
 /**
  * Inserts a new string at the give index of the string-array.
  *
@@ -194,10 +192,8 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_StrArrPushChecked(DT_StrArr *str_arr,
  * @note Unchecked variant:
  * - Asserts on invalid arguments in debug.
  */
-PRP_FN_API PRP_Result PRP_FN_CALL DT_StrArrInsertUnchecked(DT_StrArr *str_arr,
-                                                           const DT_char *pStr,
-                                                           DT_size str_len,
-                                                           DT_size i);
+PRP_FN_API PRP_Result PRP_FN_CALL DT_StrArrInsertUnchecked(
+    DT_StrArr *str_arr, const PRP_Char8 *pStr, PRP_Size str_len, PRP_Size i);
 /**
  * Inserts a new string at the give index of the string-array.
  *
@@ -212,9 +208,9 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_StrArrInsertUnchecked(DT_StrArr *str_arr,
  * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_StrArrInsertChecked(DT_StrArr *str_arr,
-                                                         const DT_char *pStr,
-                                                         DT_size str_len,
-                                                         DT_size i);
+                                                         const PRP_Char8 *pStr,
+                                                         PRP_Size str_len,
+                                                         PRP_Size i);
 /**
  * Pops the last string from the string-array
  *
@@ -232,8 +228,8 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_StrArrInsertChecked(DT_StrArr *str_arr,
  * - Asserts on invalid arguments in debug.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_StrArrPopUnchecked(DT_StrArr *str_arr,
-                                                        DT_char **ppStr,
-                                                        DT_size *pStr_len);
+                                                        PRP_Char8 **ppStr,
+                                                        PRP_Size *pStr_len);
 /**
  * Pops the last string from the string-array
  *
@@ -249,8 +245,8 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_StrArrPopUnchecked(DT_StrArr *str_arr,
  * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_StrArrPopChecked(DT_StrArr *str_arr,
-                                                      DT_char **ppStr,
-                                                      DT_size *pStr_len);
+                                                      PRP_Char8 **ppStr,
+                                                      PRP_Size *pStr_len);
 /**
  * Removes string at the give index and repack the string-array.
  *
@@ -265,10 +261,10 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_StrArrPopChecked(DT_StrArr *str_arr,
  * @note Unchecked variant:
  * - Asserts on invalid arguments in debug.
  */
-PRP_FN_API DT_void PRP_FN_CALL DT_StrArrRemoveUnchecked(DT_StrArr *str_arr,
-                                                        DT_char **ppStr,
-                                                        DT_size *pStr_len,
-                                                        DT_size i);
+PRP_FN_API void PRP_FN_CALL DT_StrArrRemoveUnchecked(DT_StrArr *str_arr,
+                                                     PRP_Char8 **ppStr,
+                                                     PRP_Size *pStr_len,
+                                                     PRP_Size i);
 /**
  * Removes string at the give index and repack the string-array.
  *
@@ -285,9 +281,9 @@ PRP_FN_API DT_void PRP_FN_CALL DT_StrArrRemoveUnchecked(DT_StrArr *str_arr,
  * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_StrArrRemoveChecked(DT_StrArr *str_arr,
-                                                         DT_char **ppStr,
-                                                         DT_size *pStr_len,
-                                                         DT_size i);
+                                                         PRP_Char8 **ppStr,
+                                                         PRP_Size *pStr_len,
+                                                         PRP_Size i);
 
 /**
  * Resets the string-array.
@@ -299,7 +295,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_StrArrRemoveChecked(DT_StrArr *str_arr,
  * @note Unchecked variant:
  * - Asserts on invalid arguments in debug.
  */
-PRP_FN_API DT_void PRP_FN_CALL DT_StrArrResetUnchecked(DT_StrArr *str_arr);
+PRP_FN_API void PRP_FN_CALL DT_StrArrResetUnchecked(DT_StrArr *str_arr);
 /**
  * Resets the string-array.
  *
@@ -320,14 +316,14 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_StrArrResetChecked(DT_StrArr *str_arr);
  * @param str_len Length of the string to search.
  * @param pIdx    Optional output pointer to the index the found string.
  *
- * @return DT_true if found, DT_false otherwise.
+ * @return PRP_True if found, PRP_False otherwise.
  *
  * @note Unchecked variant:
  * - Asserts on invalid arguments in debug.
  */
-PRP_FN_API DT_bool PRP_FN_CALL
-DT_StrArrSearchUnchecked(const DT_StrArr *str_arr, const DT_char *pStr,
-                         DT_size str_len, DT_size *pIdx);
+PRP_FN_API PRP_Bool PRP_FN_CALL
+DT_StrArrSearchUnchecked(const DT_StrArr *str_arr, const PRP_Char8 *pStr,
+                         PRP_Size str_len, PRP_Size *pIdx);
 /**
  * Searches if the given string exists inside the string-array.
  *
@@ -341,8 +337,8 @@ DT_StrArrSearchUnchecked(const DT_StrArr *str_arr, const DT_char *pStr,
  * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL
-DT_StrArrSearchChecked(const DT_StrArr *str_arr, const DT_char *pStr,
-                       DT_size str_len, DT_bool *pRslt, DT_size *pIdx);
+DT_StrArrSearchChecked(const DT_StrArr *str_arr, const PRP_Char8 *pStr,
+                       PRP_Size str_len, PRP_Bool *pRslt, PRP_Size *pIdx);
 
 #ifdef __cplusplus
 }

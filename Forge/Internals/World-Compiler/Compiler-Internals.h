@@ -33,15 +33,15 @@ typedef enum {
 } FECS_WCTokType;
 
 typedef struct {
-    DT_size ofs;
-    DT_size size;
+    PRP_Size ofs;
+    PRP_Size size;
 } FECS_WCIdentifierTok;
 
 typedef struct {
     DT_Arr *pTypes;
     DT_Arr *pIdentifiers;
     DT_Arr *pRbrace_idxs;
-    DT_size total_identifier_size;
+    PRP_Size total_identifier_size;
     DT_ByteBffr *pSrc_bffr;
 } FECS_WCTokStream;
 
@@ -76,14 +76,14 @@ typedef struct {
  * @return PRP_ERR_RES_EXHAUSTED if max cap is reached.
  * @return PRP_ERR_OOM if allocation fails.
  */
-PRP_Result LexerTokenizeFile(const DT_char *pFile_path,
+PRP_Result LexerTokenizeFile(const PRP_Char8 *pFile_path,
                              FECS_WCTokStream *pTok_stream);
 /**
  * Deletes a already created tok stream, and invalidates the internals.
  *
  * @param pTok_stream The tok stream to delete.
  */
-DT_void LexerTokStreamDelete(FECS_WCTokStream *pTok_stream);
+void LexerTokStreamDelete(FECS_WCTokStream *pTok_stream);
 
 /* ----  PARSER ---- */
 
@@ -102,8 +102,8 @@ typedef struct {
 typedef struct {
     DT_Arr *pLayout_table;
     DT_Arr *pSystem_instance_table;
-    DT_size layout_names_size;
-    DT_size system_instance_names_size;
+    PRP_Size layout_names_size;
+    PRP_Size system_instance_names_size;
     DT_ByteBffr *pIdentifiers_bffr;
 } FECS_WCParseTable;
 
@@ -135,7 +135,7 @@ PRP_Result ParserParseTokStream(const FECS_WCTokStream *pTok_stream,
  *
  * @param pParse_table The parse table to delete.
  */
-DT_void ParserParseTableDelete(FECS_WCParseTable *pParse_table);
+void ParserParseTableDelete(FECS_WCParseTable *pParse_table);
 
 /* ----  RESOLVER ---- */
 
@@ -180,7 +180,7 @@ PRP_Result ResolverResolveParseTables(const FECS_WCParseTable *pParse_table,
  * @return PRP_ERR_RES_EXHAUSTED if max cap is reached.
  * @return PRP_ERR_OOM if allocation fails.
  */
-PRP_Result CompilerCompile(const DT_char *pFile_path,
+PRP_Result CompilerCompile(const PRP_Char8 *pFile_path,
                            FECS_WorldCreateInfo *pCreate_info);
 
 #ifdef __cplusplus

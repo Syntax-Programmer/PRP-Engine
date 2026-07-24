@@ -5,16 +5,16 @@
 
 /* ----  COMPS ---- */
 
-PRP_FN_API PRP_Result PRP_FN_CALL FECS_CompRegister(DT_char *pName,
-                                                    DT_size name_len,
-                                                    DT_size comp_size,
+PRP_FN_API PRP_Result PRP_FN_CALL FECS_CompRegister(PRP_Char8 *pName,
+                                                    PRP_Size name_len,
+                                                    PRP_Size comp_size,
                                                     FECS_CompId *pComp_id) {
     if (!CTX_INVARIANT_EXPR) {
         DIAG_PANIC("The engine is corrupted/not-initilized correctly.");
     }
-    DIAG_ASSERT(pName != DT_null);
+    DIAG_ASSERT(pName != NULL);
     DIAG_ASSERT(name_len > 0);
-    DIAG_ASSERT(pComp_id != DT_null);
+    DIAG_ASSERT(pComp_id != NULL);
 
     if (!pName || !name_len || !pComp_id) {
         return PRP_ERR_INV_ARG;
@@ -24,8 +24,8 @@ PRP_FN_API PRP_Result PRP_FN_CALL FECS_CompRegister(DT_char *pName,
     PRP_Result code = CompRegister(pName, name_len, comp_size, pComp_id);
     if (code == PRP_ERR_ALREADY_EXISTS) {
         DIAG_LOG_ERROR(DIAG_LOG_CODE_INVALID_ARG,
-                       "The Component: %.*s, already exists.", (DT_i32)name_len,
-                       pName);
+                       "The Component: %.*s, already exists.",
+                       (PRP_I32)name_len, pName);
     }
 
     return code;
@@ -34,16 +34,16 @@ PRP_FN_API PRP_Result PRP_FN_CALL FECS_CompRegister(DT_char *pName,
 /* ----  SYSTEMS ---- */
 
 PRP_FN_API PRP_Result PRP_FN_CALL
-FECS_SystemRegister(DT_char *pName, DT_size name_len,
-                    FECS_SystemFunc system_func, DT_size comp_ids_needed_count,
+FECS_SystemRegister(PRP_Char8 *pName, PRP_Size name_len,
+                    FECS_SystemFunc system_func, PRP_Size comp_ids_needed_count,
                     FECS_CompId *pComp_ids_needed, FECS_SystemId *pSystem_id) {
     if (!CTX_INVARIANT_EXPR) {
         DIAG_PANIC("The engine is corrupted/not-initilized correctly.");
     }
-    DIAG_ASSERT(pName != DT_null);
+    DIAG_ASSERT(pName != NULL);
     DIAG_ASSERT(name_len > 0);
-    DIAG_ASSERT(system_func != DT_null);
-    DIAG_ASSERT(pSystem_id != DT_null);
+    DIAG_ASSERT(system_func != NULL);
+    DIAG_ASSERT(pSystem_id != NULL);
 
     if (!pName || !name_len || !system_func || !pSystem_id) {
         return PRP_ERR_INV_ARG;
@@ -61,7 +61,7 @@ FECS_SystemRegister(DT_char *pName, DT_size name_len,
                        pComp_ids_needed, pSystem_id);
     if (code == PRP_ERR_ALREADY_EXISTS) {
         DIAG_LOG_ERROR(DIAG_LOG_CODE_INVALID_ARG,
-                       "The System: %.*s, already exists.", (DT_i32)name_len,
+                       "The System: %.*s, already exists.", (PRP_I32)name_len,
                        pName);
     }
 
@@ -70,13 +70,13 @@ FECS_SystemRegister(DT_char *pName, DT_size name_len,
 
 /* ----  WORLD ---- */
 
-PRP_FN_API PRP_Result PRP_FN_CALL FECS_WorldLoad(const DT_char *pFile_path,
+PRP_FN_API PRP_Result PRP_FN_CALL FECS_WorldLoad(const PRP_Char8 *pFile_path,
                                                  FECS_WorldId *pWorld_id) {
     if (!CTX_INVARIANT_EXPR) {
         DIAG_PANIC("The engine is corrupted/not-initilized correctly.");
     }
-    DIAG_ASSERT(pFile_path != DT_null);
-    DIAG_ASSERT(pWorld_id != DT_null);
+    DIAG_ASSERT(pFile_path != NULL);
+    DIAG_ASSERT(pWorld_id != NULL);
 
     if (!pFile_path || !pWorld_id) {
         return PRP_ERR_INV_ARG;
@@ -109,7 +109,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL FECS_WorldUnload(FECS_WorldId *pWorld_id) {
     if (!CTX_INVARIANT_EXPR) {
         DIAG_PANIC("The engine is corrupted/not-initilized correctly.");
     }
-    DIAG_ASSERT(pWorld_id != DT_null);
+    DIAG_ASSERT(pWorld_id != NULL);
     DIAG_ASSERT_MSG(DT_DSIdIsValidUnchecked(g_ctx->pWorlds, *pWorld_id),
                     "The given world id: %zu, is not valid.", (*pWorld_id));
 
@@ -122,13 +122,13 @@ PRP_FN_API PRP_Result PRP_FN_CALL FECS_WorldUnload(FECS_WorldId *pWorld_id) {
 
 PRP_FN_API PRP_Result PRP_FN_CALL
 FECS_WorldFindLayoutId(FECS_WorldId world_id, const char *pName,
-                       DT_size name_len, FECS_LayoutId *pLayout_id) {
+                       PRP_Size name_len, FECS_LayoutId *pLayout_id) {
     if (!CTX_INVARIANT_EXPR) {
         DIAG_PANIC("The engine is corrupted/not-initilized correctly.");
     }
-    DIAG_ASSERT(pName != DT_null);
+    DIAG_ASSERT(pName != NULL);
     DIAG_ASSERT(name_len > 0);
-    DIAG_ASSERT(pLayout_id != DT_null);
+    DIAG_ASSERT(pLayout_id != NULL);
     DIAG_ASSERT_MSG(DT_DSIdIsValidUnchecked(g_ctx->pWorlds, world_id),
                     "The given world id: %zu, is not valid.", world_id);
 
@@ -137,7 +137,7 @@ FECS_WorldFindLayoutId(FECS_WorldId world_id, const char *pName,
     }
     FECS_World *pWorld;
     PRP_Result code =
-        DT_DSIdToDataChecked(g_ctx->pWorlds, world_id, (DT_void **)&pWorld);
+        DT_DSIdToDataChecked(g_ctx->pWorlds, world_id, (void **)&pWorld);
     if (code != PRP_OK) {
         return PRP_ERR_INV_ARG;
     }
@@ -151,14 +151,14 @@ FECS_WorldFindLayoutId(FECS_WorldId world_id, const char *pName,
 }
 
 PRP_FN_API PRP_Result PRP_FN_CALL FECS_WorldFindSystemInstanceId(
-    FECS_WorldId world_id, const char *pName, DT_size name_len,
+    FECS_WorldId world_id, const char *pName, PRP_Size name_len,
     FECS_SystemInstanceId *pSystem_instance_id) {
     if (!CTX_INVARIANT_EXPR) {
         DIAG_PANIC("The engine is corrupted/not-initilized correctly.");
     }
-    DIAG_ASSERT(pName != DT_null);
+    DIAG_ASSERT(pName != NULL);
     DIAG_ASSERT(name_len > 0);
-    DIAG_ASSERT(pSystem_instance_id != DT_null);
+    DIAG_ASSERT(pSystem_instance_id != NULL);
     DIAG_ASSERT_MSG(DT_DSIdIsValidUnchecked(g_ctx->pWorlds, world_id),
                     "The given world id: %zu, is not valid.", world_id);
 
@@ -167,7 +167,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL FECS_WorldFindSystemInstanceId(
     }
     FECS_World *pWorld;
     PRP_Result code =
-        DT_DSIdToDataChecked(g_ctx->pWorlds, world_id, (DT_void **)&pWorld);
+        DT_DSIdToDataChecked(g_ctx->pWorlds, world_id, (void **)&pWorld);
     if (code != PRP_OK) {
         return PRP_ERR_INV_ARG;
     }
@@ -188,7 +188,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL FECS_EntitySpawn(FECS_WorldId world_id,
     if (!CTX_INVARIANT_EXPR) {
         DIAG_PANIC("The engine is corrupted/not-initilized correctly.");
     }
-    DIAG_ASSERT(pEntity != DT_null);
+    DIAG_ASSERT(pEntity != NULL);
     DIAG_ASSERT_MSG(DT_DSIdIsValidUnchecked(g_ctx->pWorlds, world_id),
                     "The given world id: %zu, is not valid.", world_id);
     if (!pEntity) {
@@ -196,7 +196,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL FECS_EntitySpawn(FECS_WorldId world_id,
     }
     FECS_World *pWorld;
     PRP_Result code =
-        DT_DSIdToDataChecked(g_ctx->pWorlds, world_id, (DT_void **)&pWorld);
+        DT_DSIdToDataChecked(g_ctx->pWorlds, world_id, (void **)&pWorld);
     if (code != PRP_OK) {
         return PRP_ERR_INV_ARG;
     }
@@ -213,11 +213,11 @@ PRP_FN_API PRP_Result PRP_FN_CALL FECS_EntitySpawn(FECS_WorldId world_id,
 
 PRP_FN_API PRP_Result PRP_FN_CALL
 FECS_EntityGroupSpawn(FECS_WorldId world_id, FECS_LayoutId layout_id,
-                      DT_size entity_count, FECS_EntityGroupId **ppGroup) {
+                      PRP_Size entity_count, FECS_EntityGroupId **ppGroup) {
     if (!CTX_INVARIANT_EXPR) {
         DIAG_PANIC("The engine is corrupted/not-initilized correctly.");
     }
-    DIAG_ASSERT(ppGroup != DT_null);
+    DIAG_ASSERT(ppGroup != NULL);
     DIAG_ASSERT(entity_count > 0);
     DIAG_ASSERT_MSG(DT_DSIdIsValidUnchecked(g_ctx->pWorlds, world_id),
                     "The given world id: %zu, is not valid.", world_id);
@@ -226,7 +226,7 @@ FECS_EntityGroupSpawn(FECS_WorldId world_id, FECS_LayoutId layout_id,
     }
     FECS_World *pWorld;
     PRP_Result code =
-        DT_DSIdToDataChecked(g_ctx->pWorlds, world_id, (DT_void **)&pWorld);
+        DT_DSIdToDataChecked(g_ctx->pWorlds, world_id, (void **)&pWorld);
     if (code != PRP_OK) {
         return PRP_ERR_INV_ARG;
     }
@@ -243,11 +243,11 @@ FECS_EntityGroupSpawn(FECS_WorldId world_id, FECS_LayoutId layout_id,
 
 PRP_FN_API PRP_Result PRP_FN_CALL FECS_EntityIsValid(FECS_WorldId world_id,
                                                      const FECS_EntityId entity,
-                                                     DT_bool *pRslt) {
+                                                     PRP_Bool *pRslt) {
     if (!CTX_INVARIANT_EXPR) {
         DIAG_PANIC("The engine is corrupted/not-initilized correctly.");
     }
-    DIAG_ASSERT(pRslt != DT_null);
+    DIAG_ASSERT(pRslt != NULL);
     DIAG_ASSERT_MSG(DT_DSIdIsValidUnchecked(g_ctx->pWorlds, world_id),
                     "The given world id: %zu, is not valid.", world_id);
     if (!pRslt) {
@@ -255,7 +255,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL FECS_EntityIsValid(FECS_WorldId world_id,
     }
     FECS_World *pWorld;
     PRP_Result code =
-        DT_DSIdToDataChecked(g_ctx->pWorlds, world_id, (DT_void **)&pWorld);
+        DT_DSIdToDataChecked(g_ctx->pWorlds, world_id, (void **)&pWorld);
     if (code != PRP_OK) {
         return PRP_ERR_INV_ARG;
     }
@@ -266,12 +266,12 @@ PRP_FN_API PRP_Result PRP_FN_CALL FECS_EntityIsValid(FECS_WorldId world_id,
 }
 
 PRP_FN_API PRP_Result PRP_FN_CALL FECS_EntityGroupIsValid(
-    FECS_WorldId world_id, const FECS_EntityGroupId *pGroup, DT_bool *pRslt) {
+    FECS_WorldId world_id, const FECS_EntityGroupId *pGroup, PRP_Bool *pRslt) {
     if (!CTX_INVARIANT_EXPR) {
         DIAG_PANIC("The engine is corrupted/not-initilized correctly.");
     }
-    DIAG_ASSERT(pRslt != DT_null);
-    DIAG_ASSERT(pGroup != DT_null);
+    DIAG_ASSERT(pRslt != NULL);
+    DIAG_ASSERT(pGroup != NULL);
     DIAG_ASSERT_MSG(DT_DSIdIsValidUnchecked(g_ctx->pWorlds, world_id),
                     "The given world id: %zu, is not valid.", world_id);
     if (!pRslt || !pGroup) {
@@ -279,7 +279,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL FECS_EntityGroupIsValid(
     }
     FECS_World *pWorld;
     PRP_Result code =
-        DT_DSIdToDataChecked(g_ctx->pWorlds, world_id, (DT_void **)&pWorld);
+        DT_DSIdToDataChecked(g_ctx->pWorlds, world_id, (void **)&pWorld);
     if (code != PRP_OK) {
         return PRP_ERR_INV_ARG;
     }
@@ -294,7 +294,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL FECS_EntityKill(FECS_WorldId world_id,
     if (!CTX_INVARIANT_EXPR) {
         DIAG_PANIC("The engine is corrupted/not-initilized correctly.");
     }
-    DIAG_ASSERT(pEntity != DT_null);
+    DIAG_ASSERT(pEntity != NULL);
     DIAG_ASSERT_MSG(DT_DSIdIsValidUnchecked(g_ctx->pWorlds, world_id),
                     "The given world id: %zu, is not valid.", world_id);
     if (!pEntity) {
@@ -302,11 +302,11 @@ PRP_FN_API PRP_Result PRP_FN_CALL FECS_EntityKill(FECS_WorldId world_id,
     }
     FECS_World *pWorld;
     PRP_Result code =
-        DT_DSIdToDataChecked(g_ctx->pWorlds, world_id, (DT_void **)&pWorld);
+        DT_DSIdToDataChecked(g_ctx->pWorlds, world_id, (void **)&pWorld);
     if (code != PRP_OK) {
         return PRP_ERR_INV_ARG;
     }
-    DT_bool is_valid = EntityIsValid(pWorld, *pEntity);
+    PRP_Bool is_valid = EntityIsValid(pWorld, *pEntity);
     DIAG_ASSERT_MSG(is_valid,
                     "The given entity is not a valid entity in this world.");
     if (!is_valid) {
@@ -323,7 +323,7 @@ FECS_EntityGroupKill(FECS_WorldId world_id, FECS_EntityGroupId **ppGroup) {
     if (!CTX_INVARIANT_EXPR) {
         DIAG_PANIC("The engine is corrupted/not-initilized correctly.");
     }
-    DIAG_ASSERT(ppGroup != DT_null);
+    DIAG_ASSERT(ppGroup != NULL);
     DIAG_ASSERT_MSG(DT_DSIdIsValidUnchecked(g_ctx->pWorlds, world_id),
                     "The given world id: %zu, is not valid.", world_id);
     if (!ppGroup) {
@@ -331,7 +331,7 @@ FECS_EntityGroupKill(FECS_WorldId world_id, FECS_EntityGroupId **ppGroup) {
     }
     FECS_World *pWorld;
     PRP_Result code =
-        DT_DSIdToDataChecked(g_ctx->pWorlds, world_id, (DT_void **)&pWorld);
+        DT_DSIdToDataChecked(g_ctx->pWorlds, world_id, (void **)&pWorld);
     if (code != PRP_OK) {
         return PRP_ERR_INV_ARG;
     }
@@ -346,11 +346,11 @@ FECS_EntityGroupKill(FECS_WorldId world_id, FECS_EntityGroupId **ppGroup) {
 PRP_FN_API PRP_Result PRP_FN_CALL FECS_EntityGetComp(FECS_WorldId world_id,
                                                      const FECS_EntityId entity,
                                                      FECS_CompId comp_id,
-                                                     DT_void **ppComp_ptr) {
+                                                     void **ppComp_ptr) {
     if (!CTX_INVARIANT_EXPR) {
         DIAG_PANIC("The engine is corrupted/not-initilized correctly.");
     }
-    DIAG_ASSERT(ppComp_ptr != DT_null);
+    DIAG_ASSERT(ppComp_ptr != NULL);
     DIAG_ASSERT_MSG(
         comp_id < DT_ArrLen(g_ctx->pComp_sizes),
         "The given comp_id: %zu, is not a valid component in the FECS runtime.",
@@ -362,11 +362,11 @@ PRP_FN_API PRP_Result PRP_FN_CALL FECS_EntityGetComp(FECS_WorldId world_id,
     }
     FECS_World *pWorld;
     PRP_Result code =
-        DT_DSIdToDataChecked(g_ctx->pWorlds, world_id, (DT_void **)&pWorld);
+        DT_DSIdToDataChecked(g_ctx->pWorlds, world_id, (void **)&pWorld);
     if (code != PRP_OK) {
         return PRP_ERR_INV_ARG;
     }
-    DT_bool is_valid = EntityIsValid(pWorld, entity);
+    PRP_Bool is_valid = EntityIsValid(pWorld, entity);
     DIAG_ASSERT_MSG(is_valid,
                     "The given entity is not a valid entity in this world.");
     if (!is_valid) {
@@ -376,13 +376,14 @@ PRP_FN_API PRP_Result PRP_FN_CALL FECS_EntityGetComp(FECS_WorldId world_id,
     return EntityGetComp(pWorld, entity, comp_id, ppComp_ptr);
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL
-FECS_EntitySetComp(FECS_WorldId world_id, FECS_EntityId entity,
-                   FECS_CompId comp_id, const DT_void *pComp_data) {
+PRP_FN_API PRP_Result PRP_FN_CALL FECS_EntitySetComp(FECS_WorldId world_id,
+                                                     FECS_EntityId entity,
+                                                     FECS_CompId comp_id,
+                                                     const void *pComp_data) {
     if (!CTX_INVARIANT_EXPR) {
         DIAG_PANIC("The engine is corrupted/not-initilized correctly.");
     }
-    DIAG_ASSERT(pComp_data != DT_null);
+    DIAG_ASSERT(pComp_data != NULL);
     DIAG_ASSERT_MSG(
         comp_id < DT_ArrLen(g_ctx->pComp_sizes),
         "The given comp_id: %zu, is not a valid component in the FECS runtime.",
@@ -394,11 +395,11 @@ FECS_EntitySetComp(FECS_WorldId world_id, FECS_EntityId entity,
     }
     FECS_World *pWorld;
     PRP_Result code =
-        DT_DSIdToDataChecked(g_ctx->pWorlds, world_id, (DT_void **)&pWorld);
+        DT_DSIdToDataChecked(g_ctx->pWorlds, world_id, (void **)&pWorld);
     if (code != PRP_OK) {
         return PRP_ERR_INV_ARG;
     }
-    DT_bool is_valid = EntityIsValid(pWorld, entity);
+    PRP_Bool is_valid = EntityIsValid(pWorld, entity);
     DIAG_ASSERT_MSG(is_valid,
                     "The given entity is not a valid entity in this world.");
     if (!is_valid) {
@@ -410,13 +411,12 @@ FECS_EntitySetComp(FECS_WorldId world_id, FECS_EntityId entity,
 
 PRP_FN_API PRP_Result PRP_FN_CALL FECS_EntityGroupForEach(
     FECS_WorldId world_id, FECS_EntityGroupId *pGroup, FECS_CompId comp_id,
-    PRP_Result (*cb)(DT_void *pComp_data, DT_void *pUser_data),
-    DT_void *pUser_data) {
+    PRP_Result (*cb)(void *pComp_data, void *pUser_data), void *pUser_data) {
     if (!CTX_INVARIANT_EXPR) {
         DIAG_PANIC("The engine is corrupted/not-initilized correctly.");
     }
-    DIAG_ASSERT(pGroup != DT_null);
-    DIAG_ASSERT(cb != DT_null);
+    DIAG_ASSERT(pGroup != NULL);
+    DIAG_ASSERT(cb != NULL);
     DIAG_ASSERT_MSG(
         comp_id < DT_ArrLen(g_ctx->pComp_sizes),
         "The given comp_id: %zu, is not a valid component in the FECS runtime.",
@@ -428,7 +428,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL FECS_EntityGroupForEach(
     }
     FECS_World *pWorld;
     PRP_Result code =
-        DT_DSIdToDataChecked(g_ctx->pWorlds, world_id, (DT_void **)&pWorld);
+        DT_DSIdToDataChecked(g_ctx->pWorlds, world_id, (void **)&pWorld);
     if (code != PRP_OK) {
         return PRP_ERR_INV_ARG;
     }
@@ -443,7 +443,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL FECS_EntityGroupForEach(
 
 PRP_FN_API PRP_Result PRP_FN_CALL FECS_SystemInstanceExec(
     FECS_WorldId world_id, FECS_SystemInstanceId system_instance_id,
-    DT_void *pUser_data) {
+    void *pUser_data) {
     if (!CTX_INVARIANT_EXPR) {
         DIAG_PANIC("The engine is corrupted/not-initilized correctly.");
     }
@@ -451,7 +451,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL FECS_SystemInstanceExec(
                     "The given world id: %zu, is not valid.", world_id);
     FECS_World *pWorld;
     PRP_Result code =
-        DT_DSIdToDataChecked(g_ctx->pWorlds, world_id, (DT_void **)&pWorld);
+        DT_DSIdToDataChecked(g_ctx->pWorlds, world_id, (void **)&pWorld);
     if (code != PRP_OK) {
         return PRP_ERR_INV_ARG;
     }
@@ -470,12 +470,12 @@ PRP_FN_API PRP_Result PRP_FN_CALL FECS_SystemInstanceExec(
 
 PRP_FN_API PRP_Result PRP_FN_CALL
 FECS_SystemInstanceFetchComp(const FECS_SystemExecInternalData *pExec_internals,
-                             DT_size idx, DT_void **ppComp_arr) {
+                             PRP_Size idx, void **ppComp_arr) {
     if (!CTX_INVARIANT_EXPR) {
         DIAG_PANIC("The engine is corrupted/not-initilized correctly.");
     }
-    DIAG_ASSERT(pExec_internals != DT_null);
-    DIAG_ASSERT(ppComp_arr != DT_null);
+    DIAG_ASSERT(pExec_internals != NULL);
+    DIAG_ASSERT(ppComp_arr != NULL);
     if (!pExec_internals || !ppComp_arr) {
         return PRP_ERR_INV_ARG;
     }
@@ -490,7 +490,7 @@ FECS_SystemInstanceFetchComp(const FECS_SystemExecInternalData *pExec_internals,
 
 /* ----  FECS ---- */
 
-PRP_FN_API PRP_Result PRP_FN_CALL FECS_Init(DT_void) {
+PRP_FN_API PRP_Result PRP_FN_CALL FECS_Init(void) {
     if (CTX_INVARIANT_EXPR) {
         return PRP_OK;
     }
@@ -500,8 +500,8 @@ PRP_FN_API PRP_Result PRP_FN_CALL FECS_Init(DT_void) {
         return PRP_ERR_OOM;
     }
 
-    PRP_Result code = DT_ArrCreateUnchecked(sizeof(DT_size), DT_ARR_DEFAULT_CAP,
-                                            &g_ctx->pComp_sizes);
+    PRP_Result code = DT_ArrCreateUnchecked(
+        sizeof(PRP_Size), DT_ARR_DEFAULT_CAP, &g_ctx->pComp_sizes);
     if (code != PRP_OK) {
         goto err_path;
     }
@@ -515,8 +515,8 @@ PRP_FN_API PRP_Result PRP_FN_CALL FECS_Init(DT_void) {
     if (code != PRP_OK) {
         goto err_path;
     }
-    const DT_size INIT_BFFR_SIZE = 256;
-    const DT_size INIT_CAP = 16;
+    const PRP_Size INIT_BFFR_SIZE = 256;
+    const PRP_Size INIT_CAP = 16;
     code =
         DT_StrArrCreateUnchecked(INIT_BFFR_SIZE, INIT_CAP, &g_ctx->pComp_names);
     if (code != PRP_OK) {
@@ -547,23 +547,23 @@ err_path:
         DT_StrArrDeleteUnchecked(&g_ctx->pSystem_names);
     }
     free(g_ctx);
-    g_ctx = DT_null;
+    g_ctx = NULL;
 
     return code;
 }
 
-PRP_FN_API DT_void PRP_FN_CALL FECS_Exit(DT_void) {
+PRP_FN_API void PRP_FN_CALL FECS_Exit(void) {
     if (!CTX_INVARIANT_EXPR) {
         DIAG_PANIC("The engine is corrupted/not-initilized correctly.");
     }
 
     DT_ArrDeleteUnchecked(&g_ctx->pComp_sizes);
-    DT_ArrForEachUnchecked(g_ctx->pSystem_infos, SystemInfoDeleteCb, DT_null);
+    DT_ArrForEachUnchecked(g_ctx->pSystem_infos, SystemInfoDeleteCb, NULL);
     DT_ArrDeleteUnchecked(&g_ctx->pSystem_infos);
     DT_DSArrDeleteUnchecked(&g_ctx->pWorlds);
     DT_StrArrDeleteUnchecked(&g_ctx->pComp_names);
     DT_StrArrDeleteUnchecked(&g_ctx->pSystem_names);
 
     free(g_ctx);
-    g_ctx = DT_null;
+    g_ctx = NULL;
 }

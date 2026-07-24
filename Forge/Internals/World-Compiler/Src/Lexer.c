@@ -10,33 +10,33 @@
  * @return PRP_OK on success.
  * @return PRP_ERR_OOM if allocation fails.
  */
-static PRP_Result TokStreamInit(FECS_WCTokStream *pTok_stream, DT_file file,
-                                DT_size file_size);
+static PRP_Result TokStreamInit(FECS_WCTokStream *pTok_stream, FILE *file,
+                                PRP_Size file_size);
 
 /**
  * Checks if a character can be a valid start for an identifier/keyword.
  *
  * @param start_char The character to check.
  *
- * @return DT_true if valid, otherwise DT_false.
+ * @return PRP_True if valid, otherwise PRP_False.
  */
-static inline DT_bool IsIdentifierValidStart(DT_char start_char);
+static inline PRP_Bool IsIdentifierValidStart(PRP_Char8 start_char);
 /**
  * Checks if a character can be a valid character for an identifier/keyword.
  *
  * @param tok_char The character to check.
  *
- * @return DT_true if valid, otherwise DT_false.
+ * @return PRP_True if valid, otherwise PRP_False.
  */
-static inline DT_bool IsIdentifierValid(DT_char tok_char);
+static inline PRP_Bool IsIdentifierValid(PRP_Char8 tok_char);
 /**
  * Checks if a character can be a valid delimiter after an identifier/keyword.
  *
  * @param last_char The character to check.
  *
- * @return DT_true if valid, otherwise DT_false.
+ * @return PRP_True if valid, otherwise PRP_False.
  */
-static inline DT_bool IsIdentifierValidDelim(DT_char last_char);
+static inline PRP_Bool IsIdentifierValidDelim(PRP_Char8 last_char);
 
 /**
  * Helper function to tokenize identifiers or keywords.
@@ -52,8 +52,8 @@ static inline DT_bool IsIdentifierValidDelim(DT_char last_char);
  * @return PRP_ERR_RES_EXHAUSTED if max cap is reached.
  * @return PRP_ERR_OOM if allocation fails.
  */
-static PRP_Result TokenizeMultiCharTok(const DT_char *pSrc_bffr,
-                                       DT_size src_bffr_size, DT_size *pIdx,
+static PRP_Result TokenizeMultiCharTok(const PRP_Char8 *pSrc_bffr,
+                                       PRP_Size src_bffr_size, PRP_Size *pIdx,
                                        FECS_WCTokStream *pTok_stream);
 /**
  * Tokenizes the entire src bffr.
@@ -71,8 +71,8 @@ static PRP_Result TokenizeMultiCharTok(const DT_char *pSrc_bffr,
  */
 static PRP_Result TokenizeSrcBffr(FECS_WCTokStream *pTok_stream);
 
-static PRP_Result TokStreamInit(FECS_WCTokStream *pTok_stream, DT_file file,
-                                DT_size file_size) {
+static PRP_Result TokStreamInit(FECS_WCTokStream *pTok_stream, FILE *file,
+                                PRP_Size file_size) {
     PRP_Result code = DT_ArrCreateUnchecked(
         sizeof(FECS_WCTokType), DT_ARR_DEFAULT_CAP, &pTok_stream->pTypes);
     if (code != PRP_OK) {
@@ -85,7 +85,7 @@ static PRP_Result TokStreamInit(FECS_WCTokStream *pTok_stream, DT_file file,
         DT_ArrDeleteUnchecked(&pTok_stream->pTypes);
         return code;
     }
-    code = DT_ArrCreateUnchecked(sizeof(DT_size), DT_ARR_DEFAULT_CAP,
+    code = DT_ArrCreateUnchecked(sizeof(PRP_Size), DT_ARR_DEFAULT_CAP,
                                  &pTok_stream->pRbrace_idxs);
     if (code != PRP_OK) {
         DT_ArrDeleteUnchecked(&pTok_stream->pTypes);
@@ -99,7 +99,7 @@ static PRP_Result TokStreamInit(FECS_WCTokStream *pTok_stream, DT_file file,
         DT_ArrDeleteUnchecked(&pTok_stream->pRbrace_idxs);
         return code;
     }
-    DT_char *pStart = DT_ByteBffrGetUnchecked(pTok_stream->pSrc_bffr, 0);
+    PRP_Char8 *pStart = DT_ByteBffrGetUnchecked(pTok_stream->pSrc_bffr, 0);
     if (file_size != fread(pStart, 1, file_size, file)) {
         DT_ArrDeleteUnchecked(&pTok_stream->pTypes);
         DT_ArrDeleteUnchecked(&pTok_stream->pIdentifiers);
@@ -113,29 +113,29 @@ static PRP_Result TokStreamInit(FECS_WCTokStream *pTok_stream, DT_file file,
     return PRP_OK;
 }
 
-static inline DT_bool IsIdentifierValidStart(DT_char start_char) {
+static inline PRP_Bool IsIdentifierValidStart(PRP_Char8 start_char) {
     return (start_char >= 'a' && start_char <= 'z') ||
            (start_char >= 'A' && start_char <= 'Z') || (start_char == '_');
 }
 
-static inline DT_bool IsIdentifierValid(DT_char tok_char) {
+static inline PRP_Bool IsIdentifierValid(PRP_Char8 tok_char) {
     return (tok_char >= 'a' && tok_char <= 'z') ||
            (tok_char >= 'A' && tok_char <= 'Z') ||
            (tok_char >= '0' && tok_char <= '9') || (tok_char == '_');
 }
 
-static inline DT_bool IsIdentifierValidDelim(DT_char last_char) {
+static inline PRP_Bool IsIdentifierValidDelim(PRP_Char8 last_char) {
     return (last_char == ' ' || last_char == '\t' || last_char == '\r' ||
             last_char == '\n' || last_char == '\0' || last_char == '{' ||
             last_char == '}' || last_char == ':' || last_char == ';');
 }
 
-static PRP_Result TokenizeMultiCharTok(const DT_char *pSrc_bffr,
-                                       DT_size src_bffr_size, DT_size *pIdx,
+static PRP_Result TokenizeMultiCharTok(const PRP_Char8 *pSrc_bffr,
+                                       PRP_Size src_bffr_size, PRP_Size *pIdx,
                                        FECS_WCTokStream *pTok_stream) {
     // Validity of start is already verified.
-    DT_size start_idx = *pIdx;
-    DT_size size = 1;
+    PRP_Size start_idx = *pIdx;
+    PRP_Size size = 1;
     while ((++start_idx) < src_bffr_size &&
            IsIdentifierValid(pSrc_bffr[start_idx])) {
         size++;
@@ -145,7 +145,7 @@ static PRP_Result TokenizeMultiCharTok(const DT_char *pSrc_bffr,
         return PRP_ERR_PARSE;
     }
 
-    const DT_char *pIdentifier = &pSrc_bffr[*pIdx];
+    const PRP_Char8 *pIdentifier = &pSrc_bffr[*pIdx];
     FECS_WCTokType type = WC_TOK_IDENTIFIER;
     if (size == WC_SYSTEM_TOK_STRLEN &&
         memcmp(pIdentifier, WC_SYSTEM_TOK_STR, size) == 0) {
@@ -186,14 +186,14 @@ static PRP_Result TokenizeMultiCharTok(const DT_char *pSrc_bffr,
 }
 
 static PRP_Result TokenizeSrcBffr(FECS_WCTokStream *pTok_stream) {
-    DT_size src_bffr_size;
-    const DT_char *pSrc_bffr =
+    PRP_Size src_bffr_size;
+    const PRP_Char8 *pSrc_bffr =
         DT_ByteBffrRawUnchecked(pTok_stream->pSrc_bffr, &src_bffr_size);
     FECS_WCTokType type;
 
-    for (DT_size i = 0; i < src_bffr_size;) {
-        DT_char curr = pSrc_bffr[i];
-        DT_bool append = DT_true;
+    for (PRP_Size i = 0; i < src_bffr_size;) {
+        PRP_Char8 curr = pSrc_bffr[i];
+        PRP_Bool append = PRP_True;
         switch (curr) {
         case ('{'):
             type = WC_TOK_LBRACE;
@@ -218,7 +218,7 @@ static PRP_Result TokenizeSrcBffr(FECS_WCTokStream *pTok_stream) {
                          curr == '\n')) {
                 return PRP_ERR_PARSE;
             }
-            append = DT_false;
+            append = PRP_False;
             break;
         }
         if (append) {
@@ -227,7 +227,7 @@ static PRP_Result TokenizeSrcBffr(FECS_WCTokStream *pTok_stream) {
                 return code;
             }
             if (type == WC_TOK_RBRACE) {
-                DT_size idx = DT_ArrLen(pTok_stream->pTypes) - 1;
+                PRP_Size idx = DT_ArrLen(pTok_stream->pTypes) - 1;
                 code = DT_ArrPushUnchecked(pTok_stream->pRbrace_idxs, &idx);
                 if (code != PRP_OK) {
                     return code;
@@ -240,9 +240,9 @@ static PRP_Result TokenizeSrcBffr(FECS_WCTokStream *pTok_stream) {
     return PRP_OK;
 }
 
-PRP_Result LexerTokenizeFile(const DT_char *pFile_path,
+PRP_Result LexerTokenizeFile(const PRP_Char8 *pFile_path,
                              FECS_WCTokStream *pTok_stream) {
-    DT_file file = fopen(pFile_path, "rb");
+    FILE *file = fopen(pFile_path, "rb");
     if (!file) {
         return PRP_ERR_IO;
     }
@@ -255,7 +255,7 @@ PRP_Result LexerTokenizeFile(const DT_char *pFile_path,
         fclose(file);
         return PRP_ERR_IO;
     }
-    DT_size file_size = (DT_size)size;
+    PRP_Size file_size = (PRP_Size)size;
     if (fseek(file, 0, SEEK_SET) != 0) {
         fclose(file);
         return PRP_ERR_IO;
@@ -276,7 +276,7 @@ PRP_Result LexerTokenizeFile(const DT_char *pFile_path,
     return PRP_OK;
 }
 
-DT_void LexerTokStreamDelete(FECS_WCTokStream *pTok_stream) {
+void LexerTokStreamDelete(FECS_WCTokStream *pTok_stream) {
     DT_ArrDeleteUnchecked(&pTok_stream->pTypes);
     DT_ArrDeleteUnchecked(&pTok_stream->pIdentifiers);
     DT_ArrDeleteUnchecked(&pTok_stream->pRbrace_idxs);

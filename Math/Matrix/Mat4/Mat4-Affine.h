@@ -4,12 +4,12 @@
 extern "C" {
 #endif
 
+#include "Core/Defs.h"
 #include "Defs.h"
 #include "Diagnostics/Assert.h"
 #include "Math/EulerAngle.h"
 #include "Math/Matrix/Mat3/Defs.h"
 #include "Math/Vector/Vec3.h"
-#include "Utils/Defs.h"
 
 /* ----  CONSTRUCTORS  ---- */
 
@@ -20,13 +20,13 @@ static inline MATH_Mat4 MATH_Mat4CreateTranslation(MATH_Vec3 pos) {
 }
 
 PRP_FN_API MATH_Mat4 PRP_FN_CALL MATH_Mat4CreateRotationAxis(MATH_Vec3 axis,
-                                                             DT_f32 angle);
+                                                             PRP_F32 angle);
 PRP_FN_API MATH_Mat4 PRP_FN_CALL MATH_Mat4CreateRotationAxisSafe(
-    MATH_Vec3 axis, DT_f32 angle, MATH_Mat4 fallback);
+    MATH_Vec3 axis, PRP_F32 angle, MATH_Mat4 fallback);
 
-static inline MATH_Mat4 MATH_Mat4CreateRotationAxisX(DT_f32 angle) {
-    DT_f32 c = MATH_CosF32(angle);
-    DT_f32 s = MATH_SinF32(angle);
+static inline MATH_Mat4 MATH_Mat4CreateRotationAxisX(PRP_F32 angle) {
+    PRP_F32 c = MATH_CosF32(angle);
+    PRP_F32 s = MATH_SinF32(angle);
 
     return (MATH_Mat4){.membs = {1.0f, 0.0f, 0.0f, 0.0f,
 
@@ -37,9 +37,9 @@ static inline MATH_Mat4 MATH_Mat4CreateRotationAxisX(DT_f32 angle) {
                                  0.0f, 0.0f, 0.0f, 1.0f}};
 }
 
-static inline MATH_Mat4 MATH_Mat4CreateRotationAxisY(DT_f32 angle) {
-    DT_f32 c = MATH_CosF32(angle);
-    DT_f32 s = MATH_SinF32(angle);
+static inline MATH_Mat4 MATH_Mat4CreateRotationAxisY(PRP_F32 angle) {
+    PRP_F32 c = MATH_CosF32(angle);
+    PRP_F32 s = MATH_SinF32(angle);
 
     return (MATH_Mat4){.membs = {c, 0.0f, -s, 0.0f,
 
@@ -50,9 +50,9 @@ static inline MATH_Mat4 MATH_Mat4CreateRotationAxisY(DT_f32 angle) {
                                  0.0f, 0.0f, 0.0f, 1.0f}};
 }
 
-static inline MATH_Mat4 MATH_Mat4CreateRotationAxisZ(DT_f32 angle) {
-    DT_f32 c = MATH_CosF32(angle);
-    DT_f32 s = MATH_SinF32(angle);
+static inline MATH_Mat4 MATH_Mat4CreateRotationAxisZ(PRP_F32 angle) {
+    PRP_F32 c = MATH_CosF32(angle);
+    PRP_F32 s = MATH_SinF32(angle);
 
     return (MATH_Mat4){.membs = {c, s, 0.0f, 0.0f,
 
@@ -109,7 +109,7 @@ static inline MATH_Mat4 MATH_Mat4CreateScale(MATH_Vec3 scale) {
 
 PRP_FN_API MATH_Mat4 PRP_FN_CALL MATH_Mat4CreateTRSAxis(MATH_Vec3 pos,
                                                         MATH_Vec3 rot_axis,
-                                                        DT_f32 rot_rad,
+                                                        PRP_F32 rot_rad,
                                                         MATH_Vec3 scale);
 PRP_FN_API MATH_Mat4 PRP_FN_CALL
 MATH_Mat4CreateTRSEuler(MATH_Vec3 pos, MATH_EulerAngle rot_angles,
@@ -117,13 +117,14 @@ MATH_Mat4CreateTRSEuler(MATH_Vec3 pos, MATH_EulerAngle rot_angles,
 
 /* ----  COMPARE FUNCTIONS  ---- */
 
-static inline DT_bool MATH_Mat4IsAffine(MATH_Mat4 a) {
-    return (DT_bool)(MATH_IsZeroF32(a.membs[3]) && MATH_IsZeroF32(a.membs[7]) &&
-                     MATH_IsZeroF32(a.membs[11]) &&
-                     MATH_AlmostEqF32(a.membs[15], 1.0f));
+static inline PRP_Bool MATH_Mat4IsAffine(MATH_Mat4 a) {
+    return (PRP_Bool)(MATH_IsZeroF32(a.membs[3]) &&
+                      MATH_IsZeroF32(a.membs[7]) &&
+                      MATH_IsZeroF32(a.membs[11]) &&
+                      MATH_AlmostEqF32(a.membs[15], 1.0f));
 }
 
-PRP_FN_API DT_bool PRP_FN_CALL MATH_Mat4IsAffineOrthonormal(MATH_Mat4 a);
+PRP_FN_API PRP_Bool PRP_FN_CALL MATH_Mat4IsAffineOrthonormal(MATH_Mat4 a);
 
 /* ----  BASIC OPS  ---- */
 
@@ -169,14 +170,14 @@ static inline MATH_Vec3 MATH_Mat4Right(MATH_Mat4 a) {
     };
 }
 
-static inline DT_f32 MATH_Mat4RightLen(MATH_Mat4 a) {
-    DT_f32 a00 = a.membs[0], a10 = a.membs[1], a20 = a.membs[2];
+static inline PRP_F32 MATH_Mat4RightLen(MATH_Mat4 a) {
+    PRP_F32 a00 = a.membs[0], a10 = a.membs[1], a20 = a.membs[2];
 
     return MATH_SqrtF32((a00 * a00) + (a10 * a10) + (a20 * a20));
 }
 
-static inline DT_f32 MATH_Mat4RightLenSq(MATH_Mat4 a) {
-    DT_f32 a00 = a.membs[0], a10 = a.membs[1], a20 = a.membs[2];
+static inline PRP_F32 MATH_Mat4RightLenSq(MATH_Mat4 a) {
+    PRP_F32 a00 = a.membs[0], a10 = a.membs[1], a20 = a.membs[2];
 
     return (a00 * a00) + (a10 * a10) + (a20 * a20);
 }
@@ -189,14 +190,14 @@ static inline MATH_Vec3 MATH_Mat4GetUp(MATH_Mat4 a) {
     };
 }
 
-static inline DT_f32 MATH_Mat4UpLen(MATH_Mat4 a) {
-    DT_f32 a01 = a.membs[4], a11 = a.membs[5], a21 = a.membs[6];
+static inline PRP_F32 MATH_Mat4UpLen(MATH_Mat4 a) {
+    PRP_F32 a01 = a.membs[4], a11 = a.membs[5], a21 = a.membs[6];
 
     return MATH_SqrtF32((a01 * a01) + (a11 * a11) + (a21 * a21));
 }
 
-static inline DT_f32 MATH_Mat4UpLenSq(MATH_Mat4 a) {
-    DT_f32 a01 = a.membs[4], a11 = a.membs[5], a21 = a.membs[6];
+static inline PRP_F32 MATH_Mat4UpLenSq(MATH_Mat4 a) {
+    PRP_F32 a01 = a.membs[4], a11 = a.membs[5], a21 = a.membs[6];
 
     return (a01 * a01) + (a11 * a11) + (a21 * a21);
 }
@@ -209,14 +210,14 @@ static inline MATH_Vec3 MATH_Mat4Forward(MATH_Mat4 a) {
     };
 }
 
-static inline DT_f32 MATH_Mat4ForwardLen(MATH_Mat4 a) {
-    DT_f32 a02 = a.membs[8], a12 = a.membs[9], a22 = a.membs[10];
+static inline PRP_F32 MATH_Mat4ForwardLen(MATH_Mat4 a) {
+    PRP_F32 a02 = a.membs[8], a12 = a.membs[9], a22 = a.membs[10];
 
     return MATH_SqrtF32((a02 * a02) + (a12 * a12) + (a22 * a22));
 }
 
-static inline DT_f32 MATH_Mat4ForwardLenSq(MATH_Mat4 a) {
-    DT_f32 a02 = a.membs[8], a12 = a.membs[9], a22 = a.membs[10];
+static inline PRP_F32 MATH_Mat4ForwardLenSq(MATH_Mat4 a) {
+    PRP_F32 a02 = a.membs[8], a12 = a.membs[9], a22 = a.membs[10];
 
     return (a02 * a02) + (a12 * a12) + (a22 * a22);
 }

@@ -29,7 +29,7 @@ typedef struct {
 extern FECS_InternalCtx *g_ctx;
 
 #define CTX_INVARIANT_EXPR                                                     \
-    (g_ctx != DT_null && DT_ArrIsValid(g_ctx->pComp_sizes) &&                  \
+    (g_ctx != NULL && DT_ArrIsValid(g_ctx->pComp_sizes) &&                     \
      DT_ArrIsValid(g_ctx->pSystem_infos) && DT_DSArrIsValid(g_ctx->pWorlds) && \
      DT_StrArrIsValid(g_ctx->pComp_names) &&                                   \
      DT_StrArrIsValid(g_ctx->pSystem_names) &&                                 \
@@ -51,14 +51,14 @@ extern FECS_InternalCtx *g_ctx;
  * @return PRP_ERR_RES_EXHAUSTED if max cap is reached.
  * @return PRP_ERR_OOM if allocation fails.
  */
-PRP_Result CompRegister(DT_char *pName, DT_size name_len, DT_size comp_size,
+PRP_Result CompRegister(PRP_Char8 *pName, PRP_Size name_len, PRP_Size comp_size,
                         FECS_CompId *pComp_id);
 
 /* ----  SYTEMS ---- */
 
 typedef struct {
     FECS_SystemFunc systmem_func;
-    DT_size comp_ids_needed_count;
+    PRP_Size comp_ids_needed_count;
     FECS_CompId *pComp_ids_needed;
 } FECS_SystemInfo;
 
@@ -78,9 +78,9 @@ typedef struct {
  * @return PRP_ERR_OOM if allocation fails.
  * @return PRP_ERR_INV_ARG if pComp_ids_needed contains invalid comp id(s).
  */
-PRP_Result SystemRegister(DT_char *pName, DT_size name_len,
+PRP_Result SystemRegister(PRP_Char8 *pName, PRP_Size name_len,
                           FECS_SystemFunc system_func,
-                          DT_size comp_ids_needed_count,
+                          PRP_Size comp_ids_needed_count,
                           FECS_CompId *pComp_ids_needed,
                           FECS_SystemId *pSystem_id);
 /**
@@ -92,7 +92,7 @@ PRP_Result SystemRegister(DT_char *pName, DT_size name_len,
  *
  * @return PRP_OK on success.
  */
-PRP_Result SystemInfoDeleteCb(DT_void *pVal, DT_void *_);
+PRP_Result SystemInfoDeleteCb(void *pVal, void *_);
 
 #ifdef __cplusplus
 }

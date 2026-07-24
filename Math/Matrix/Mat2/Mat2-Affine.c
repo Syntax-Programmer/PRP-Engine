@@ -2,17 +2,17 @@
 
 /* ----  ALGEBRAIC EXTRACTIONS  ---- */
 
-PRP_FN_API DT_f32 PRP_FN_CALL MATH_Mat2ExtractRotation(MATH_Mat2 a) {
-    DT_f32 a00 = a.membs[0], a10 = a.membs[1];
+PRP_FN_API PRP_F32 PRP_FN_CALL MATH_Mat2ExtractRotation(MATH_Mat2 a) {
+    PRP_F32 a00 = a.membs[0], a10 = a.membs[1];
     MATH_Vec2 c0 = {.x = a00, .y = a10};
 
-    DT_f32 len = MATH_Vec2Len(c0);
+    PRP_F32 len = MATH_Vec2Len(c0);
     if (MATH_IsZeroF32(len))
         return 0.0f;
-    DT_f32 inv_len = 1.0f / len;
+    PRP_F32 inv_len = 1.0f / len;
 
-    DT_f32 x = a00 * inv_len;
-    DT_f32 y = a10 * inv_len;
+    PRP_F32 x = a00 * inv_len;
+    PRP_F32 y = a10 * inv_len;
 
     return MATH_ATan2F32(y, x);
 }

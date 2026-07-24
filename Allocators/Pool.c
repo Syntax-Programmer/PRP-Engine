@@ -3,33 +3,33 @@
 #include <string.h>
 
 struct _Pool {
-    DT_size cap;
-    DT_size memb_size;
-    DT_u8 *free_list;
-    DT_u8 mem[];
+    PRP_Size cap;
+    PRP_Size memb_size;
+    PRP_U8 *free_list;
+    PRP_U8 mem[];
 };
 
-#define MAX_ALLOCABLE_SIZE (DT_SIZE_MAX - sizeof(MEM_Pool))
+#define MAX_ALLOCABLE_SIZE (PRP_SIZE_MAX - sizeof(MEM_Pool))
 // Define it with max size so no extra checks for that.
 #define MAX_CAP(memb_size) (MAX_ALLOCABLE_SIZE / memb_size)
 
 #define ASSERT_INVARIANT_EXPR(pool)                                            \
     DIAG_ASSERT_MSG(MEM_PoolIsValid(pool),                                     \
-                    "The given pool is either DT_null, or is corrupted.")
+                    "The given pool is either NULL, or is corrupted.")
 
-PRP_FN_API DT_bool PRP_FN_CALL MEM_PoolIsValid(const MEM_Pool *pool) {
-    return (pool != DT_null && pool->memb_size > 0 &&
+PRP_FN_API PRP_Bool PRP_FN_CALL MEM_PoolIsValid(const MEM_Pool *pool) {
+    return (pool != NULL && pool->memb_size > 0 &&
             pool->cap <= MAX_CAP(pool->memb_size));
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL MEM_PoolCreateUnchecked(DT_size memb_size,
-                                                          DT_size cap,
+PRP_FN_API PRP_Result PRP_FN_CALL MEM_PoolCreateUnchecked(PRP_Size memb_size,
+                                                          PRP_Size cap,
                                                           MEM_Pool **pPool) {
     DIAG_ASSERT(memb_size > 0);
     DIAG_ASSERT(cap > 0);
-    DIAG_ASSERT(pPool != DT_null);
+    DIAG_ASSERT(pPool != NULL);
 
-    memb_size = PRP_MAX(memb_size, sizeof(DT_void *));
+    memb_size = PRP_MAX(memb_size, sizeof(void *));
     if (cap > MAX_CAP(memb_size)) {
         return PRP_ERR_OOM;
     }
@@ -41,13 +41,13 @@ PRP_FN_API PRP_Result PRP_FN_CALL MEM_PoolCreateUnchecked(DT_size memb_size,
     }
     pool->memb_size = memb_size;
     pool->cap = cap;
-    pool->free_list = DT_null;
-    DT_u8 *curr = pool->mem;
-    for (DT_size i = 0; i < pool->cap - 1; i++) {
-        *((DT_u8 **)curr) = curr + pool->memb_size;
+    pool->free_list = NULL;
+    PRP_U8 *curr = pool->mem;
+    for (PRP_Size i = 0; i < pool->cap - 1; i++) {
+        *((PRP_U8 **)curr) = curr + pool->memb_size;
         curr += memb_size;
     }
-    *((DT_u8 **)curr) = pool->free_list;
+    *((PRP_U8 **)curr) = pool->free_list;
     pool->free_list = pool->mem;
 
     *pPool = pool;
@@ -55,8 +55,8 @@ PRP_FN_API PRP_Result PRP_FN_CALL MEM_PoolCreateUnchecked(DT_size memb_size,
     return PRP_OK;
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL MEM_PoolCreateChecked(DT_size memb_size,
-                                                        DT_size cap,
+PRP_FN_API PRP_Result PRP_FN_CALL MEM_PoolCreateChecked(PRP_Size memb_size,
+                                                        PRP_Size cap,
                                                         MEM_Pool **pPool) {
     if (!memb_size || !cap || !pPool) {
         return PRP_ERR_INV_ARG;
@@ -65,16 +65,16 @@ PRP_FN_API PRP_Result PRP_FN_CALL MEM_PoolCreateChecked(DT_size memb_size,
     return MEM_PoolCreateUnchecked(memb_size, cap, pPool);
 }
 
-PRP_FN_API DT_void PRP_FN_CALL MEM_PoolDeleteUnchecked(MEM_Pool **pPool) {
-    DIAG_ASSERT(pPool != DT_null);
-    DIAG_ASSERT(*pPool != DT_null);
+PRP_FN_API void PRP_FN_CALL MEM_PoolDeleteUnchecked(MEM_Pool **pPool) {
+    DIAG_ASSERT(pPool != NULL);
+    DIAG_ASSERT(*pPool != NULL);
 
     MEM_Pool *pool = *pPool;
 
     pool->memb_size = pool->cap = 0;
-    pool->free_list = DT_null;
+    pool->free_list = NULL;
     free(pool);
-    *pPool = DT_null;
+    *pPool = NULL;
 }
 
 PRP_FN_API PRP_Result PRP_FN_CALL MEM_PoolDeleteChecked(MEM_Pool **pPool) {
@@ -88,23 +88,23 @@ PRP_FN_API PRP_Result PRP_FN_CALL MEM_PoolDeleteChecked(MEM_Pool **pPool) {
 }
 
 PRP_FN_API PRP_Result PRP_FN_CALL MEM_PoolAllocUnchecked(MEM_Pool *pool,
-                                                         DT_void **pDest) {
+                                                         void **pDest) {
     ASSERT_INVARIANT_EXPR(pool);
-    DIAG_ASSERT(pDest != DT_null);
+    DIAG_ASSERT(pDest != NULL);
 
     if (!pool->free_list) {
         return PRP_ERR_RES_EXHAUSTED;
     }
 
-    DT_void *ptr = pool->free_list;
-    pool->free_list = *((DT_u8 **)pool->free_list);
+    void *ptr = pool->free_list;
+    pool->free_list = *((PRP_U8 **)pool->free_list);
     *pDest = ptr;
 
     return PRP_OK;
 }
 
 PRP_FN_API PRP_Result PRP_FN_CALL MEM_PoolAllocChecked(MEM_Pool *pool,
-                                                       DT_void **pDest) {
+                                                       void **pDest) {
     if (!MEM_PoolIsValid(pool) || !pDest) {
         return PRP_ERR_INV_ARG;
     }
@@ -113,16 +113,16 @@ PRP_FN_API PRP_Result PRP_FN_CALL MEM_PoolAllocChecked(MEM_Pool *pool,
 }
 
 PRP_FN_API PRP_Result PRP_FN_CALL MEM_PoolCallocUnchecked(MEM_Pool *pool,
-                                                          DT_void **pDest) {
+                                                          void **pDest) {
     ASSERT_INVARIANT_EXPR(pool);
-    DIAG_ASSERT(pDest != DT_null);
+    DIAG_ASSERT(pDest != NULL);
 
     if (!pool->free_list) {
         return PRP_ERR_RES_EXHAUSTED;
     }
 
-    DT_void *ptr = pool->free_list;
-    pool->free_list = *((DT_u8 **)pool->free_list);
+    void *ptr = pool->free_list;
+    pool->free_list = *((PRP_U8 **)pool->free_list);
     memset(ptr, 0, pool->memb_size);
     *pDest = ptr;
 
@@ -130,7 +130,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL MEM_PoolCallocUnchecked(MEM_Pool *pool,
 }
 
 PRP_FN_API PRP_Result PRP_FN_CALL MEM_PoolCallocChecked(MEM_Pool *pool,
-                                                        DT_void **pDest) {
+                                                        void **pDest) {
     if (!MEM_PoolIsValid(pool) || !pDest) {
         return PRP_ERR_INV_ARG;
     }
@@ -138,14 +138,13 @@ PRP_FN_API PRP_Result PRP_FN_CALL MEM_PoolCallocChecked(MEM_Pool *pool,
     return MEM_PoolCallocUnchecked(pool, pDest);
 }
 
-PRP_FN_API DT_void PRP_FN_CALL MEM_PoolFreeUnchecked(MEM_Pool *pool,
-                                                     DT_void *ptr) {
-    DIAG_ASSERT(ptr != DT_null);
+PRP_FN_API void PRP_FN_CALL MEM_PoolFreeUnchecked(MEM_Pool *pool, void *ptr) {
+    DIAG_ASSERT(ptr != NULL);
     ASSERT_INVARIANT_EXPR(pool);
     DIAG_ASSERT_MSG(
-        ((DT_u8 *)ptr > pool->mem &&
-         (DT_u8 *)ptr < pool->mem + (pool->cap * pool->memb_size) &&
-         (((DT_u8 *)ptr - pool->mem) % pool->memb_size) == 0),
+        ((PRP_U8 *)ptr > pool->mem &&
+         (PRP_U8 *)ptr < pool->mem + (pool->cap * pool->memb_size) &&
+         (((PRP_U8 *)ptr - pool->mem) % pool->memb_size) == 0),
         "The given pointer to free doesn't belong to the pool provided.");
 
     /*
@@ -154,16 +153,16 @@ PRP_FN_API DT_void PRP_FN_CALL MEM_PoolFreeUnchecked(MEM_Pool *pool,
      *
      * TODO: Fix it.
      */
-    *((DT_u8 **)ptr) = pool->free_list;
+    *((PRP_U8 **)ptr) = pool->free_list;
     pool->free_list = ptr;
 }
 
 PRP_FN_API PRP_Result PRP_FN_CALL MEM_PoolFreeChecked(MEM_Pool *pool,
-                                                      DT_void *ptr) {
+                                                      void *ptr) {
     if (!ptr || !MEM_PoolIsValid(pool)) {
         return PRP_ERR_INV_ARG;
     }
-    DT_u8 *p = ptr;
+    PRP_U8 *p = ptr;
     if (p < pool->mem || p >= pool->mem + pool->cap * pool->memb_size ||
         ((p - pool->mem) % pool->memb_size) != 0) {
         return PRP_ERR_INV_ARG;
@@ -174,34 +173,34 @@ PRP_FN_API PRP_Result PRP_FN_CALL MEM_PoolFreeChecked(MEM_Pool *pool,
     return PRP_OK;
 }
 
-PRP_FN_API DT_size PRP_FN_CALL MEM_PoolCap(const MEM_Pool *pool) {
+PRP_FN_API PRP_Size PRP_FN_CALL MEM_PoolCap(const MEM_Pool *pool) {
     ASSERT_INVARIANT_EXPR(pool);
 
     return pool->cap;
 }
 
-PRP_FN_API DT_size PRP_FN_CALL MEM_PoolMembSize(const MEM_Pool *pool) {
+PRP_FN_API PRP_Size PRP_FN_CALL MEM_PoolMembSize(const MEM_Pool *pool) {
     ASSERT_INVARIANT_EXPR(pool);
 
     return pool->memb_size;
 }
 
-PRP_FN_API DT_size PRP_FN_CALL MEM_PoolMaxCap(const MEM_Pool *pool) {
+PRP_FN_API PRP_Size PRP_FN_CALL MEM_PoolMaxCap(const MEM_Pool *pool) {
     ASSERT_INVARIANT_EXPR(pool);
 
     return MAX_CAP(pool->memb_size);
 }
 
-PRP_FN_API DT_void PRP_FN_CALL MEM_PoolResetUnchecked(MEM_Pool *pool) {
+PRP_FN_API void PRP_FN_CALL MEM_PoolResetUnchecked(MEM_Pool *pool) {
     ASSERT_INVARIANT_EXPR(pool);
 
-    pool->free_list = DT_null;
-    DT_u8 *curr = pool->mem;
-    for (DT_size i = 0; i < pool->cap - 1; i++) {
-        *((DT_u8 **)curr) = curr + pool->memb_size;
+    pool->free_list = NULL;
+    PRP_U8 *curr = pool->mem;
+    for (PRP_Size i = 0; i < pool->cap - 1; i++) {
+        *((PRP_U8 **)curr) = curr + pool->memb_size;
         curr += pool->memb_size;
     }
-    *((DT_u8 **)curr) = pool->free_list;
+    *((PRP_U8 **)curr) = pool->free_list;
     pool->free_list = pool->mem;
 }
 

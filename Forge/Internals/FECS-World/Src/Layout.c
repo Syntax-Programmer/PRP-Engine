@@ -1,6 +1,5 @@
 #include "Forge/Internals/FECS-World/World-Internals.h"
 #include "Forge/Internals/FECS/FECS-Internals.h"
-#include <sys/types.h>
 
 /**
  * Adds new chunk to layout.
@@ -31,17 +30,17 @@ static PRP_Result LayoutInitInternals(FECS_Layout *pLayout);
  *
  * @return PRP_OK on success.
  */
-static PRP_Result ChunkPtrDelCb(DT_void *ppChunk, DT_void *_);
+static PRP_Result ChunkPtrDelCb(void *ppChunk, void *_);
 
 static PRP_Result CreateChunk(FECS_Layout *pLayout) {
     FECS_Chunk *pChunk = malloc(pLayout->chunk_total_size);
     if (!pChunk) {
         return PRP_ERR_OOM;
     }
-    DT_size push_idx = DT_ArrLen(pLayout->pChunk_ptrs);
-    DT_size bit_cap = DT_BitmapBitCap(pLayout->pFree_chunk_bitset);
+    PRP_Size push_idx = DT_ArrLen(pLayout->pChunk_ptrs);
+    PRP_Size bit_cap = DT_BitmapBitCap(pLayout->pFree_chunk_bitset);
     if (push_idx >= bit_cap) {
-        DT_size new_bit_cap;
+        PRP_Size new_bit_cap;
         if (DT_BITMAP_MAX_BIT_CAP / 2 < bit_cap) {
             new_bit_cap = DT_BITMAP_MAX_BIT_CAP;
         } else {
@@ -78,24 +77,24 @@ static PRP_Result CreateChunk(FECS_Layout *pLayout) {
 }
 
 static PRP_Result LayoutInitInternals(FECS_Layout *pLayout) {
-    DT_size comps_len, comp_set_cap, comp_set_bit_cap;
-    const DT_size *pComp_sizes =
+    PRP_Size comps_len, comp_set_cap, comp_set_bit_cap;
+    const PRP_Size *pComp_sizes =
         DT_ArrRawUnchecked(g_ctx->pComp_sizes, &comps_len);
     const DT_Bitword *pBitwords = DT_BitmapRawUnchecked(
         pLayout->pComp_set, &comp_set_cap, &comp_set_bit_cap);
 
     pLayout->pWord_prefix_popcnts[0] = 0;
-    DT_size *pStride_dest = &pLayout->pComp_arr_strides[0];
-    DT_size stride = 0;
-    for (DT_size i = 0, j = 0; i < comp_set_cap; i++) {
+    PRP_Size *pStride_dest = &pLayout->pComp_arr_strides[0];
+    PRP_Size stride = 0;
+    for (PRP_Size i = 0, j = 0; i < comp_set_cap; i++) {
         DT_Bitword word = pBitwords[i];
         if (i < comp_set_cap - 1) {
             pLayout->pWord_prefix_popcnts[i + 1] =
                 pLayout->pWord_prefix_popcnts[i] +
-                (DT_u16)DT_BitwordPopCnt(word);
+                (PRP_U16)DT_BitwordPopCnt(word);
         }
         while (word) {
-            DT_size comp_id = DT_BitwordFFS(word) + j;
+            PRP_Size comp_id = DT_BitwordFFS(word) + j;
             *pStride_dest = stride;
             pStride_dest++;
             stride += pComp_sizes[comp_id] * CHUNK_CAP;
@@ -109,8 +108,8 @@ static PRP_Result LayoutInitInternals(FECS_Layout *pLayout) {
     return PRP_OK;
 }
 
-static PRP_Result ChunkPtrDelCb(DT_void *ppChunk, DT_void *_) {
-    (DT_void) _;
+static PRP_Result ChunkPtrDelCb(void *ppChunk, void *_) {
+    (void)_;
     FECS_Chunk *pChunk = *(FECS_Chunk **)ppChunk;
 
     free(pChunk);
@@ -133,13 +132,13 @@ PRP_Result LayoutCreate(DT_Bitmap *pCreate_info, FECS_Layout *pLayout) {
         goto err_path;
     }
     pLayout->pComp_arr_strides =
-        malloc(sizeof(DT_size) * DT_BitmapSetCount(pCreate_info));
+        malloc(sizeof(PRP_Size) * DT_BitmapSetCount(pCreate_info));
     if (!pLayout->pComp_arr_strides) {
         code = PRP_ERR_OOM;
         goto err_path;
     }
     pLayout->pWord_prefix_popcnts =
-        malloc(sizeof(DT_u16) * (WORD_I(DT_BitmapBitCap(pCreate_info)) + 1));
+        malloc(sizeof(PRP_U16) * (WORD_I(DT_BitmapBitCap(pCreate_info)) + 1));
     if (!pLayout->pWord_prefix_popcnts) {
         code = PRP_ERR_OOM;
         goto err_path;
@@ -154,7 +153,7 @@ PRP_Result LayoutCreate(DT_Bitmap *pCreate_info, FECS_Layout *pLayout) {
 err_path:
     if (pLayout->pChunk_ptrs) {
         // If chunk were created it frees it.
-        DT_ArrForEachUnchecked(pLayout->pChunk_ptrs, ChunkPtrDelCb, DT_null);
+        DT_ArrForEachUnchecked(pLayout->pChunk_ptrs, ChunkPtrDelCb, NULL);
         DT_ArrDeleteUnchecked(&pLayout->pChunk_ptrs);
     }
     if (pLayout->pFree_chunk_bitset) {
@@ -171,21 +170,21 @@ err_path:
     return code;
 }
 
-DT_void LayoutDelete(FECS_Layout *pLayout) {
-    DIAG_ASSERT(pLayout != DT_null);
+void LayoutDelete(FECS_Layout *pLayout) {
+    DIAG_ASSERT(pLayout != NULL);
 
     DT_BitmapDeleteUnchecked(&pLayout->pComp_set);
     DT_BitmapDeleteUnchecked(&pLayout->pFree_chunk_bitset);
 
-    DT_ArrForEachUnchecked(pLayout->pChunk_ptrs, ChunkPtrDelCb, DT_null);
+    DT_ArrForEachUnchecked(pLayout->pChunk_ptrs, ChunkPtrDelCb, NULL);
     DT_ArrDeleteUnchecked(&pLayout->pChunk_ptrs);
 
     free(pLayout->pComp_arr_strides);
     free(pLayout->pWord_prefix_popcnts);
 
 #if !defined(PRP_NDEBUG)
-    pLayout->pComp_arr_strides = DT_null;
-    pLayout->pWord_prefix_popcnts = DT_null;
+    pLayout->pComp_arr_strides = NULL;
+    pLayout->pWord_prefix_popcnts = NULL;
 #endif
 }
 
@@ -194,12 +193,12 @@ DT_void LayoutDelete(FECS_Layout *pLayout) {
 #define CHUNK(pLayout, chunk_idx)                                              \
     (*(FECS_Chunk **)DT_ArrGetUnchecked((pLayout)->pChunk_ptrs, (chunk_idx)))
 
-#define ENTITY_SLOT_MASK ((DT_size)63)
+#define ENTITY_SLOT_MASK ((PRP_Size)63)
 #define ENTITY_SLOT_BITS (6)
 // Explicit encoding instead of just multiplying, to show intent.
 #define ENTITY_IDX(chunk_idx, slot_idx)                                        \
-    (((DT_size)(chunk_idx) << ENTITY_SLOT_BITS) |                              \
-     ((DT_size)(slot_idx) & ENTITY_SLOT_MASK))
+    (((PRP_Size)(chunk_idx) << ENTITY_SLOT_BITS) |                             \
+     ((PRP_Size)(slot_idx) & ENTITY_SLOT_MASK))
 
 #define MAX_ENTITY_CAP(pLayout) (DT_ArrLen(pLayout->pChunk_ptrs) * CHUNK_CAP)
 
@@ -207,9 +206,9 @@ DT_void LayoutDelete(FECS_Layout *pLayout) {
  * A chunk view is data upon a chunk's entire free slots allocated at once.
  */
 typedef struct {
-    DT_size chunk_idx;
+    PRP_Size chunk_idx;
     FECS_ChunkFreeSlotType occupied_slots;
-    DT_u32 gens[CHUNK_CAP];
+    PRP_U32 gens[CHUNK_CAP];
 } ChunkView;
 
 /**
@@ -221,7 +220,7 @@ typedef struct {
  * @return PRP_OK on success.
  * @return PRP_ERR_INV_STATE if the chunk view contains invlaid entities.
  */
-static PRP_Result EntityGroupValidityCb(DT_void *pVal, DT_void *pUser_data);
+static PRP_Result EntityGroupValidityCb(void *pVal, void *pUser_data);
 /**
  * Kills entities of a chunk view of a entity group.
  *
@@ -231,7 +230,7 @@ static PRP_Result EntityGroupValidityCb(DT_void *pVal, DT_void *pUser_data);
  * @return PRP_OK on success.
  * @return PRP_ERR_INV_ARG if the chunk view contains invlaid entities.
  */
-static PRP_Result EntityGroupKillCb(DT_void *pVal, DT_void *pUser_data);
+static PRP_Result EntityGroupKillCb(void *pVal, void *pUser_data);
 /**
  * Iterates over entities of a chunk view of a entity group.
  *
@@ -241,12 +240,12 @@ static PRP_Result EntityGroupKillCb(DT_void *pVal, DT_void *pUser_data);
  * @return PRP_OK on success.
  * @return PRP_ERR_INV_ARG if the chunk view contains invlaid entities.
  */
-static PRP_Result EntityGroupIterationCb(DT_void *pVal, DT_void *pUser_data);
+static PRP_Result EntityGroupIterationCb(void *pVal, void *pUser_data);
 
 PRP_Result EntitySpawn(FECS_World *pWorld, FECS_LayoutId layout_id,
                        FECS_EntityId *pEntity) {
     FECS_Layout *pLayout = &pWorld->pLayouts[layout_id];
-    DT_size free_chunk_idx = DT_BitmapFFS(pLayout->pFree_chunk_bitset);
+    PRP_Size free_chunk_idx = DT_BitmapFFS(pLayout->pFree_chunk_bitset);
     if (free_chunk_idx == PRP_INVALID_INDEX) {
         PRP_Result code = CreateChunk(pLayout);
         if (code != PRP_OK) {
@@ -270,11 +269,11 @@ PRP_Result EntitySpawn(FECS_World *pWorld, FECS_LayoutId layout_id,
 }
 
 PRP_Result EntityGroupSpawn(FECS_World *pWorld, FECS_LayoutId layout_id,
-                            DT_size entity_count,
+                            PRP_Size entity_count,
                             FECS_EntityGroupId **ppGroup) {
     FECS_Layout *pLayout = &pWorld->pLayouts[layout_id];
 
-    DT_size min_cap = (entity_count + CHUNK_CAP - 1) / CHUNK_CAP;
+    PRP_Size min_cap = (entity_count + CHUNK_CAP - 1) / CHUNK_CAP;
     FECS_EntityGroupId *pGroup = malloc(sizeof(FECS_EntityGroupId));
     if (!pGroup) {
         return PRP_ERR_OOM;
@@ -287,9 +286,9 @@ PRP_Result EntityGroupSpawn(FECS_World *pWorld, FECS_LayoutId layout_id,
     }
 
     pGroup->layout_id = layout_id;
-    DT_size alloc_count = 0;
+    PRP_Size alloc_count = 0;
     while (alloc_count != entity_count) {
-        DT_size free_chunk_idx = DT_BitmapFFS(pLayout->pFree_chunk_bitset);
+        PRP_Size free_chunk_idx = DT_BitmapFFS(pLayout->pFree_chunk_bitset);
         if (free_chunk_idx == PRP_INVALID_INDEX) {
             code = CreateChunk(pLayout);
             if (code != PRP_OK) {
@@ -301,7 +300,7 @@ PRP_Result EntityGroupSpawn(FECS_World *pWorld, FECS_LayoutId layout_id,
 
         // This is correct since every free slot will now become occupied.
         FECS_ChunkFreeSlotType occupied_slots_mask = pChunk->free_slot_bitset;
-        DT_size left = entity_count - alloc_count;
+        PRP_Size left = entity_count - alloc_count;
         FECS_ChunkFreeSlotType pop =
             (FECS_ChunkFreeSlotType)DT_BitwordPopCnt(occupied_slots_mask);
         for (; pop > left; pop--) {
@@ -311,7 +310,7 @@ PRP_Result EntityGroupSpawn(FECS_World *pWorld, FECS_LayoutId layout_id,
         ChunkView view = {.chunk_idx = free_chunk_idx,
                           .occupied_slots = occupied_slots_mask};
         // Easier to copy the entire thing than parse it.
-        memcpy(view.gens, pChunk->gens, CHUNK_CAP * sizeof(DT_u32));
+        memcpy(view.gens, pChunk->gens, CHUNK_CAP * sizeof(PRP_U32));
 
         code = DT_ArrPushUnchecked(pGroup->pChunk_views, &view);
         if (code != PRP_OK) {
@@ -341,28 +340,28 @@ err_path:
     return PRP_OK;
 }
 
-DT_bool EntityIsValid(FECS_World *pWorld, const FECS_EntityId entity) {
+PRP_Bool EntityIsValid(FECS_World *pWorld, const FECS_EntityId entity) {
     if (entity.layout_id >= pWorld->layout_count) {
-        return DT_false;
+        return PRP_False;
     }
     FECS_Layout *pLayout = &pWorld->pLayouts[entity.layout_id];
 
     if (entity.entity_idx >= MAX_ENTITY_CAP(pLayout)) {
-        return DT_false;
+        return PRP_False;
     }
-    DT_size chunk_idx = entity.entity_idx >> ENTITY_SLOT_BITS;
+    PRP_Size chunk_idx = entity.entity_idx >> ENTITY_SLOT_BITS;
     FECS_Chunk *pChunk = CHUNK(pLayout, chunk_idx);
-    DT_u8 slot_idx = entity.entity_idx & ENTITY_SLOT_MASK;
+    PRP_U8 slot_idx = entity.entity_idx & ENTITY_SLOT_MASK;
 
     if (pChunk->gens[slot_idx] != entity.gen ||
         PRP_BIT_IS_SET(pChunk->free_slot_bitset, BIT_MASK(slot_idx))) {
-        return DT_false;
+        return PRP_False;
     }
 
-    return DT_true;
+    return PRP_True;
 }
 
-static PRP_Result EntityGroupValidityCb(DT_void *pVal, DT_void *pUser_data) {
+static PRP_Result EntityGroupValidityCb(void *pVal, void *pUser_data) {
     ChunkView *pChunk_view = pVal;
     FECS_Layout *pLayout = pUser_data;
 
@@ -384,10 +383,10 @@ static PRP_Result EntityGroupValidityCb(DT_void *pVal, DT_void *pUser_data) {
     return PRP_OK;
 }
 
-DT_bool EntityGroupIsValid(FECS_World *pWorld,
-                           const FECS_EntityGroupId *pGroup) {
+PRP_Bool EntityGroupIsValid(FECS_World *pWorld,
+                            const FECS_EntityGroupId *pGroup) {
     if (pGroup->layout_id >= pWorld->layout_count) {
-        return DT_false;
+        return PRP_False;
     }
     FECS_Layout *pLayout = &pWorld->pLayouts[pGroup->layout_id];
     PRP_Result code = DT_ArrForEachUnchecked(pGroup->pChunk_views,
@@ -396,11 +395,11 @@ DT_bool EntityGroupIsValid(FECS_World *pWorld,
     return code == PRP_OK;
 }
 
-DT_void EntityKill(FECS_World *pWorld, FECS_EntityId *pEntity) {
+void EntityKill(FECS_World *pWorld, FECS_EntityId *pEntity) {
     FECS_Layout *pLayout = &pWorld->pLayouts[pEntity->layout_id];
-    DT_size chunk_idx = pEntity->entity_idx >> ENTITY_SLOT_BITS;
+    PRP_Size chunk_idx = pEntity->entity_idx >> ENTITY_SLOT_BITS;
     FECS_Chunk *pChunk = CHUNK(pLayout, chunk_idx);
-    DT_u8 slot_idx = pEntity->entity_idx & ENTITY_SLOT_MASK;
+    PRP_U8 slot_idx = pEntity->entity_idx & ENTITY_SLOT_MASK;
 
     pChunk->gens[slot_idx]++;
     PRP_BIT_SET(pChunk->free_slot_bitset, BIT_MASK(slot_idx));
@@ -410,7 +409,7 @@ DT_void EntityKill(FECS_World *pWorld, FECS_EntityId *pEntity) {
     pEntity->entity_idx = PRP_INVALID_INDEX;
 }
 
-static PRP_Result EntityGroupKillCb(DT_void *pVal, DT_void *pUser_data) {
+static PRP_Result EntityGroupKillCb(void *pVal, void *pUser_data) {
     ChunkView *pChunk_view = pVal;
     FECS_Layout *pLayout = pUser_data;
 
@@ -450,67 +449,67 @@ PRP_Result EntityGroupKill(FECS_World *pWorld, FECS_EntityGroupId **ppGroup) {
     }
     DT_ArrDeleteUnchecked(&pGroup->pChunk_views);
     free(pGroup);
-    *ppGroup = DT_null;
+    *ppGroup = NULL;
 
     return PRP_OK;
 }
 
 PRP_Result EntityGetComp(FECS_World *pWorld, const FECS_EntityId entity,
-                         FECS_CompId comp_id, DT_void **ppComp_ptr) {
+                         FECS_CompId comp_id, void **ppComp_ptr) {
     FECS_Layout *pLayout = &pWorld->pLayouts[entity.layout_id];
     if (!DT_BitmapIsSetUnchecked(pLayout->pComp_set, comp_id)) {
         return PRP_ERR_INV_ARG;
     }
 
-    DT_size chunk_idx = entity.entity_idx >> ENTITY_SLOT_BITS;
+    PRP_Size chunk_idx = entity.entity_idx >> ENTITY_SLOT_BITS;
     FECS_Chunk *pChunk = CHUNK(pLayout, chunk_idx);
-    DT_u8 slot_idx = entity.entity_idx & ENTITY_SLOT_MASK;
+    PRP_U8 slot_idx = entity.entity_idx & ENTITY_SLOT_MASK;
 
-    DT_size comp_size =
-        (*(DT_size *)DT_ArrGetUnchecked(g_ctx->pComp_sizes, comp_id));
+    PRP_Size comp_size =
+        (*(PRP_Size *)DT_ArrGetUnchecked(g_ctx->pComp_sizes, comp_id));
 
-    DT_size _;
+    PRP_Size _;
     const DT_Bitword *pBitwords =
         DT_BitmapRawUnchecked(pLayout->pComp_set, &_, &_);
-    DT_size word_i = WORD_I(comp_id);
-    DT_size prefix_popcnt = pLayout->pWord_prefix_popcnts[word_i];
-    DT_u16 rank_in_word =
-        (DT_u16)DT_BitwordPopCnt(pBitwords[word_i] & (BIT_MASK(comp_id) - 1));
-    DT_size comp_stride =
+    PRP_Size word_i = WORD_I(comp_id);
+    PRP_Size prefix_popcnt = pLayout->pWord_prefix_popcnts[word_i];
+    PRP_U16 rank_in_word =
+        (PRP_U16)DT_BitwordPopCnt(pBitwords[word_i] & (BIT_MASK(comp_id) - 1));
+    PRP_Size comp_stride =
         pLayout->pComp_arr_strides[prefix_popcnt + rank_in_word];
 
     *ppComp_ptr =
-        (DT_u8 *)pChunk->pChunk_mem + comp_stride + (slot_idx * comp_size);
+        (PRP_U8 *)pChunk->pChunk_mem + comp_stride + (slot_idx * comp_size);
 
     return PRP_OK;
 }
 
 PRP_Result EntitySetComp(FECS_World *pWorld, FECS_EntityId entity,
-                         FECS_CompId comp_id, const DT_void *pComp_data) {
+                         FECS_CompId comp_id, const void *pComp_data) {
     FECS_Layout *pLayout = &pWorld->pLayouts[entity.layout_id];
     if (!DT_BitmapIsSetUnchecked(pLayout->pComp_set, comp_id)) {
         return PRP_ERR_INV_ARG;
     }
 
-    DT_size chunk_idx = entity.entity_idx >> ENTITY_SLOT_BITS;
+    PRP_Size chunk_idx = entity.entity_idx >> ENTITY_SLOT_BITS;
     FECS_Chunk *pChunk = CHUNK(pLayout, chunk_idx);
-    DT_u8 slot_idx = entity.entity_idx & ENTITY_SLOT_MASK;
+    PRP_U8 slot_idx = entity.entity_idx & ENTITY_SLOT_MASK;
 
-    DT_size comp_size =
-        (*(DT_size *)DT_ArrGetUnchecked(g_ctx->pComp_sizes, comp_id));
+    PRP_Size comp_size =
+        (*(PRP_Size *)DT_ArrGetUnchecked(g_ctx->pComp_sizes, comp_id));
 
-    DT_size _;
+    PRP_Size _;
     const DT_Bitword *pBitwords =
         DT_BitmapRawUnchecked(pLayout->pComp_set, &_, &_);
-    DT_size word_i = WORD_I(comp_id);
-    DT_size prefix_popcnt = pLayout->pWord_prefix_popcnts[word_i];
-    DT_u16 rank_in_word =
-        (DT_u16)DT_BitwordPopCnt(pBitwords[word_i] & (BIT_MASK(comp_id) - 1));
-    DT_size comp_stride =
+    PRP_Size word_i = WORD_I(comp_id);
+    PRP_Size prefix_popcnt = pLayout->pWord_prefix_popcnts[word_i];
+    PRP_U16 rank_in_word =
+        (PRP_U16)DT_BitwordPopCnt(pBitwords[word_i] & (BIT_MASK(comp_id) - 1));
+    PRP_Size comp_stride =
         pLayout->pComp_arr_strides[prefix_popcnt + rank_in_word];
 
-    DT_u8 *ptr =
-        (DT_u8 *)pChunk->pChunk_mem + comp_stride + (slot_idx * comp_size);
+    PRP_U8 *ptr =
+        (PRP_U8 *)pChunk->pChunk_mem + comp_stride + (slot_idx * comp_size);
     memcpy(ptr, pComp_data, comp_size);
 
     return PRP_OK;
@@ -518,13 +517,13 @@ PRP_Result EntitySetComp(FECS_World *pWorld, FECS_EntityId entity,
 
 typedef struct {
     FECS_Layout *pLayout;
-    DT_size comp_size;
-    DT_size comp_stride;
-    PRP_Result (*cb)(DT_void *pComp_data, DT_void *pUser_data);
-    DT_void *pUser_data;
+    PRP_Size comp_size;
+    PRP_Size comp_stride;
+    PRP_Result (*cb)(void *pComp_data, void *pUser_data);
+    void *pUser_data;
 } IterationData;
 
-static PRP_Result EntityGroupIterationCb(DT_void *pVal, DT_void *pUser_data) {
+static PRP_Result EntityGroupIterationCb(void *pVal, void *pUser_data) {
     ChunkView *pChunk_view = pVal;
     IterationData *pI_data = pUser_data;
 
@@ -547,8 +546,8 @@ static PRP_Result EntityGroupIterationCb(DT_void *pVal, DT_void *pUser_data) {
         }
         mask &= mask - 1;
 
-        DT_u8 *ptr = (DT_u8 *)pChunk->pChunk_mem + pI_data->comp_stride +
-                     (slot * pI_data->comp_size);
+        PRP_U8 *ptr = (PRP_U8 *)pChunk->pChunk_mem + pI_data->comp_stride +
+                      (slot * pI_data->comp_size);
         PRP_Result code = pI_data->cb(ptr, pI_data->pUser_data);
         if (code != PRP_OK) {
             return code;
@@ -558,11 +557,9 @@ static PRP_Result EntityGroupIterationCb(DT_void *pVal, DT_void *pUser_data) {
     return PRP_OK;
 }
 
-PRP_Result EntityGroupForEach(FECS_World *pWorld, FECS_EntityGroupId *pGroup,
-                              FECS_CompId comp_id,
-                              PRP_Result (*cb)(DT_void *pComp_data,
-                                               DT_void *pUser_data),
-                              DT_void *pUser_data) {
+PRP_Result EntityGroupForEach(
+    FECS_World *pWorld, FECS_EntityGroupId *pGroup, FECS_CompId comp_id,
+    PRP_Result (*cb)(void *pComp_data, void *pUser_data), void *pUser_data) {
     IterationData i_data = {.cb = cb, .pUser_data = pUser_data};
     i_data.pLayout = &pWorld->pLayouts[pGroup->layout_id];
     if (!DT_BitmapIsSetUnchecked(i_data.pLayout->pComp_set, comp_id)) {
@@ -570,15 +567,15 @@ PRP_Result EntityGroupForEach(FECS_World *pWorld, FECS_EntityGroupId *pGroup,
     }
 
     i_data.comp_size =
-        (*(DT_size *)DT_ArrGetUnchecked(g_ctx->pComp_sizes, comp_id));
+        (*(PRP_Size *)DT_ArrGetUnchecked(g_ctx->pComp_sizes, comp_id));
 
-    DT_size _;
+    PRP_Size _;
     const DT_Bitword *pBitwords =
         DT_BitmapRawUnchecked(i_data.pLayout->pComp_set, &_, &_);
-    DT_size word_i = WORD_I(comp_id);
-    DT_size prefix_popcnt = i_data.pLayout->pWord_prefix_popcnts[word_i];
-    DT_u16 rank_in_word =
-        (DT_u16)DT_BitwordPopCnt(pBitwords[word_i] & (BIT_MASK(comp_id) - 1));
+    PRP_Size word_i = WORD_I(comp_id);
+    PRP_Size prefix_popcnt = i_data.pLayout->pWord_prefix_popcnts[word_i];
+    PRP_U16 rank_in_word =
+        (PRP_U16)DT_BitwordPopCnt(pBitwords[word_i] & (BIT_MASK(comp_id) - 1));
     i_data.comp_stride =
         i_data.pLayout->pComp_arr_strides[prefix_popcnt + rank_in_word];
 

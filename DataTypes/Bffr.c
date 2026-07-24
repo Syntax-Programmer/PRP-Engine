@@ -3,26 +3,26 @@
 #include <string.h>
 
 struct _Bffr {
-    DT_size cap;
-    DT_size memb_size;
-    DT_u8 *mem;
+    PRP_Size cap;
+    PRP_Size memb_size;
+    PRP_U8 *mem;
 };
 
 #define ASSERT_INVARIANT_EXPR(bffr)                                            \
     DIAG_ASSERT_MSG(DT_BffrIsValid(bffr),                                      \
-                    "The given buffer is either DT_null, or is corrupted.")
+                    "The given buffer is either NULL, or is corrupted.")
 
-PRP_FN_API DT_bool PRP_FN_CALL DT_BffrIsValid(const DT_Bffr *bffr) {
-    return (bffr != DT_null && bffr->mem != DT_null && bffr->memb_size > 0 &&
+PRP_FN_API PRP_Bool PRP_FN_CALL DT_BffrIsValid(const DT_Bffr *bffr) {
+    return (bffr != NULL && bffr->mem != NULL && bffr->memb_size > 0 &&
             bffr->cap > 0 && bffr->cap <= DT_BFFR_MAX_CAP(bffr->memb_size));
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrCreateUnchecked(DT_size memb_size,
-                                                         DT_size cap,
+PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrCreateUnchecked(PRP_Size memb_size,
+                                                         PRP_Size cap,
                                                          DT_Bffr **pBffr) {
     DIAG_ASSERT(memb_size > 0);
     DIAG_ASSERT(cap > 0);
-    DIAG_ASSERT(pBffr != DT_null);
+    DIAG_ASSERT(pBffr != NULL);
 
     if (cap > DT_BFFR_MAX_CAP(memb_size)) {
         return PRP_ERR_OOM;
@@ -45,8 +45,8 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrCreateUnchecked(DT_size memb_size,
     return PRP_OK;
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrCreateChecked(DT_size memb_size,
-                                                       DT_size cap,
+PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrCreateChecked(PRP_Size memb_size,
+                                                       PRP_Size cap,
                                                        DT_Bffr **pBffr) {
     if (!memb_size || !cap || !pBffr) {
         return PRP_ERR_INV_ARG;
@@ -58,7 +58,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrCreateChecked(DT_size memb_size,
 PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrCloneUnchecked(const DT_Bffr *bffr,
                                                         DT_Bffr **pBffr) {
     ASSERT_INVARIANT_EXPR(bffr);
-    DIAG_ASSERT(pBffr != DT_null);
+    DIAG_ASSERT(pBffr != NULL);
 
     // Unchecked since we checked for invariants above.
     PRP_Result code = DT_BffrCreateUnchecked(bffr->memb_size, bffr->cap, pBffr);
@@ -81,21 +81,21 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrCloneChecked(const DT_Bffr *bffr,
     return DT_BffrCloneUnchecked(bffr, pBffr);
 }
 
-PRP_FN_API DT_void PRP_FN_CALL DT_BffrDeleteUnchecked(DT_Bffr **pBffr) {
-    DIAG_ASSERT(pBffr != DT_null);
-    DIAG_ASSERT(*pBffr != DT_null && (*pBffr)->mem != DT_null);
+PRP_FN_API void PRP_FN_CALL DT_BffrDeleteUnchecked(DT_Bffr **pBffr) {
+    DIAG_ASSERT(pBffr != NULL);
+    DIAG_ASSERT(*pBffr != NULL && (*pBffr)->mem != NULL);
 
     DT_Bffr *bffr = *pBffr;
 
     free(bffr->mem);
 
 #if !defined(PRP_NDEBUG)
-    bffr->mem = DT_null;
+    bffr->mem = NULL;
     bffr->memb_size = bffr->cap = 0;
 #endif
 
     free(bffr);
-    *pBffr = DT_null;
+    *pBffr = NULL;
 }
 
 PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrDeleteChecked(DT_Bffr **pBffr) {
@@ -108,10 +108,10 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrDeleteChecked(DT_Bffr **pBffr) {
     return PRP_OK;
 }
 
-PRP_FN_API const DT_void *PRP_FN_CALL DT_BffrRawUnchecked(const DT_Bffr *bffr,
-                                                          DT_size *pCap) {
+PRP_FN_API const void *PRP_FN_CALL DT_BffrRawUnchecked(const DT_Bffr *bffr,
+                                                       PRP_Size *pCap) {
     ASSERT_INVARIANT_EXPR(bffr);
-    DIAG_ASSERT(pCap != DT_null);
+    DIAG_ASSERT(pCap != NULL);
 
     *pCap = bffr->cap;
 
@@ -119,8 +119,8 @@ PRP_FN_API const DT_void *PRP_FN_CALL DT_BffrRawUnchecked(const DT_Bffr *bffr,
 }
 
 PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrRawChecked(const DT_Bffr *bffr,
-                                                    DT_size *pCap,
-                                                    DT_void **pRaw) {
+                                                    PRP_Size *pCap,
+                                                    void **pRaw) {
     if (!DT_BffrIsValid(bffr) || !pCap || !pRaw) {
         return PRP_ERR_INV_ARG;
     }
@@ -131,26 +131,26 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrRawChecked(const DT_Bffr *bffr,
     return PRP_OK;
 }
 
-PRP_FN_API DT_size PRP_FN_CALL DT_BffrCap(const DT_Bffr *bffr) {
+PRP_FN_API PRP_Size PRP_FN_CALL DT_BffrCap(const DT_Bffr *bffr) {
     ASSERT_INVARIANT_EXPR(bffr);
 
     return bffr->cap;
 }
 
-PRP_FN_API DT_size PRP_FN_CALL DT_BffrMembSize(const DT_Bffr *bffr) {
+PRP_FN_API PRP_Size PRP_FN_CALL DT_BffrMembSize(const DT_Bffr *bffr) {
     ASSERT_INVARIANT_EXPR(bffr);
 
     return bffr->memb_size;
 }
 
-PRP_FN_API DT_size PRP_FN_CALL DT_BffrMaxCap(const DT_Bffr *bffr) {
+PRP_FN_API PRP_Size PRP_FN_CALL DT_BffrMaxCap(const DT_Bffr *bffr) {
     ASSERT_INVARIANT_EXPR(bffr);
 
     return DT_BFFR_MAX_CAP(bffr->memb_size);
 }
 
-PRP_FN_API DT_void *PRP_FN_CALL DT_BffrGetUnchecked(const DT_Bffr *bffr,
-                                                    DT_size i) {
+PRP_FN_API void *PRP_FN_CALL DT_BffrGetUnchecked(const DT_Bffr *bffr,
+                                                 PRP_Size i) {
     ASSERT_INVARIANT_EXPR(bffr);
     DIAG_ASSERT(i < bffr->cap);
 
@@ -158,7 +158,7 @@ PRP_FN_API DT_void *PRP_FN_CALL DT_BffrGetUnchecked(const DT_Bffr *bffr,
 }
 
 PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrGetChecked(const DT_Bffr *bffr,
-                                                    DT_size i, DT_void **dest) {
+                                                    PRP_Size i, void **dest) {
     if (!DT_BffrIsValid(bffr) || !dest) {
         return PRP_ERR_INV_ARG;
     }
@@ -171,17 +171,17 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrGetChecked(const DT_Bffr *bffr,
     return PRP_OK;
 }
 
-PRP_FN_API DT_void PRP_FN_CALL DT_BffrSetUnchecked(DT_Bffr *bffr, DT_size i,
-                                                   const DT_void *pData) {
+PRP_FN_API void PRP_FN_CALL DT_BffrSetUnchecked(DT_Bffr *bffr, PRP_Size i,
+                                                const void *pData) {
     ASSERT_INVARIANT_EXPR(bffr);
-    DIAG_ASSERT(pData != DT_null);
+    DIAG_ASSERT(pData != NULL);
     DIAG_ASSERT(i < bffr->cap);
 
     memcpy(bffr->mem + (i * bffr->memb_size), pData, bffr->memb_size);
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrSetChecked(DT_Bffr *bffr, DT_size i,
-                                                    const DT_void *pData) {
+PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrSetChecked(DT_Bffr *bffr, PRP_Size i,
+                                                    const void *pData) {
     if (!DT_BffrIsValid(bffr) || !pData) {
         return PRP_ERR_INV_ARG;
     }
@@ -194,15 +194,15 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrSetChecked(DT_Bffr *bffr, DT_size i,
     return PRP_OK;
 }
 
-PRP_FN_API DT_void PRP_FN_CALL DT_BffrSetRangeUnchecked(DT_Bffr *bffr,
-                                                        DT_size i, DT_size j,
-                                                        const DT_void *pData) {
+PRP_FN_API void PRP_FN_CALL DT_BffrSetRangeUnchecked(DT_Bffr *bffr, PRP_Size i,
+                                                     PRP_Size j,
+                                                     const void *pData) {
     ASSERT_INVARIANT_EXPR(bffr);
-    DIAG_ASSERT(pData != DT_null);
+    DIAG_ASSERT(pData != NULL);
     DIAG_ASSERT(i < j);
     DIAG_ASSERT(i < bffr->cap && j <= bffr->cap);
 
-    DT_u8 *ptr = bffr->mem + (i * bffr->memb_size);
+    PRP_U8 *ptr = bffr->mem + (i * bffr->memb_size);
     for (; i < j; i++) {
         memcpy(ptr, pData, bffr->memb_size);
         ptr += bffr->memb_size;
@@ -210,8 +210,8 @@ PRP_FN_API DT_void PRP_FN_CALL DT_BffrSetRangeUnchecked(DT_Bffr *bffr,
 }
 
 PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrSetRangeChecked(DT_Bffr *bffr,
-                                                         DT_size i, DT_size j,
-                                                         const DT_void *pData) {
+                                                         PRP_Size i, PRP_Size j,
+                                                         const void *pData) {
     if (!DT_BffrIsValid(bffr) || !pData || i >= j) {
         return PRP_ERR_INV_ARG;
     }
@@ -224,20 +224,20 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrSetRangeChecked(DT_Bffr *bffr,
     return PRP_OK;
 }
 
-PRP_FN_API DT_void PRP_FN_CALL DT_BffrSetManyUnchecked(DT_Bffr *bffr, DT_size i,
-                                                       const DT_void *data_arr,
-                                                       DT_size len) {
+PRP_FN_API void PRP_FN_CALL DT_BffrSetManyUnchecked(DT_Bffr *bffr, PRP_Size i,
+                                                    const void *data_arr,
+                                                    PRP_Size len) {
     ASSERT_INVARIANT_EXPR(bffr);
-    DIAG_ASSERT(data_arr != DT_null);
+    DIAG_ASSERT(data_arr != NULL);
     DIAG_ASSERT(i < bffr->cap && bffr->cap - i >= len);
 
     memcpy(bffr->mem + (i * bffr->memb_size), data_arr, bffr->memb_size * len);
 }
 
 PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrSetManyChecked(DT_Bffr *bffr,
-                                                        DT_size i,
-                                                        const DT_void *data_arr,
-                                                        DT_size len) {
+                                                        PRP_Size i,
+                                                        const void *data_arr,
+                                                        PRP_Size len) {
     if (!DT_BffrIsValid(bffr) || !data_arr) {
         return PRP_ERR_INV_ARG;
     }
@@ -250,13 +250,13 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrSetManyChecked(DT_Bffr *bffr,
     return PRP_OK;
 }
 
-PRP_FN_API DT_bool PRP_FN_CALL DT_BffrCmpUnchecked(const DT_Bffr *bffr1,
-                                                   const DT_Bffr *bffr2) {
+PRP_FN_API PRP_Bool PRP_FN_CALL DT_BffrCmpUnchecked(const DT_Bffr *bffr1,
+                                                    const DT_Bffr *bffr2) {
     ASSERT_INVARIANT_EXPR(bffr1);
     ASSERT_INVARIANT_EXPR(bffr2);
 
     if (bffr1->cap != bffr2->cap || bffr1->memb_size != bffr2->memb_size) {
-        return DT_false;
+        return PRP_False;
     }
 
     return (memcmp(bffr1->mem, bffr2->mem, bffr1->cap * bffr1->memb_size) == 0);
@@ -264,7 +264,7 @@ PRP_FN_API DT_bool PRP_FN_CALL DT_BffrCmpUnchecked(const DT_Bffr *bffr1,
 
 PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrCmpChecked(const DT_Bffr *bffr1,
                                                     const DT_Bffr *bffr2,
-                                                    DT_bool *pRslt) {
+                                                    PRP_Bool *pRslt) {
     if (!DT_BffrIsValid(bffr1) || !DT_BffrIsValid(bffr2) || !pRslt) {
         return PRP_ERR_INV_ARG;
     }
@@ -283,7 +283,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrExtendUnchecked(DT_Bffr *bffr1,
     if (bffr1->cap > DT_BFFR_MAX_CAP(bffr1->memb_size) - bffr2->cap) {
         return PRP_ERR_RES_EXHAUSTED;
     }
-    DT_size new_cap = bffr1->cap + bffr2->cap, old_cap = bffr1->cap;
+    PRP_Size new_cap = bffr1->cap + bffr2->cap, old_cap = bffr1->cap;
     PRP_Result code = DT_BffrChangeSizeUnchecked(bffr1, new_cap);
     if (code != PRP_OK) {
         return code;
@@ -304,11 +304,10 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrExtendChecked(DT_Bffr *bffr1,
     return DT_BffrExtendUnchecked(bffr1, bffr2);
 }
 
-PRP_FN_API DT_void PRP_FN_CALL DT_BffrSwapUnchecked(DT_Bffr *bffr, DT_size i,
-                                                    DT_size j,
-                                                    DT_void *swap_bffr) {
+PRP_FN_API void PRP_FN_CALL DT_BffrSwapUnchecked(DT_Bffr *bffr, PRP_Size i,
+                                                 PRP_Size j, void *swap_bffr) {
     ASSERT_INVARIANT_EXPR(bffr);
-    DIAG_ASSERT(swap_bffr != DT_null);
+    DIAG_ASSERT(swap_bffr != NULL);
     DIAG_ASSERT(i < bffr->cap);
     DIAG_ASSERT(j < bffr->cap);
 
@@ -316,16 +315,16 @@ PRP_FN_API DT_void PRP_FN_CALL DT_BffrSwapUnchecked(DT_Bffr *bffr, DT_size i,
         return;
     }
 
-    DT_u8 *i_elem = bffr->mem + (i * bffr->memb_size);
-    DT_u8 *j_elem = bffr->mem + (j * bffr->memb_size);
+    PRP_U8 *i_elem = bffr->mem + (i * bffr->memb_size);
+    PRP_U8 *j_elem = bffr->mem + (j * bffr->memb_size);
     memcpy(swap_bffr, i_elem, bffr->memb_size);
     memcpy(i_elem, j_elem, bffr->memb_size);
     memcpy(j_elem, swap_bffr, bffr->memb_size);
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrSwapChecked(DT_Bffr *bffr, DT_size i,
-                                                     DT_size j,
-                                                     DT_void *swap_bffr) {
+PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrSwapChecked(DT_Bffr *bffr, PRP_Size i,
+                                                     PRP_Size j,
+                                                     void *swap_bffr) {
     if (!DT_BffrIsValid(bffr) || !swap_bffr) {
         return PRP_ERR_INV_ARG;
     }
@@ -338,7 +337,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrSwapChecked(DT_Bffr *bffr, DT_size i,
     return PRP_OK;
 }
 
-PRP_FN_API DT_void PRP_FN_CALL DT_BffrClearUnchecked(DT_Bffr *bffr) {
+PRP_FN_API void PRP_FN_CALL DT_BffrClearUnchecked(DT_Bffr *bffr) {
     ASSERT_INVARIANT_EXPR(bffr);
 
     memset(bffr->mem, 0, bffr->cap * bffr->memb_size);
@@ -355,18 +354,18 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrClearChecked(DT_Bffr *bffr) {
 }
 
 PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrChangeSizeUnchecked(DT_Bffr *bffr,
-                                                             DT_size new_cap) {
+                                                             PRP_Size new_cap) {
     ASSERT_INVARIANT_EXPR(bffr);
     DIAG_ASSERT(new_cap > 0);
 
     if (bffr->cap == new_cap) {
         return PRP_OK;
     }
-    DT_size max_cap = DT_BFFR_MAX_CAP(bffr->memb_size);
+    PRP_Size max_cap = DT_BFFR_MAX_CAP(bffr->memb_size);
     if (bffr->cap == max_cap || new_cap > max_cap) {
         return PRP_ERR_RES_EXHAUSTED;
     }
-    DT_u8 *mem = realloc(bffr->mem, new_cap * bffr->memb_size);
+    PRP_U8 *mem = realloc(bffr->mem, new_cap * bffr->memb_size);
     if (!mem) {
         return PRP_ERR_OOM;
     }
@@ -381,7 +380,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrChangeSizeUnchecked(DT_Bffr *bffr,
 }
 
 PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrChangeSizeChecked(DT_Bffr *bffr,
-                                                           DT_size new_cap) {
+                                                           PRP_Size new_cap) {
     if (!DT_BffrIsValid(bffr) || !new_cap) {
         return PRP_ERR_INV_ARG;
     }

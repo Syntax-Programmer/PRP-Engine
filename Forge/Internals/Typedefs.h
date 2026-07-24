@@ -11,36 +11,36 @@ extern "C" {
 
 /* ----  VARIOUS IDS ---- */
 
-typedef DT_size FECS_CompId;
-typedef DT_size FECS_SystemId;
+typedef PRP_Size FECS_CompId;
+typedef PRP_Size FECS_SystemId;
 
-typedef DT_size FECS_LayoutId;
-typedef DT_size FECS_SystemInstanceId;
+typedef PRP_Size FECS_LayoutId;
+typedef PRP_Size FECS_SystemInstanceId;
 typedef DT_DSId FECS_WorldId;
 
-#define FECS_INVALID_ID ((DT_size)(-1))
+#define FECS_INVALID_ID ((PRP_Size)(-1))
 /*
  * Maximum number of components that can be registered with FECS.
  *
  * FECS_Layout stores per-word prefix population counts of its component bitmap
- * in a DT_u16 array (FECS_Layout::pWord_prefix_popcnts). Since the largest
+ * in a PRP_U16 array (FECS_Layout::pWord_prefix_popcnts). Since the largest
  * possible prefix count equals the maximum number of registered components,
- * this value must not exceed DT_U16_MAX.
+ * this value must not exceed PRP_U16_MAX.
  *
- * Keeping the component cap equal to DT_U16_MAX guarantees that every prefix
- * population count fits within DT_u16 without overflow.
+ * Keeping the component cap equal to PRP_U16_MAX guarantees that every prefix
+ * population count fits within PRP_U16 without overflow.
  *
  * This is not a type/physical limit of the FECS, but more of a semantic limit
  * so that the layouts can work perfectly.
  */
-#define FECS_COMPONENTS_MAX_CAP (DT_U16_MAX)
+#define FECS_COMPONENTS_MAX_CAP (PRP_U16_MAX)
 
 /* ----  ENTITIES ---- */
 
 typedef struct {
     FECS_LayoutId layout_id;
-    DT_size entity_idx;
-    DT_u32 gen;
+    PRP_Size entity_idx;
+    PRP_U32 gen;
 } FECS_EntityId;
 
 typedef struct {
@@ -51,10 +51,10 @@ typedef struct {
 /* ----  SYSTEMS ---- */
 
 typedef struct SystemData FECS_SystemExecInternalData;
-typedef DT_u64 FECS_SystemExecOccupancyMask;
-typedef DT_void (*FECS_SystemFunc)(
+typedef PRP_U64 FECS_SystemExecOccupancyMask;
+typedef void (*FECS_SystemFunc)(
     const FECS_SystemExecInternalData *pExec_internals,
-    FECS_SystemExecOccupancyMask occupancy_mask, DT_void *pUser_data);
+    FECS_SystemExecOccupancyMask occupancy_mask, void *pUser_data);
 /**
  * The user will use the idx provided to index into their component arrays
  * provided by the fetch function.

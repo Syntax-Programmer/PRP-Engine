@@ -4,9 +4,9 @@
 extern "C" {
 #endif
 
+#include "Core/Defs.h"
 #include "Defs.h"
 #include "Math/Vector/Vec2.h"
-#include "Utils/Defs.h"
 
 /* ----  CONSTRUCTORS  ---- */
 
@@ -18,9 +18,9 @@ static inline MATH_Mat3 MATH_Mat3CreateTranslation(MATH_Vec2 pos) {
                                  pos.x, pos.y, 1.0f}};
 }
 
-static inline MATH_Mat3 MATH_Mat3CreateRotation(DT_f32 rad) {
-    DT_f32 c = MATH_CosF32(rad);
-    DT_f32 s = MATH_SinF32(rad);
+static inline MATH_Mat3 MATH_Mat3CreateRotation(PRP_F32 rad) {
+    PRP_F32 c = MATH_CosF32(rad);
+    PRP_F32 s = MATH_SinF32(rad);
 
     return (MATH_Mat3){.membs = {c, s, 0.0f,
 
@@ -37,9 +37,9 @@ static inline MATH_Mat3 MATH_Mat3CreateScale(MATH_Vec2 scale) {
                                  0.0f, 0.0f, 1.0f}};
 }
 
-static inline MATH_Mat3 MATH_Mat3CreateTR(MATH_Vec2 pos, DT_f32 rot_rad) {
-    DT_f32 c = MATH_CosF32(rot_rad);
-    DT_f32 s = MATH_SinF32(rot_rad);
+static inline MATH_Mat3 MATH_Mat3CreateTR(MATH_Vec2 pos, PRP_F32 rot_rad) {
+    PRP_F32 c = MATH_CosF32(rot_rad);
+    PRP_F32 s = MATH_SinF32(rot_rad);
 
     return (MATH_Mat3){.membs = {c, s, 0.0f,
 
@@ -56,9 +56,9 @@ static inline MATH_Mat3 MATH_Mat3CreateTS(MATH_Vec2 pos, MATH_Vec2 scale) {
                                  pos.x, pos.y, 1.0f}};
 }
 
-static inline MATH_Mat3 MATH_Mat3CreateRS(DT_f32 rot_rad, MATH_Vec2 scale) {
-    DT_f32 c = MATH_CosF32(rot_rad);
-    DT_f32 s = MATH_SinF32(rot_rad);
+static inline MATH_Mat3 MATH_Mat3CreateRS(PRP_F32 rot_rad, MATH_Vec2 scale) {
+    PRP_F32 c = MATH_CosF32(rot_rad);
+    PRP_F32 s = MATH_SinF32(rot_rad);
 
     return (MATH_Mat3){.membs = {c * scale.x, s * scale.x, 0.0f,
 
@@ -67,10 +67,10 @@ static inline MATH_Mat3 MATH_Mat3CreateRS(DT_f32 rot_rad, MATH_Vec2 scale) {
                                  0.0f, 0.0f, 1.0f}};
 }
 
-static inline MATH_Mat3 MATH_Mat3CreateTRS(MATH_Vec2 pos, DT_f32 rot_rad,
+static inline MATH_Mat3 MATH_Mat3CreateTRS(MATH_Vec2 pos, PRP_F32 rot_rad,
                                            MATH_Vec2 scale) {
-    DT_f32 c = MATH_CosF32(rot_rad);
-    DT_f32 s = MATH_SinF32(rot_rad);
+    PRP_F32 c = MATH_CosF32(rot_rad);
+    PRP_F32 s = MATH_SinF32(rot_rad);
 
     return (MATH_Mat3){.membs = {c * scale.x, s * scale.x, 0.0f,
 
@@ -90,12 +90,13 @@ static inline MATH_Mat3 MATH_Mat3CreateShear(MATH_Vec2 shear) {
 
 /* ----  COMPARE FUNCTIONS  ---- */
 
-static inline DT_bool MATH_Mat3IsAffine(MATH_Mat3 a) {
-    return (DT_bool)(MATH_IsZeroF32(a.membs[2]) && MATH_IsZeroF32(a.membs[5]) &&
-                     MATH_AlmostEqF32(a.membs[8], 1.0f));
+static inline PRP_Bool MATH_Mat3IsAffine(MATH_Mat3 a) {
+    return (PRP_Bool)(MATH_IsZeroF32(a.membs[2]) &&
+                      MATH_IsZeroF32(a.membs[5]) &&
+                      MATH_AlmostEqF32(a.membs[8], 1.0f));
 }
 
-PRP_FN_API DT_bool PRP_FN_CALL MATH_Mat3IsAffineOrthonormal(MATH_Mat3 a);
+PRP_FN_API PRP_Bool PRP_FN_CALL MATH_Mat3IsAffineOrthonormal(MATH_Mat3 a);
 
 /* ----  BASIC OPS  ---- */
 
@@ -124,7 +125,7 @@ static inline MATH_Vec2 MATH_Mat3ExtractTranslation(MATH_Mat3 a) {
     };
 }
 
-PRP_FN_API DT_f32 PRP_FN_CALL MATH_Mat3ExtractRotation(MATH_Mat3 a);
+PRP_FN_API PRP_F32 PRP_FN_CALL MATH_Mat3ExtractRotation(MATH_Mat3 a);
 PRP_FN_API MATH_Vec2 PRP_FN_CALL MATH_Mat3ExtractScale(MATH_Mat3 a);
 PRP_FN_API MATH_Mat3 PRP_FN_CALL MATH_Mat3NormBasis(MATH_Mat3 a);
 
@@ -135,14 +136,14 @@ static inline MATH_Vec2 MATH_Mat3Right(MATH_Mat3 a) {
     };
 }
 
-static inline DT_f32 MATH_Mat3RightLen(MATH_Mat3 a) {
-    DT_f32 a00 = a.membs[0], a10 = a.membs[1];
+static inline PRP_F32 MATH_Mat3RightLen(MATH_Mat3 a) {
+    PRP_F32 a00 = a.membs[0], a10 = a.membs[1];
 
     return MATH_SqrtF32((a00 * a00) + (a10 * a10));
 }
 
-static inline DT_f32 MATH_Mat3RightLenSq(MATH_Mat3 a) {
-    DT_f32 a00 = a.membs[0], a10 = a.membs[1];
+static inline PRP_F32 MATH_Mat3RightLenSq(MATH_Mat3 a) {
+    PRP_F32 a00 = a.membs[0], a10 = a.membs[1];
 
     return (a00 * a00) + (a10 * a10);
 }
@@ -154,14 +155,14 @@ static inline MATH_Vec2 MATH_Mat3Up(MATH_Mat3 a) {
     };
 }
 
-static inline DT_f32 MATH_Mat3UpLen(MATH_Mat3 a) {
-    DT_f32 a01 = a.membs[3], a11 = a.membs[4];
+static inline PRP_F32 MATH_Mat3UpLen(MATH_Mat3 a) {
+    PRP_F32 a01 = a.membs[3], a11 = a.membs[4];
 
     return MATH_SqrtF32((a01 * a01) + (a11 * a11));
 }
 
-static inline DT_f32 MATH_Mat3UpLenSq(MATH_Mat3 a) {
-    DT_f32 a01 = a.membs[3], a11 = a.membs[4];
+static inline PRP_F32 MATH_Mat3UpLenSq(MATH_Mat3 a) {
+    PRP_F32 a01 = a.membs[3], a11 = a.membs[4];
 
     return (a01 * a01) + (a11 * a11);
 }

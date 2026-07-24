@@ -5,21 +5,21 @@
 
 typedef struct {
     const FECS_WCTokType *pTypes;
-    DT_size types_len;
-    DT_size types_idx;
+    PRP_Size types_len;
+    PRP_Size types_idx;
 
     const FECS_WCIdentifierTok *pIdentifiers;
-    DT_size identifiers_len;
-    DT_size identifiers_idx;
+    PRP_Size identifiers_len;
+    PRP_Size identifiers_idx;
 
-    const DT_size *pRbrace_idxs;
-    DT_size rbrace_len;
-    DT_size rbrace_idx;
+    const PRP_Size *pRbrace_idxs;
+    PRP_Size rbrace_len;
+    PRP_Size rbrace_idx;
 
-    DT_size identifier_bffr_ofs;
+    PRP_Size identifier_bffr_ofs;
 
-    const DT_char *pSrc_bffr;
-    DT_size src_bffr_size;
+    const PRP_Char8 *pSrc_bffr;
+    PRP_Size src_bffr_size;
 } ParserState;
 
 /**
@@ -54,10 +54,10 @@ static FECS_WCIdentifierTok RegisterIdentifier(ParserState *pParser_state,
  * @param pTok_count_to_parse Output pointer to number of tokens to parse ahead
  *                            of the newly updated state.
  *
- * @return DT_true if initial checks pass, otherwise DT_false.
+ * @return PRP_True if initial checks pass, otherwise PRP_False.
  */
-static DT_bool DeclIsValidInitCheck(ParserState *pParser_state,
-                                    DT_size *pTok_count_to_parse);
+static PRP_Bool DeclIsValidInitCheck(ParserState *pParser_state,
+                                     PRP_Size *pTok_count_to_parse);
 
 /**
  * Used to free layout decl internals.
@@ -67,7 +67,7 @@ static DT_bool DeclIsValidInitCheck(ParserState *pParser_state,
  *
  * @return PRP_OK on success.
  */
-static PRP_Result LayoutDelCb(DT_void *pVal, DT_void *_);
+static PRP_Result LayoutDelCb(void *pVal, void *_);
 /**
  * Parses a set of component to check if they match layout decl syntax.
  *
@@ -94,7 +94,7 @@ static PRP_Result ParseLayoutDecl(ParserState *pParser_state,
  *
  * @return PRP_OK on success.
  */
-static PRP_Result SystemInstanceDelCb(DT_void *pVal, DT_void *_);
+static PRP_Result SystemInstanceDelCb(void *pVal, void *_);
 /**
  * Parses a set of component to check if they match system instance decl syntax.
  *
@@ -157,7 +157,7 @@ RegisterIdentifier(ParserState *pParser_state,
     DT_ByteBffrUploadUnchecked(
         pParse_table->pIdentifiers_bffr, pParser_state->identifier_bffr_ofs,
         old_identifier.size,
-        (DT_void *)(pParser_state->pSrc_bffr + old_identifier.ofs));
+        (void *)(pParser_state->pSrc_bffr + old_identifier.ofs));
 
     old_identifier.ofs = pParser_state->identifier_bffr_ofs;
     pParser_state->identifier_bffr_ofs += old_identifier.size;
@@ -165,40 +165,40 @@ RegisterIdentifier(ParserState *pParser_state,
     return old_identifier;
 }
 
-static DT_bool DeclIsValidInitCheck(ParserState *pParser_state,
-                                    DT_size *pTok_count_to_parse) {
+static PRP_Bool DeclIsValidInitCheck(ParserState *pParser_state,
+                                     PRP_Size *pTok_count_to_parse) {
     if (pParser_state->rbrace_idx == pParser_state->rbrace_len) {
         // Decl started, but not closed.
-        return DT_false;
+        return PRP_False;
     }
 
-    DT_size rbrace_types_idx =
+    PRP_Size rbrace_types_idx =
         pParser_state->pRbrace_idxs[pParser_state->rbrace_idx++];
-    DT_size toks_this_decl = rbrace_types_idx - pParser_state->types_idx + 1;
+    PRP_Size toks_this_decl = rbrace_types_idx - pParser_state->types_idx + 1;
     if (toks_this_decl < EMPTY_DECL_TOK_COUNT) {
         // Not enough toks for even an empty decl.
-        return DT_false;
+        return PRP_False;
     }
-    DT_size remaining_toks = toks_this_decl - EMPTY_DECL_TOK_COUNT;
+    PRP_Size remaining_toks = toks_this_decl - EMPTY_DECL_TOK_COUNT;
     if (remaining_toks % TOKS_PER_FIELD != 0) {
         // Extra/missing tokens exist.
-        return DT_false;
+        return PRP_False;
     }
-    DT_size type_idx = pParser_state->types_idx;
+    PRP_Size type_idx = pParser_state->types_idx;
     const FECS_WCTokType *pTypes = pParser_state->pTypes;
     if (pTypes[++type_idx] != WC_TOK_IDENTIFIER ||
         pTypes[++type_idx] != WC_TOK_LBRACE) {
         // Decl syntax missing.
-        return DT_false;
+        return PRP_False;
     }
     pParser_state->types_idx = ++type_idx;
     *pTok_count_to_parse = remaining_toks;
 
-    return DT_true;
+    return PRP_True;
 }
 
-static PRP_Result LayoutDelCb(DT_void *pVal, DT_void *_) {
-    (DT_void) _;
+static PRP_Result LayoutDelCb(void *pVal, void *_) {
+    (void)_;
     FECS_WCLayoutDecl *pLayout_decl = pVal;
 
     DT_ArrDeleteUnchecked(&pLayout_decl->pComp_names);
@@ -208,7 +208,7 @@ static PRP_Result LayoutDelCb(DT_void *pVal, DT_void *_) {
 
 static PRP_Result ParseLayoutDecl(ParserState *pParser_state,
                                   FECS_WCParseTable *pParse_table) {
-    DT_size toks_to_parse = 0;
+    PRP_Size toks_to_parse = 0;
     if (!DeclIsValidInitCheck(pParser_state, &toks_to_parse) ||
         toks_to_parse == 0) {
         // Extra check to reject empty decl.
@@ -228,7 +228,7 @@ static PRP_Result ParseLayoutDecl(ParserState *pParser_state,
 
     FECS_WCTokType pMatch[TOKS_PER_FIELD] = {WC_TOK_IDENTIFIER,
                                              WC_TOK_SEMICOLON};
-    for (DT_size i = 0; i < toks_to_parse;
+    for (PRP_Size i = 0; i < toks_to_parse;
          i += TOKS_PER_FIELD, pParser_state->types_idx += TOKS_PER_FIELD) {
         if (memcmp(&pParser_state->pTypes[pParser_state->types_idx], pMatch,
                    sizeof(FECS_WCTokType) * TOKS_PER_FIELD) != 0) {
@@ -256,8 +256,8 @@ err_path:
     return code;
 }
 
-static PRP_Result SystemInstanceDelCb(DT_void *pVal, DT_void *_) {
-    (DT_void) _;
+static PRP_Result SystemInstanceDelCb(void *pVal, void *_) {
+    (void)_;
     FECS_WCSystemInstanceDecl *pSystem_instance_decl = pVal;
 
     DT_ArrDeleteUnchecked(&pSystem_instance_decl->pInc_comp_names);
@@ -268,7 +268,7 @@ static PRP_Result SystemInstanceDelCb(DT_void *pVal, DT_void *_) {
 
 static PRP_Result ParseSystemInstanceDecl(ParserState *pParser_state,
                                           FECS_WCParseTable *pParse_table) {
-    DT_size toks_to_parse;
+    PRP_Size toks_to_parse;
     if (!DeclIsValidInitCheck(pParser_state, &toks_to_parse) ||
         toks_to_parse == 0) {
         // Extra check to reject empty decl.
@@ -294,9 +294,10 @@ static PRP_Result ParseSystemInstanceDecl(ParserState *pParser_state,
     pParse_table->system_instance_names_size +=
         system_instance_decl.system_instance_name.size;
 
-    DT_Arr *pAttached_arr = DT_null;
-    DT_bool found_inc = DT_false, found_exc = DT_false, found_system = DT_false;
-    for (DT_size i = 0; i < toks_to_parse;
+    DT_Arr *pAttached_arr = NULL;
+    PRP_Bool found_inc = PRP_False, found_exc = PRP_False,
+             found_system = PRP_False;
+    for (PRP_Size i = 0; i < toks_to_parse;
          i += TOKS_PER_FIELD, pParser_state->types_idx += TOKS_PER_FIELD) {
         FECS_WCTokType curr_tok =
             pParser_state->pTypes[pParser_state->types_idx];
@@ -304,11 +305,11 @@ static PRP_Result ParseSystemInstanceDecl(ParserState *pParser_state,
             pParser_state->pTypes[pParser_state->types_idx + 1];
 
         if (curr_tok == WC_TOK_INC && next_tok == WC_TOK_COLON && !found_inc) {
-            found_inc = DT_true;
+            found_inc = PRP_True;
             pAttached_arr = system_instance_decl.pInc_comp_names;
         } else if (curr_tok == WC_TOK_EXC && next_tok == WC_TOK_COLON &&
                    !found_exc) {
-            found_exc = DT_true;
+            found_exc = PRP_True;
             pAttached_arr = system_instance_decl.pExc_comp_names;
         } else if (curr_tok == WC_TOK_SYSTEM && next_tok == WC_TOK_COLON &&
                    !found_system) {
@@ -323,8 +324,8 @@ static PRP_Result ParseSystemInstanceDecl(ParserState *pParser_state,
             }
             system_instance_decl.system_name =
                 RegisterIdentifier(pParser_state, pParse_table);
-            found_system = DT_true;
-            pAttached_arr = DT_null;
+            found_system = PRP_True;
+            pAttached_arr = NULL;
         } else if (curr_tok == WC_TOK_IDENTIFIER &&
                    next_tok == WC_TOK_SEMICOLON && pAttached_arr) {
             FECS_WCIdentifierTok comp_name =
@@ -405,12 +406,12 @@ PRP_Result ParserParseTokStream(const FECS_WCTokStream *pTok_stream,
     return PRP_OK;
 }
 
-DT_void ParserParseTableDelete(FECS_WCParseTable *pParse_table) {
-    DT_ArrForEachUnchecked(pParse_table->pLayout_table, LayoutDelCb, DT_null);
+void ParserParseTableDelete(FECS_WCParseTable *pParse_table) {
+    DT_ArrForEachUnchecked(pParse_table->pLayout_table, LayoutDelCb, NULL);
     DT_ArrDeleteUnchecked(&pParse_table->pLayout_table);
 
     DT_ArrForEachUnchecked(pParse_table->pSystem_instance_table,
-                           SystemInstanceDelCb, DT_null);
+                           SystemInstanceDelCb, NULL);
     DT_ArrDeleteUnchecked(&pParse_table->pSystem_instance_table);
 
     DT_ByteBffrDeleteUnchecked(&pParse_table->pIdentifiers_bffr);

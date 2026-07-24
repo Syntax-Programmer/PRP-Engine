@@ -4,8 +4,7 @@
 extern "C" {
 #endif
 
-#include "DataTypes/Typedefs.h"
-#include "Utils/Defs.h"
+#include "Core/Defs.h"
 
 /**
  * MEM_Pool
@@ -25,9 +24,9 @@ typedef struct _Pool MEM_Pool;
  *
  * @param pool Pointer to the pool.
  *
- * @return DT_true if valid, DT_false otherwise.
+ * @return PRP_True if valid, PRP_False otherwise.
  */
-PRP_FN_API DT_bool PRP_FN_CALL MEM_PoolIsValid(const MEM_Pool *pool);
+PRP_FN_API PRP_Bool PRP_FN_CALL MEM_PoolIsValid(const MEM_Pool *pool);
 
 /**
  * Creates a pool allocator.
@@ -43,8 +42,8 @@ PRP_FN_API DT_bool PRP_FN_CALL MEM_PoolIsValid(const MEM_Pool *pool);
  * - Asserts on invalid arguments in debug.
  * - Caller must ensure validity.
  */
-PRP_FN_API PRP_Result PRP_FN_CALL MEM_PoolCreateUnchecked(DT_size memb_size,
-                                                          DT_size cap,
+PRP_FN_API PRP_Result PRP_FN_CALL MEM_PoolCreateUnchecked(PRP_Size memb_size,
+                                                          PRP_Size cap,
                                                           MEM_Pool **pPool);
 
 /**
@@ -58,8 +57,8 @@ PRP_FN_API PRP_Result PRP_FN_CALL MEM_PoolCreateUnchecked(DT_size memb_size,
  * @return PRP_ERR_INV_ARG if arguments are invalid.
  * @return PRP_ERR_OOM if allocation fails or size exceeds limits.
  */
-PRP_FN_API PRP_Result PRP_FN_CALL MEM_PoolCreateChecked(DT_size memb_size,
-                                                        DT_size cap,
+PRP_FN_API PRP_Result PRP_FN_CALL MEM_PoolCreateChecked(PRP_Size memb_size,
+                                                        PRP_Size cap,
                                                         MEM_Pool **pPool);
 
 /**
@@ -70,7 +69,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL MEM_PoolCreateChecked(DT_size memb_size,
  * @note Unchecked variant:
  * - Asserts on invalid arguments in debug.
  */
-PRP_FN_API DT_void PRP_FN_CALL MEM_PoolDeleteUnchecked(MEM_Pool **pPool);
+PRP_FN_API void PRP_FN_CALL MEM_PoolDeleteUnchecked(MEM_Pool **pPool);
 
 /**
  * Deletes the pool and nullifies the pointer.
@@ -100,7 +99,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL MEM_PoolDeleteChecked(MEM_Pool **pPool);
  * pDest MUST be a void**. Passing T** is undefined behavior.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL MEM_PoolAllocUnchecked(MEM_Pool *pool,
-                                                         DT_void **pDest);
+                                                         void **pDest);
 
 /**
  * Allocates a block from the pool with validation.
@@ -113,7 +112,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL MEM_PoolAllocUnchecked(MEM_Pool *pool,
  * @return PRP_ERR_RES_EXHAUSTED if no free blocks remain.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL MEM_PoolAllocChecked(MEM_Pool *pool,
-                                                       DT_void **pDest);
+                                                       void **pDest);
 
 /**
  * Allocates a zero-initialized block from the pool.
@@ -128,7 +127,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL MEM_PoolAllocChecked(MEM_Pool *pool,
  * - Asserts on invalid arguments in debug.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL MEM_PoolCallocUnchecked(MEM_Pool *pool,
-                                                          DT_void **pDest);
+                                                          void **pDest);
 
 /**
  * Allocates a zero-initialized block from the pool with validation.
@@ -141,7 +140,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL MEM_PoolCallocUnchecked(MEM_Pool *pool,
  * @return PRP_ERR_RES_EXHAUSTED if no free blocks remain.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL MEM_PoolCallocChecked(MEM_Pool *pool,
-                                                        DT_void **pDest);
+                                                        void **pDest);
 
 /**
  * Frees a previously allocated block back to the pool.
@@ -156,8 +155,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL MEM_PoolCallocChecked(MEM_Pool *pool,
  * @warning
  * Double-free is NOT detected and leads to undefined behavior.
  */
-PRP_FN_API DT_void PRP_FN_CALL MEM_PoolFreeUnchecked(MEM_Pool *pool,
-                                                     DT_void *ptr);
+PRP_FN_API void PRP_FN_CALL MEM_PoolFreeUnchecked(MEM_Pool *pool, void *ptr);
 
 /**
  * Frees a previously allocated block with validation.
@@ -169,7 +167,7 @@ PRP_FN_API DT_void PRP_FN_CALL MEM_PoolFreeUnchecked(MEM_Pool *pool,
  * @return PRP_ERR_INV_ARG if pool or ptr is invalid.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL MEM_PoolFreeChecked(MEM_Pool *pool,
-                                                      DT_void *ptr);
+                                                      void *ptr);
 
 /**
  * Returns the capacity (number of elements) of the pool.
@@ -180,7 +178,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL MEM_PoolFreeChecked(MEM_Pool *pool,
  *
  * @note Assumes valid pool (asserts in debug).
  */
-PRP_FN_API DT_size PRP_FN_CALL MEM_PoolCap(const MEM_Pool *pool);
+PRP_FN_API PRP_Size PRP_FN_CALL MEM_PoolCap(const MEM_Pool *pool);
 /**
  * Returns the size (in bytes) of each element.
  *
@@ -190,7 +188,7 @@ PRP_FN_API DT_size PRP_FN_CALL MEM_PoolCap(const MEM_Pool *pool);
  *
  * @note Assumes valid pool (asserts in debug).
  */
-PRP_FN_API DT_size PRP_FN_CALL MEM_PoolMembSize(const MEM_Pool *pool);
+PRP_FN_API PRP_Size PRP_FN_CALL MEM_PoolMembSize(const MEM_Pool *pool);
 /**
  * Returns the maximum possible capacity for this pool configuration.
  *
@@ -200,7 +198,7 @@ PRP_FN_API DT_size PRP_FN_CALL MEM_PoolMembSize(const MEM_Pool *pool);
  *
  * @note Assumes valid pool (asserts in debug).
  */
-PRP_FN_API DT_size PRP_FN_CALL MEM_PoolMaxCap(const MEM_Pool *pool);
+PRP_FN_API PRP_Size PRP_FN_CALL MEM_PoolMaxCap(const MEM_Pool *pool);
 
 /**
  * Resets the pool.
@@ -213,7 +211,7 @@ PRP_FN_API DT_size PRP_FN_CALL MEM_PoolMaxCap(const MEM_Pool *pool);
  * @note Unchecked variant:
  * - Asserts on invalid arguments in debug.
  */
-PRP_FN_API DT_void PRP_FN_CALL MEM_PoolResetUnchecked(MEM_Pool *pool);
+PRP_FN_API void PRP_FN_CALL MEM_PoolResetUnchecked(MEM_Pool *pool);
 
 /**
  * Resets the pool with validation.

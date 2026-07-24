@@ -1,6 +1,6 @@
 #include "Forge/Internals/World-Compiler/Compiler-Internals.h"
 
-PRP_Result CompilerCompile(const DT_char *pFile_path,
+PRP_Result CompilerCompile(const PRP_Char8 *pFile_path,
                            FECS_WorldCreateInfo *pCreate_info) {
     FECS_WCTokStream tok_stream;
     PRP_Result code = LexerTokenizeFile(pFile_path, &tok_stream);

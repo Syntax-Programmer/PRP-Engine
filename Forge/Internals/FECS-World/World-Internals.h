@@ -18,7 +18,7 @@ extern "C" {
 
 typedef struct {
     FECS_SystemId system_id;
-    DT_size layout_id_match_count;
+    PRP_Size layout_id_match_count;
     // These will be taken ownership of by the world.
     // Caller must not destroy/access after successful SystemInstanceCreate().
     FECS_LayoutId *pLayout_id_matches;
@@ -26,18 +26,18 @@ typedef struct {
      * Number of strides to compute, this is equal to the comp_ids_needed_count
      * in the FECS_SystemInfo.
      */
-    DT_size stride_dispatch_count;
+    PRP_Size stride_dispatch_count;
 } FECS_SystemInstanceCreateInfo;
 
 typedef struct {
-    DT_size layout_count;
+    PRP_Size layout_count;
     // These will be freed.
     DT_Bitmap **ppLayout_create_infos;
     // These will be taken ownership of by the world.
     // Caller must not destroy or access after successful WorldCreate().
     DT_StrArr *pLayout_names;
 
-    DT_size system_instance_count;
+    PRP_Size system_instance_count;
     // These will be freed.
     FECS_SystemInstanceCreateInfo *pSystem_instance_create_infos;
     // These will be taken ownership of by the world.
@@ -48,15 +48,15 @@ typedef struct {
 /* ----  LAYOUTS ---- */
 
 #define CHUNK_CAP (64)
-typedef DT_u64 FECS_ChunkFreeSlotType;
+typedef PRP_U64 FECS_ChunkFreeSlotType;
 
 typedef struct {
-    DT_u32 gens[CHUNK_CAP];
+    PRP_U32 gens[CHUNK_CAP];
     FECS_ChunkFreeSlotType free_slot_bitset;
-    DT_u8 pChunk_mem[];
+    PRP_U8 pChunk_mem[];
 } FECS_Chunk;
 
-DIAG_STATIC_ASSERT(CHUNK_CAP == sizeof(DT_u64) * 8,
+DIAG_STATIC_ASSERT(CHUNK_CAP == sizeof(PRP_U64) * 8,
                    "free_slot bit width must match CHUNK_CAP");
 
 typedef struct {
@@ -71,7 +71,7 @@ typedef struct {
      * And each stride entry corresponds to the corresponding bit set at that
      * RANK in the pComp_set bitmap.
      */
-    DT_size *pComp_arr_strides;
+    PRP_Size *pComp_arr_strides;
     /**
      * Prefix population counts of FECS_Layout::pComp_set.
      *
@@ -92,10 +92,10 @@ typedef struct {
      * of comps set in each bitmap word) sets a hard cap of UINT16_MAX as the
      * max number of components that can be registered.
      */
-    DT_u16 *pWord_prefix_popcnts;
+    PRP_U16 *pWord_prefix_popcnts;
     DT_Arr *pChunk_ptrs;
     DT_Bitmap *pFree_chunk_bitset;
-    DT_size chunk_total_size;
+    PRP_Size chunk_total_size;
 } FECS_Layout;
 
 /**
@@ -104,10 +104,10 @@ typedef struct {
  * registered component arrays it manages.
  *
  * Approximate memory footprint of an empty layout:
- *     sizeof(DT_size) * component_count + ~(300-400) bytes
+ *     sizeof(PRP_Size) * component_count + ~(300-400) bytes
  *
  * where:
- *   - sizeof(DT_size) * component_count accounts for the component stride
+ *   - sizeof(PRP_Size) * component_count accounts for the component stride
  * array.
  *   - ~300 bytes is an implementation-dependent approximation of the remaining
  *     metadata and supporting data structures (bitmaps, chunk pointers, etc.).
@@ -132,13 +132,13 @@ PRP_Result LayoutCreate(DT_Bitmap *pCreate_info, FECS_Layout *pLayout);
  *
  * @param pLayout The layout to delete internals of.
  */
-DT_void LayoutDelete(FECS_Layout *pLayout);
+void LayoutDelete(FECS_Layout *pLayout);
 
 /* ----  SYSTEM INSTANCES ---- */
 
 typedef struct {
     FECS_SystemId system_id;
-    DT_size layout_id_match_count;
+    PRP_Size layout_id_match_count;
     FECS_LayoutId *pLayout_id_matches;
     /**
      * A preallocated buffer for all the strides of components to be loaded into
@@ -149,7 +149,7 @@ typedef struct {
      * The len of this is exactly tied to system_id, and is exactly equal to the
      * FECS_SystemInfo::comp_ids_needed_count.
      */
-    DT_size *pStride_dispatches;
+    PRP_Size *pStride_dispatches;
 } FECS_SystemInstance;
 
 /**
@@ -168,16 +168,16 @@ PRP_Result SystemInstanceCreate(FECS_SystemInstanceCreateInfo *pCreate_info,
  *
  * @param pSystem_instance The system instance to delete internals of.
  */
-DT_void SystemInstanceDelete(FECS_SystemInstance *pSystem_instance);
+void SystemInstanceDelete(FECS_SystemInstance *pSystem_instance);
 
 /* ----  WORLD ---- */
 
 typedef struct {
-    DT_size layout_count;
+    PRP_Size layout_count;
     FECS_Layout *pLayouts;
     DT_StrArr *pLayout_names;
 
-    DT_size system_instance_count;
+    PRP_Size system_instance_count;
     FECS_SystemInstance *pSystem_instances;
     DT_StrArr *pSystem_instance_names;
 } FECS_World;
@@ -190,7 +190,7 @@ typedef struct {
  *
  * @return PRP_OK on success.
  */
-PRP_Result WorldDeleteCb(DT_void *pWorld);
+PRP_Result WorldDeleteCb(void *pWorld);
 /**
  * Creates a fully defined world from the given create info.
  * Consumes the entire create info regardless of success or fail. So no need to
@@ -213,8 +213,8 @@ PRP_Result WorldCreate(FECS_WorldCreateInfo *pCreate_info, FECS_World *pWorld);
  *
  * @return FECS_LayoutId if the name is found, otherwise FECS_INVALID_ID.
  */
-FECS_LayoutId WorldFindLayout(const FECS_World *pWorld, const DT_char *pName,
-                              DT_size name_len);
+FECS_LayoutId WorldFindLayout(const FECS_World *pWorld, const PRP_Char8 *pName,
+                              PRP_Size name_len);
 /**
  * Searches for a specified system instance name inside the given world.
  *
@@ -226,8 +226,8 @@ FECS_LayoutId WorldFindLayout(const FECS_World *pWorld, const DT_char *pName,
  *         FECS_INVALID_ID.
  */
 FECS_SystemInstanceId WorldFindSystemInstance(const FECS_World *pWorld,
-                                              const DT_char *pName,
-                                              DT_size name_len);
+                                              const PRP_Char8 *pName,
+                                              PRP_Size name_len);
 
 /* ----  ENTITIES ---- */
 
@@ -259,35 +259,36 @@ PRP_Result EntitySpawn(FECS_World *pWorld, FECS_LayoutId layout_id,
  * @return PRP_ERR_OOM if allocation fails.
  */
 PRP_Result EntityGroupSpawn(FECS_World *pWorld, FECS_LayoutId layout_id,
-                            DT_size entity_count, FECS_EntityGroupId **ppGroup);
+                            PRP_Size entity_count,
+                            FECS_EntityGroupId **ppGroup);
 /**
  * Checks if the given entity is valid.
  *
  * @param pWorld  World, the entity belongs to.
  * @param entity  The entitiy to check.
  *
- * @return DT_true if valid.
- * @return DT_false if invalid.
+ * @return PRP_True if valid.
+ * @return PRP_False if invalid.
  */
-DT_bool EntityIsValid(FECS_World *pWorld, const FECS_EntityId entity);
+PRP_Bool EntityIsValid(FECS_World *pWorld, const FECS_EntityId entity);
 /**
  * Checks if the given entity group is valid.
  *
  * @param pWorld World, the entities belongs to.
  * @param pBatch The entitiy group to check.
  *
- * @return DT_true if valid.
- * @return DT_false if invalid.
+ * @return PRP_True if valid.
+ * @return PRP_False if invalid.
  */
-DT_bool EntityGroupIsValid(FECS_World *pWorld,
-                           const FECS_EntityGroupId *pGroup);
+PRP_Bool EntityGroupIsValid(FECS_World *pWorld,
+                            const FECS_EntityGroupId *pGroup);
 /**
  * Kills the given entity, and invalidates it.
  *
  * @param pWorld World, the entity belongs to.
  * @param entity The entitiy to kill.
  */
-DT_void EntityKill(FECS_World *pWorld, FECS_EntityId *pEntity);
+void EntityKill(FECS_World *pWorld, FECS_EntityId *pEntity);
 /**
  * Kills the given entity and nullifies the pointer.
  *
@@ -310,7 +311,7 @@ PRP_Result EntityGroupKill(FECS_World *pWorld, FECS_EntityGroupId **ppGroup);
  * @return PRP_ERR_INV_ARG if entity doesn't have the component.
  */
 PRP_Result EntityGetComp(FECS_World *pWorld, const FECS_EntityId entity,
-                         FECS_CompId comp_id, DT_void **ppComp_ptr);
+                         FECS_CompId comp_id, void **ppComp_ptr);
 /**
  * Sets the value to the specific component of an entity.
  *
@@ -323,7 +324,7 @@ PRP_Result EntityGetComp(FECS_World *pWorld, const FECS_EntityId entity,
  * @return PRP_ERR_INV_ARG if entity doesn't have the component.
  */
 PRP_Result EntitySetComp(FECS_World *pWorld, FECS_EntityId entity,
-                         FECS_CompId comp_id, const DT_void *pComp_data);
+                         FECS_CompId comp_id, const void *pComp_data);
 /**
  * Iterates over all entities of a batch.
  *
@@ -338,11 +339,9 @@ PRP_Result EntitySetComp(FECS_World *pWorld, FECS_EntityId entity,
  * @return PRP_ERR_INV_ARG if the entities don't have the component or the batch
  *                         is invalid.
  */
-PRP_Result EntityGroupForEach(FECS_World *pWorld, FECS_EntityGroupId *pGroup,
-                              FECS_CompId comp_id,
-                              PRP_Result (*cb)(DT_void *pComp_data,
-                                               DT_void *pUser_data),
-                              DT_void *pUser_data);
+PRP_Result EntityGroupForEach(
+    FECS_World *pWorld, FECS_EntityGroupId *pGroup, FECS_CompId comp_id,
+    PRP_Result (*cb)(void *pComp_data, void *pUser_data), void *pUser_data);
 
 /* ----  SYSTEM INSTANCE EXEC ---- */
 
@@ -351,9 +350,9 @@ PRP_Result EntityGroupForEach(FECS_World *pWorld, FECS_EntityGroupId *pGroup,
  *
  * @param pWorld World, the system instance belongs to.
  */
-DT_void SystemInstanceExec(FECS_World *pWorld,
-                           FECS_SystemInstanceId system_instance_id,
-                           DT_void *pUser_data);
+void SystemInstanceExec(FECS_World *pWorld,
+                        FECS_SystemInstanceId system_instance_id,
+                        void *pUser_data);
 /**
  * Fetches pointer of the component array during system exec using exec
  * internals.
@@ -364,15 +363,15 @@ DT_void SystemInstanceExec(FECS_World *pWorld,
  *                        pComp_ids_needed array during system registration.
  *
  * @return Valid component array ptr on success.
- * @return DT_null if idx is out of bounds.
+ * @return NULL if idx is out of bounds.
  *
  * @note:
  * - The user is not to explictly interact with the returned ptr. It is for
  * internal use only.
  */
-DT_void *
+void *
 SystemInstanceFetchComp(const FECS_SystemExecInternalData *pExec_internals,
-                        DT_size idx);
+                        PRP_Size idx);
 
 #ifdef __cplusplus
 }

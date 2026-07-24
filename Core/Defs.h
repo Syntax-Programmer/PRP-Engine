@@ -4,12 +4,12 @@
 extern "C" {
 #endif
 
-#include <stddef.h>
+#include "Types.h"
 
-#define PRP_INVALID_SIZE ((DT_size)(-1))
-#define PRP_INVALID_INDEX ((DT_size)(-1))
+#define PRP_INVALID_SIZE ((PRP_Size)(-1))
+#define PRP_INVALID_INDEX ((PRP_Size)(-1))
 // Pos is like a 1 based index.
-#define PRP_INVALID_POS ((DT_size)(0))
+#define PRP_INVALID_POS ((PRP_Size)(0))
 
 #define PRP_POS_TO_I(pos) ((pos) - 1)
 #define PRP_I_TO_POS(i) ((i) + 1)
@@ -33,17 +33,6 @@ extern "C" {
  * Syntax for using it:
  * PRP_FN_API <ret-type> PRP_FN_CALL <fn_name>(<fn-args>);
  */
-// #ifdef _WIN32
-// #ifdef PRP_EXPORTS
-// #define PRP_FN_API __declspec(dllexport)
-// #else
-// #define PRP_FN_API __declspec(dllimport)
-// #endif
-// #define PRP_FN_CALL __stdcall
-// #else
-// #define PRP_FN_API
-// #define PRP_FN_CALL
-// #endif
 #ifdef _WIN32
 #ifdef PRP_EXPORTS
 #define PRP_FN_API __declspec(dllexport)

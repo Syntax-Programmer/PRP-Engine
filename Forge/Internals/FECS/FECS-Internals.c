@@ -1,11 +1,11 @@
 #include "Forge/Internals/FECS/FECS-Internals.h"
 #include "Diagnostics/Assert.h"
 
-FECS_InternalCtx *g_ctx = DT_null;
+FECS_InternalCtx *g_ctx = NULL;
 
 /* ----  COMPS ---- */
 
-PRP_Result CompRegister(DT_char *pName, DT_size name_len, DT_size comp_size,
+PRP_Result CompRegister(PRP_Char8 *pName, PRP_Size name_len, PRP_Size comp_size,
                         FECS_CompId *pComp_id) {
     *pComp_id = FECS_INVALID_ID;
 
@@ -14,7 +14,7 @@ PRP_Result CompRegister(DT_char *pName, DT_size name_len, DT_size comp_size,
         return PRP_ERR_ALREADY_EXISTS;
     }
 
-    DT_size len = DT_ArrLen(g_ctx->pComp_sizes);
+    PRP_Size len = DT_ArrLen(g_ctx->pComp_sizes);
     if (len >= FECS_COMPONENTS_MAX_CAP) {
         return PRP_ERR_RES_EXHAUSTED;
     }
@@ -25,7 +25,7 @@ PRP_Result CompRegister(DT_char *pName, DT_size name_len, DT_size comp_size,
     }
     code = DT_ArrPushUnchecked(g_ctx->pComp_sizes, &comp_size);
     if (code != PRP_OK) {
-        DT_StrArrPopUnchecked(g_ctx->pComp_names, DT_null, DT_null);
+        DT_StrArrPopUnchecked(g_ctx->pComp_names, NULL, NULL);
         return code;
     }
     *pComp_id = len;
@@ -35,9 +35,9 @@ PRP_Result CompRegister(DT_char *pName, DT_size name_len, DT_size comp_size,
 
 /* ----  SYTEMS ---- */
 
-PRP_Result SystemRegister(DT_char *pName, DT_size name_len,
+PRP_Result SystemRegister(PRP_Char8 *pName, PRP_Size name_len,
                           FECS_SystemFunc system_func,
-                          DT_size comp_ids_needed_count,
+                          PRP_Size comp_ids_needed_count,
                           FECS_CompId *pComp_ids_needed,
                           FECS_SystemId *pSystem_id) {
     *pSystem_id = FECS_INVALID_ID;
@@ -54,8 +54,8 @@ PRP_Result SystemRegister(DT_char *pName, DT_size name_len,
     if (!info.pComp_ids_needed) {
         return PRP_ERR_OOM;
     }
-    DT_size comps_len = DT_ArrLen(g_ctx->pComp_sizes);
-    for (DT_size i = 0; i < comp_ids_needed_count; i++) {
+    PRP_Size comps_len = DT_ArrLen(g_ctx->pComp_sizes);
+    for (PRP_Size i = 0; i < comp_ids_needed_count; i++) {
         FECS_CompId comp_id = pComp_ids_needed[i];
         DIAG_ASSERT_MSG(comp_id < comps_len,
                         "The given system registration contains invalid comp "
@@ -67,7 +67,7 @@ PRP_Result SystemRegister(DT_char *pName, DT_size name_len,
         info.pComp_ids_needed[i] = comp_id;
     }
 
-    DT_size len = DT_ArrLen(g_ctx->pSystem_infos);
+    PRP_Size len = DT_ArrLen(g_ctx->pSystem_infos);
     PRP_Result code =
         DT_StrArrPushUnchecked(g_ctx->pSystem_names, pName, name_len);
     if (code != PRP_OK) {
@@ -75,7 +75,7 @@ PRP_Result SystemRegister(DT_char *pName, DT_size name_len,
     }
     code = DT_ArrPushUnchecked(g_ctx->pSystem_infos, &info);
     if (code != PRP_OK) {
-        DT_StrArrPopUnchecked(g_ctx->pSystem_names, DT_null, DT_null);
+        DT_StrArrPopUnchecked(g_ctx->pSystem_names, NULL, NULL);
         return code;
     }
     *pSystem_id = len;
@@ -83,13 +83,13 @@ PRP_Result SystemRegister(DT_char *pName, DT_size name_len,
     return PRP_OK;
 }
 
-PRP_Result SystemInfoDeleteCb(DT_void *pVal, DT_void *_) {
-    (DT_void) _;
+PRP_Result SystemInfoDeleteCb(void *pVal, void *_) {
+    (void)_;
     FECS_SystemInfo *pSystem_info = pVal;
 
     free(pSystem_info->pComp_ids_needed);
 #if !defined(PRP_NDEBUG)
-    pSystem_info->pComp_ids_needed = DT_null;
+    pSystem_info->pComp_ids_needed = NULL;
 #endif
 
     return PRP_OK;

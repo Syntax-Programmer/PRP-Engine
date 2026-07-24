@@ -4,8 +4,7 @@
 extern "C" {
 #endif
 
-#include "DataTypes/Typedefs.h"
-#include "Defs.h"
+#include "Core/Defs.h"
 
 /* ----  TIME MEASUREMENT  ---- */
 
@@ -20,7 +19,7 @@ extern "C" {
 typedef enum { PRP_TIME_NS, PRP_TIME_US, PRP_TIME_MS, PRP_TIME_S } PRP_TimeUnit;
 
 // The actual time measure that we will get in float.
-typedef DT_f64 PRP_TimeMeasure;
+typedef PRP_F64 PRP_TimeMeasure;
 #define PRP_INVALID_TIME_MEASURE (-1)
 
 /**

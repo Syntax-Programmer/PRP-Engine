@@ -25,7 +25,7 @@ To change chunk cap:
 - Change the data typedef underlying type int of **WorldInternals.FECS_ChunkFreeSlotType** and **Typedefs.FECS_SystemExecOccupancyMask** DT_u(x), where x is the required permitted chunk cap.
 
 - Change the below macros inside Layout.c file so that
-  #define ENTITY_SLOT_MASK ((DT_size)x)
+  #define ENTITY_SLOT_MASK ((PRP_Size)x)
   #define ENTITY_SLOT_BITS (y)
   x = required permitted chunk cap - 1;
   y = log2(required permitted chunk cap);

@@ -12,17 +12,17 @@
 static PRP_Result WorldInit(FECS_WorldCreateInfo *pCreate_info,
                             FECS_World *pWorld);
 
-PRP_Result WorldDeleteCb(DT_void *pWorld) {
+PRP_Result WorldDeleteCb(void *pWorld) {
     FECS_World *pWorld_instance = pWorld;
 
     if (pWorld_instance->pLayouts) {
-        for (DT_size i = 0; i < pWorld_instance->layout_count; i++) {
+        for (PRP_Size i = 0; i < pWorld_instance->layout_count; i++) {
             LayoutDelete(&pWorld_instance->pLayouts[i]);
         }
         free(pWorld_instance->pLayouts);
     }
     if (pWorld_instance->pSystem_instances) {
-        for (DT_size i = 0; i < pWorld_instance->system_instance_count; i++) {
+        for (PRP_Size i = 0; i < pWorld_instance->system_instance_count; i++) {
             SystemInstanceDelete(&pWorld_instance->pSystem_instances[i]);
         }
         free(pWorld_instance->pSystem_instances);
@@ -34,10 +34,10 @@ PRP_Result WorldDeleteCb(DT_void *pWorld) {
         DT_StrArrDeleteUnchecked(&pWorld_instance->pSystem_instance_names);
     }
 #if !defined(PRP_NDEBUG)
-    pWorld_instance->pLayouts = DT_null;
-    pWorld_instance->pSystem_instances = DT_null;
-    pWorld_instance->pLayout_names = DT_null;
-    pWorld_instance->pSystem_instance_names = DT_null;
+    pWorld_instance->pLayouts = NULL;
+    pWorld_instance->pSystem_instances = NULL;
+    pWorld_instance->pLayout_names = NULL;
+    pWorld_instance->pSystem_instance_names = NULL;
     pWorld_instance->layout_count = 0;
     pWorld_instance->system_instance_count = 0;
 #endif
@@ -81,8 +81,8 @@ static PRP_Result WorldInit(FECS_WorldCreateInfo *pCreate_info,
 }
 
 PRP_Result WorldCreate(FECS_WorldCreateInfo *pCreate_info, FECS_World *pWorld) {
-    DT_size layout_create_info_idx = 0;
-    DT_size system_instance_create_info_idx = 0;
+    PRP_Size layout_create_info_idx = 0;
+    PRP_Size system_instance_create_info_idx = 0;
 
     PRP_Result code = WorldInit(pCreate_info, pWorld);
     if (code != PRP_OK) {
@@ -92,7 +92,7 @@ PRP_Result WorldCreate(FECS_WorldCreateInfo *pCreate_info, FECS_World *pWorld) {
     code = PRP_OK; // Never hurts to be explicit.
     if (pWorld->pLayouts) {
         FECS_Layout *pLayouts = pWorld->pLayouts;
-        for (DT_size i = 0; i < pCreate_info->layout_count; i++) {
+        for (PRP_Size i = 0; i < pCreate_info->layout_count; i++) {
             code = LayoutCreate(pCreate_info->ppLayout_create_infos[i],
                                 &pLayouts[i]);
             if (code != PRP_OK) {
@@ -109,7 +109,7 @@ PRP_Result WorldCreate(FECS_WorldCreateInfo *pCreate_info, FECS_World *pWorld) {
     }
     if (pWorld->pSystem_instances) {
         FECS_SystemInstance *pSystem_instances = pWorld->pSystem_instances;
-        for (DT_size i = 0; i < pCreate_info->system_instance_count; i++) {
+        for (PRP_Size i = 0; i < pCreate_info->system_instance_count; i++) {
             code = SystemInstanceCreate(
                 &pCreate_info->pSystem_instance_create_infos[i],
                 &pSystem_instances[i]);
@@ -128,13 +128,13 @@ PRP_Result WorldCreate(FECS_WorldCreateInfo *pCreate_info, FECS_World *pWorld) {
 
 free_create_info:
     if (layout_create_info_idx != PRP_INVALID_INDEX) {
-        for (DT_size i = layout_create_info_idx; i < pCreate_info->layout_count;
-             i++) {
+        for (PRP_Size i = layout_create_info_idx;
+             i < pCreate_info->layout_count; i++) {
             DT_BitmapDeleteUnchecked(&pCreate_info->ppLayout_create_infos[i]);
         }
     }
     if (system_instance_create_info_idx != PRP_INVALID_INDEX) {
-        for (DT_size i = system_instance_create_info_idx;
+        for (PRP_Size i = system_instance_create_info_idx;
              i < pCreate_info->system_instance_count; i++) {
             free(pCreate_info->pSystem_instance_create_infos[i]
                      .pLayout_id_matches);
@@ -143,16 +143,16 @@ free_create_info:
     // The names arrays are freed by the WorldDelCb.
     // This is always true regardless of where and when the failure occured.
     free(pCreate_info->ppLayout_create_infos);
-    pCreate_info->ppLayout_create_infos = DT_null;
+    pCreate_info->ppLayout_create_infos = NULL;
     free(pCreate_info->pSystem_instance_create_infos);
-    pCreate_info->pSystem_instance_create_infos = DT_null;
+    pCreate_info->pSystem_instance_create_infos = NULL;
 
     return code;
 }
 
-FECS_LayoutId WorldFindLayout(const FECS_World *pWorld, const DT_char *pName,
-                              DT_size name_len) {
-    DT_size idx;
+FECS_LayoutId WorldFindLayout(const FECS_World *pWorld, const PRP_Char8 *pName,
+                              PRP_Size name_len) {
+    PRP_Size idx;
     if (pWorld->layout_count == 0 ||
         !DT_StrArrSearchUnchecked(pWorld->pLayout_names, pName, name_len,
                                   &idx)) {
@@ -163,9 +163,9 @@ FECS_LayoutId WorldFindLayout(const FECS_World *pWorld, const DT_char *pName,
 }
 
 FECS_SystemInstanceId WorldFindSystemInstance(const FECS_World *pWorld,
-                                              const DT_char *pName,
-                                              DT_size name_len) {
-    DT_size idx;
+                                              const PRP_Char8 *pName,
+                                              PRP_Size name_len) {
+    PRP_Size idx;
     if (pWorld->system_instance_count == 0 ||
         !DT_StrArrSearchUnchecked(pWorld->pSystem_instance_names, pName,
                                   name_len, &idx)) {

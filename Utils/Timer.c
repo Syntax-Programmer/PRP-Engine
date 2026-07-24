@@ -9,15 +9,15 @@
  *
  * @return The current time in the double f64 format of TimeMeasure.
  */
-static PRP_TimeMeasure GetTimeNs(DT_void);
+static PRP_TimeMeasure GetTimeNs(void);
 
 #if defined(_WIN32) || defined(_WIN64)
 #include <windows.h>
 
 static LARGE_INTEGER freq;
-static DT_i32 initialized = 0;
+static PRP_I32 initialized = 0;
 
-static PRP_TimeMeasure GetTimeNs(DT_void) {
+static PRP_TimeMeasure GetTimeNs(void) {
     LARGE_INTEGER counter;
     if (!initialized) {
         QueryPerformanceFrequency(&freq);
@@ -30,18 +30,18 @@ static PRP_TimeMeasure GetTimeNs(DT_void) {
 #else
 #include <time.h>
 
-static PRP_TimeMeasure GetTimeNs(DT_void) {
+static PRP_TimeMeasure GetTimeNs(void) {
     struct timespec ts;
     clock_gettime(CLOCK_MONOTONIC, &ts);
 
-    DT_f64 tv_sec = (DT_f64)ts.tv_sec;
-    DT_f64 tv_nsec = (DT_f64)ts.tv_nsec;
+    PRP_F64 tv_sec = (PRP_F64)ts.tv_sec;
+    PRP_F64 tv_nsec = (PRP_F64)ts.tv_nsec;
 
     return tv_sec * 1e9 + tv_nsec;
 }
 #endif
 
-static const DT_f64 TIME_UNIT_SCALE[] = {1, 1e3, 1e6, 1e9};
+static const PRP_F64 TIME_UNIT_SCALE[] = {1, 1e3, 1e6, 1e9};
 
 PRP_FN_API PRP_TimeMeasure PRP_FN_CALL PRP_TimerGetTime(PRP_TimeUnit unit) {
     if (unit < 0 || unit > PRP_TIME_S) {

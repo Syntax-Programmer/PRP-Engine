@@ -4,48 +4,48 @@
 
 /* ----  BITWORD UTILS ---- */
 
-PRP_FN_API DT_size PRP_FN_CALL DT_BitwordCTZ(DT_Bitword word) {
+PRP_FN_API PRP_Size PRP_FN_CALL DT_BitwordCTZ(DT_Bitword word) {
     if (!word) {
         return PRP_INVALID_INDEX;
     }
 #ifdef _MSC_VER
     unsigned long i;
     _BitScanForward64(&i, word);
-    return (DT_size)i;
+    return (PRP_Size)i;
 #else
-    return (DT_size)__builtin_ctzll(word);
+    return (PRP_Size)__builtin_ctzll(word);
 #endif
 }
 
-PRP_FN_API DT_size PRP_FN_CALL DT_BitwordCLZ(DT_Bitword word) {
+PRP_FN_API PRP_Size PRP_FN_CALL DT_BitwordCLZ(DT_Bitword word) {
     if (!word) {
         return PRP_INVALID_INDEX;
     }
 #ifdef _MSC_VER
     unsigned long i;
     _BitScanReverse64(&i, word);
-    return (DT_size)(63 - i);
+    return (PRP_Size)(63 - i);
 #else
-    return (DT_size)__builtin_clzll(word);
+    return (PRP_Size)__builtin_clzll(word);
 #endif
 }
 
-PRP_FN_API DT_size PRP_FN_CALL DT_BitwordPopCnt(DT_Bitword word) {
+PRP_FN_API PRP_Size PRP_FN_CALL DT_BitwordPopCnt(DT_Bitword word) {
 #ifdef _MSC_VER
-    return (DT_size)__popcnt64(word);
+    return (PRP_Size)__popcnt64(word);
 #else
-    return (DT_size)__builtin_popcountll(word);
+    return (PRP_Size)__builtin_popcountll(word);
 #endif
 }
 
-PRP_FN_API DT_size PRP_FN_CALL DT_BitwordFFS(DT_Bitword word) {
+PRP_FN_API PRP_Size PRP_FN_CALL DT_BitwordFFS(DT_Bitword word) {
 #ifdef _MSC_VER
     unsigned long i;
     if (_BitScanForward64(&i, word))
-        return (DT_size)(i);
+        return (PRP_Size)(i);
     return PRP_INVALID_INDEX;
 #else
-    return word ? (DT_size)__builtin_ctzll(word) : PRP_INVALID_INDEX;
+    return word ? (PRP_Size)__builtin_ctzll(word) : PRP_INVALID_INDEX;
 #endif
 }
 
@@ -53,28 +53,28 @@ PRP_FN_API DT_size PRP_FN_CALL DT_BitwordFFS(DT_Bitword word) {
 
 struct _Bitmap {
     // The count of bits currently set.
-    DT_size set_c;
+    PRP_Size set_c;
     /*
      * A cache for the first set index of the bitmap.
      * We cache this particular thing is that we often times need FFS calls very
      * much in code, and caching to speed it up is worth it.
      */
-    DT_size first_set;
+    PRP_Size first_set;
     /*
      * The semantic max cap the user has set. No operations will be performed
      * beyond this cap.
      */
-    DT_size bit_cap;
+    PRP_Size bit_cap;
 
     // The cap of the number of words allocated.
-    DT_size word_cap;
+    PRP_Size word_cap;
     // The words that will store the bits.
     DT_Bitword *words;
 };
 
 #define ASSERT_INVARIANT_EXPR(bmp)                                             \
     DIAG_ASSERT_MSG(DT_BitmapIsValid(bmp),                                     \
-                    "The given bitmap is either DT_null, or is corrupted.")
+                    "The given bitmap is either NULL, or is corrupted.")
 
 /**
  * Recomputes the first set index for the given bitmap, updating the cached
@@ -85,9 +85,9 @@ struct _Bitmap {
  * set to be beyond or equal to start index. So we take in that for easier
  * computation.
  */
-static DT_void BitmapCalcFirstSet(DT_Bitmap *bmp, DT_size start);
+static void BitmapCalcFirstSet(DT_Bitmap *bmp, PRP_Size start);
 
-static DT_void BitmapCalcFirstSet(DT_Bitmap *bmp, DT_size start) {
+static void BitmapCalcFirstSet(DT_Bitmap *bmp, PRP_Size start) {
     if (!bmp->set_c) {
         bmp->first_set = PRP_INVALID_INDEX;
         return;
@@ -101,9 +101,9 @@ static DT_void BitmapCalcFirstSet(DT_Bitmap *bmp, DT_size start) {
      due to
      * the active updation we do during the bitmap operations.
      */
-    DT_size i = (start != PRP_INVALID_INDEX)          ? WORD_I(start)
-                : bmp->first_set != PRP_INVALID_INDEX ? WORD_I(bmp->first_set)
-                                                      : 0;
+    PRP_Size i = (start != PRP_INVALID_INDEX)          ? WORD_I(start)
+                 : bmp->first_set != PRP_INVALID_INDEX ? WORD_I(bmp->first_set)
+                                                       : 0;
     for (; i < bmp->word_cap; i++) {
         DT_Bitword word = bmp->words[i];
         if (!word) {
@@ -120,17 +120,17 @@ static DT_void BitmapCalcFirstSet(DT_Bitmap *bmp, DT_size start) {
     bmp->first_set = PRP_INVALID_INDEX;
 }
 
-PRP_FN_API DT_bool PRP_FN_CALL DT_BitmapIsValid(const DT_Bitmap *bmp) {
-    return (bmp != DT_null && bmp->words != DT_null &&
+PRP_FN_API PRP_Bool PRP_FN_CALL DT_BitmapIsValid(const DT_Bitmap *bmp) {
+    return (bmp != NULL && bmp->words != NULL &&
             bmp->bit_cap <= DT_BITMAP_MAX_BIT_CAP &&
             bmp->set_c <= bmp->bit_cap &&
             WORD_I(bmp->bit_cap) == bmp->word_cap - 1);
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapCreateUnchecked(DT_size bit_cap,
+PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapCreateUnchecked(PRP_Size bit_cap,
                                                            DT_Bitmap **pBmp) {
     DIAG_ASSERT(bit_cap > 0 && bit_cap <= DT_BITMAP_MAX_BIT_CAP);
-    DIAG_ASSERT(pBmp != DT_null);
+    DIAG_ASSERT(pBmp != NULL);
 
     DT_Bitmap *bmp = malloc(sizeof(DT_Bitmap));
     if (!bmp) {
@@ -151,7 +151,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapCreateUnchecked(DT_size bit_cap,
     return PRP_OK;
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapCreateChecked(DT_size bit_cap,
+PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapCreateChecked(PRP_Size bit_cap,
                                                          DT_Bitmap **pBmp) {
     if (!bit_cap || bit_cap > DT_BITMAP_MAX_BIT_CAP || !pBmp) {
         return PRP_ERR_INV_ARG;
@@ -163,7 +163,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapCreateChecked(DT_size bit_cap,
 PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapCloneUnchecked(const DT_Bitmap *bmp,
                                                           DT_Bitmap **pBmp) {
     ASSERT_INVARIANT_EXPR(bmp);
-    DIAG_ASSERT(pBmp != DT_null);
+    DIAG_ASSERT(pBmp != NULL);
 
     PRP_Result code = DT_BitmapCreateUnchecked(bmp->bit_cap, pBmp);
     if (code != PRP_OK) {
@@ -186,22 +186,22 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapCloneChecked(const DT_Bitmap *bmp,
     return DT_BitmapCloneUnchecked(bmp, pBmp);
 }
 
-PRP_FN_API DT_void PRP_FN_CALL DT_BitmapDeleteUnchecked(DT_Bitmap **pBmp) {
-    DIAG_ASSERT(pBmp != DT_null);
-    DIAG_ASSERT(*pBmp != DT_null && (*pBmp)->words != DT_null);
+PRP_FN_API void PRP_FN_CALL DT_BitmapDeleteUnchecked(DT_Bitmap **pBmp) {
+    DIAG_ASSERT(pBmp != NULL);
+    DIAG_ASSERT(*pBmp != NULL && (*pBmp)->words != NULL);
 
     DT_Bitmap *bmp = *pBmp;
 
     free(bmp->words);
 
 #if !defined(PRP_NDEBUG)
-    bmp->words = DT_null;
+    bmp->words = NULL;
     bmp->bit_cap = bmp->word_cap = bmp->set_c = 0;
     bmp->first_set = PRP_INVALID_INDEX;
 #endif
 
     free(bmp);
-    *pBmp = DT_null;
+    *pBmp = NULL;
 }
 
 PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapDeleteChecked(DT_Bitmap **pBmp) {
@@ -215,10 +215,10 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapDeleteChecked(DT_Bitmap **pBmp) {
 }
 
 PRP_FN_API const DT_Bitword *PRP_FN_CALL DT_BitmapRawUnchecked(
-    const DT_Bitmap *bmp, DT_size *pWord_cap, DT_size *pBit_cap) {
+    const DT_Bitmap *bmp, PRP_Size *pWord_cap, PRP_Size *pBit_cap) {
     ASSERT_INVARIANT_EXPR(bmp);
-    DIAG_ASSERT(pWord_cap != DT_null);
-    DIAG_ASSERT(pBit_cap != DT_null);
+    DIAG_ASSERT(pWord_cap != NULL);
+    DIAG_ASSERT(pBit_cap != NULL);
 
     *pWord_cap = bmp->word_cap;
     *pBit_cap = bmp->bit_cap;
@@ -227,9 +227,9 @@ PRP_FN_API const DT_Bitword *PRP_FN_CALL DT_BitmapRawUnchecked(
 }
 
 PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapRawChecked(const DT_Bitmap *bmp,
-                                                      DT_size *pWord_cap,
-                                                      DT_size *pBit_cap,
-                                                      DT_void **pRaw) {
+                                                      PRP_Size *pWord_cap,
+                                                      PRP_Size *pBit_cap,
+                                                      void **pRaw) {
     if (!DT_BitmapIsValid(bmp) || !pWord_cap || !pBit_cap || !pRaw) {
         return PRP_ERR_INV_ARG;
     }
@@ -242,30 +242,29 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapRawChecked(const DT_Bitmap *bmp,
     return PRP_OK;
 }
 
-PRP_FN_API DT_size PRP_FN_CALL DT_BitmapSetCount(const DT_Bitmap *bmp) {
+PRP_FN_API PRP_Size PRP_FN_CALL DT_BitmapSetCount(const DT_Bitmap *bmp) {
     ASSERT_INVARIANT_EXPR(bmp);
 
     return bmp->set_c;
 }
 
-PRP_FN_API DT_size PRP_FN_CALL DT_BitmapFFS(const DT_Bitmap *bmp) {
+PRP_FN_API PRP_Size PRP_FN_CALL DT_BitmapFFS(const DT_Bitmap *bmp) {
     ASSERT_INVARIANT_EXPR(bmp);
 
     return bmp->first_set;
 }
 
-PRP_FN_API DT_size PRP_FN_CALL DT_BitmapBitCap(const DT_Bitmap *bmp) {
+PRP_FN_API PRP_Size PRP_FN_CALL DT_BitmapBitCap(const DT_Bitmap *bmp) {
     ASSERT_INVARIANT_EXPR(bmp);
 
     return bmp->bit_cap;
 }
 
-PRP_FN_API DT_void PRP_FN_CALL DT_BitmapSetUnchecked(DT_Bitmap *bmp,
-                                                     DT_size i) {
+PRP_FN_API void PRP_FN_CALL DT_BitmapSetUnchecked(DT_Bitmap *bmp, PRP_Size i) {
     ASSERT_INVARIANT_EXPR(bmp);
     DIAG_ASSERT(i < bmp->bit_cap);
 
-    DT_size word_i = WORD_I(i);
+    PRP_Size word_i = WORD_I(i);
     DT_Bitword mask = BIT_MASK(i);
     if (bmp->words[word_i] & mask) {
         return;
@@ -278,13 +277,13 @@ PRP_FN_API DT_void PRP_FN_CALL DT_BitmapSetUnchecked(DT_Bitmap *bmp,
     }
 }
 
-PRP_FN_API DT_size PRP_FN_CALL DT_BitmapBitRankUnchecked(const DT_Bitmap *bmp,
-                                                         DT_size i) {
+PRP_FN_API PRP_Size PRP_FN_CALL DT_BitmapBitRankUnchecked(const DT_Bitmap *bmp,
+                                                          PRP_Size i) {
     ASSERT_INVARIANT_EXPR(bmp);
     DIAG_ASSERT(i < bmp->bit_cap);
 
-    DT_size idx = 0;
-    for (DT_size j = 0; j < WORD_I(i); j++) {
+    PRP_Size idx = 0;
+    for (PRP_Size j = 0; j < WORD_I(i); j++) {
         idx += DT_BitwordPopCnt(bmp->words[j]);
     }
     idx += DT_BitwordPopCnt(bmp->words[WORD_I(i)] & (BIT_MASK(i) - 1));
@@ -293,8 +292,8 @@ PRP_FN_API DT_size PRP_FN_CALL DT_BitmapBitRankUnchecked(const DT_Bitmap *bmp,
 }
 
 PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapBitRankChecked(const DT_Bitmap *bmp,
-                                                          DT_size i,
-                                                          DT_size *pRank) {
+                                                          PRP_Size i,
+                                                          PRP_Size *pRank) {
     if (!DT_BitmapIsValid(bmp)) {
         return PRP_ERR_INV_ARG;
     }
@@ -308,7 +307,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapBitRankChecked(const DT_Bitmap *bmp,
 }
 
 PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapSetChecked(DT_Bitmap *bmp,
-                                                      DT_size i) {
+                                                      PRP_Size i) {
     if (!DT_BitmapIsValid(bmp)) {
         return PRP_ERR_INV_ARG;
     }
@@ -321,12 +320,11 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapSetChecked(DT_Bitmap *bmp,
     return PRP_OK;
 }
 
-PRP_FN_API DT_void PRP_FN_CALL DT_BitmapClrUnchecked(DT_Bitmap *bmp,
-                                                     DT_size i) {
+PRP_FN_API void PRP_FN_CALL DT_BitmapClrUnchecked(DT_Bitmap *bmp, PRP_Size i) {
     ASSERT_INVARIANT_EXPR(bmp);
     DIAG_ASSERT(i < bmp->bit_cap);
 
-    DT_size word_i = WORD_I(i);
+    PRP_Size word_i = WORD_I(i);
     DT_Bitword mask = BIT_MASK(i);
     if (bmp->words[word_i] & mask) {
         bmp->words[word_i] &= ~mask;
@@ -339,7 +337,7 @@ PRP_FN_API DT_void PRP_FN_CALL DT_BitmapClrUnchecked(DT_Bitmap *bmp,
 }
 
 PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapClrChecked(DT_Bitmap *bmp,
-                                                      DT_size i) {
+                                                      PRP_Size i) {
     if (!DT_BitmapIsValid(bmp)) {
         return PRP_ERR_INV_ARG;
     }
@@ -352,12 +350,12 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapClrChecked(DT_Bitmap *bmp,
     return PRP_OK;
 }
 
-PRP_FN_API DT_void PRP_FN_CALL DT_BitmapToggleUnchecked(DT_Bitmap *bmp,
-                                                        DT_size i) {
+PRP_FN_API void PRP_FN_CALL DT_BitmapToggleUnchecked(DT_Bitmap *bmp,
+                                                     PRP_Size i) {
     ASSERT_INVARIANT_EXPR(bmp);
     DIAG_ASSERT(i < bmp->bit_cap);
 
-    DT_size word_i = WORD_I(i);
+    PRP_Size word_i = WORD_I(i);
     DT_Bitword mask = BIT_MASK(i);
     bmp->words[word_i] ^= mask;
 
@@ -377,7 +375,7 @@ PRP_FN_API DT_void PRP_FN_CALL DT_BitmapToggleUnchecked(DT_Bitmap *bmp,
 }
 
 PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapToggleChecked(DT_Bitmap *bmp,
-                                                         DT_size i) {
+                                                         PRP_Size i) {
     if (!DT_BitmapIsValid(bmp)) {
         return PRP_ERR_INV_ARG;
     }
@@ -390,8 +388,8 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapToggleChecked(DT_Bitmap *bmp,
     return PRP_OK;
 }
 
-PRP_FN_API DT_bool PRP_FN_CALL DT_BitmapIsSetUnchecked(const DT_Bitmap *bmp,
-                                                       DT_size i) {
+PRP_FN_API PRP_Bool PRP_FN_CALL DT_BitmapIsSetUnchecked(const DT_Bitmap *bmp,
+                                                        PRP_Size i) {
     ASSERT_INVARIANT_EXPR(bmp);
     DIAG_ASSERT(i < bmp->bit_cap);
 
@@ -399,8 +397,8 @@ PRP_FN_API DT_bool PRP_FN_CALL DT_BitmapIsSetUnchecked(const DT_Bitmap *bmp,
 }
 
 PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapIsSetChecked(const DT_Bitmap *bmp,
-                                                        DT_size i,
-                                                        DT_bool *pRslt) {
+                                                        PRP_Size i,
+                                                        PRP_Bool *pRslt) {
     if (!DT_BitmapIsValid(bmp) || !pRslt) {
         return PRP_ERR_INV_ARG;
     }
@@ -451,13 +449,12 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapIsSetChecked(const DT_Bitmap *bmp,
             (BIT_I(last) == 63) ? (DT_Bitword)~0 : (BIT_MASK(last + 1) - 1);   \
     } while (0)
 
-PRP_FN_API DT_void PRP_FN_CALL DT_BitmapSetRangeUnchecked(DT_Bitmap *bmp,
-                                                          DT_size i,
-                                                          DT_size j) {
+PRP_FN_API void PRP_FN_CALL DT_BitmapSetRangeUnchecked(DT_Bitmap *bmp,
+                                                       PRP_Size i, PRP_Size j) {
     ASSERT_RANGE_OPS_VALIDITY(bmp, i, j);
 
-    DT_size last = j - 1;
-    DT_size wi = WORD_I(i), wj = WORD_I(last);
+    PRP_Size last = j - 1;
+    PRP_Size wi = WORD_I(i), wj = WORD_I(last);
     DT_Bitword mask;
     if (wi == wj) {
         MAKE_SAME_WORD_MASK(mask, i, last);
@@ -489,8 +486,8 @@ PRP_FN_API DT_void PRP_FN_CALL DT_BitmapSetRangeUnchecked(DT_Bitmap *bmp,
 }
 
 PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapSetRangeChecked(DT_Bitmap *bmp,
-                                                           DT_size i,
-                                                           DT_size j) {
+                                                           PRP_Size i,
+                                                           PRP_Size j) {
     CHECK_RANGE_OPS_VALIDITY(bmp, i, j);
 
     DT_BitmapSetRangeUnchecked(bmp, i, j);
@@ -498,17 +495,16 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapSetRangeChecked(DT_Bitmap *bmp,
     return PRP_OK;
 }
 
-PRP_FN_API DT_void PRP_FN_CALL DT_BitmapClrRangeUnchecked(DT_Bitmap *bmp,
-                                                          DT_size i,
-                                                          DT_size j) {
+PRP_FN_API void PRP_FN_CALL DT_BitmapClrRangeUnchecked(DT_Bitmap *bmp,
+                                                       PRP_Size i, PRP_Size j) {
     ASSERT_RANGE_OPS_VALIDITY(bmp, i, j);
 
     if (!bmp->set_c) {
         return;
     }
 
-    DT_size last = j - 1;
-    DT_size wi = WORD_I(i), wj = WORD_I(last);
+    PRP_Size last = j - 1;
+    PRP_Size wi = WORD_I(i), wj = WORD_I(last);
     DT_Bitword mask;
     if (wi == wj) {
         MAKE_SAME_WORD_MASK(mask, i, last);
@@ -537,8 +533,8 @@ PRP_FN_API DT_void PRP_FN_CALL DT_BitmapClrRangeUnchecked(DT_Bitmap *bmp,
 }
 
 PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapClrRangeChecked(DT_Bitmap *bmp,
-                                                           DT_size i,
-                                                           DT_size j) {
+                                                           PRP_Size i,
+                                                           PRP_Size j) {
     CHECK_RANGE_OPS_VALIDITY(bmp, i, j);
 
     DT_BitmapClrRangeUnchecked(bmp, i, j);
@@ -546,13 +542,13 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapClrRangeChecked(DT_Bitmap *bmp,
     return PRP_OK;
 }
 
-PRP_FN_API DT_void PRP_FN_CALL DT_BitmapToggleRangeUnchecked(DT_Bitmap *bmp,
-                                                             DT_size i,
-                                                             DT_size j) {
+PRP_FN_API void PRP_FN_CALL DT_BitmapToggleRangeUnchecked(DT_Bitmap *bmp,
+                                                          PRP_Size i,
+                                                          PRP_Size j) {
     ASSERT_RANGE_OPS_VALIDITY(bmp, i, j);
 
-    DT_size last = j - 1;
-    DT_size wi = WORD_I(i), wj = WORD_I(last);
+    PRP_Size last = j - 1;
+    PRP_Size wi = WORD_I(i), wj = WORD_I(last);
     DT_Bitword mask;
     if (wi == wj) {
         MAKE_SAME_WORD_MASK(mask, i, last);
@@ -583,8 +579,8 @@ PRP_FN_API DT_void PRP_FN_CALL DT_BitmapToggleRangeUnchecked(DT_Bitmap *bmp,
 }
 
 PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapToggleRangeChecked(DT_Bitmap *bmp,
-                                                              DT_size i,
-                                                              DT_size j) {
+                                                              PRP_Size i,
+                                                              PRP_Size j) {
     CHECK_RANGE_OPS_VALIDITY(bmp, i, j);
 
     DT_BitmapToggleRangeUnchecked(bmp, i, j);
@@ -592,12 +588,12 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapToggleRangeChecked(DT_Bitmap *bmp,
     return PRP_OK;
 }
 
-PRP_FN_API DT_bool PRP_FN_CALL
-DT_BitmapIsSetRangeAnyUnchecked(const DT_Bitmap *bmp, DT_size i, DT_size j) {
+PRP_FN_API PRP_Bool PRP_FN_CALL
+DT_BitmapIsSetRangeAnyUnchecked(const DT_Bitmap *bmp, PRP_Size i, PRP_Size j) {
     ASSERT_RANGE_OPS_VALIDITY(bmp, i, j);
 
-    DT_size last = j - 1;
-    DT_size wi = WORD_I(i), wj = WORD_I(last);
+    PRP_Size last = j - 1;
+    PRP_Size wi = WORD_I(i), wj = WORD_I(last);
     DT_Bitword mask;
     if (wi == wj) {
         MAKE_SAME_WORD_MASK(mask, i, last);
@@ -605,28 +601,28 @@ DT_BitmapIsSetRangeAnyUnchecked(const DT_Bitmap *bmp, DT_size i, DT_size j) {
     } else {
         MAKE_PARTIAL_FIRST_WORD_MASK(mask, i);
         if ((bmp->words[wi] & mask) != 0) {
-            return DT_true;
+            return PRP_True;
         }
 
         MAKE_PARTIAL_LAST_WORD_MASK(mask, last);
         if ((bmp->words[wj] & mask) != 0) {
-            return DT_true;
+            return PRP_True;
         }
 
         // Full middle words.
         // This looks cooler than simple loop.
         for (++wi; wi < wj; wi++) {
             if (bmp->words[wi]) {
-                return DT_true;
+                return PRP_True;
             }
         }
     }
 
-    return DT_false;
+    return PRP_False;
 }
 
 PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapIsSetRangeAnyChecked(
-    const DT_Bitmap *bmp, DT_size i, DT_size j, DT_bool *pRslt) {
+    const DT_Bitmap *bmp, PRP_Size i, PRP_Size j, PRP_Bool *pRslt) {
     CHECK_RANGE_OPS_VALIDITY(bmp, i, j);
     if (!pRslt) {
         return PRP_ERR_INV_ARG;
@@ -637,12 +633,12 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapIsSetRangeAnyChecked(
     return PRP_OK;
 }
 
-PRP_FN_API DT_bool PRP_FN_CALL
-DT_BitmapIsSetRangeAllUnchecked(const DT_Bitmap *bmp, DT_size i, DT_size j) {
+PRP_FN_API PRP_Bool PRP_FN_CALL
+DT_BitmapIsSetRangeAllUnchecked(const DT_Bitmap *bmp, PRP_Size i, PRP_Size j) {
     ASSERT_RANGE_OPS_VALIDITY(bmp, i, j);
 
-    DT_size last = j - 1;
-    DT_size wi = WORD_I(i), wj = WORD_I(last);
+    PRP_Size last = j - 1;
+    PRP_Size wi = WORD_I(i), wj = WORD_I(last);
     DT_Bitword mask;
     if (wi == wj) {
         MAKE_SAME_WORD_MASK(mask, i, last);
@@ -650,28 +646,28 @@ DT_BitmapIsSetRangeAllUnchecked(const DT_Bitmap *bmp, DT_size i, DT_size j) {
     } else {
         MAKE_PARTIAL_FIRST_WORD_MASK(mask, i);
         if ((bmp->words[wi] & mask) != mask) {
-            return DT_false;
+            return PRP_False;
         }
 
         MAKE_PARTIAL_LAST_WORD_MASK(mask, last);
         if ((bmp->words[wj] & mask) != mask) {
-            return DT_false;
+            return PRP_False;
         }
 
         // Full middle words.
         // This looks cooler than simple loop.
         for (++wi; wi < wj; wi++) {
             if (bmp->words[wi] != (DT_Bitword)~0) {
-                return DT_false;
+                return PRP_False;
             }
         }
     }
 
-    return DT_true;
+    return PRP_True;
 }
 
 PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapIsSetRangeAllChecked(
-    const DT_Bitmap *bmp, DT_size i, DT_size j, DT_bool *pRslt) {
+    const DT_Bitmap *bmp, PRP_Size i, PRP_Size j, PRP_Bool *pRslt) {
     CHECK_RANGE_OPS_VALIDITY(bmp, i, j);
     if (!pRslt) {
         return PRP_ERR_INV_ARG;
@@ -682,14 +678,15 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapIsSetRangeAllChecked(
     return PRP_OK;
 }
 
-PRP_FN_API DT_bool PRP_FN_CALL DT_BitmapIsEmptyUnchecked(const DT_Bitmap *bmp) {
+PRP_FN_API PRP_Bool PRP_FN_CALL
+DT_BitmapIsEmptyUnchecked(const DT_Bitmap *bmp) {
     ASSERT_INVARIANT_EXPR(bmp);
 
     return (bmp->set_c == 0);
 }
 
 PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapIsEmptyChecked(const DT_Bitmap *bmp,
-                                                          DT_bool *pRslt) {
+                                                          PRP_Bool *pRslt) {
     if (!DT_BitmapIsValid(bmp) || !pRslt) {
         return PRP_ERR_INV_ARG;
     }
@@ -699,14 +696,14 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapIsEmptyChecked(const DT_Bitmap *bmp,
     return PRP_OK;
 }
 
-PRP_FN_API DT_bool PRP_FN_CALL DT_BitmapIsFullUnchecked(const DT_Bitmap *bmp) {
+PRP_FN_API PRP_Bool PRP_FN_CALL DT_BitmapIsFullUnchecked(const DT_Bitmap *bmp) {
     ASSERT_INVARIANT_EXPR(bmp);
 
     return (bmp->set_c == bmp->bit_cap);
 }
 
 PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapIsFullChecked(const DT_Bitmap *bmp,
-                                                         DT_bool *pRslt) {
+                                                         PRP_Bool *pRslt) {
     if (!DT_BitmapIsValid(bmp) || !pRslt) {
         return PRP_ERR_INV_ARG;
     }
@@ -716,11 +713,11 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapIsFullChecked(const DT_Bitmap *bmp,
     return PRP_OK;
 }
 
-PRP_FN_API DT_void PRP_FN_CALL DT_BitmapNotUnchecked(DT_Bitmap *bmp) {
+PRP_FN_API void PRP_FN_CALL DT_BitmapNotUnchecked(DT_Bitmap *bmp) {
     ASSERT_INVARIANT_EXPR(bmp);
 
     bmp->first_set = PRP_INVALID_INDEX;
-    for (DT_size i = 0; i < bmp->word_cap; i++) {
+    for (PRP_Size i = 0; i < bmp->word_cap; i++) {
         bmp->words[i] = ~(bmp->words[i]);
         // Resetting the fs_pos to new conditions.
         if (bmp->first_set == PRP_INVALID_INDEX && bmp->words[i]) {
@@ -731,7 +728,7 @@ PRP_FN_API DT_void PRP_FN_CALL DT_BitmapNotUnchecked(DT_Bitmap *bmp) {
     bmp->set_c = bmp->bit_cap - bmp->set_c;
 
     // Clearing the bits over bit_cap that were also set to 1 by not operation.
-    DT_size r = bmp->bit_cap & (BITWORD_BITS - 1);
+    PRP_Size r = bmp->bit_cap & (BITWORD_BITS - 1);
     DT_Bitword mask =
         ~((DT_Bitword)0) >> ((BITWORD_BITS - r) & (BITWORD_BITS - 1));
     bmp->words[bmp->word_cap - 1] &= mask;
@@ -747,18 +744,18 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapNotChecked(DT_Bitmap *bmp) {
     return PRP_OK;
 }
 
-PRP_FN_API DT_void PRP_FN_CALL DT_BitmapAndUnchecked(DT_Bitmap *bmp1,
-                                                     const DT_Bitmap *bmp2) {
+PRP_FN_API void PRP_FN_CALL DT_BitmapAndUnchecked(DT_Bitmap *bmp1,
+                                                  const DT_Bitmap *bmp2) {
     ASSERT_INVARIANT_EXPR(bmp1);
     ASSERT_INVARIANT_EXPR(bmp2);
 
     bmp1->set_c = 0;
     bmp1->first_set = PRP_INVALID_INDEX;
-    DT_size min_cap = PRP_MIN(bmp1->word_cap, bmp2->word_cap);
-    for (DT_size i = 0; i < min_cap; i++) {
+    PRP_Size min_cap = PRP_MIN(bmp1->word_cap, bmp2->word_cap);
+    for (PRP_Size i = 0; i < min_cap; i++) {
         bmp1->words[i] &= bmp2->words[i];
 
-        DT_size pc = DT_BitwordPopCnt(bmp1->words[i]);
+        PRP_Size pc = DT_BitwordPopCnt(bmp1->words[i]);
         bmp1->set_c += pc;
 
         // Resetting the fs_pos to new conditions.
@@ -767,7 +764,7 @@ PRP_FN_API DT_void PRP_FN_CALL DT_BitmapAndUnchecked(DT_Bitmap *bmp1,
                 DT_BitwordFFS(bmp1->words[i]) + (i * BITWORD_BITS);
         }
     }
-    for (DT_size i = min_cap; i < bmp1->word_cap; i++) {
+    for (PRP_Size i = min_cap; i < bmp1->word_cap; i++) {
         bmp1->words[i] = 0;
     }
 }
@@ -783,18 +780,18 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapAndChecked(DT_Bitmap *bmp1,
     return PRP_OK;
 }
 
-PRP_FN_API DT_void PRP_FN_CALL DT_BitmapOrUnchecked(DT_Bitmap *bmp1,
-                                                    const DT_Bitmap *bmp2) {
+PRP_FN_API void PRP_FN_CALL DT_BitmapOrUnchecked(DT_Bitmap *bmp1,
+                                                 const DT_Bitmap *bmp2) {
     ASSERT_INVARIANT_EXPR(bmp1);
     ASSERT_INVARIANT_EXPR(bmp2);
 
     bmp1->set_c = 0;
     bmp1->first_set = PRP_INVALID_INDEX;
-    DT_size min_cap = PRP_MIN(bmp1->word_cap, bmp2->word_cap);
-    for (DT_size i = 0; i < min_cap; i++) {
+    PRP_Size min_cap = PRP_MIN(bmp1->word_cap, bmp2->word_cap);
+    for (PRP_Size i = 0; i < min_cap; i++) {
         bmp1->words[i] |= bmp2->words[i];
 
-        DT_size pc = DT_BitwordPopCnt(bmp1->words[i]);
+        PRP_Size pc = DT_BitwordPopCnt(bmp1->words[i]);
         bmp1->set_c += pc;
 
         // Resetting the fs_pos to new conditions.
@@ -803,9 +800,9 @@ PRP_FN_API DT_void PRP_FN_CALL DT_BitmapOrUnchecked(DT_Bitmap *bmp1,
                 DT_BitwordFFS(bmp1->words[i]) + (i * BITWORD_BITS);
         }
     }
-    for (DT_size i = min_cap; i < bmp1->word_cap; i++) {
+    for (PRP_Size i = min_cap; i < bmp1->word_cap; i++) {
         // Still updating set_c and fs_pos since in OR they can increase.
-        DT_size pc = DT_BitwordPopCnt(bmp1->words[i]);
+        PRP_Size pc = DT_BitwordPopCnt(bmp1->words[i]);
         bmp1->set_c += pc;
         // Resetting the fs_pos to new conditions.
         if (bmp1->first_set == PRP_INVALID_INDEX && pc) {
@@ -826,29 +823,29 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapOrChecked(DT_Bitmap *bmp1,
     return PRP_OK;
 }
 
-PRP_FN_API DT_bool PRP_FN_CALL DT_BitmapHasAllUnchecked(const DT_Bitmap *bmp1,
-                                                        const DT_Bitmap *bmp2) {
+PRP_FN_API PRP_Bool PRP_FN_CALL
+DT_BitmapHasAllUnchecked(const DT_Bitmap *bmp1, const DT_Bitmap *bmp2) {
     ASSERT_INVARIANT_EXPR(bmp1);
     ASSERT_INVARIANT_EXPR(bmp2);
 
-    DT_size min_words = PRP_MIN(bmp1->word_cap, bmp2->word_cap);
-    for (DT_size i = 0; i < min_words; i++) {
+    PRP_Size min_words = PRP_MIN(bmp1->word_cap, bmp2->word_cap);
+    for (PRP_Size i = 0; i < min_words; i++) {
         if ((bmp1->words[i] & bmp2->words[i]) != bmp2->words[i]) {
-            return DT_false;
+            return PRP_False;
         }
     }
-    for (DT_size i = min_words; i < bmp2->word_cap; i++) {
+    for (PRP_Size i = min_words; i < bmp2->word_cap; i++) {
         if (bmp2->words[i]) {
-            return DT_false;
+            return PRP_False;
         }
     }
 
-    return DT_true;
+    return PRP_True;
 }
 
 PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapHasAllChecked(const DT_Bitmap *bmp1,
                                                          const DT_Bitmap *bmp2,
-                                                         DT_bool *pRslt) {
+                                                         PRP_Bool *pRslt) {
     if (!DT_BitmapIsValid(bmp1) || !DT_BitmapIsValid(bmp2) || !pRslt) {
         return PRP_ERR_INV_ARG;
     }
@@ -858,25 +855,25 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapHasAllChecked(const DT_Bitmap *bmp1,
     return PRP_OK;
 }
 
-PRP_FN_API DT_bool PRP_FN_CALL DT_BitmapHasAnyUnchecked(const DT_Bitmap *bmp1,
-                                                        const DT_Bitmap *bmp2) {
+PRP_FN_API PRP_Bool PRP_FN_CALL
+DT_BitmapHasAnyUnchecked(const DT_Bitmap *bmp1, const DT_Bitmap *bmp2) {
     ASSERT_INVARIANT_EXPR(bmp1);
     ASSERT_INVARIANT_EXPR(bmp2);
 
-    DT_size min_words = PRP_MIN(bmp1->word_cap, bmp2->word_cap);
-    for (DT_size i = 0; i < min_words; i++) {
+    PRP_Size min_words = PRP_MIN(bmp1->word_cap, bmp2->word_cap);
+    for (PRP_Size i = 0; i < min_words; i++) {
         if ((bmp1->words[i] & bmp2->words[i])) {
-            return DT_true;
+            return PRP_True;
         }
     }
 
     // Not checking beyond min_words as in this case they are irrelevant.
-    return DT_false;
+    return PRP_False;
 }
 
 PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapHasAnyChecked(const DT_Bitmap *bmp1,
                                                          const DT_Bitmap *bmp2,
-                                                         DT_bool *pRslt) {
+                                                         PRP_Bool *pRslt) {
     if (!DT_BitmapIsValid(bmp1) || !DT_BitmapIsValid(bmp2) || !pRslt) {
         return PRP_ERR_INV_ARG;
     }
@@ -886,34 +883,34 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapHasAnyChecked(const DT_Bitmap *bmp1,
     return PRP_OK;
 }
 
-PRP_FN_API DT_bool PRP_FN_CALL DT_BitmapCmpUnchecked(const DT_Bitmap *bmp1,
-                                                     const DT_Bitmap *bmp2) {
+PRP_FN_API PRP_Bool PRP_FN_CALL DT_BitmapCmpUnchecked(const DT_Bitmap *bmp1,
+                                                      const DT_Bitmap *bmp2) {
     ASSERT_INVARIANT_EXPR(bmp1);
     ASSERT_INVARIANT_EXPR(bmp2);
 
     if (bmp1->set_c != bmp2->set_c || bmp1->first_set != bmp2->first_set) {
-        return DT_false;
+        return PRP_False;
     }
 
-    DT_size min_words = PRP_MIN(bmp1->word_cap, bmp2->word_cap);
-    DT_size max_words = PRP_MAX(bmp1->word_cap, bmp2->word_cap);
+    PRP_Size min_words = PRP_MIN(bmp1->word_cap, bmp2->word_cap);
+    PRP_Size max_words = PRP_MAX(bmp1->word_cap, bmp2->word_cap);
     if (memcmp(bmp1->words, bmp2->words, sizeof(DT_Bitword) * min_words) != 0) {
-        return DT_false;
+        return PRP_False;
     }
     // This will not run for edge cases since loops.
     const DT_Bitmap *mx_bmp = (bmp1->word_cap == max_words) ? bmp1 : bmp2;
-    for (DT_size i = min_words; i < max_words; i++) {
+    for (PRP_Size i = min_words; i < max_words; i++) {
         if (mx_bmp->words[i]) {
-            return DT_false;
+            return PRP_False;
         }
     }
 
-    return DT_true;
+    return PRP_True;
 }
 
 PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapCmpChecked(const DT_Bitmap *bmp1,
                                                       const DT_Bitmap *bmp2,
-                                                      DT_bool *pRslt) {
+                                                      PRP_Bool *pRslt) {
     if (!DT_BitmapIsValid(bmp1) || !DT_BitmapIsValid(bmp2) || !pRslt) {
         return PRP_ERR_INV_ARG;
     }
@@ -923,7 +920,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapCmpChecked(const DT_Bitmap *bmp1,
     return PRP_OK;
 }
 
-PRP_FN_API DT_void PRP_FN_CALL DT_BitmapResetUnchecked(DT_Bitmap *bmp) {
+PRP_FN_API void PRP_FN_CALL DT_BitmapResetUnchecked(DT_Bitmap *bmp) {
     ASSERT_INVARIANT_EXPR(bmp);
 
     bmp->set_c = 0;
@@ -945,7 +942,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapShrinkFitUnchecked(DT_Bitmap *bmp) {
     ASSERT_INVARIANT_EXPR(bmp);
 
     if (bmp->set_c) {
-        DT_size i = bmp->word_cap;
+        PRP_Size i = bmp->word_cap;
         // Finding last i that has a bit on. Till then shrink will happen.
         for (; i-- > 0 && !bmp->words[i];)
             ;
@@ -964,27 +961,27 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_BitmapShrinkFitChecked(DT_Bitmap *bmp) {
 }
 
 PRP_FN_API PRP_Result PRP_FN_CALL
-DT_BitmapChangeSizeUnchecked(DT_Bitmap *bmp, DT_size new_bit_cap) {
+DT_BitmapChangeSizeUnchecked(DT_Bitmap *bmp, PRP_Size new_bit_cap) {
     ASSERT_INVARIANT_EXPR(bmp);
     DIAG_ASSERT(new_bit_cap > 0 && new_bit_cap <= DT_BITMAP_MAX_BIT_CAP);
 
-    DT_size new_word_i = WORD_I(new_bit_cap);
-    DT_size new_word_cap = new_word_i + 1;
+    PRP_Size new_word_i = WORD_I(new_bit_cap);
+    PRP_Size new_word_cap = new_word_i + 1;
     if (bmp->word_cap == new_word_cap) {
         bmp->bit_cap = new_bit_cap;
         return PRP_OK;
     }
 
-    DT_size set_c_neg = 0;
+    PRP_Size set_c_neg = 0;
     if (new_word_cap < bmp->word_cap) {
         // Clearing the bits over bit_cap that were also set to 1 by not
         // operation.
-        DT_size r = bmp->bit_cap & (BITWORD_BITS - 1);
+        PRP_Size r = bmp->bit_cap & (BITWORD_BITS - 1);
         DT_Bitword mask =
             ~((DT_Bitword)0) >> ((BITWORD_BITS - r) & (BITWORD_BITS - 1));
         // This calcs the partial word set_c reduction count on cao red.
         set_c_neg += DT_BitwordPopCnt(bmp->words[new_word_cap - 1] & mask);
-        for (DT_size i = new_word_cap; i < bmp->word_cap; i++) {
+        for (PRP_Size i = new_word_cap; i < bmp->word_cap; i++) {
             set_c_neg += DT_BitwordPopCnt(bmp->words[i]);
         }
     }
@@ -1014,7 +1011,7 @@ DT_BitmapChangeSizeUnchecked(DT_Bitmap *bmp, DT_size new_bit_cap) {
 }
 
 PRP_FN_API PRP_Result PRP_FN_CALL
-DT_BitmapChangeSizeChecked(DT_Bitmap *bmp, DT_size new_bit_cap) {
+DT_BitmapChangeSizeChecked(DT_Bitmap *bmp, PRP_Size new_bit_cap) {
     if (!DT_BitmapIsValid(bmp) || !new_bit_cap ||
         new_bit_cap > DT_BITMAP_MAX_BIT_CAP) {
         return PRP_ERR_INV_ARG;

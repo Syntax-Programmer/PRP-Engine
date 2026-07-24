@@ -4,8 +4,7 @@
 extern "C" {
 #endif
 
-#include "DataTypes/Typedefs.h"
-#include "Utils/Defs.h"
+#include "Core/Defs.h"
 
 /**
  * DT_Arr
@@ -23,16 +22,16 @@ extern "C" {
 typedef struct _Arr DT_Arr;
 
 #define DT_ARR_DEFAULT_CAP (16)
-#define DT_ARR_MAX_CAP(memb_size) (DT_SIZE_MAX / (memb_size))
+#define DT_ARR_MAX_CAP(memb_size) (PRP_SIZE_MAX / (memb_size))
 
 /**
  * Checks whether the given array is structurally valid.
  *
  * @param arr Pointer to the array.
  *
- * @return DT_true if valid, DT_false otherwise.
+ * @return PRP_True if valid, PRP_False otherwise.
  */
-PRP_FN_API DT_bool PRP_FN_CALL DT_ArrIsValid(const DT_Arr *arr);
+PRP_FN_API PRP_Bool PRP_FN_CALL DT_ArrIsValid(const DT_Arr *arr);
 
 /**
  * Creates a dynamic array.
@@ -47,8 +46,8 @@ PRP_FN_API DT_bool PRP_FN_CALL DT_ArrIsValid(const DT_Arr *arr);
  * @note Unchecked variant:
  * - Asserts on invalid arguments in debug.
  */
-PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrCreateUnchecked(DT_size memb_size,
-                                                        DT_size cap,
+PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrCreateUnchecked(PRP_Size memb_size,
+                                                        PRP_Size cap,
                                                         DT_Arr **pArr);
 /**
  * Creates a dynamic array with validation.
@@ -61,8 +60,8 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrCreateUnchecked(DT_size memb_size,
  * @return PRP_ERR_OOM if allocation fails.
  * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
-PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrCreateChecked(DT_size memb_size,
-                                                      DT_size cap,
+PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrCreateChecked(PRP_Size memb_size,
+                                                      PRP_Size cap,
                                                       DT_Arr **pArr);
 /**
  * Deep clones the given array.
@@ -105,7 +104,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrCloneChecked(const DT_Arr *arr,
  * - Asserts on invalid arguments in debug.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrCreateWithDataUnchecked(
-    DT_size memb_size, const DT_void *membs, DT_size len, DT_Arr **pArr);
+    PRP_Size memb_size, const void *membs, PRP_Size len, DT_Arr **pArr);
 /**
  * Creates the dynamic array with specified data.
  *
@@ -119,7 +118,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrCreateWithDataUnchecked(
  * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrCreateWithDataChecked(
-    DT_size memb_size, const DT_void *membs, DT_size len, DT_Arr **pArr);
+    PRP_Size memb_size, const void *membs, PRP_Size len, DT_Arr **pArr);
 
 /**
  * Deletes the array and nullifies the pointer.
@@ -129,7 +128,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrCreateWithDataChecked(
  * @note Unchecked variant:
  * - Asserts on invalid arguments in debug.
  */
-PRP_FN_API DT_void PRP_FN_CALL DT_ArrDeleteUnchecked(DT_Arr **pArr);
+PRP_FN_API void PRP_FN_CALL DT_ArrDeleteUnchecked(DT_Arr **pArr);
 /**
  * Deletes the array and nullifies the pointer.
  *
@@ -153,8 +152,8 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrDeleteChecked(DT_Arr **pArr);
  * @note Unchecked variant:
  * - Asserts on invalid arguments in debug.
  */
-PRP_FN_API const DT_void *PRP_FN_CALL DT_ArrRawUnchecked(const DT_Arr *arr,
-                                                         DT_size *pLen);
+PRP_FN_API const void *PRP_FN_CALL DT_ArrRawUnchecked(const DT_Arr *arr,
+                                                      PRP_Size *pLen);
 /**
  * Returns the raw memory pointer of the array contenets.
  *
@@ -168,8 +167,8 @@ PRP_FN_API const DT_void *PRP_FN_CALL DT_ArrRawUnchecked(const DT_Arr *arr,
  * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrRawChecked(const DT_Arr *arr,
-                                                   DT_size *pLen,
-                                                   const DT_void **pRaw);
+                                                   PRP_Size *pLen,
+                                                   const void **pRaw);
 /**
  * Returns the number of elements currently stored.
  *
@@ -179,7 +178,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrRawChecked(const DT_Arr *arr,
  *
  * @note Assumes valid array (asserts in debug).
  */
-PRP_FN_API DT_size PRP_FN_CALL DT_ArrLen(const DT_Arr *arr);
+PRP_FN_API PRP_Size PRP_FN_CALL DT_ArrLen(const DT_Arr *arr);
 /**
  * Returns the capacity (number of elements) of the array.
  *
@@ -189,7 +188,7 @@ PRP_FN_API DT_size PRP_FN_CALL DT_ArrLen(const DT_Arr *arr);
  *
  * @note Assumes valid array (asserts in debug).
  */
-PRP_FN_API DT_size PRP_FN_CALL DT_ArrCap(const DT_Arr *arr);
+PRP_FN_API PRP_Size PRP_FN_CALL DT_ArrCap(const DT_Arr *arr);
 /**
  * Returns the size (in bytes) of each element.
  *
@@ -199,7 +198,7 @@ PRP_FN_API DT_size PRP_FN_CALL DT_ArrCap(const DT_Arr *arr);
  *
  * @note Assumes valid array (asserts in debug).
  */
-PRP_FN_API DT_size PRP_FN_CALL DT_ArrMembSize(const DT_Arr *arr);
+PRP_FN_API PRP_Size PRP_FN_CALL DT_ArrMembSize(const DT_Arr *arr);
 /**
  * Returns the maximum possible capacity for this array configuration.
  *
@@ -209,7 +208,7 @@ PRP_FN_API DT_size PRP_FN_CALL DT_ArrMembSize(const DT_Arr *arr);
  *
  * @note Assumes valid array (asserts in debug).
  */
-PRP_FN_API DT_size PRP_FN_CALL DT_ArrMaxCap(const DT_Arr *arr);
+PRP_FN_API PRP_Size PRP_FN_CALL DT_ArrMaxCap(const DT_Arr *arr);
 
 /**
  * Retrieves the value of the given index.
@@ -222,8 +221,7 @@ PRP_FN_API DT_size PRP_FN_CALL DT_ArrMaxCap(const DT_Arr *arr);
  * @note Unchecked variant:
  * - Asserts on invalid arguments in debug.
  */
-PRP_FN_API DT_void *PRP_FN_CALL DT_ArrGetUnchecked(const DT_Arr *arr,
-                                                   DT_size i);
+PRP_FN_API void *PRP_FN_CALL DT_ArrGetUnchecked(const DT_Arr *arr, PRP_Size i);
 /**
  * Retrieves the value of the given index.
  *
@@ -235,8 +233,8 @@ PRP_FN_API DT_void *PRP_FN_CALL DT_ArrGetUnchecked(const DT_Arr *arr,
  * @return PRP_ERR_OOB if index out of bounds.
  * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
-PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrGetChecked(const DT_Arr *arr, DT_size i,
-                                                   DT_void **dest);
+PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrGetChecked(const DT_Arr *arr,
+                                                   PRP_Size i, void **dest);
 /**
  * Sets the value of the given index.
  *
@@ -247,8 +245,8 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrGetChecked(const DT_Arr *arr, DT_size i,
  * @note Unchecked variant:
  * - Asserts on invalid arguments in debug.
  */
-PRP_FN_API DT_void PRP_FN_CALL DT_ArrSetUnchecked(DT_Arr *arr, DT_size i,
-                                                  const DT_void *pData);
+PRP_FN_API void PRP_FN_CALL DT_ArrSetUnchecked(DT_Arr *arr, PRP_Size i,
+                                               const void *pData);
 /**
  * Sets the value of the given index.
  *
@@ -260,8 +258,8 @@ PRP_FN_API DT_void PRP_FN_CALL DT_ArrSetUnchecked(DT_Arr *arr, DT_size i,
  * @return PRP_ERR_OOB if index out of bounds.
  * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
-PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrSetChecked(DT_Arr *arr, DT_size i,
-                                                   const DT_void *pData);
+PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrSetChecked(DT_Arr *arr, PRP_Size i,
+                                                   const void *pData);
 /**
  * Pushes a new element at the end of the array.
  *
@@ -276,7 +274,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrSetChecked(DT_Arr *arr, DT_size i,
  * - Asserts on invalid arguments in debug.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrPushUnchecked(DT_Arr *arr,
-                                                      const DT_void *pData);
+                                                      const void *pData);
 /**
  * Pushes a new element at the end of the array.
  *
@@ -289,7 +287,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrPushUnchecked(DT_Arr *arr,
  * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrPushChecked(DT_Arr *arr,
-                                                    const DT_void *pData);
+                                                    const void *pData);
 /**
  * Reserves <count> number of elements in the array.
  *
@@ -304,7 +302,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrPushChecked(DT_Arr *arr,
  * - Asserts on invalid arguments in debug.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrReserveUnchecked(DT_Arr *arr,
-                                                         DT_size count);
+                                                         PRP_Size count);
 /**
  * Reserves <count> number of elements in the array.
  *
@@ -317,7 +315,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrReserveUnchecked(DT_Arr *arr,
  * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrReserveChecked(DT_Arr *arr,
-                                                       DT_size count);
+                                                       PRP_Size count);
 /**
  * Inserts the value to a given index.
  *
@@ -333,8 +331,8 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrReserveChecked(DT_Arr *arr,
  * - Asserts on invalid arguments in debug.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrInsertUnchecked(DT_Arr *arr,
-                                                        const DT_void *pData,
-                                                        DT_size i);
+                                                        const void *pData,
+                                                        PRP_Size i);
 /**
  * Inserts the value to a given index.
  *
@@ -349,8 +347,8 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrInsertUnchecked(DT_Arr *arr,
  * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrInsertChecked(DT_Arr *arr,
-                                                      const DT_void *pData,
-                                                      DT_size i);
+                                                      const void *pData,
+                                                      PRP_Size i);
 
 /**
  * Pops the last element from the array
@@ -364,8 +362,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrInsertChecked(DT_Arr *arr,
  * @note Unchecked variant:
  * - Asserts on invalid arguments in debug.
  */
-PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrPopUnchecked(DT_Arr *arr,
-                                                     DT_void *pDest);
+PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrPopUnchecked(DT_Arr *arr, void *pDest);
 /**
  * Pops the last element from the array
  *
@@ -376,7 +373,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrPopUnchecked(DT_Arr *arr,
  * @return PRP_ERR_RES_EXHAUSTED if no elements to pop.
  * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
-PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrPopChecked(DT_Arr *arr, DT_void *pDest);
+PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrPopChecked(DT_Arr *arr, void *pDest);
 /**
  * Removes the given index and repack the array.
  *
@@ -387,8 +384,8 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrPopChecked(DT_Arr *arr, DT_void *pDest);
  * @note Unchecked variant:
  * - Asserts on invalid arguments in debug.
  */
-PRP_FN_API DT_void PRP_FN_CALL DT_ArrRemoveUnchecked(DT_Arr *arr,
-                                                     DT_void *pDest, DT_size i);
+PRP_FN_API void PRP_FN_CALL DT_ArrRemoveUnchecked(DT_Arr *arr, void *pDest,
+                                                  PRP_Size i);
 /**
  * Removes the given index and repack the array.
  *
@@ -400,9 +397,8 @@ PRP_FN_API DT_void PRP_FN_CALL DT_ArrRemoveUnchecked(DT_Arr *arr,
  * @return PRP_ERR_OOB if index out of bounds.
  * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
-PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrRemoveChecked(DT_Arr *arr,
-                                                      DT_void *pDest,
-                                                      DT_size i);
+PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrRemoveChecked(DT_Arr *arr, void *pDest,
+                                                      PRP_Size i);
 
 /**
  * Comares the contents of the array.
@@ -410,13 +406,13 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrRemoveChecked(DT_Arr *arr,
  * @param arr1 Array instance 1.
  * @param arr2 Array instance 2.
  *
- * @return DT_true if equal, DT_false otherwise.
+ * @return PRP_True if equal, PRP_False otherwise.
  *
  * @note Unchecked variant:
  * - Asserts on invalid arguments in debug.
  */
-PRP_FN_API DT_bool PRP_FN_CALL DT_ArrCmpUnchecked(const DT_Arr *arr1,
-                                                  const DT_Arr *arr2);
+PRP_FN_API PRP_Bool PRP_FN_CALL DT_ArrCmpUnchecked(const DT_Arr *arr1,
+                                                   const DT_Arr *arr2);
 /**
  * Comares the contents of the array.
  *
@@ -429,7 +425,7 @@ PRP_FN_API DT_bool PRP_FN_CALL DT_ArrCmpUnchecked(const DT_Arr *arr1,
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrCmpChecked(const DT_Arr *arr1,
                                                    const DT_Arr *arr2,
-                                                   DT_bool *pRslt);
+                                                   PRP_Bool *pRslt);
 /**
  * Extends arr2 into arr1.
  *
@@ -469,9 +465,8 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrExtendChecked(DT_Arr *arr1,
  * @note Unchecked variant:
  * - Asserts on invalid arguments in debug.
  */
-PRP_FN_API DT_void PRP_FN_CALL DT_ArrSwapUnchecked(DT_Arr *arr, DT_size i,
-                                                   DT_size j,
-                                                   DT_void *swap_bffr);
+PRP_FN_API void PRP_FN_CALL DT_ArrSwapUnchecked(DT_Arr *arr, PRP_Size i,
+                                                PRP_Size j, void *swap_bffr);
 /**
  * Swaps the elements in the given indices.
  *
@@ -484,9 +479,9 @@ PRP_FN_API DT_void PRP_FN_CALL DT_ArrSwapUnchecked(DT_Arr *arr, DT_size i,
  * @return PRP_ERR_OOB if any indices are out of bounds.
  * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
-PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrSwapChecked(DT_Arr *arr, DT_size i,
-                                                    DT_size j,
-                                                    DT_void *swap_bffr);
+PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrSwapChecked(DT_Arr *arr, PRP_Size i,
+                                                    PRP_Size j,
+                                                    void *swap_bffr);
 /**
  * Resets the array.
  *
@@ -498,7 +493,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrSwapChecked(DT_Arr *arr, DT_size i,
  * @note Unchecked variant:
  * - Asserts on invalid arguments in debug.
  */
-PRP_FN_API DT_void PRP_FN_CALL DT_ArrResetUnchecked(DT_Arr *arr);
+PRP_FN_API void PRP_FN_CALL DT_ArrResetUnchecked(DT_Arr *arr);
 /**
  * Resets the array.
  *
@@ -549,8 +544,8 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrShrinkFitChecked(DT_Arr *arr);
  * - Asserts on invalid arguments in debug.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrForEachUnchecked(
-    DT_Arr *arr, PRP_Result (*cb)(DT_void *pVal, DT_void *pUser_data),
-    DT_void *pUser_data);
+    DT_Arr *arr, PRP_Result (*cb)(void *pVal, void *pUser_data),
+    void *pUser_data);
 /**
  * Iterates over all elements of the array.
  *
@@ -563,8 +558,8 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrForEachUnchecked(
  * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_ArrForEachChecked(
-    DT_Arr *arr, PRP_Result (*cb)(DT_void *pVal, DT_void *pUser_data),
-    DT_void *pUser_data);
+    DT_Arr *arr, PRP_Result (*cb)(void *pVal, void *pUser_data),
+    void *pUser_data);
 
 #ifdef __cplusplus
 }

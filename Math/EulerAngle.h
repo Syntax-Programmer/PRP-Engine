@@ -17,17 +17,17 @@ typedef enum {
 } MATH_EulerAngleOrder;
 
 typedef struct {
-    DT_f32 x_rad;
-    DT_f32 y_rad;
-    DT_f32 z_rad;
+    PRP_F32 x_rad;
+    PRP_F32 y_rad;
+    PRP_F32 z_rad;
 } MATH_EulerAngle;
 
-static inline MATH_EulerAngle MATH_EulerAngleCreateZero(DT_void) {
+static inline MATH_EulerAngle MATH_EulerAngleCreateZero(void) {
     return (MATH_EulerAngle){0};
 }
 
 static inline MATH_EulerAngle
-MATH_EulerAngleCreateFromRad(DT_f32 x_rad, DT_f32 y_rad, DT_f32 z_rad) {
+MATH_EulerAngleCreateFromRad(PRP_F32 x_rad, PRP_F32 y_rad, PRP_F32 z_rad) {
     return (MATH_EulerAngle){
         .x_rad = x_rad,
         .y_rad = y_rad,
@@ -36,7 +36,7 @@ MATH_EulerAngleCreateFromRad(DT_f32 x_rad, DT_f32 y_rad, DT_f32 z_rad) {
 }
 
 static inline MATH_EulerAngle
-MATH_EulerAngleCreateFromDeg(DT_f32 x_deg, DT_f32 y_deg, DT_f32 z_deg) {
+MATH_EulerAngleCreateFromDeg(PRP_F32 x_deg, PRP_F32 y_deg, PRP_F32 z_deg) {
     return (MATH_EulerAngle){
         .x_rad = MATH_DEG_TO_RAD_F32 * x_deg,
         .y_rad = MATH_DEG_TO_RAD_F32 * y_deg,

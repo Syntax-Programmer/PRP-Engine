@@ -4,8 +4,7 @@
 extern "C" {
 #endif
 
-#include "DataTypes/Typedefs.h"
-#include "Utils/Defs.h"
+#include "Core/Defs.h"
 
 /* ----  STD HASH FUNCS ---- */
 
@@ -20,7 +19,7 @@ extern "C" {
  * - This can be used to hash any generic byte stream, just cast it to a char
  * ptr and make sure the last byte is nul byte.
  */
-DT_u64 DT_HmHashStr(const DT_void *str_key);
+PRP_U64 DT_HmHashStr(const void *str_key);
 /**
  * Hash func can be used to hash a u64 using SplitMix64 hashing.
  *
@@ -32,7 +31,7 @@ DT_u64 DT_HmHashStr(const DT_void *str_key);
  * - This can be used to hash ptrs, ints(any size), uints(any size) if the user
  * is okay of them being used as u64 ints.
  */
-DT_u64 DT_HmHashSplitMix64(const DT_void *u64_key);
+PRP_U64 DT_HmHashSplitMix64(const void *u64_key);
 
 /* ----  HASHMAP ---- */
 
@@ -52,17 +51,17 @@ typedef struct _Hm DT_Hm;
  *
  * @param hm Pointer to the hashmap.
  *
- * @return DT_true if valid, DT_false otherwise.
+ * @return PRP_True if valid, PRP_False otherwise.
  */
-PRP_FN_API DT_bool PRP_FN_CALL DT_HmIsValid(const DT_Hm *hm);
+PRP_FN_API PRP_Bool PRP_FN_CALL DT_HmIsValid(const DT_Hm *hm);
 
 /**
  * Creates a hashmap with user-defined behavior.
  *
  * @param hash_fn     Function used to hash keys.
  * @param key_cmp_cb  Function used to compare keys.
- * @param key_del_cb  Callback to destroy keys (can be DT_null if not needed).
- * @param val_del_cb  Callback to destroy values (can be DT_null if not needed).
+ * @param key_del_cb  Callback to destroy keys (can be NULL if not needed).
+ * @param val_del_cb  Callback to destroy values (can be NULL if not needed).
  * @param pHm         Output pointer receiving the created hashmap.
  *
  * @return PRP_OK on success.
@@ -71,11 +70,11 @@ PRP_FN_API DT_bool PRP_FN_CALL DT_HmIsValid(const DT_Hm *hm);
  * @note Unchecked variant:
  * - Asserts on invalid arguments in debug.
  */
-PRP_FN_API PRP_Result PRP_FN_CALL DT_HmCreateUnchecked(
-    DT_u64 (*hash_fn)(const DT_void *key),
-    DT_bool (*key_cmp_cb)(const DT_void *k1, const DT_void *k2),
-    PRP_Result (*key_del_cb)(DT_void *key),
-    PRP_Result (*val_del_cb)(DT_void *val), DT_Hm **pHm);
+PRP_FN_API PRP_Result PRP_FN_CALL
+DT_HmCreateUnchecked(PRP_U64 (*hash_fn)(const void *key),
+                     PRP_Bool (*key_cmp_cb)(const void *k1, const void *k2),
+                     PRP_Result (*key_del_cb)(void *key),
+                     PRP_Result (*val_del_cb)(void *val), DT_Hm **pHm);
 
 /**
  * Creates a hashmap with validation.
@@ -91,10 +90,10 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_HmCreateUnchecked(
  * @return PRP_ERR_OOM if allocation fails.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL
-DT_HmCreateChecked(DT_u64 (*hash_fn)(const DT_void *key),
-                   DT_bool (*key_cmp_cb)(const DT_void *k1, const DT_void *k2),
-                   PRP_Result (*key_del_cb)(DT_void *key),
-                   PRP_Result (*val_del_cb)(DT_void *val), DT_Hm **pHm);
+DT_HmCreateChecked(PRP_U64 (*hash_fn)(const void *key),
+                   PRP_Bool (*key_cmp_cb)(const void *k1, const void *k2),
+                   PRP_Result (*key_del_cb)(void *key),
+                   PRP_Result (*val_del_cb)(void *val), DT_Hm **pHm);
 
 /**
  * Deletes the hashmap and nullifies the pointer.
@@ -104,7 +103,7 @@ DT_HmCreateChecked(DT_u64 (*hash_fn)(const DT_void *key),
  * @note Unchecked variant:
  * - Asserts on invalid arguments in debug.
  */
-PRP_FN_API DT_void PRP_FN_CALL DT_HmDeleteUnchecked(DT_Hm **pHm);
+PRP_FN_API void PRP_FN_CALL DT_HmDeleteUnchecked(DT_Hm **pHm);
 
 /**
  * Deletes the hashmap and nullifies the pointer.
@@ -120,7 +119,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_HmDeleteChecked(DT_Hm **pHm);
  * Inserts a key-value pair into the hashmap.
  *
  * @param hm  Hashmap instance.
- * @param key Key (must not be DT_null).
+ * @param key Key (must not be NULL).
  * @param val Value associated with the key.
  *
  * @return PRP_OK on success.
@@ -129,9 +128,9 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_HmDeleteChecked(DT_Hm **pHm);
  * @note Unchecked variant:
  * - Asserts on invalid arguments in debug.
  */
-PRP_FN_API PRP_Result PRP_FN_CALL DT_HmAddUnchecked(DT_Hm *hm, DT_void *key,
-                                                    DT_void *val,
-                                                    DT_bool fail_on_duplicate);
+PRP_FN_API PRP_Result PRP_FN_CALL DT_HmAddUnchecked(DT_Hm *hm, void *key,
+                                                    void *val,
+                                                    PRP_Bool fail_on_duplicate);
 
 /**
  * Inserts a key-value pair with validation.
@@ -144,9 +143,9 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_HmAddUnchecked(DT_Hm *hm, DT_void *key,
  * @return PRP_ERR_INV_ARG if arguments are invalid.
  * @return PRP_ERR_OOM or PRP_ERR_RES_EXHAUSTED if insertion fails.
  */
-PRP_FN_API PRP_Result PRP_FN_CALL DT_HmAddChecked(DT_Hm *hm, DT_void *key,
-                                                  DT_void *val,
-                                                  DT_bool fail_on_duplicate);
+PRP_FN_API PRP_Result PRP_FN_CALL DT_HmAddChecked(DT_Hm *hm, void *key,
+                                                  void *val,
+                                                  PRP_Bool fail_on_duplicate);
 
 /**
  * Retrieves the value associated with a key.
@@ -161,9 +160,8 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_HmAddChecked(DT_Hm *hm, DT_void *key,
  * @note Unchecked variant:
  * - Asserts on invalid arguments in debug.
  */
-PRP_FN_API PRP_Result PRP_FN_CALL DT_HmGetUnchecked(const DT_Hm *hm,
-                                                    DT_void *key,
-                                                    DT_void **pVal);
+PRP_FN_API PRP_Result PRP_FN_CALL DT_HmGetUnchecked(const DT_Hm *hm, void *key,
+                                                    void **pVal);
 
 /**
  * Retrieves the value associated with a key with validation.
@@ -176,8 +174,8 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_HmGetUnchecked(const DT_Hm *hm,
  * @return PRP_ERR_NOT_FOUND if key does not exist.
  * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
-PRP_FN_API PRP_Result PRP_FN_CALL DT_HmGetChecked(const DT_Hm *hm, DT_void *key,
-                                                  DT_void **pVal);
+PRP_FN_API PRP_Result PRP_FN_CALL DT_HmGetChecked(const DT_Hm *hm, void *key,
+                                                  void **pVal);
 
 /**
  * Removes a key-value pair from the hashmap.
@@ -191,8 +189,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_HmGetChecked(const DT_Hm *hm, DT_void *key,
  * @note Unchecked variant:
  * - Asserts on invalid arguments in debug.
  */
-PRP_FN_API PRP_Result PRP_FN_CALL DT_HmDelElemUnchecked(DT_Hm *hm,
-                                                        DT_void *key);
+PRP_FN_API PRP_Result PRP_FN_CALL DT_HmDelElemUnchecked(DT_Hm *hm, void *key);
 
 /**
  * Removes a key-value pair with validation.
@@ -204,7 +201,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_HmDelElemUnchecked(DT_Hm *hm,
  * @return PRP_ERR_NOT_FOUND if key does not exist.
  * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
-PRP_FN_API PRP_Result PRP_FN_CALL DT_HmDelElemChecked(DT_Hm *hm, DT_void *key);
+PRP_FN_API PRP_Result PRP_FN_CALL DT_HmDelElemChecked(DT_Hm *hm, void *key);
 
 /**
  * Returns the number of elements currently stored.
@@ -215,14 +212,14 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_HmDelElemChecked(DT_Hm *hm, DT_void *key);
  *
  * @note Assumes valid hashmap (asserts in debug).
  */
-PRP_FN_API DT_size PRP_FN_CALL DT_HmLen(const DT_Hm *hm);
+PRP_FN_API PRP_Size PRP_FN_CALL DT_HmLen(const DT_Hm *hm);
 
 /**
  * Returns the maximum capacity supported by the hashmap.
  *
  * @return Maximum capacity.
  */
-PRP_FN_API DT_size PRP_FN_CALL DT_HmMaxCap(DT_void);
+PRP_FN_API PRP_Size PRP_FN_CALL DT_HmMaxCap(void);
 
 /**
  * Iterates over all key-value pairs.
@@ -238,9 +235,8 @@ PRP_FN_API DT_size PRP_FN_CALL DT_HmMaxCap(DT_void);
  * - Asserts on invalid arguments in debug.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_HmForEachUnchecked(
-    DT_Hm *hm,
-    PRP_Result (*cb)(DT_void *key, DT_void *val, DT_void *pUser_data),
-    DT_void *pUser_data);
+    DT_Hm *hm, PRP_Result (*cb)(void *key, void *val, void *pUser_data),
+    void *pUser_data);
 
 /**
  * Iterates over all key-value pairs with validation.
@@ -254,9 +250,8 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_HmForEachUnchecked(
  * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL DT_HmForEachChecked(
-    DT_Hm *hm,
-    PRP_Result (*cb)(DT_void *key, DT_void *val, DT_void *pUser_data),
-    DT_void *pUser_data);
+    DT_Hm *hm, PRP_Result (*cb)(void *key, void *val, void *pUser_data),
+    void *pUser_data);
 
 /**
  * Resets the hashmap.
@@ -269,7 +264,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_HmForEachChecked(
  * @note Unchecked variant:
  * - Asserts on invalid arguments in debug.
  */
-PRP_FN_API DT_void PRP_FN_CALL DT_HmResetUnchecked(DT_Hm *hm);
+PRP_FN_API void PRP_FN_CALL DT_HmResetUnchecked(DT_Hm *hm);
 
 /**
  * Resets the hashmap with validation.
