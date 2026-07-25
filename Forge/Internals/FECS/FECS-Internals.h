@@ -4,9 +4,9 @@
 extern "C" {
 #endif
 
-#include "DataTypes/Arr.h"
-#include "DataTypes/DSArr.h"
-#include "DataTypes/StringArr.h"
+#include "Containers/Arr.h"
+#include "Containers/DSArr.h"
+#include "Containers/StringArr.h"
 #include "Forge/Internals/Typedefs.h"
 
 /**
@@ -17,24 +17,24 @@ extern "C" {
 /* ----  INTERNAL CONTEXT ---- */
 
 typedef struct {
-    DT_Arr *pComp_sizes;
-    DT_StrArr *pComp_names;
+    CONT_Arr *pComp_sizes;
+    CONT_StrArr *pComp_names;
 
-    DT_Arr *pSystem_infos;
-    DT_StrArr *pSystem_names;
+    CONT_Arr *pSystem_infos;
+    CONT_StrArr *pSystem_names;
 
-    DT_DSArr *pWorlds;
+    CONT_DSArr *pWorlds;
 } FECS_InternalCtx;
 
 extern FECS_InternalCtx *g_ctx;
 
 #define CTX_INVARIANT_EXPR                                                     \
-    (g_ctx != NULL && DT_ArrIsValid(g_ctx->pComp_sizes) &&                     \
-     DT_ArrIsValid(g_ctx->pSystem_infos) && DT_DSArrIsValid(g_ctx->pWorlds) && \
-     DT_StrArrIsValid(g_ctx->pComp_names) &&                                   \
-     DT_StrArrIsValid(g_ctx->pSystem_names) &&                                 \
-     DT_ArrLen(g_ctx->pComp_sizes) == DT_StrArrLen(g_ctx->pComp_names) &&      \
-     DT_ArrLen(g_ctx->pSystem_infos) == DT_StrArrLen(g_ctx->pSystem_names))
+    (g_ctx != NULL && CONT_ArrIsValid(g_ctx->pComp_sizes) &&                     \
+     CONT_ArrIsValid(g_ctx->pSystem_infos) && CONT_DSArrIsValid(g_ctx->pWorlds) && \
+     CONT_StrArrIsValid(g_ctx->pComp_names) &&                                   \
+     CONT_StrArrIsValid(g_ctx->pSystem_names) &&                                 \
+     CONT_ArrLen(g_ctx->pComp_sizes) == CONT_StrArrLen(g_ctx->pComp_names) &&      \
+     CONT_ArrLen(g_ctx->pSystem_infos) == CONT_StrArrLen(g_ctx->pSystem_names))
 
 /* ----  COMPS ---- */
 
@@ -85,7 +85,7 @@ PRP_Result SystemRegister(PRP_Char8 *pName, PRP_Size name_len,
                           FECS_SystemId *pSystem_id);
 /**
  * Deletes a given system's internals.
- * Called via DT_ArrForEach_...
+ * Called via CONT_ArrForEach_...
 
  *
  * @param pVal System to delete internals of..

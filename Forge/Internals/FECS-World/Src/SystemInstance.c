@@ -14,7 +14,7 @@ struct SystemData {
 
 /**
  * Acts as an intermediate chunk level dispatcher for the system function.
- * Called via DT_ArrForEach_...
+ * Called via CONT_ArrForEach_...
  *
  * @param pVal The FECS_Chunk ** we will revieve from the arrforeach function.
  * @param pUser_data The system data needed for execution of the system func.
@@ -82,7 +82,7 @@ void SystemInstanceExec(FECS_World *pWorld,
     FECS_SystemInstance *pSystem_instance =
         &pWorld->pSystem_instances[system_instance_id];
     FECS_SystemInfo *pSystem_info =
-        DT_ArrGetUnchecked(g_ctx->pSystem_infos, pSystem_instance->system_id);
+        CONT_ArrGetUnchecked(g_ctx->pSystem_infos, pSystem_instance->system_id);
 
     FECS_LayoutId *pLayout_ids = pSystem_instance->pLayout_id_matches;
     FECS_SystemExecInternalData exec_internals = {
@@ -94,22 +94,22 @@ void SystemInstanceExec(FECS_World *pWorld,
     for (PRP_Size i = 0; i < pSystem_instance->layout_id_match_count; i++) {
         FECS_Layout *pLayout = &pWorld->pLayouts[pLayout_ids[i]];
         PRP_Size _;
-        const DT_Bitword *pBitwords =
-            DT_BitmapRawUnchecked(pLayout->pComp_set, &_, &_);
+        const CONT_Bitword *pBitwords =
+            CONT_BitmapRawUnchecked(pLayout->pComp_set, &_, &_);
 
         // Precomputing strides for the component that the system needs.
         for (PRP_Size j = 0; j < pSystem_info->comp_ids_needed_count; j++) {
             PRP_Size comp_id = pSystem_info->pComp_ids_needed[j];
             PRP_Size word_i = WORD_I(comp_id);
             PRP_Size prefix_popcnt = pLayout->pWord_prefix_popcnts[word_i];
-            PRP_U16 rank_in_word = (PRP_U16)DT_BitwordPopCnt(
+            PRP_U16 rank_in_word = (PRP_U16)CONT_BitwordPopCnt(
                 pBitwords[word_i] & (BIT_MASK(comp_id) - 1));
 
             exec_internals.pComp_arr_strides[j] =
                 pLayout->pComp_arr_strides[prefix_popcnt + rank_in_word];
         }
 
-        DT_ArrForEachUnchecked(pLayout->pChunk_ptrs, ExecCb, &exec_internals);
+        CONT_ArrForEachUnchecked(pLayout->pChunk_ptrs, ExecCb, &exec_internals);
     }
 }
 

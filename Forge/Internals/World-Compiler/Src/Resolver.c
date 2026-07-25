@@ -2,14 +2,14 @@
 #include "Forge/Internals/World-Compiler/Compiler-Internals.h"
 
 typedef struct {
-    DT_ByteBffr *pIdentifier_bffr;
+    CONT_ByteBffr *pIdentifier_bffr;
     FECS_WorldCreateInfo *pCreate_info;
 } DeclResolveData;
 
 typedef struct {
-    DT_ByteBffr *pIdentifier_bffr;
+    CONT_ByteBffr *pIdentifier_bffr;
 
-    DT_Bitmap *pComp_set;
+    CONT_Bitmap *pComp_set;
 
     // Used for debugging.
     PRP_Size comp_name_len;
@@ -36,7 +36,7 @@ static PRP_Result CreateInfoInit(const FECS_WCParseTable *pParse_table,
 
 /**
  * Resolves a component name, and adds it to a comp bitset.
- * Called via DT_ArrForEach_...
+ * Called via CONT_ArrForEach_...
  *
  * @param pVal       The identifier tok of the comp name.
  * @param pUser_data CompResolveData instance with all relevant data.
@@ -48,7 +48,7 @@ static PRP_Result ResolveCompName(void *pVal, void *pUser_data);
 
 /**
  * Resolve an entire layout decl to create pLayout_create_info bitmap.
- * Called via DT_ArrForEach_...
+ * Called via CONT_ArrForEach_...
  *
  * @param pVal       The layout decl to resolve.
  * @param pUser_data DeclResolveData instance with all relevant data.
@@ -79,8 +79,8 @@ static PRP_Result ResolveLayoutDecl(void *pVal, void *pUser_data);
 static PRP_Result CreateSystemInstanceCompSets(
     const PRP_Char8 *pSystem_instance_name, PRP_Size system_instance_name_len,
     FECS_WCSystemInstanceDecl *pSystem_instance_decl,
-    DT_ByteBffr *pIdentifier_bffr, DT_Bitmap **ppInc_comp_set,
-    DT_Bitmap **ppExc_comp_set);
+    CONT_ByteBffr *pIdentifier_bffr, CONT_Bitmap **ppInc_comp_set,
+    CONT_Bitmap **ppExc_comp_set);
 /**
  * Filters existing layouts based on the inc and exc comp sets.
  *
@@ -95,12 +95,12 @@ static PRP_Result CreateSystemInstanceCompSets(
  * @return PRP_ERR_OOM if allocation fails.
  */
 static PRP_Result
-FilterLayouts(DeclResolveData *pResolve_data, DT_Bitmap *pInc_comp_set,
-              DT_Bitmap *pExc_comp_set,
+FilterLayouts(DeclResolveData *pResolve_data, CONT_Bitmap *pInc_comp_set,
+              CONT_Bitmap *pExc_comp_set,
               FECS_SystemInstanceCreateInfo *pSystem_instance_create_info);
 /**
  * Resolve an entire system instance decl to create system_instance_create_info.
- * Called via DT_ArrForEach_...
+ * Called via CONT_ArrForEach_...
  *
  * @param pVal       The system instance decl to resolve.
  * @param pUser_data DeclResolveData instance with all relevant data.
@@ -118,12 +118,12 @@ static PRP_Result ResolveSystemInstanceDecl(void *pVal, void *pUser_data);
 static void DestroyCreateInfo(FECS_WorldCreateInfo *pCreate_info) {
     if (pCreate_info->ppLayout_create_infos) {
         for (PRP_Size i = 0; i < pCreate_info->layout_count; i++) {
-            DT_Bitmap *pLayout_create_info =
+            CONT_Bitmap *pLayout_create_info =
                 pCreate_info->ppLayout_create_infos[i];
-            DT_BitmapDeleteUnchecked(&pLayout_create_info);
+            CONT_BitmapDeleteUnchecked(&pLayout_create_info);
         }
         free(pCreate_info->ppLayout_create_infos);
-        DT_StrArrDeleteUnchecked(&pCreate_info->pLayout_names);
+        CONT_StrArrDeleteUnchecked(&pCreate_info->pLayout_names);
         pCreate_info->layout_count = 0;
     }
     if (pCreate_info->pSystem_instance_create_infos) {
@@ -133,7 +133,7 @@ static void DestroyCreateInfo(FECS_WorldCreateInfo *pCreate_info) {
             free(pSystem_instance_create_info->pLayout_id_matches);
         }
         free(pCreate_info->pSystem_instance_create_infos);
-        DT_StrArrDeleteUnchecked(&pCreate_info->pSystem_instance_names);
+        CONT_StrArrDeleteUnchecked(&pCreate_info->pSystem_instance_names);
         pCreate_info->system_instance_count = 0;
     }
 }
@@ -144,14 +144,14 @@ static PRP_Result CreateInfoInit(const FECS_WCParseTable *pParse_table,
     pCreate_info->layout_count = 0;
     pCreate_info->system_instance_count = 0;
 
-    PRP_Size layout_count = DT_ArrLen(pParse_table->pLayout_table);
+    PRP_Size layout_count = CONT_ArrLen(pParse_table->pLayout_table);
     pCreate_info->ppLayout_create_infos =
-        malloc(sizeof(DT_Bitmap *) * layout_count);
+        malloc(sizeof(CONT_Bitmap *) * layout_count);
     if (!pCreate_info->ppLayout_create_infos) {
         return PRP_ERR_OOM;
     }
     PRP_Result code =
-        DT_StrArrCreateUnchecked(pParse_table->layout_names_size, layout_count,
+        CONT_StrArrCreateUnchecked(pParse_table->layout_names_size, layout_count,
                                  &pCreate_info->pLayout_names);
     if (code != PRP_OK) {
         DestroyCreateInfo(pCreate_info);
@@ -159,14 +159,14 @@ static PRP_Result CreateInfoInit(const FECS_WCParseTable *pParse_table,
     }
 
     PRP_Size system_instance_count =
-        DT_ArrLen(pParse_table->pSystem_instance_table);
+        CONT_ArrLen(pParse_table->pSystem_instance_table);
     pCreate_info->pSystem_instance_create_infos =
         malloc(sizeof(FECS_SystemInstanceCreateInfo) * system_instance_count);
     if (!pCreate_info->pSystem_instance_create_infos) {
         DestroyCreateInfo(pCreate_info);
         return PRP_ERR_OOM;
     }
-    code = DT_StrArrCreateUnchecked(pParse_table->system_instance_names_size,
+    code = CONT_StrArrCreateUnchecked(pParse_table->system_instance_names_size,
                                     system_instance_count,
                                     &pCreate_info->pSystem_instance_names);
     if (code != PRP_OK) {
@@ -182,15 +182,15 @@ static PRP_Result ResolveCompName(void *pVal, void *pUser_data) {
     CompResolveData *pComp_resolve_data = pUser_data;
 
     pComp_resolve_data->comp_name_len = pTok->size;
-    pComp_resolve_data->pName = DT_ByteBffrGetUnchecked(
+    pComp_resolve_data->pName = CONT_ByteBffrGetUnchecked(
         pComp_resolve_data->pIdentifier_bffr, pTok->ofs);
     PRP_Size idx;
-    if (!DT_StrArrSearchUnchecked(g_ctx->pComp_names, pComp_resolve_data->pName,
+    if (!CONT_StrArrSearchUnchecked(g_ctx->pComp_names, pComp_resolve_data->pName,
                                   pTok->size, &idx)) {
         return PRP_ERR_NOT_FOUND;
     }
 
-    DT_BitmapSetUnchecked(pComp_resolve_data->pComp_set, idx);
+    CONT_BitmapSetUnchecked(pComp_resolve_data->pComp_set, idx);
 
     return PRP_OK;
 }
@@ -200,9 +200,9 @@ static PRP_Result ResolveLayoutDecl(void *pVal, void *pUser_data) {
     DeclResolveData *pResolve_data = pUser_data;
 
     PRP_Size layout_name_len = pLayout_decl->layout_name.size;
-    PRP_Char8 *pLayout_name = DT_ByteBffrGetUnchecked(
+    PRP_Char8 *pLayout_name = CONT_ByteBffrGetUnchecked(
         pResolve_data->pIdentifier_bffr, pLayout_decl->layout_name.ofs);
-    if (DT_StrArrSearchUnchecked(pResolve_data->pCreate_info->pLayout_names,
+    if (CONT_StrArrSearchUnchecked(pResolve_data->pCreate_info->pLayout_names,
                                  pLayout_name, layout_name_len, NULL)) {
         DIAG_LOG_INFO(DIAG_LOG_CODE_NONE,
                       "Layout: %.*s, already exists, the entire layout "
@@ -211,8 +211,8 @@ static PRP_Result ResolveLayoutDecl(void *pVal, void *pUser_data) {
         return PRP_OK;
     }
 
-    DT_Bitmap *pLayout_create_info;
-    PRP_Result code = DT_BitmapCreateUnchecked(DT_ArrLen(g_ctx->pComp_sizes),
+    CONT_Bitmap *pLayout_create_info;
+    PRP_Result code = CONT_BitmapCreateUnchecked(CONT_ArrLen(g_ctx->pComp_sizes),
                                                &pLayout_create_info);
     if (code != PRP_OK) {
         return PRP_ERR_OOM;
@@ -220,10 +220,10 @@ static PRP_Result ResolveLayoutDecl(void *pVal, void *pUser_data) {
     CompResolveData comp_resolve_data = {.pIdentifier_bffr =
                                              pResolve_data->pIdentifier_bffr,
                                          .pComp_set = pLayout_create_info};
-    code = DT_ArrForEachUnchecked(pLayout_decl->pComp_names, ResolveCompName,
+    code = CONT_ArrForEachUnchecked(pLayout_decl->pComp_names, ResolveCompName,
                                   &comp_resolve_data);
     if (code != PRP_OK) {
-        DT_BitmapDeleteUnchecked(&pLayout_create_info);
+        CONT_BitmapDeleteUnchecked(&pLayout_create_info);
         DIAG_LOG_INFO(
             DIAG_LOG_CODE_INVALID_STATE,
             "Layout: %.*s, contains unregistered component "
@@ -233,13 +233,13 @@ static PRP_Result ResolveLayoutDecl(void *pVal, void *pUser_data) {
         return PRP_OK;
     }
 
-    code = DT_StrArrPushUnchecked(pResolve_data->pCreate_info->pLayout_names,
+    code = CONT_StrArrPushUnchecked(pResolve_data->pCreate_info->pLayout_names,
                                   pLayout_name, layout_name_len);
     if (code != PRP_OK) {
-        DT_BitmapDeleteUnchecked(&pLayout_create_info);
+        CONT_BitmapDeleteUnchecked(&pLayout_create_info);
         return code;
     }
-    DT_Bitmap **ppLayout_create_infos =
+    CONT_Bitmap **ppLayout_create_infos =
         pResolve_data->pCreate_info->ppLayout_create_infos;
     ppLayout_create_infos[pResolve_data->pCreate_info->layout_count++] =
         pLayout_create_info;
@@ -250,26 +250,26 @@ static PRP_Result ResolveLayoutDecl(void *pVal, void *pUser_data) {
 static PRP_Result CreateSystemInstanceCompSets(
     const PRP_Char8 *pSystem_instance_name, PRP_Size system_instance_name_len,
     FECS_WCSystemInstanceDecl *pSystem_instance_decl,
-    DT_ByteBffr *pIdentifier_bffr, DT_Bitmap **ppInc_comp_set,
-    DT_Bitmap **ppExc_comp_set) {
+    CONT_ByteBffr *pIdentifier_bffr, CONT_Bitmap **ppInc_comp_set,
+    CONT_Bitmap **ppExc_comp_set) {
     PRP_Result code =
-        DT_BitmapCreateUnchecked(DT_ArrLen(g_ctx->pComp_sizes), ppInc_comp_set);
+        CONT_BitmapCreateUnchecked(CONT_ArrLen(g_ctx->pComp_sizes), ppInc_comp_set);
     if (code != PRP_OK) {
         return code;
     }
     code =
-        DT_BitmapCreateUnchecked(DT_ArrLen(g_ctx->pComp_sizes), ppExc_comp_set);
+        CONT_BitmapCreateUnchecked(CONT_ArrLen(g_ctx->pComp_sizes), ppExc_comp_set);
     if (code != PRP_OK) {
-        DT_BitmapDeleteUnchecked(ppInc_comp_set);
+        CONT_BitmapDeleteUnchecked(ppInc_comp_set);
         return code;
     }
     CompResolveData comp_resolve_data = {.pIdentifier_bffr = pIdentifier_bffr,
                                          .pComp_set = *ppInc_comp_set};
-    code = DT_ArrForEachUnchecked(pSystem_instance_decl->pInc_comp_names,
+    code = CONT_ArrForEachUnchecked(pSystem_instance_decl->pInc_comp_names,
                                   ResolveCompName, &comp_resolve_data);
     if (code != PRP_OK) {
-        DT_BitmapDeleteUnchecked(ppInc_comp_set);
-        DT_BitmapDeleteUnchecked(ppExc_comp_set);
+        CONT_BitmapDeleteUnchecked(ppInc_comp_set);
+        CONT_BitmapDeleteUnchecked(ppExc_comp_set);
         DIAG_LOG_INFO(
             DIAG_LOG_CODE_INVALID_STATE,
             "System Instance: %.*s, contains unregistered include component "
@@ -280,11 +280,11 @@ static PRP_Result CreateSystemInstanceCompSets(
         return PRP_ERR_NOT_FOUND;
     }
     comp_resolve_data.pComp_set = *ppExc_comp_set;
-    code = DT_ArrForEachUnchecked(pSystem_instance_decl->pExc_comp_names,
+    code = CONT_ArrForEachUnchecked(pSystem_instance_decl->pExc_comp_names,
                                   ResolveCompName, &comp_resolve_data);
     if (code != PRP_OK) {
-        DT_BitmapDeleteUnchecked(ppInc_comp_set);
-        DT_BitmapDeleteUnchecked(ppExc_comp_set);
+        CONT_BitmapDeleteUnchecked(ppInc_comp_set);
+        CONT_BitmapDeleteUnchecked(ppExc_comp_set);
         DIAG_LOG_INFO(
             DIAG_LOG_CODE_INVALID_STATE,
             "System Instance: %.*s, contains unregistered exclude component "
@@ -299,8 +299,8 @@ static PRP_Result CreateSystemInstanceCompSets(
 }
 
 static PRP_Result
-FilterLayouts(DeclResolveData *pResolve_data, DT_Bitmap *pInc_comp_set,
-              DT_Bitmap *pExc_comp_set,
+FilterLayouts(DeclResolveData *pResolve_data, CONT_Bitmap *pInc_comp_set,
+              CONT_Bitmap *pExc_comp_set,
               FECS_SystemInstanceCreateInfo *pSystem_instance_create_info) {
     // Allocate all in one go, we can shrink fit if needed.
     pSystem_instance_create_info->pLayout_id_matches = malloc(
@@ -311,11 +311,11 @@ FilterLayouts(DeclResolveData *pResolve_data, DT_Bitmap *pInc_comp_set,
     pSystem_instance_create_info->layout_id_match_count = 0;
 
     for (PRP_Size i = 0; i < pResolve_data->pCreate_info->layout_count; i++) {
-        DT_Bitmap *pLayout_create_info =
+        CONT_Bitmap *pLayout_create_info =
             pResolve_data->pCreate_info->ppLayout_create_infos[i];
 
-        if (DT_BitmapHasAnyUnchecked(pLayout_create_info, pExc_comp_set) ||
-            !DT_BitmapHasAllUnchecked(pLayout_create_info, pInc_comp_set)) {
+        if (CONT_BitmapHasAnyUnchecked(pLayout_create_info, pExc_comp_set) ||
+            !CONT_BitmapHasAllUnchecked(pLayout_create_info, pInc_comp_set)) {
             continue;
         }
         pSystem_instance_create_info->pLayout_id_matches
@@ -346,10 +346,10 @@ static PRP_Result ResolveSystemInstanceDecl(void *pVal, void *pUser_data) {
 
     PRP_Size system_instance_name_len =
         pSystem_instance_decl->system_instance_name.size;
-    PRP_Char8 *pSystem_instance_name = DT_ByteBffrGetUnchecked(
+    PRP_Char8 *pSystem_instance_name = CONT_ByteBffrGetUnchecked(
         pResolve_data->pIdentifier_bffr,
         pSystem_instance_decl->system_instance_name.ofs);
-    if (DT_StrArrSearchUnchecked(
+    if (CONT_StrArrSearchUnchecked(
             pResolve_data->pCreate_info->pSystem_instance_names,
             pSystem_instance_name, system_instance_name_len, NULL)) {
         DIAG_LOG_INFO(
@@ -362,10 +362,10 @@ static PRP_Result ResolveSystemInstanceDecl(void *pVal, void *pUser_data) {
 
     FECS_SystemId system_id;
     PRP_Char8 *pSystem_name =
-        DT_ByteBffrGetUnchecked(pResolve_data->pIdentifier_bffr,
+        CONT_ByteBffrGetUnchecked(pResolve_data->pIdentifier_bffr,
                                 pSystem_instance_decl->system_name.ofs);
     PRP_Size system_name_len = pSystem_instance_decl->system_name.size;
-    if (!DT_StrArrSearchUnchecked(g_ctx->pSystem_names, pSystem_name,
+    if (!CONT_StrArrSearchUnchecked(g_ctx->pSystem_names, pSystem_name,
                                   system_name_len, &system_id)) {
         DIAG_LOG_INFO(
             DIAG_LOG_CODE_INVALID_STATE,
@@ -377,9 +377,9 @@ static PRP_Result ResolveSystemInstanceDecl(void *pVal, void *pUser_data) {
         return PRP_OK;
     }
     FECS_SystemInfo *pSystem_info =
-        DT_ArrGetUnchecked(g_ctx->pSystem_infos, system_id);
+        CONT_ArrGetUnchecked(g_ctx->pSystem_infos, system_id);
 
-    DT_Bitmap *pInc_comp_set, *pExc_comp_set;
+    CONT_Bitmap *pInc_comp_set, *pExc_comp_set;
     PRP_Result code = CreateSystemInstanceCompSets(
         pSystem_instance_name, system_instance_name_len, pSystem_instance_decl,
         pResolve_data->pIdentifier_bffr, &pInc_comp_set, &pExc_comp_set);
@@ -390,12 +390,12 @@ static PRP_Result ResolveSystemInstanceDecl(void *pVal, void *pUser_data) {
     }
     for (PRP_Size i = 0; i < pSystem_info->comp_ids_needed_count; i++) {
         FECS_CompId needed_comp_id = pSystem_info->pComp_ids_needed[i];
-        if (!DT_BitmapIsSetUnchecked(pInc_comp_set, needed_comp_id)) {
-            DT_BitmapDeleteUnchecked(&pInc_comp_set);
-            DT_BitmapDeleteUnchecked(&pExc_comp_set);
+        if (!CONT_BitmapIsSetUnchecked(pInc_comp_set, needed_comp_id)) {
+            CONT_BitmapDeleteUnchecked(&pInc_comp_set);
+            CONT_BitmapDeleteUnchecked(&pExc_comp_set);
 
             PRP_Size comp_name_len;
-            const PRP_Char8 *pComp_name = DT_StrArrGetUnchecked(
+            const PRP_Char8 *pComp_name = CONT_StrArrGetUnchecked(
                 g_ctx->pComp_names, needed_comp_id, &comp_name_len);
             DIAG_LOG_INFO(
                 DIAG_LOG_CODE_INVALID_STATE,
@@ -416,7 +416,7 @@ static PRP_Result ResolveSystemInstanceDecl(void *pVal, void *pUser_data) {
         .pLayout_id_matches = NULL,
         .stride_dispatch_count = pSystem_info->comp_ids_needed_count};
     code = PRP_OK; // Never hurts to be explicit.
-    if (DT_BitmapHasAnyUnchecked(pExc_comp_set, pInc_comp_set)) {
+    if (CONT_BitmapHasAnyUnchecked(pExc_comp_set, pInc_comp_set)) {
         DIAG_LOG_WARN(DIAG_LOG_CODE_INIT_FAIL,
                       "System Instance: %.*s, has overlapping include and "
                       "exclude components, this will not match any layouts.",
@@ -425,13 +425,13 @@ static PRP_Result ResolveSystemInstanceDecl(void *pVal, void *pUser_data) {
         code = FilterLayouts(pResolve_data, pInc_comp_set, pExc_comp_set,
                              &system_instance_create_info);
     }
-    DT_BitmapDeleteUnchecked(&pInc_comp_set);
-    DT_BitmapDeleteUnchecked(&pExc_comp_set);
+    CONT_BitmapDeleteUnchecked(&pInc_comp_set);
+    CONT_BitmapDeleteUnchecked(&pExc_comp_set);
     if (code != PRP_OK) {
         return code;
     }
 
-    code = DT_StrArrPushUnchecked(
+    code = CONT_StrArrPushUnchecked(
         pResolve_data->pCreate_info->pSystem_instance_names,
         pSystem_instance_name, system_instance_name_len);
     if (code != PRP_OK) {
@@ -457,13 +457,13 @@ PRP_Result ResolverResolveParseTables(const FECS_WCParseTable *pParse_table,
     DeclResolveData resolve_data = {.pIdentifier_bffr =
                                         pParse_table->pIdentifiers_bffr,
                                     .pCreate_info = pCreate_info};
-    code = DT_ArrForEachUnchecked(pParse_table->pLayout_table,
+    code = CONT_ArrForEachUnchecked(pParse_table->pLayout_table,
                                   ResolveLayoutDecl, &resolve_data);
     if (code != PRP_OK) {
         DestroyCreateInfo(pCreate_info);
         return code;
     }
-    code = DT_ArrForEachUnchecked(pParse_table->pSystem_instance_table,
+    code = CONT_ArrForEachUnchecked(pParse_table->pSystem_instance_table,
                                   ResolveSystemInstanceDecl, &resolve_data);
     if (code != PRP_OK) {
         DestroyCreateInfo(pCreate_info);

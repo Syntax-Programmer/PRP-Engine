@@ -4,8 +4,8 @@
 extern "C" {
 #endif
 
-#include "DataTypes/Arr.h"
-#include "DataTypes/ByteBffr.h"
+#include "Containers/Arr.h"
+#include "Containers/ByteBffr.h"
 #include "Forge/Internals/FECS-World/World-Internals.h"
 
 /* ----  LEXER ---- */
@@ -38,11 +38,11 @@ typedef struct {
 } FECS_WCIdentifierTok;
 
 typedef struct {
-    DT_Arr *pTypes;
-    DT_Arr *pIdentifiers;
-    DT_Arr *pRbrace_idxs;
+    CONT_Arr *pTypes;
+    CONT_Arr *pIdentifiers;
+    CONT_Arr *pRbrace_idxs;
     PRP_Size total_identifier_size;
-    DT_ByteBffr *pSrc_bffr;
+    CONT_ByteBffr *pSrc_bffr;
 } FECS_WCTokStream;
 
 #define WC_SYSTEM_TOK_STR "system"
@@ -89,22 +89,22 @@ void LexerTokStreamDelete(FECS_WCTokStream *pTok_stream);
 
 typedef struct {
     FECS_WCIdentifierTok layout_name;
-    DT_Arr *pComp_names;
+    CONT_Arr *pComp_names;
 } FECS_WCLayoutDecl;
 
 typedef struct {
     FECS_WCIdentifierTok system_instance_name;
     FECS_WCIdentifierTok system_name;
-    DT_Arr *pInc_comp_names;
-    DT_Arr *pExc_comp_names;
+    CONT_Arr *pInc_comp_names;
+    CONT_Arr *pExc_comp_names;
 } FECS_WCSystemInstanceDecl;
 
 typedef struct {
-    DT_Arr *pLayout_table;
-    DT_Arr *pSystem_instance_table;
+    CONT_Arr *pLayout_table;
+    CONT_Arr *pSystem_instance_table;
     PRP_Size layout_names_size;
     PRP_Size system_instance_names_size;
-    DT_ByteBffr *pIdentifiers_bffr;
+    CONT_ByteBffr *pIdentifiers_bffr;
 } FECS_WCParseTable;
 
 /**

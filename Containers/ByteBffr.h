@@ -15,12 +15,12 @@ extern "C" {
  *
  * Lifetime Rules:
  * - Memory returned by getters becomes invalid after any mutating operation.
- * - Buffer must be deleted using DT_ByteBffrDelete* APIs.
+ * - Buffer must be deleted using CONT_ByteBffrDelete* APIs.
  */
-typedef struct _ByteBffr DT_ByteBffr;
+typedef struct _ByteBffr CONT_ByteBffr;
 
-#define DT_BYTE_BFFR_MAX_SIZE (PRP_SIZE_MAX)
-#define DT_BYTE_BFFR_DEFAULT_SIZE (128)
+#define CONT_BYTE_BFFR_MAX_SIZE (PRP_SIZE_MAX)
+#define CONT_BYTE_BFFR_DEFAULT_SIZE (128)
 
 /**
  * Checks whether the given  byte-buffer is structurally valid.
@@ -29,7 +29,7 @@ typedef struct _ByteBffr DT_ByteBffr;
  *
  * @return PRP_True if valid, PRP_False otherwise.
  */
-PRP_FN_API PRP_Bool PRP_FN_CALL DT_ByteBffrIsValid(const DT_ByteBffr *b_bffr);
+PRP_FN_API PRP_Bool PRP_FN_CALL CONT_ByteBffrIsValid(const CONT_ByteBffr *b_bffr);
 
 /**
  * Creates a dynamic byte-buffer.
@@ -44,7 +44,7 @@ PRP_FN_API PRP_Bool PRP_FN_CALL DT_ByteBffrIsValid(const DT_ByteBffr *b_bffr);
  * - Asserts on invalid arguments in debug.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL
-DT_ByteBffrCreateUnchecked(PRP_Size size, DT_ByteBffr **pB_bffr);
+CONT_ByteBffrCreateUnchecked(PRP_Size size, CONT_ByteBffr **pB_bffr);
 /**
  * Creates a dynamic byte-buffer.
  *
@@ -56,7 +56,7 @@ DT_ByteBffrCreateUnchecked(PRP_Size size, DT_ByteBffr **pB_bffr);
  * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL
-DT_ByteBffrCreateChecked(PRP_Size size, DT_ByteBffr **pB_bffr);
+CONT_ByteBffrCreateChecked(PRP_Size size, CONT_ByteBffr **pB_bffr);
 /**
  * Deep clones the given byte-buffer.
  *
@@ -70,7 +70,7 @@ DT_ByteBffrCreateChecked(PRP_Size size, DT_ByteBffr **pB_bffr);
  * - Asserts on invalid arguments in debug.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL
-DT_ByteBffrCloneUnchecked(const DT_ByteBffr *b_bffr, DT_ByteBffr **pB_bffr);
+CONT_ByteBffrCloneUnchecked(const CONT_ByteBffr *b_bffr, CONT_ByteBffr **pB_bffr);
 /**
  * Deep clones the given byte-buffer.
  *
@@ -82,7 +82,7 @@ DT_ByteBffrCloneUnchecked(const DT_ByteBffr *b_bffr, DT_ByteBffr **pB_bffr);
  * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL
-DT_ByteBffrCloneChecked(const DT_ByteBffr *b_bffr, DT_ByteBffr **pB_bffr);
+CONT_ByteBffrCloneChecked(const CONT_ByteBffr *b_bffr, CONT_ByteBffr **pB_bffr);
 
 /**
  * Deletes the byte-buffer and nullifies the pointer.
@@ -92,7 +92,7 @@ DT_ByteBffrCloneChecked(const DT_ByteBffr *b_bffr, DT_ByteBffr **pB_bffr);
  * @note Unchecked variant:
  * - Asserts on invalid arguments in debug.
  */
-PRP_FN_API void PRP_FN_CALL DT_ByteBffrDeleteUnchecked(DT_ByteBffr **pB_bffr);
+PRP_FN_API void PRP_FN_CALL CONT_ByteBffrDeleteUnchecked(CONT_ByteBffr **pB_bffr);
 /**
  * Deletes the byte-buffer and nullifies the pointer.
  *
@@ -102,7 +102,7 @@ PRP_FN_API void PRP_FN_CALL DT_ByteBffrDeleteUnchecked(DT_ByteBffr **pB_bffr);
  * @return PRP_ERR_INV_ARG if pB_bffr or *pB_bffr is invalid.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL
-DT_ByteBffrDeleteChecked(DT_ByteBffr **pB_bffr);
+CONT_ByteBffrDeleteChecked(CONT_ByteBffr **pB_bffr);
 
 /**
  * Returns the raw memory pointer of the byte-buffer contents.
@@ -118,7 +118,7 @@ DT_ByteBffrDeleteChecked(DT_ByteBffr **pB_bffr);
  * - Asserts on invalid arguments in debug.
  */
 PRP_FN_API const void *PRP_FN_CALL
-DT_ByteBffrRawUnchecked(const DT_ByteBffr *b_bffr, PRP_Size *pSize);
+CONT_ByteBffrRawUnchecked(const CONT_ByteBffr *b_bffr, PRP_Size *pSize);
 /**
  * Returns the raw memory pointer of the byte-buffer contents.
  *
@@ -132,7 +132,7 @@ DT_ByteBffrRawUnchecked(const DT_ByteBffr *b_bffr, PRP_Size *pSize);
  * @return PRP_ERR_INV_ARG if arguments invalid.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL
-DT_ByteBffrRawChecked(const DT_ByteBffr *b_bffr, PRP_Size *pSize, void **pRaw);
+CONT_ByteBffrRawChecked(const CONT_ByteBffr *b_bffr, PRP_Size *pSize, void **pRaw);
 
 /**
  * Returns the size(in bytes) of the byte-buffer.
@@ -143,7 +143,7 @@ DT_ByteBffrRawChecked(const DT_ByteBffr *b_bffr, PRP_Size *pSize, void **pRaw);
  *
  * @note Assumes valid bute-buffer (asserts in debug).
  */
-PRP_FN_API PRP_Size PRP_FN_CALL DT_ByteBffrSize(const DT_ByteBffr *b_bffr);
+PRP_FN_API PRP_Size PRP_FN_CALL CONT_ByteBffrSize(const CONT_ByteBffr *b_bffr);
 
 /**
  * Retrieves the memory pointer of the given ofset.
@@ -156,7 +156,7 @@ PRP_FN_API PRP_Size PRP_FN_CALL DT_ByteBffrSize(const DT_ByteBffr *b_bffr);
  * @note Unchecked variant:
  * - Asserts on invalid arguments in debug.
  */
-PRP_FN_API void *PRP_FN_CALL DT_ByteBffrGetUnchecked(const DT_ByteBffr *b_bffr,
+PRP_FN_API void *PRP_FN_CALL CONT_ByteBffrGetUnchecked(const CONT_ByteBffr *b_bffr,
                                                      PRP_Size ofs);
 /**
  * Retrieves the memory pointer of the given ofset.
@@ -170,7 +170,7 @@ PRP_FN_API void *PRP_FN_CALL DT_ByteBffrGetUnchecked(const DT_ByteBffr *b_bffr,
  * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL
-DT_ByteBffrGetChecked(const DT_ByteBffr *b_bffr, PRP_Size ofs, void **ppDest);
+CONT_ByteBffrGetChecked(const CONT_ByteBffr *b_bffr, PRP_Size ofs, void **ppDest);
 /**
  * Uploads a byte stream into the byte-buffer.
  *
@@ -182,7 +182,7 @@ DT_ByteBffrGetChecked(const DT_ByteBffr *b_bffr, PRP_Size ofs, void **ppDest);
  * @note Unchecked variant:
  * - Asserts on invalid arguments in debug.
  */
-PRP_FN_API void PRP_FN_CALL DT_ByteBffrUploadUnchecked(DT_ByteBffr *b_bffr,
+PRP_FN_API void PRP_FN_CALL CONT_ByteBffrUploadUnchecked(CONT_ByteBffr *b_bffr,
                                                        PRP_Size ofs,
                                                        PRP_Size size,
                                                        void *pData);
@@ -198,7 +198,7 @@ PRP_FN_API void PRP_FN_CALL DT_ByteBffrUploadUnchecked(DT_ByteBffr *b_bffr,
  * @return PRP_ERR_OOB if offset and/or size out of bounds.
  * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
-PRP_FN_API PRP_Result PRP_FN_CALL DT_ByteBffrUploadChecked(DT_ByteBffr *b_bffr,
+PRP_FN_API PRP_Result PRP_FN_CALL CONT_ByteBffrUploadChecked(CONT_ByteBffr *b_bffr,
                                                            PRP_Size ofs,
                                                            PRP_Size size,
                                                            void *pData);
@@ -214,9 +214,9 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_ByteBffrUploadChecked(DT_ByteBffr *b_bffr,
  * @note Unchecked variant:
  * - Asserts on invalid arguments in debug.
  */
-PRP_FN_API void PRP_FN_CALL DT_ByteBffrCopyUnchecked(const DT_ByteBffr *b_bffr1,
+PRP_FN_API void PRP_FN_CALL CONT_ByteBffrCopyUnchecked(const CONT_ByteBffr *b_bffr1,
                                                      PRP_Size ofs1,
-                                                     DT_ByteBffr *b_bffr2,
+                                                     CONT_ByteBffr *b_bffr2,
                                                      PRP_Size ofs2,
                                                      PRP_Size size);
 /**
@@ -233,8 +233,8 @@ PRP_FN_API void PRP_FN_CALL DT_ByteBffrCopyUnchecked(const DT_ByteBffr *b_bffr1,
  * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL
-DT_ByteBffrCopyChecked(const DT_ByteBffr *b_bffr1, PRP_Size ofs1,
-                       DT_ByteBffr *b_bffr2, PRP_Size ofs2, PRP_Size size);
+CONT_ByteBffrCopyChecked(const CONT_ByteBffr *b_bffr1, PRP_Size ofs1,
+                       CONT_ByteBffr *b_bffr2, PRP_Size ofs2, PRP_Size size);
 /**
  * Fills a region of byte-buffer with the specified byte.
  *
@@ -246,7 +246,7 @@ DT_ByteBffrCopyChecked(const DT_ByteBffr *b_bffr1, PRP_Size ofs1,
  * @note Unchecked variant:
  * - Asserts on invalid arguments in debug.
  */
-PRP_FN_API void PRP_FN_CALL DT_ByteBffrFillUnchecked(DT_ByteBffr *b_bffr,
+PRP_FN_API void PRP_FN_CALL CONT_ByteBffrFillUnchecked(CONT_ByteBffr *b_bffr,
                                                      PRP_Size ofs,
                                                      PRP_Size size,
                                                      PRP_U8 byte);
@@ -262,7 +262,7 @@ PRP_FN_API void PRP_FN_CALL DT_ByteBffrFillUnchecked(DT_ByteBffr *b_bffr,
  * @return PRP_ERR_OOB if offset and/or size out of bounds.
  * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
-PRP_FN_API PRP_Result PRP_FN_CALL DT_ByteBffrFillChecked(DT_ByteBffr *b_bffr,
+PRP_FN_API PRP_Result PRP_FN_CALL CONT_ByteBffrFillChecked(CONT_ByteBffr *b_bffr,
                                                          PRP_Size ofs,
                                                          PRP_Size size,
                                                          PRP_U8 byte);
@@ -279,7 +279,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_ByteBffrFillChecked(DT_ByteBffr *b_bffr,
  * - Asserts on invalid arguments in debug.
  */
 PRP_FN_API PRP_Bool PRP_FN_CALL
-DT_ByteBffrCmpUnchecked(const DT_ByteBffr *b_bffr1, const DT_ByteBffr *b_bffr2);
+CONT_ByteBffrCmpUnchecked(const CONT_ByteBffr *b_bffr1, const CONT_ByteBffr *b_bffr2);
 /**
  * Comares the contents of the byte-buffer.
  *
@@ -290,8 +290,8 @@ DT_ByteBffrCmpUnchecked(const DT_ByteBffr *b_bffr1, const DT_ByteBffr *b_bffr2);
  * @return PRP_OK on success.
  * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
-PRP_FN_API PRP_Result PRP_FN_CALL DT_ByteBffrCmpChecked(
-    const DT_ByteBffr *b_bffr1, const DT_ByteBffr *b_bffr2, PRP_Bool *pRslt);
+PRP_FN_API PRP_Result PRP_FN_CALL CONT_ByteBffrCmpChecked(
+    const CONT_ByteBffr *b_bffr1, const CONT_ByteBffr *b_bffr2, PRP_Bool *pRslt);
 /**
  * Extends b_bffr2 into b_bffr1.
  *
@@ -306,7 +306,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_ByteBffrCmpChecked(
  * - Asserts on invalid arguments in debug.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL
-DT_ByteBffrExtendUnchecked(DT_ByteBffr *b_bffr1, const DT_ByteBffr *b_bffr2);
+CONT_ByteBffrExtendUnchecked(CONT_ByteBffr *b_bffr1, const CONT_ByteBffr *b_bffr2);
 /**
  * Extends b_bffr2 into b_bffr1.
  *
@@ -319,7 +319,7 @@ DT_ByteBffrExtendUnchecked(DT_ByteBffr *b_bffr1, const DT_ByteBffr *b_bffr2);
  * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL
-DT_ByteBffrExtendChecked(DT_ByteBffr *b_bffr1, const DT_ByteBffr *b_bffr2);
+CONT_ByteBffrExtendChecked(CONT_ByteBffr *b_bffr1, const CONT_ByteBffr *b_bffr2);
 /**
  * Swaps the contents in the given non overlapping regions.
  *
@@ -333,7 +333,7 @@ DT_ByteBffrExtendChecked(DT_ByteBffr *b_bffr1, const DT_ByteBffr *b_bffr2);
  * @note Unchecked variant:
  * - Asserts on invalid arguments in debug.
  */
-PRP_FN_API void PRP_FN_CALL DT_ByteBffrSwapRegionUnchecked(DT_ByteBffr *b_bffr,
+PRP_FN_API void PRP_FN_CALL CONT_ByteBffrSwapRegionUnchecked(CONT_ByteBffr *b_bffr,
                                                            PRP_Size ofs1,
                                                            PRP_Size ofs2,
                                                            PRP_Size size,
@@ -354,7 +354,7 @@ PRP_FN_API void PRP_FN_CALL DT_ByteBffrSwapRegionUnchecked(DT_ByteBffr *b_bffr,
  * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL
-DT_ByteBffrSwapRegionChecked(DT_ByteBffr *b_bffr, PRP_Size ofs1, PRP_Size ofs2,
+CONT_ByteBffrSwapRegionChecked(CONT_ByteBffr *b_bffr, PRP_Size ofs1, PRP_Size ofs2,
                              PRP_Size size, void *pSwap_bffr);
 
 /**
@@ -365,7 +365,7 @@ DT_ByteBffrSwapRegionChecked(DT_ByteBffr *b_bffr, PRP_Size ofs1, PRP_Size ofs2,
  * @note Unchecked variant:
  * - Asserts on invalid arguments in debug.
  */
-PRP_FN_API void PRP_FN_CALL DT_ByteBffrClearUnchecked(DT_ByteBffr *b_bffr);
+PRP_FN_API void PRP_FN_CALL CONT_ByteBffrClearUnchecked(CONT_ByteBffr *b_bffr);
 /**
  * Clears the byte-buffer to 0.
  *
@@ -374,7 +374,7 @@ PRP_FN_API void PRP_FN_CALL DT_ByteBffrClearUnchecked(DT_ByteBffr *b_bffr);
  * @return PRP_OK on success.
  * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
-PRP_FN_API PRP_Result PRP_FN_CALL DT_ByteBffrClearChecked(DT_ByteBffr *b_bffr);
+PRP_FN_API PRP_Result PRP_FN_CALL CONT_ByteBffrClearChecked(CONT_ByteBffr *b_bffr);
 /**
  * Reserves size bytes into the byte-buffer from the given offset.
  *
@@ -391,7 +391,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_ByteBffrClearChecked(DT_ByteBffr *b_bffr);
  * - Asserts on invalid arguments in debug.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL
-DT_ByteBffrReserveUnchecked(DT_ByteBffr *b_bffr, PRP_Size ofs, PRP_Size size);
+CONT_ByteBffrReserveUnchecked(CONT_ByteBffr *b_bffr, PRP_Size ofs, PRP_Size size);
 /**
  * Reserves size bytes into the byte-buffer from the given offset.
  *
@@ -406,7 +406,7 @@ DT_ByteBffrReserveUnchecked(DT_ByteBffr *b_bffr, PRP_Size ofs, PRP_Size size);
  * @return PRP_ERR_OOB if offset is bigger than the byte-bffr size.
  * @return PRP_ERR_INV_ARG if arguments are invalid..
  */
-PRP_FN_API PRP_Result PRP_FN_CALL DT_ByteBffrReserveChecked(DT_ByteBffr *b_bffr,
+PRP_FN_API PRP_Result PRP_FN_CALL CONT_ByteBffrReserveChecked(CONT_ByteBffr *b_bffr,
                                                             PRP_Size ofs,
                                                             PRP_Size size);
 /**
@@ -423,7 +423,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_ByteBffrReserveChecked(DT_ByteBffr *b_bffr,
  * - Asserts on invalid arguments in debug.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL
-DT_ByteBffrChangeSizeUnchecked(DT_ByteBffr *b_bffr, PRP_Size new_size);
+CONT_ByteBffrChangeSizeUnchecked(CONT_ByteBffr *b_bffr, PRP_Size new_size);
 /**
  * Safely change size of the byte-buffer.
  *
@@ -436,7 +436,7 @@ DT_ByteBffrChangeSizeUnchecked(DT_ByteBffr *b_bffr, PRP_Size new_size);
  * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL
-DT_ByteBffrChangeSizeChecked(DT_ByteBffr *b_bffr, PRP_Size new_size);
+CONT_ByteBffrChangeSizeChecked(CONT_ByteBffr *b_bffr, PRP_Size new_size);
 
 #ifdef __cplusplus
 }

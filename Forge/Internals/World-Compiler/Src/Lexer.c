@@ -73,38 +73,38 @@ static PRP_Result TokenizeSrcBffr(FECS_WCTokStream *pTok_stream);
 
 static PRP_Result TokStreamInit(FECS_WCTokStream *pTok_stream, FILE *file,
                                 PRP_Size file_size) {
-    PRP_Result code = DT_ArrCreateUnchecked(
-        sizeof(FECS_WCTokType), DT_ARR_DEFAULT_CAP, &pTok_stream->pTypes);
+    PRP_Result code = CONT_ArrCreateUnchecked(
+        sizeof(FECS_WCTokType), CONT_ARR_DEFAULT_CAP, &pTok_stream->pTypes);
     if (code != PRP_OK) {
         return code;
     }
     code =
-        DT_ArrCreateUnchecked(sizeof(FECS_WCIdentifierTok), DT_ARR_DEFAULT_CAP,
+        CONT_ArrCreateUnchecked(sizeof(FECS_WCIdentifierTok), CONT_ARR_DEFAULT_CAP,
                               &pTok_stream->pIdentifiers);
     if (code != PRP_OK) {
-        DT_ArrDeleteUnchecked(&pTok_stream->pTypes);
+        CONT_ArrDeleteUnchecked(&pTok_stream->pTypes);
         return code;
     }
-    code = DT_ArrCreateUnchecked(sizeof(PRP_Size), DT_ARR_DEFAULT_CAP,
+    code = CONT_ArrCreateUnchecked(sizeof(PRP_Size), CONT_ARR_DEFAULT_CAP,
                                  &pTok_stream->pRbrace_idxs);
     if (code != PRP_OK) {
-        DT_ArrDeleteUnchecked(&pTok_stream->pTypes);
-        DT_ArrDeleteUnchecked(&pTok_stream->pIdentifiers);
+        CONT_ArrDeleteUnchecked(&pTok_stream->pTypes);
+        CONT_ArrDeleteUnchecked(&pTok_stream->pIdentifiers);
         return code;
     }
-    code = DT_ByteBffrCreateUnchecked(file_size, &pTok_stream->pSrc_bffr);
+    code = CONT_ByteBffrCreateUnchecked(file_size, &pTok_stream->pSrc_bffr);
     if (code != PRP_OK) {
-        DT_ArrDeleteUnchecked(&pTok_stream->pTypes);
-        DT_ArrDeleteUnchecked(&pTok_stream->pIdentifiers);
-        DT_ArrDeleteUnchecked(&pTok_stream->pRbrace_idxs);
+        CONT_ArrDeleteUnchecked(&pTok_stream->pTypes);
+        CONT_ArrDeleteUnchecked(&pTok_stream->pIdentifiers);
+        CONT_ArrDeleteUnchecked(&pTok_stream->pRbrace_idxs);
         return code;
     }
-    PRP_Char8 *pStart = DT_ByteBffrGetUnchecked(pTok_stream->pSrc_bffr, 0);
+    PRP_Char8 *pStart = CONT_ByteBffrGetUnchecked(pTok_stream->pSrc_bffr, 0);
     if (file_size != fread(pStart, 1, file_size, file)) {
-        DT_ArrDeleteUnchecked(&pTok_stream->pTypes);
-        DT_ArrDeleteUnchecked(&pTok_stream->pIdentifiers);
-        DT_ArrDeleteUnchecked(&pTok_stream->pRbrace_idxs);
-        DT_ByteBffrDeleteUnchecked(&pTok_stream->pSrc_bffr);
+        CONT_ArrDeleteUnchecked(&pTok_stream->pTypes);
+        CONT_ArrDeleteUnchecked(&pTok_stream->pIdentifiers);
+        CONT_ArrDeleteUnchecked(&pTok_stream->pRbrace_idxs);
+        CONT_ByteBffrDeleteUnchecked(&pTok_stream->pSrc_bffr);
         code = PRP_ERR_IO;
         return code;
     }
@@ -164,13 +164,13 @@ static PRP_Result TokenizeMultiCharTok(const PRP_Char8 *pSrc_bffr,
         type = WC_TOK_SYSTEM_INSTANCE;
     }
 
-    PRP_Result code = DT_ArrPushUnchecked(pTok_stream->pTypes, &type);
+    PRP_Result code = CONT_ArrPushUnchecked(pTok_stream->pTypes, &type);
     if (code != PRP_OK) {
         return code;
     }
     if (type == WC_TOK_IDENTIFIER) {
         FECS_WCIdentifierTok identifier_tok = {.ofs = *pIdx, .size = size};
-        code = DT_ArrPushUnchecked(pTok_stream->pIdentifiers, &identifier_tok);
+        code = CONT_ArrPushUnchecked(pTok_stream->pIdentifiers, &identifier_tok);
         if (code != PRP_OK) {
             return code;
         }
@@ -188,7 +188,7 @@ static PRP_Result TokenizeMultiCharTok(const PRP_Char8 *pSrc_bffr,
 static PRP_Result TokenizeSrcBffr(FECS_WCTokStream *pTok_stream) {
     PRP_Size src_bffr_size;
     const PRP_Char8 *pSrc_bffr =
-        DT_ByteBffrRawUnchecked(pTok_stream->pSrc_bffr, &src_bffr_size);
+        CONT_ByteBffrRawUnchecked(pTok_stream->pSrc_bffr, &src_bffr_size);
     FECS_WCTokType type;
 
     for (PRP_Size i = 0; i < src_bffr_size;) {
@@ -222,13 +222,13 @@ static PRP_Result TokenizeSrcBffr(FECS_WCTokStream *pTok_stream) {
             break;
         }
         if (append) {
-            PRP_Result code = DT_ArrPushUnchecked(pTok_stream->pTypes, &type);
+            PRP_Result code = CONT_ArrPushUnchecked(pTok_stream->pTypes, &type);
             if (code != PRP_OK) {
                 return code;
             }
             if (type == WC_TOK_RBRACE) {
-                PRP_Size idx = DT_ArrLen(pTok_stream->pTypes) - 1;
-                code = DT_ArrPushUnchecked(pTok_stream->pRbrace_idxs, &idx);
+                PRP_Size idx = CONT_ArrLen(pTok_stream->pTypes) - 1;
+                code = CONT_ArrPushUnchecked(pTok_stream->pRbrace_idxs, &idx);
                 if (code != PRP_OK) {
                     return code;
                 }
@@ -277,8 +277,8 @@ PRP_Result LexerTokenizeFile(const PRP_Char8 *pFile_path,
 }
 
 void LexerTokStreamDelete(FECS_WCTokStream *pTok_stream) {
-    DT_ArrDeleteUnchecked(&pTok_stream->pTypes);
-    DT_ArrDeleteUnchecked(&pTok_stream->pIdentifiers);
-    DT_ArrDeleteUnchecked(&pTok_stream->pRbrace_idxs);
-    DT_ByteBffrDeleteUnchecked(&pTok_stream->pSrc_bffr);
+    CONT_ArrDeleteUnchecked(&pTok_stream->pTypes);
+    CONT_ArrDeleteUnchecked(&pTok_stream->pIdentifiers);
+    CONT_ArrDeleteUnchecked(&pTok_stream->pRbrace_idxs);
+    CONT_ByteBffrDeleteUnchecked(&pTok_stream->pSrc_bffr);
 }

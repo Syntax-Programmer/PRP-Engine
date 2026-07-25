@@ -51,7 +51,7 @@ struct _DSArr {
          */
         PRP_U32 cap;
         /*
-         * This is a variation of what DT_Pool uses internally called free_list.
+         * This is a variation of what CONT_Pool uses internally called free_list.
          * This contrary to that implementation stores indices into the
          * id_to_data_table buffer and value at each index is the next free
          * index, until a sentinal value is hit marking the end of the chain.
@@ -69,7 +69,7 @@ struct _DSArr {
 };
 
 /*
- * The DT_DSId also follows the same structure as id_layer.id_to_data_table.
+ * The CONT_DSId also follows the same structure as id_layer.id_to_data_table.
  * This stores:
  *
  *    <gen>      <index>
@@ -103,7 +103,7 @@ struct _DSArr {
 #define PACK_UNPACKED(index, gen) (((PRP_U64)(gen) << 32) | (PRP_U64)(index))
 
 #define ASSERT_INVARIANT_EXPR(ds_arr)                                          \
-    DIAG_ASSERT_MSG(DT_DSArrIsValid(ds_arr),                                   \
+    DIAG_ASSERT_MSG(CONT_DSArrIsValid(ds_arr),                                   \
                     "The given id array is either NULL, or is corrupted.")
 
 /**
@@ -121,7 +121,7 @@ struct _DSArr {
  * @return PRP_ERR_OOB if id encodes invalid index.
  * @return PRP_ERR_INV_STATE if the id is stale or freed earlier.
  */
-static inline PRP_Result GetIdData(const DT_DSArr *ds_arr, DT_DSId id,
+static inline PRP_Result GetIdData(const CONT_DSArr *ds_arr, CONT_DSId id,
                                    PRP_U32 *pId_i, PRP_U32 *pId_gen,
                                    PRP_U32 *pSlot_data_i, PRP_U32 *pSlot_gen);
 /**
@@ -134,7 +134,7 @@ static inline PRP_Result GetIdData(const DT_DSArr *ds_arr, DT_DSId id,
  * @param slot_data_i The index of the data that the id refers to.
  * @param slot_gen    The current gen of the slot in the ds_arr.
  */
-static inline void DelElem(DT_DSArr *ds_arr, DT_DSId *pId, PRP_U32 id_i,
+static inline void DelElem(CONT_DSArr *ds_arr, CONT_DSId *pId, PRP_U32 id_i,
                            PRP_U32 slot_data_i, PRP_U32 slot_gen);
 /**
  * Grows the data layer of a given ds array by <to_add> amount.
@@ -146,7 +146,7 @@ static inline void DelElem(DT_DSArr *ds_arr, DT_DSId *pId, PRP_U32 id_i,
  * @return PRP_ERR_RES_EXHAUSTED if max cap is reached.
  * @return PRP_ERR_OOM if allocation fails.
  */
-static PRP_Result GrowDataLayer(DT_DSArr *ds_arr, PRP_U32 to_add);
+static PRP_Result GrowDataLayer(CONT_DSArr *ds_arr, PRP_U32 to_add);
 /**
  * Grows the id layer of a given ds array by <to_add> amount.
  *
@@ -157,18 +157,18 @@ static PRP_Result GrowDataLayer(DT_DSArr *ds_arr, PRP_U32 to_add);
  * @return PRP_ERR_RES_EXHAUSTED if max cap is reached.
  * @return PRP_ERR_OOM if allocation fails.
  */
-static PRP_Result GrowIdLayer(DT_DSArr *ds_arr, PRP_U32 to_add);
+static PRP_Result GrowIdLayer(CONT_DSArr *ds_arr, PRP_U32 to_add);
 
-PRP_FN_API PRP_Bool PRP_FN_CALL DT_DSArrIsValid(const DT_DSArr *ds_arr) {
+PRP_FN_API PRP_Bool PRP_FN_CALL CONT_DSArrIsValid(const CONT_DSArr *ds_arr) {
     return (ds_arr != NULL && ds_arr->memb_size > 0 &&
             ds_arr->data_layer.elems != NULL &&
             ds_arr->data_layer.data_to_id_table != NULL &&
             ds_arr->data_layer.cap > 0 &&
             ds_arr->data_layer.len <= ds_arr->data_layer.cap &&
-            ds_arr->data_layer.cap <= DT_DS_ARR_MAX_CAP(ds_arr->memb_size) &&
+            ds_arr->data_layer.cap <= CONT_DS_ARR_MAX_CAP(ds_arr->memb_size) &&
             ds_arr->id_layer.id_to_data_table != NULL &&
             ds_arr->id_layer.cap > 0 &&
-            ds_arr->id_layer.cap <= DT_DS_ARR_MAX_CAP(ds_arr->memb_size) &&
+            ds_arr->id_layer.cap <= CONT_DS_ARR_MAX_CAP(ds_arr->memb_size) &&
             ds_arr->id_layer.free_count <= ds_arr->id_layer.cap &&
             ds_arr->data_layer.len + ds_arr->id_layer.free_count ==
                 ds_arr->id_layer.cap &&
@@ -186,19 +186,19 @@ PRP_FN_API PRP_Bool PRP_FN_CALL DT_DSArrIsValid(const DT_DSArr *ds_arr) {
         }                                                                      \
     } while (0);
 
-PRP_FN_API PRP_Result PRP_FN_CALL DT_DSArrCreateUnchecked(
+PRP_FN_API PRP_Result PRP_FN_CALL CONT_DSArrCreateUnchecked(
     PRP_Size memb_size, PRP_Result (*elem_del_cb)(void *elem),
-    DT_DSArr **pDs_arr) {
+    CONT_DSArr **pDs_arr) {
     DIAG_ASSERT(memb_size > 0);
     DIAG_ASSERT(pDs_arr != NULL);
 
-    DT_DSArr *ds_arr = calloc(1, sizeof(DT_DSArr));
+    CONT_DSArr *ds_arr = calloc(1, sizeof(CONT_DSArr));
     if (!ds_arr) {
         return PRP_ERR_OOM;
     }
     ds_arr->elem_del_cb = elem_del_cb;
     ds_arr->memb_size = memb_size;
-    PRP_U32 cap = PRP_MIN(DT_DS_ARR_MAX_CAP(memb_size), DT_DS_ARR_DEFAULT_CAP);
+    PRP_U32 cap = PRP_MIN(CONT_DS_ARR_MAX_CAP(memb_size), CONT_DS_ARR_DEFAULT_CAP);
 
     ds_arr->data_layer.elems = malloc(memb_size * cap);
     ID_ARR_INIT_ERR_ROUTINE(ds_arr->data_layer.elems);
@@ -237,23 +237,23 @@ err_path:
 }
 
 PRP_FN_API PRP_Result PRP_FN_CALL
-DT_DSArrCreateChecked(PRP_Size memb_size, PRP_Result (*elem_del_cb)(void *elem),
-                      DT_DSArr **pDs_arr) {
+CONT_DSArrCreateChecked(PRP_Size memb_size, PRP_Result (*elem_del_cb)(void *elem),
+                      CONT_DSArr **pDs_arr) {
     if (!memb_size || !pDs_arr) {
         return PRP_ERR_INV_ARG;
     }
 
-    return DT_DSArrCreateUnchecked(memb_size, elem_del_cb, pDs_arr);
+    return CONT_DSArrCreateUnchecked(memb_size, elem_del_cb, pDs_arr);
 }
 
-PRP_FN_API void PRP_FN_CALL DT_DSArrDeleteUnchecked(DT_DSArr **pDs_arr) {
+PRP_FN_API void PRP_FN_CALL CONT_DSArrDeleteUnchecked(CONT_DSArr **pDs_arr) {
     DIAG_ASSERT(pDs_arr != NULL);
     DIAG_ASSERT(*pDs_arr != NULL);
     DIAG_ASSERT((*pDs_arr)->data_layer.elems != NULL);
     DIAG_ASSERT((*pDs_arr)->data_layer.data_to_id_table != NULL);
     DIAG_ASSERT((*pDs_arr)->id_layer.id_to_data_table != NULL);
 
-    DT_DSArr *ds_arr = *pDs_arr;
+    CONT_DSArr *ds_arr = *pDs_arr;
 
     if (ds_arr->elem_del_cb) {
         for (PRP_U32 i = 0; i < ds_arr->data_layer.len; i++) {
@@ -280,7 +280,7 @@ PRP_FN_API void PRP_FN_CALL DT_DSArrDeleteUnchecked(DT_DSArr **pDs_arr) {
     *pDs_arr = NULL;
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL DT_DSArrDeleteChecked(DT_DSArr **pDs_arr) {
+PRP_FN_API PRP_Result PRP_FN_CALL CONT_DSArrDeleteChecked(CONT_DSArr **pDs_arr) {
     if (!pDs_arr || !(*pDs_arr)) {
         return PRP_ERR_INV_ARG;
     }
@@ -290,18 +290,18 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_DSArrDeleteChecked(DT_DSArr **pDs_arr) {
         return PRP_ERR_INV_ARG;
     }
 
-    DT_DSArrDeleteUnchecked(pDs_arr);
+    CONT_DSArrDeleteUnchecked(pDs_arr);
 
     return PRP_OK;
 }
 
-PRP_FN_API PRP_U32 PRP_FN_CALL DT_DSArrLen(const DT_DSArr *ds_arr) {
+PRP_FN_API PRP_U32 PRP_FN_CALL CONT_DSArrLen(const CONT_DSArr *ds_arr) {
     ASSERT_INVARIANT_EXPR(ds_arr);
 
     return ds_arr->data_layer.len;
 }
 
-static inline PRP_Result GetIdData(const DT_DSArr *ds_arr, DT_DSId id,
+static inline PRP_Result GetIdData(const CONT_DSArr *ds_arr, CONT_DSId id,
                                    PRP_U32 *pId_i, PRP_U32 *pId_gen,
                                    PRP_U32 *pSlot_data_i, PRP_U32 *pSlot_gen) {
     UNPACK_PACKED(id, *pId_i, *pId_gen);
@@ -317,8 +317,8 @@ static inline PRP_Result GetIdData(const DT_DSArr *ds_arr, DT_DSId id,
     return PRP_OK;
 }
 
-PRP_FN_API void *PRP_FN_CALL DT_DSIdToDataUnchecked(const DT_DSArr *ds_arr,
-                                                    DT_DSId id) {
+PRP_FN_API void *PRP_FN_CALL CONT_DSIdToDataUnchecked(const CONT_DSArr *ds_arr,
+                                                    CONT_DSId id) {
     ASSERT_INVARIANT_EXPR(ds_arr);
 
     // Initializing the slot_data_i doesn't change shit but we do it to satisfy
@@ -333,10 +333,10 @@ PRP_FN_API void *PRP_FN_CALL DT_DSIdToDataUnchecked(const DT_DSArr *ds_arr,
     return ds_arr->data_layer.elems + (ds_arr->memb_size * slot_data_i);
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL DT_DSIdToDataChecked(const DT_DSArr *ds_arr,
-                                                       DT_DSId id,
+PRP_FN_API PRP_Result PRP_FN_CALL CONT_DSIdToDataChecked(const CONT_DSArr *ds_arr,
+                                                       CONT_DSId id,
                                                        void **dest) {
-    if (!DT_DSArrIsValid(ds_arr) || !dest) {
+    if (!CONT_DSArrIsValid(ds_arr) || !dest) {
         return PRP_ERR_INV_ARG;
     }
 
@@ -352,8 +352,8 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_DSIdToDataChecked(const DT_DSArr *ds_arr,
     return PRP_OK;
 }
 
-PRP_FN_API PRP_Bool PRP_FN_CALL DT_DSIdIsValidUnchecked(const DT_DSArr *ds_arr,
-                                                        DT_DSId id) {
+PRP_FN_API PRP_Bool PRP_FN_CALL CONT_DSIdIsValidUnchecked(const CONT_DSArr *ds_arr,
+                                                        CONT_DSId id) {
     ASSERT_INVARIANT_EXPR(ds_arr);
 
     PRP_U32 dummy1, dummy2, dummy3, dummy4;
@@ -362,26 +362,26 @@ PRP_FN_API PRP_Bool PRP_FN_CALL DT_DSIdIsValidUnchecked(const DT_DSArr *ds_arr,
     return code == PRP_OK;
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL DT_DSIdIsValidChecked(const DT_DSArr *ds_arr,
-                                                        DT_DSId id,
+PRP_FN_API PRP_Result PRP_FN_CALL CONT_DSIdIsValidChecked(const CONT_DSArr *ds_arr,
+                                                        CONT_DSId id,
                                                         PRP_Bool *pRslt) {
-    if (!DT_DSArrIsValid(ds_arr) || !pRslt) {
+    if (!CONT_DSArrIsValid(ds_arr) || !pRslt) {
         return PRP_ERR_INV_ARG;
     }
 
-    *pRslt = DT_DSIdIsValidUnchecked(ds_arr, id);
+    *pRslt = CONT_DSIdIsValidUnchecked(ds_arr, id);
 
     return PRP_OK;
 }
 
-static PRP_Result GrowDataLayer(DT_DSArr *ds_arr, PRP_U32 to_add) {
+static PRP_Result GrowDataLayer(CONT_DSArr *ds_arr, PRP_U32 to_add) {
     /*
      * This is not suseptible to overflow bugs since the max cap of an ds array
      * is hard capped at U32_MAX, so storing the new_cap in a u64 prevents any
      * overflow that can happen.
      */
     PRP_U64 new_cap = (PRP_U64)(ds_arr->data_layer.cap) + to_add;
-    PRP_U32 max_cap = DT_DS_ARR_MAX_CAP(ds_arr->memb_size);
+    PRP_U32 max_cap = CONT_DS_ARR_MAX_CAP(ds_arr->memb_size);
     if (ds_arr->data_layer.cap == max_cap) {
         return PRP_ERR_RES_EXHAUSTED;
     }
@@ -414,14 +414,14 @@ static PRP_Result GrowDataLayer(DT_DSArr *ds_arr, PRP_U32 to_add) {
     return PRP_OK;
 }
 
-static PRP_Result GrowIdLayer(DT_DSArr *ds_arr, PRP_U32 to_add) {
+static PRP_Result GrowIdLayer(CONT_DSArr *ds_arr, PRP_U32 to_add) {
     /*
      * This is not suseptible to overflow bugs since the max cap of an ds array
      * is hard capped at U32_MAX, so storing the new_cap in a u64 prevents any
      * overflow that can happen.
      */
     PRP_U64 new_cap = (PRP_U64)(ds_arr->id_layer.cap) + to_add;
-    PRP_U32 max_cap = DT_DS_ARR_MAX_CAP(ds_arr->memb_size);
+    PRP_U32 max_cap = CONT_DS_ARR_MAX_CAP(ds_arr->memb_size);
     if (ds_arr->id_layer.cap == max_cap) {
         return PRP_ERR_RES_EXHAUSTED;
     }
@@ -447,9 +447,9 @@ static PRP_Result GrowIdLayer(DT_DSArr *ds_arr, PRP_U32 to_add) {
     return PRP_OK;
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL DT_DSArrAddUnchecked(DT_DSArr *ds_arr,
+PRP_FN_API PRP_Result PRP_FN_CALL CONT_DSArrAddUnchecked(CONT_DSArr *ds_arr,
                                                        void *data,
-                                                       DT_DSId *pId) {
+                                                       CONT_DSId *pId) {
     ASSERT_INVARIANT_EXPR(ds_arr);
     DIAG_ASSERT(data != NULL);
     DIAG_ASSERT(pId != NULL);
@@ -488,16 +488,16 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_DSArrAddUnchecked(DT_DSArr *ds_arr,
     return PRP_OK;
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL DT_DSArrAddChecked(DT_DSArr *ds_arr,
-                                                     void *data, DT_DSId *pId) {
-    if (!DT_DSArrIsValid(ds_arr) || !data || !pId) {
+PRP_FN_API PRP_Result PRP_FN_CALL CONT_DSArrAddChecked(CONT_DSArr *ds_arr,
+                                                     void *data, CONT_DSId *pId) {
+    if (!CONT_DSArrIsValid(ds_arr) || !data || !pId) {
         return PRP_ERR_INV_ARG;
     }
 
-    return DT_DSArrAddUnchecked(ds_arr, data, pId);
+    return CONT_DSArrAddUnchecked(ds_arr, data, pId);
 }
 
-static inline void DelElem(DT_DSArr *ds_arr, DT_DSId *pId, PRP_U32 id_i,
+static inline void DelElem(CONT_DSArr *ds_arr, CONT_DSId *pId, PRP_U32 id_i,
                            PRP_U32 slot_data_i, PRP_U32 slot_gen) {
     /*
      * NOTE: This function will corrupt the free index chain if there is a 2 ^32
@@ -538,11 +538,11 @@ static inline void DelElem(DT_DSArr *ds_arr, DT_DSId *pId, PRP_U32 id_i,
     ds_arr->data_layer.len--;
     ds_arr->id_layer.free_count++;
 
-    *pId = DT_DS_INVALID_ID;
+    *pId = CONT_DS_INVALID_ID;
 }
 
-PRP_FN_API void PRP_FN_CALL DT_DSArrDelElemUnchecked(DT_DSArr *ds_arr,
-                                                     DT_DSId *pId) {
+PRP_FN_API void PRP_FN_CALL CONT_DSArrDelElemUnchecked(CONT_DSArr *ds_arr,
+                                                     CONT_DSId *pId) {
     ASSERT_INVARIANT_EXPR(ds_arr);
     DIAG_ASSERT(pId != NULL);
 
@@ -557,9 +557,9 @@ PRP_FN_API void PRP_FN_CALL DT_DSArrDelElemUnchecked(DT_DSArr *ds_arr,
     DelElem(ds_arr, pId, id_i, slot_data_i, slot_gen);
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL DT_DSArrDelElemChecked(DT_DSArr *ds_arr,
-                                                         DT_DSId *pId) {
-    if (!DT_DSArrIsValid(ds_arr) || !pId) {
+PRP_FN_API PRP_Result PRP_FN_CALL CONT_DSArrDelElemChecked(CONT_DSArr *ds_arr,
+                                                         CONT_DSId *pId) {
+    if (!CONT_DSArrIsValid(ds_arr) || !pId) {
         return PRP_ERR_INV_ARG;
     }
 
@@ -576,7 +576,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_DSArrDelElemChecked(DT_DSArr *ds_arr,
     return PRP_OK;
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL DT_DSArrReserveUnchecked(DT_DSArr *ds_arr,
+PRP_FN_API PRP_Result PRP_FN_CALL CONT_DSArrReserveUnchecked(CONT_DSArr *ds_arr,
                                                            PRP_U32 count) {
     ASSERT_INVARIANT_EXPR(ds_arr);
     DIAG_ASSERT(count > 0);
@@ -596,17 +596,17 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_DSArrReserveUnchecked(DT_DSArr *ds_arr,
 
     return PRP_OK;
 }
-PRP_FN_API PRP_Result PRP_FN_CALL DT_DSArrReserveChecked(DT_DSArr *ds_arr,
+PRP_FN_API PRP_Result PRP_FN_CALL CONT_DSArrReserveChecked(CONT_DSArr *ds_arr,
                                                          PRP_U32 count) {
-    if (!DT_DSArrIsValid(ds_arr) || !count) {
+    if (!CONT_DSArrIsValid(ds_arr) || !count) {
         return PRP_ERR_INV_ARG;
     }
 
-    return DT_DSArrReserveUnchecked(ds_arr, count);
+    return CONT_DSArrReserveUnchecked(ds_arr, count);
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL DT_DSArrForEachUnchecked(
-    DT_DSArr *ds_arr, PRP_Result (*cb)(void *pVal, void *pUser_data),
+PRP_FN_API PRP_Result PRP_FN_CALL CONT_DSArrForEachUnchecked(
+    CONT_DSArr *ds_arr, PRP_Result (*cb)(void *pVal, void *pUser_data),
     void *pUser_data) {
     ASSERT_INVARIANT_EXPR(ds_arr);
     DIAG_ASSERT(cb != NULL);
@@ -623,12 +623,12 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_DSArrForEachUnchecked(
     return PRP_OK;
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL DT_DSArrForEachChecked(
-    DT_DSArr *ds_arr, PRP_Result (*cb)(void *pVal, void *pUser_data),
+PRP_FN_API PRP_Result PRP_FN_CALL CONT_DSArrForEachChecked(
+    CONT_DSArr *ds_arr, PRP_Result (*cb)(void *pVal, void *pUser_data),
     void *pUser_data) {
-    if (!DT_DSArrIsValid(ds_arr) || !cb) {
+    if (!CONT_DSArrIsValid(ds_arr) || !cb) {
         return PRP_ERR_INV_ARG;
     }
 
-    return DT_DSArrForEachUnchecked(ds_arr, cb, pUser_data);
+    return CONT_DSArrForEachUnchecked(ds_arr, cb, pUser_data);
 }

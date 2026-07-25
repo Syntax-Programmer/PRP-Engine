@@ -7,7 +7,7 @@ extern "C" {
 #include "Core/Defs.h"
 
 /**
- * DT_Bffr
+ * CONT_Bffr
  *
  * A dynamically resizing buffer storing elements of fixed size.
  *
@@ -17,12 +17,12 @@ extern "C" {
  *
  * Lifetime Rules:
  * - Memory returned by getters becomes invalid after any mutating operation.
- * - Buffer  must be deleted using DT_BffrDelete* APIs.
+ * - Buffer  must be deleted using CONT_BffrDelete* APIs.
  */
-typedef struct _Bffr DT_Bffr;
+typedef struct _Bffr CONT_Bffr;
 
-#define DT_BFFR_DEFAULT_CAP (16)
-#define DT_BFFR_MAX_CAP(memb_size) (PRP_SIZE_MAX / (memb_size))
+#define CONT_BFFR_DEFAULT_CAP (16)
+#define CONT_BFFR_MAX_CAP(memb_size) (PRP_SIZE_MAX / (memb_size))
 
 /**
  * Checks whether the given buffer is structurally valid.
@@ -31,7 +31,7 @@ typedef struct _Bffr DT_Bffr;
  *
  * @return PRP_True if valid, PRP_False otherwise.
  */
-PRP_FN_API PRP_Bool PRP_FN_CALL DT_BffrIsValid(const DT_Bffr *bffr);
+PRP_FN_API PRP_Bool PRP_FN_CALL CONT_BffrIsValid(const CONT_Bffr *bffr);
 
 /**
  * Creates a dynamic buffer.
@@ -46,9 +46,9 @@ PRP_FN_API PRP_Bool PRP_FN_CALL DT_BffrIsValid(const DT_Bffr *bffr);
  * @note Unchecked variant:
  * - Asserts on invalid arguments in debug.
  */
-PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrCreateUnchecked(PRP_Size memb_size,
+PRP_FN_API PRP_Result PRP_FN_CALL CONT_BffrCreateUnchecked(PRP_Size memb_size,
                                                          PRP_Size cap,
-                                                         DT_Bffr **pBffr);
+                                                         CONT_Bffr **pBffr);
 /**
  * Creates a dynamic buffer.
  *
@@ -60,9 +60,9 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrCreateUnchecked(PRP_Size memb_size,
  * @return PRP_ERR_OOM if allocation fails.
  * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
-PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrCreateChecked(PRP_Size memb_size,
+PRP_FN_API PRP_Result PRP_FN_CALL CONT_BffrCreateChecked(PRP_Size memb_size,
                                                        PRP_Size cap,
-                                                       DT_Bffr **pBffr);
+                                                       CONT_Bffr **pBffr);
 /**
  * Deep clones the given buffer.
  *
@@ -75,8 +75,8 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrCreateChecked(PRP_Size memb_size,
  * @note Unchecked variant:
  * - Asserts on invalid arguments in debug.
  */
-PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrCloneUnchecked(const DT_Bffr *bffr,
-                                                        DT_Bffr **pBffr);
+PRP_FN_API PRP_Result PRP_FN_CALL CONT_BffrCloneUnchecked(const CONT_Bffr *bffr,
+                                                        CONT_Bffr **pBffr);
 /**
  * Deep clones the given buffer with validation.
  *
@@ -90,8 +90,8 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrCloneUnchecked(const DT_Bffr *bffr,
  * @note Unchecked variant:
  * - Asserts on invalid arguments in debug.
  */
-PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrCloneChecked(const DT_Bffr *bffr,
-                                                      DT_Bffr **pBffr);
+PRP_FN_API PRP_Result PRP_FN_CALL CONT_BffrCloneChecked(const CONT_Bffr *bffr,
+                                                      CONT_Bffr **pBffr);
 
 /**
  * Deletes the buffer and nullifies the pointer.
@@ -101,7 +101,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrCloneChecked(const DT_Bffr *bffr,
  * @note Unchecked variant:
  * - Asserts on invalid arguments in debug.
  */
-PRP_FN_API void PRP_FN_CALL DT_BffrDeleteUnchecked(DT_Bffr **pBffr);
+PRP_FN_API void PRP_FN_CALL CONT_BffrDeleteUnchecked(CONT_Bffr **pBffr);
 /**
  * Deletes the buffer and nullifies the pointer.
  *
@@ -110,7 +110,7 @@ PRP_FN_API void PRP_FN_CALL DT_BffrDeleteUnchecked(DT_Bffr **pBffr);
  * @return PRP_OK on success.
  * @return PRP_ERR_INV_ARG if pBffr or *pBffr is invalid.
  */
-PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrDeleteChecked(DT_Bffr **pBffr);
+PRP_FN_API PRP_Result PRP_FN_CALL CONT_BffrDeleteChecked(CONT_Bffr **pBffr);
 
 /**
  * Returns the raw memory pointer of the buffer contents.
@@ -125,7 +125,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrDeleteChecked(DT_Bffr **pBffr);
  * @note Unchecked variant:
  * - Asserts on invalid arguments in debug.
  */
-PRP_FN_API const void *PRP_FN_CALL DT_BffrRawUnchecked(const DT_Bffr *bffr,
+PRP_FN_API const void *PRP_FN_CALL CONT_BffrRawUnchecked(const CONT_Bffr *bffr,
                                                        PRP_Size *pCap);
 /**
  * Returns the raw memory pointer of the buffer contents.
@@ -139,7 +139,7 @@ PRP_FN_API const void *PRP_FN_CALL DT_BffrRawUnchecked(const DT_Bffr *bffr,
  * @return PRP_OK on success.
  * @return PRP_ERR_INV_ARG if arguments invalid.
  */
-PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrRawChecked(const DT_Bffr *bffr,
+PRP_FN_API PRP_Result PRP_FN_CALL CONT_BffrRawChecked(const CONT_Bffr *bffr,
                                                     PRP_Size *pCap,
                                                     void **pRaw);
 /**
@@ -151,7 +151,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrRawChecked(const DT_Bffr *bffr,
  *
  * @note Assumes valid buffer (asserts in debug).
  */
-PRP_FN_API PRP_Size PRP_FN_CALL DT_BffrCap(const DT_Bffr *bffr);
+PRP_FN_API PRP_Size PRP_FN_CALL CONT_BffrCap(const CONT_Bffr *bffr);
 /**
  * Returns the size (in bytes) of each element.
  *
@@ -161,7 +161,7 @@ PRP_FN_API PRP_Size PRP_FN_CALL DT_BffrCap(const DT_Bffr *bffr);
  *
  * @note Assumes valid buffer (asserts in debug).
  */
-PRP_FN_API PRP_Size PRP_FN_CALL DT_BffrMembSize(const DT_Bffr *bffr);
+PRP_FN_API PRP_Size PRP_FN_CALL CONT_BffrMembSize(const CONT_Bffr *bffr);
 /**
  * Returns the maximum possible capacity for this buffer configuration.
  *
@@ -171,7 +171,7 @@ PRP_FN_API PRP_Size PRP_FN_CALL DT_BffrMembSize(const DT_Bffr *bffr);
  *
  * @note Assumes valid buffer (asserts in debug).
  */
-PRP_FN_API PRP_Size PRP_FN_CALL DT_BffrMaxCap(const DT_Bffr *bffr);
+PRP_FN_API PRP_Size PRP_FN_CALL CONT_BffrMaxCap(const CONT_Bffr *bffr);
 
 /**
  * Retrieves the value of the given index.
@@ -184,7 +184,7 @@ PRP_FN_API PRP_Size PRP_FN_CALL DT_BffrMaxCap(const DT_Bffr *bffr);
  * @note Unchecked variant:
  * - Asserts on invalid arguments in debug.
  */
-PRP_FN_API void *PRP_FN_CALL DT_BffrGetUnchecked(const DT_Bffr *bffr,
+PRP_FN_API void *PRP_FN_CALL CONT_BffrGetUnchecked(const CONT_Bffr *bffr,
                                                  PRP_Size i);
 /**
  * Retrieves the value of the given index.
@@ -197,7 +197,7 @@ PRP_FN_API void *PRP_FN_CALL DT_BffrGetUnchecked(const DT_Bffr *bffr,
  * @return PRP_ERR_OOB if index out of bounds.
  * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
-PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrGetChecked(const DT_Bffr *bffr,
+PRP_FN_API PRP_Result PRP_FN_CALL CONT_BffrGetChecked(const CONT_Bffr *bffr,
                                                     PRP_Size i, void **dest);
 /**
  * Sets the value of the given index.
@@ -209,7 +209,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrGetChecked(const DT_Bffr *bffr,
  * @note Unchecked variant:
  * - Asserts on invalid arguments in debug.
  */
-PRP_FN_API void PRP_FN_CALL DT_BffrSetUnchecked(DT_Bffr *bffr, PRP_Size i,
+PRP_FN_API void PRP_FN_CALL CONT_BffrSetUnchecked(CONT_Bffr *bffr, PRP_Size i,
                                                 const void *pData);
 /**
  * Sets the value of the given index.
@@ -222,7 +222,7 @@ PRP_FN_API void PRP_FN_CALL DT_BffrSetUnchecked(DT_Bffr *bffr, PRP_Size i,
  * @return PRP_ERR_OOB if index out of bounds.
  * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
-PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrSetChecked(DT_Bffr *bffr, PRP_Size i,
+PRP_FN_API PRP_Result PRP_FN_CALL CONT_BffrSetChecked(CONT_Bffr *bffr, PRP_Size i,
                                                     const void *pData);
 /**
  * Sets element in the range to the given data.
@@ -235,7 +235,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrSetChecked(DT_Bffr *bffr, PRP_Size i,
  * @note Unchecked variant:
  * - Asserts on invalid arguments in debug.
  */
-PRP_FN_API void PRP_FN_CALL DT_BffrSetRangeUnchecked(DT_Bffr *bffr, PRP_Size i,
+PRP_FN_API void PRP_FN_CALL CONT_BffrSetRangeUnchecked(CONT_Bffr *bffr, PRP_Size i,
                                                      PRP_Size j,
                                                      const void *pData);
 /**
@@ -250,7 +250,7 @@ PRP_FN_API void PRP_FN_CALL DT_BffrSetRangeUnchecked(DT_Bffr *bffr, PRP_Size i,
  * @return PRP_ERR_OOB if the indices are out of bounds of the buffer.
  * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
-PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrSetRangeChecked(DT_Bffr *bffr,
+PRP_FN_API PRP_Result PRP_FN_CALL CONT_BffrSetRangeChecked(CONT_Bffr *bffr,
                                                          PRP_Size i, PRP_Size j,
                                                          const void *pData);
 /**
@@ -264,7 +264,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrSetRangeChecked(DT_Bffr *bffr,
  * @note Unchecked variant:
  * - Asserts on invalid arguments in debug.
  */
-PRP_FN_API void PRP_FN_CALL DT_BffrSetManyUnchecked(DT_Bffr *bffr, PRP_Size i,
+PRP_FN_API void PRP_FN_CALL CONT_BffrSetManyUnchecked(CONT_Bffr *bffr, PRP_Size i,
                                                     const void *data_arr,
                                                     PRP_Size len);
 /**
@@ -279,7 +279,7 @@ PRP_FN_API void PRP_FN_CALL DT_BffrSetManyUnchecked(DT_Bffr *bffr, PRP_Size i,
  * @return PRP_ERR_OOB if i is out of bounds of the buffer.
  * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
-PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrSetManyChecked(DT_Bffr *bffr,
+PRP_FN_API PRP_Result PRP_FN_CALL CONT_BffrSetManyChecked(CONT_Bffr *bffr,
                                                         PRP_Size i,
                                                         const void *data_arr,
                                                         PRP_Size len);
@@ -295,8 +295,8 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrSetManyChecked(DT_Bffr *bffr,
  * @note Unchecked variant:
  * - Asserts on invalid arguments in debug.
  */
-PRP_FN_API PRP_Bool PRP_FN_CALL DT_BffrCmpUnchecked(const DT_Bffr *bffr1,
-                                                    const DT_Bffr *bffr2);
+PRP_FN_API PRP_Bool PRP_FN_CALL CONT_BffrCmpUnchecked(const CONT_Bffr *bffr1,
+                                                    const CONT_Bffr *bffr2);
 /**
  * Comares the contents of the array.
  *
@@ -307,8 +307,8 @@ PRP_FN_API PRP_Bool PRP_FN_CALL DT_BffrCmpUnchecked(const DT_Bffr *bffr1,
  * @return PRP_OK on success.
  * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
-PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrCmpChecked(const DT_Bffr *bffr1,
-                                                    const DT_Bffr *bffr2,
+PRP_FN_API PRP_Result PRP_FN_CALL CONT_BffrCmpChecked(const CONT_Bffr *bffr1,
+                                                    const CONT_Bffr *bffr2,
                                                     PRP_Bool *pRslt);
 /**
  * Extends bffr2 into bffr1.
@@ -323,8 +323,8 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrCmpChecked(const DT_Bffr *bffr1,
  * @note Unchecked variant:
  * - Asserts on invalid arguments in debug.
  */
-PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrExtendUnchecked(DT_Bffr *bffr1,
-                                                         const DT_Bffr *bffr2);
+PRP_FN_API PRP_Result PRP_FN_CALL CONT_BffrExtendUnchecked(CONT_Bffr *bffr1,
+                                                         const CONT_Bffr *bffr2);
 /**
  * Extends bffr2 into bffr1.
  *
@@ -336,8 +336,8 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrExtendUnchecked(DT_Bffr *bffr1,
  * @return PRP_ERR_OOM if allocation fails.
  * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
-PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrExtendChecked(DT_Bffr *bffr1,
-                                                       const DT_Bffr *bffr2);
+PRP_FN_API PRP_Result PRP_FN_CALL CONT_BffrExtendChecked(CONT_Bffr *bffr1,
+                                                       const CONT_Bffr *bffr2);
 /**
  * Swaps the elements in the given indices.
  *
@@ -349,7 +349,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrExtendChecked(DT_Bffr *bffr1,
  * @note Unchecked variant:
  * - Asserts on invalid arguments in debug.
  */
-PRP_FN_API void PRP_FN_CALL DT_BffrSwapUnchecked(DT_Bffr *bffr, PRP_Size i,
+PRP_FN_API void PRP_FN_CALL CONT_BffrSwapUnchecked(CONT_Bffr *bffr, PRP_Size i,
                                                  PRP_Size j, void *swap_bffr);
 /**
  * Swaps the elements in the given indices.
@@ -363,7 +363,7 @@ PRP_FN_API void PRP_FN_CALL DT_BffrSwapUnchecked(DT_Bffr *bffr, PRP_Size i,
  * @return PRP_ERR_OOB if any indices are out of bounds.
  * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
-PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrSwapChecked(DT_Bffr *bffr, PRP_Size i,
+PRP_FN_API PRP_Result PRP_FN_CALL CONT_BffrSwapChecked(CONT_Bffr *bffr, PRP_Size i,
                                                      PRP_Size j,
                                                      void *swap_bffr);
 /**
@@ -374,7 +374,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrSwapChecked(DT_Bffr *bffr, PRP_Size i,
  * @note Unchecked variant:
  * - Asserts on invalid arguments in debug.
  */
-PRP_FN_API void PRP_FN_CALL DT_BffrClearUnchecked(DT_Bffr *bffr);
+PRP_FN_API void PRP_FN_CALL CONT_BffrClearUnchecked(CONT_Bffr *bffr);
 /**
  * Clears the buffer to 0.
  *
@@ -383,7 +383,7 @@ PRP_FN_API void PRP_FN_CALL DT_BffrClearUnchecked(DT_Bffr *bffr);
  * @return PRP_OK on success.
  * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
-PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrClearChecked(DT_Bffr *bffr);
+PRP_FN_API PRP_Result PRP_FN_CALL CONT_BffrClearChecked(CONT_Bffr *bffr);
 /**
  * Safely change size of the buffer.
  *
@@ -397,7 +397,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrClearChecked(DT_Bffr *bffr);
  * @note Unchecked variant:
  * - Asserts on invalid arguments in debug.
  */
-PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrChangeSizeUnchecked(DT_Bffr *bffr,
+PRP_FN_API PRP_Result PRP_FN_CALL CONT_BffrChangeSizeUnchecked(CONT_Bffr *bffr,
                                                              PRP_Size new_cap);
 /**
  * Safely change size of the buffer.
@@ -410,7 +410,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrChangeSizeUnchecked(DT_Bffr *bffr,
  * @return PRP_ERR_OOM if allocation fails.
  * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
-PRP_FN_API PRP_Result PRP_FN_CALL DT_BffrChangeSizeChecked(DT_Bffr *bffr,
+PRP_FN_API PRP_Result PRP_FN_CALL CONT_BffrChangeSizeChecked(CONT_Bffr *bffr,
                                                            PRP_Size new_cap);
 
 #ifdef __cplusplus

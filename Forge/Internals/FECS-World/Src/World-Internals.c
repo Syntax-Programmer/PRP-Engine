@@ -28,10 +28,10 @@ PRP_Result WorldDeleteCb(void *pWorld) {
         free(pWorld_instance->pSystem_instances);
     }
     if (pWorld_instance->pLayout_names) {
-        DT_StrArrDeleteUnchecked(&pWorld_instance->pLayout_names);
+        CONT_StrArrDeleteUnchecked(&pWorld_instance->pLayout_names);
     }
     if (pWorld_instance->pSystem_instance_names) {
-        DT_StrArrDeleteUnchecked(&pWorld_instance->pSystem_instance_names);
+        CONT_StrArrDeleteUnchecked(&pWorld_instance->pSystem_instance_names);
     }
 #if !defined(PRP_NDEBUG)
     pWorld_instance->pLayouts = NULL;
@@ -61,7 +61,7 @@ static PRP_Result WorldInit(FECS_WorldCreateInfo *pCreate_info,
         }
     } else {
         // No names needed so freed.
-        DT_StrArrDeleteUnchecked(&pWorld->pLayout_names);
+        CONT_StrArrDeleteUnchecked(&pWorld->pLayout_names);
     }
     if (pCreate_info->system_instance_count) {
         pWorld->pSystem_instances = malloc(sizeof(FECS_SystemInstance) *
@@ -74,7 +74,7 @@ static PRP_Result WorldInit(FECS_WorldCreateInfo *pCreate_info,
         }
     } else {
         // No names needed so freed.
-        DT_StrArrDeleteUnchecked(&pWorld->pSystem_instance_names);
+        CONT_StrArrDeleteUnchecked(&pWorld->pSystem_instance_names);
     }
 
     return PRP_OK;
@@ -130,7 +130,7 @@ free_create_info:
     if (layout_create_info_idx != PRP_INVALID_INDEX) {
         for (PRP_Size i = layout_create_info_idx;
              i < pCreate_info->layout_count; i++) {
-            DT_BitmapDeleteUnchecked(&pCreate_info->ppLayout_create_infos[i]);
+            CONT_BitmapDeleteUnchecked(&pCreate_info->ppLayout_create_infos[i]);
         }
     }
     if (system_instance_create_info_idx != PRP_INVALID_INDEX) {
@@ -154,7 +154,7 @@ FECS_LayoutId WorldFindLayout(const FECS_World *pWorld, const PRP_Char8 *pName,
                               PRP_Size name_len) {
     PRP_Size idx;
     if (pWorld->layout_count == 0 ||
-        !DT_StrArrSearchUnchecked(pWorld->pLayout_names, pName, name_len,
+        !CONT_StrArrSearchUnchecked(pWorld->pLayout_names, pName, name_len,
                                   &idx)) {
         return FECS_INVALID_ID;
     }
@@ -167,7 +167,7 @@ FECS_SystemInstanceId WorldFindSystemInstance(const FECS_World *pWorld,
                                               PRP_Size name_len) {
     PRP_Size idx;
     if (pWorld->system_instance_count == 0 ||
-        !DT_StrArrSearchUnchecked(pWorld->pSystem_instance_names, pName,
+        !CONT_StrArrSearchUnchecked(pWorld->pSystem_instance_names, pName,
                                   name_len, &idx)) {
         return FECS_INVALID_ID;
     }

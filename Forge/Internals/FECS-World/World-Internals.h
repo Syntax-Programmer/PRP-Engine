@@ -4,8 +4,8 @@
 extern "C" {
 #endif
 
-#include "DataTypes/Bitmap.h"
-#include "DataTypes/StringArr.h"
+#include "Containers/Bitmap.h"
+#include "Containers/StringArr.h"
 #include "Diagnostics/Assert.h"
 #include "Forge/Internals/Typedefs.h"
 
@@ -32,17 +32,17 @@ typedef struct {
 typedef struct {
     PRP_Size layout_count;
     // These will be freed.
-    DT_Bitmap **ppLayout_create_infos;
+    CONT_Bitmap **ppLayout_create_infos;
     // These will be taken ownership of by the world.
     // Caller must not destroy or access after successful WorldCreate().
-    DT_StrArr *pLayout_names;
+    CONT_StrArr *pLayout_names;
 
     PRP_Size system_instance_count;
     // These will be freed.
     FECS_SystemInstanceCreateInfo *pSystem_instance_create_infos;
     // These will be taken ownership of by the world.
     // Caller must not destroy or access after successful WorldCreate().
-    DT_StrArr *pSystem_instance_names;
+    CONT_StrArr *pSystem_instance_names;
 } FECS_WorldCreateInfo;
 
 /* ----  LAYOUTS ---- */
@@ -60,13 +60,13 @@ DIAG_STATIC_ASSERT(CHUNK_CAP == sizeof(PRP_U64) * 8,
                    "free_slot bit width must match CHUNK_CAP");
 
 typedef struct {
-    DT_Bitmap *pComp_set;
+    CONT_Bitmap *pComp_set;
     /*
      * This stores the stride of each component's arrays the layout chunk
      * stores. This is used to identify memory location of specific component
      * arrays and component for entities.
      * Cap of this array is equal to:
-     * DT_BitmapSetCount(FECS_Layout::pComp_set);
+     * CONT_BitmapSetCount(FECS_Layout::pComp_set);
      *
      * And each stride entry corresponds to the corresponding bit set at that
      * RANK in the pComp_set bitmap.
@@ -85,16 +85,16 @@ typedef struct {
      * to compute the bit-rank of a component in O(1) time.
      *
      * Array capacity:
-     *     WORD_I(DT_BitmapBitCap(FECS_Layout::pComp_set)) + 1
+     *     WORD_I(CONT_BitmapBitCap(FECS_Layout::pComp_set)) + 1
      *
      * @note:
-     * - Usage of DT_16 to store popcnts (that ultimately represent the number
+     * - Usage of CONT_16 to store popcnts (that ultimately represent the number
      * of comps set in each bitmap word) sets a hard cap of UINT16_MAX as the
      * max number of components that can be registered.
      */
     PRP_U16 *pWord_prefix_popcnts;
-    DT_Arr *pChunk_ptrs;
-    DT_Bitmap *pFree_chunk_bitset;
+    CONT_Arr *pChunk_ptrs;
+    CONT_Bitmap *pFree_chunk_bitset;
     PRP_Size chunk_total_size;
 } FECS_Layout;
 
@@ -126,7 +126,7 @@ typedef struct {
  * @return PRP_ERR_RES_EXHAUSTED if max cap is reached.
  * @return PRP_ERR_OOM if allocation fails.
  */
-PRP_Result LayoutCreate(DT_Bitmap *pCreate_info, FECS_Layout *pLayout);
+PRP_Result LayoutCreate(CONT_Bitmap *pCreate_info, FECS_Layout *pLayout);
 /**
  * Deletes internals-only of the existing layout.
  *
@@ -175,16 +175,16 @@ void SystemInstanceDelete(FECS_SystemInstance *pSystem_instance);
 typedef struct {
     PRP_Size layout_count;
     FECS_Layout *pLayouts;
-    DT_StrArr *pLayout_names;
+    CONT_StrArr *pLayout_names;
 
     PRP_Size system_instance_count;
     FECS_SystemInstance *pSystem_instances;
-    DT_StrArr *pSystem_instance_names;
+    CONT_StrArr *pSystem_instance_names;
 } FECS_World;
 
 /**
  * Deletes a given world.
- * Used inside the DT_DSArr's elem_del_cb.
+ * Used inside the CONT_DSArr's elem_del_cb.
  *
  * @param pWorld World to delete.
  *

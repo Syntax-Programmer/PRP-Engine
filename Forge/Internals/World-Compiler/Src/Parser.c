@@ -61,7 +61,7 @@ static PRP_Bool DeclIsValidInitCheck(ParserState *pParser_state,
 
 /**
  * Used to free layout decl internals.
- * Called via DT_ArrForEach_...
+ * Called via CONT_ArrForEach_...
  *
  * @param pVal The layout decl to delete.
  *
@@ -88,7 +88,7 @@ static PRP_Result ParseLayoutDecl(ParserState *pParser_state,
 
 /**
  * Used to free system instance decl internals.
- * Called via DT_ArrForEach_...
+ * Called via CONT_ArrForEach_...
  *
  * @param pVal The system instance decl to delete.
  *
@@ -120,23 +120,23 @@ static PRP_Result ParseSystemInstanceDecl(ParserState *pParser_state,
 static PRP_Result ParseTableInit(FECS_WCParseTable *pParse_table,
                                  const FECS_WCTokStream *pTok_stream) {
     PRP_Result code =
-        DT_ArrCreateUnchecked(sizeof(FECS_WCLayoutDecl), DT_ARR_DEFAULT_CAP,
+        CONT_ArrCreateUnchecked(sizeof(FECS_WCLayoutDecl), CONT_ARR_DEFAULT_CAP,
                               &pParse_table->pLayout_table);
     if (code != PRP_OK) {
         return code;
     }
-    code = DT_ArrCreateUnchecked(sizeof(FECS_WCSystemInstanceDecl),
-                                 DT_ARR_DEFAULT_CAP,
+    code = CONT_ArrCreateUnchecked(sizeof(FECS_WCSystemInstanceDecl),
+                                 CONT_ARR_DEFAULT_CAP,
                                  &pParse_table->pSystem_instance_table);
     if (code != PRP_OK) {
-        DT_ArrDeleteUnchecked(&pParse_table->pLayout_table);
+        CONT_ArrDeleteUnchecked(&pParse_table->pLayout_table);
         return code;
     }
-    code = DT_ByteBffrCreateUnchecked(pTok_stream->total_identifier_size,
+    code = CONT_ByteBffrCreateUnchecked(pTok_stream->total_identifier_size,
                                       &pParse_table->pIdentifiers_bffr);
     if (code != PRP_OK) {
-        DT_ArrDeleteUnchecked(&pParse_table->pLayout_table);
-        DT_ArrDeleteUnchecked(&pParse_table->pSystem_instance_table);
+        CONT_ArrDeleteUnchecked(&pParse_table->pLayout_table);
+        CONT_ArrDeleteUnchecked(&pParse_table->pSystem_instance_table);
         return code;
     }
     pParse_table->layout_names_size = 0;
@@ -154,7 +154,7 @@ RegisterIdentifier(ParserState *pParser_state,
     FECS_WCIdentifierTok old_identifier =
         pParser_state->pIdentifiers[pParser_state->identifiers_idx++];
 
-    DT_ByteBffrUploadUnchecked(
+    CONT_ByteBffrUploadUnchecked(
         pParse_table->pIdentifiers_bffr, pParser_state->identifier_bffr_ofs,
         old_identifier.size,
         (void *)(pParser_state->pSrc_bffr + old_identifier.ofs));
@@ -201,7 +201,7 @@ static PRP_Result LayoutDelCb(void *pVal, void *_) {
     (void)_;
     FECS_WCLayoutDecl *pLayout_decl = pVal;
 
-    DT_ArrDeleteUnchecked(&pLayout_decl->pComp_names);
+    CONT_ArrDeleteUnchecked(&pLayout_decl->pComp_names);
 
     return PRP_OK;
 }
@@ -217,7 +217,7 @@ static PRP_Result ParseLayoutDecl(ParserState *pParser_state,
 
     FECS_WCLayoutDecl layout_decl = {0};
     PRP_Result code =
-        DT_ArrCreateUnchecked(sizeof(FECS_WCIdentifierTok), DT_ARR_DEFAULT_CAP,
+        CONT_ArrCreateUnchecked(sizeof(FECS_WCIdentifierTok), CONT_ARR_DEFAULT_CAP,
                               &layout_decl.pComp_names);
     if (code != PRP_OK) {
         return code;
@@ -237,13 +237,13 @@ static PRP_Result ParseLayoutDecl(ParserState *pParser_state,
         }
         FECS_WCIdentifierTok comp_name =
             RegisterIdentifier(pParser_state, pParse_table);
-        code = DT_ArrPushUnchecked(layout_decl.pComp_names, &comp_name);
+        code = CONT_ArrPushUnchecked(layout_decl.pComp_names, &comp_name);
         if (code != PRP_OK) {
             goto err_path;
         }
     }
-    DT_ArrShrinkFitUnchecked(layout_decl.pComp_names);
-    code = DT_ArrPushUnchecked(pParse_table->pLayout_table, &layout_decl);
+    CONT_ArrShrinkFitUnchecked(layout_decl.pComp_names);
+    code = CONT_ArrPushUnchecked(pParse_table->pLayout_table, &layout_decl);
     if (code != PRP_OK) {
         goto err_path;
     }
@@ -251,7 +251,7 @@ static PRP_Result ParseLayoutDecl(ParserState *pParser_state,
     return PRP_OK;
 
 err_path:
-    DT_ArrDeleteUnchecked(&layout_decl.pComp_names);
+    CONT_ArrDeleteUnchecked(&layout_decl.pComp_names);
 
     return code;
 }
@@ -260,8 +260,8 @@ static PRP_Result SystemInstanceDelCb(void *pVal, void *_) {
     (void)_;
     FECS_WCSystemInstanceDecl *pSystem_instance_decl = pVal;
 
-    DT_ArrDeleteUnchecked(&pSystem_instance_decl->pInc_comp_names);
-    DT_ArrDeleteUnchecked(&pSystem_instance_decl->pExc_comp_names);
+    CONT_ArrDeleteUnchecked(&pSystem_instance_decl->pInc_comp_names);
+    CONT_ArrDeleteUnchecked(&pSystem_instance_decl->pExc_comp_names);
 
     return PRP_OK;
 }
@@ -277,13 +277,13 @@ static PRP_Result ParseSystemInstanceDecl(ParserState *pParser_state,
 
     FECS_WCSystemInstanceDecl system_instance_decl = {0};
     PRP_Result code =
-        DT_ArrCreateUnchecked(sizeof(FECS_WCIdentifierTok), DT_ARR_DEFAULT_CAP,
+        CONT_ArrCreateUnchecked(sizeof(FECS_WCIdentifierTok), CONT_ARR_DEFAULT_CAP,
                               &system_instance_decl.pInc_comp_names);
     if (code != PRP_OK) {
         return code;
     }
     code =
-        DT_ArrCreateUnchecked(sizeof(FECS_WCIdentifierTok), DT_ARR_DEFAULT_CAP,
+        CONT_ArrCreateUnchecked(sizeof(FECS_WCIdentifierTok), CONT_ARR_DEFAULT_CAP,
                               &system_instance_decl.pExc_comp_names);
     if (code != PRP_OK) {
         goto err_path;
@@ -294,7 +294,7 @@ static PRP_Result ParseSystemInstanceDecl(ParserState *pParser_state,
     pParse_table->system_instance_names_size +=
         system_instance_decl.system_instance_name.size;
 
-    DT_Arr *pAttached_arr = NULL;
+    CONT_Arr *pAttached_arr = NULL;
     PRP_Bool found_inc = PRP_False, found_exc = PRP_False,
              found_system = PRP_False;
     for (PRP_Size i = 0; i < toks_to_parse;
@@ -330,7 +330,7 @@ static PRP_Result ParseSystemInstanceDecl(ParserState *pParser_state,
                    next_tok == WC_TOK_SEMICOLON && pAttached_arr) {
             FECS_WCIdentifierTok comp_name =
                 RegisterIdentifier(pParser_state, pParse_table);
-            code = DT_ArrPushUnchecked(pAttached_arr, &comp_name);
+            code = CONT_ArrPushUnchecked(pAttached_arr, &comp_name);
             if (code != PRP_OK) {
                 goto err_path;
             }
@@ -340,14 +340,14 @@ static PRP_Result ParseSystemInstanceDecl(ParserState *pParser_state,
         }
     }
     if (!found_inc || !found_exc || !found_system ||
-        !DT_ArrLen(system_instance_decl.pInc_comp_names)) {
+        !CONT_ArrLen(system_instance_decl.pInc_comp_names)) {
         // All sub decls must exist and inc can't be empty sub decl.
         code = PRP_ERR_PARSE;
         goto err_path;
     }
-    DT_ArrShrinkFitUnchecked(system_instance_decl.pInc_comp_names);
-    DT_ArrShrinkFitUnchecked(system_instance_decl.pExc_comp_names);
-    code = DT_ArrPushUnchecked(pParse_table->pSystem_instance_table,
+    CONT_ArrShrinkFitUnchecked(system_instance_decl.pInc_comp_names);
+    CONT_ArrShrinkFitUnchecked(system_instance_decl.pExc_comp_names);
+    code = CONT_ArrPushUnchecked(pParse_table->pSystem_instance_table,
                                &system_instance_decl);
     if (code != PRP_OK) {
         goto err_path;
@@ -357,10 +357,10 @@ static PRP_Result ParseSystemInstanceDecl(ParserState *pParser_state,
 
 err_path:
     if (system_instance_decl.pInc_comp_names) {
-        DT_ArrDeleteUnchecked(&system_instance_decl.pInc_comp_names);
+        CONT_ArrDeleteUnchecked(&system_instance_decl.pInc_comp_names);
     }
     if (system_instance_decl.pExc_comp_names) {
-        DT_ArrDeleteUnchecked(&system_instance_decl.pExc_comp_names);
+        CONT_ArrDeleteUnchecked(&system_instance_decl.pExc_comp_names);
     }
 
     return code;
@@ -375,13 +375,13 @@ PRP_Result ParserParseTokStream(const FECS_WCTokStream *pTok_stream,
 
     ParserState parser_state = {0};
     parser_state.pTypes =
-        DT_ArrRawUnchecked(pTok_stream->pTypes, &parser_state.types_len);
-    parser_state.pIdentifiers = DT_ArrRawUnchecked(
+        CONT_ArrRawUnchecked(pTok_stream->pTypes, &parser_state.types_len);
+    parser_state.pIdentifiers = CONT_ArrRawUnchecked(
         pTok_stream->pIdentifiers, &parser_state.identifiers_len);
     parser_state.pRbrace_idxs =
-        DT_ArrRawUnchecked(pTok_stream->pRbrace_idxs, &parser_state.rbrace_len);
-    parser_state.pSrc_bffr = DT_ByteBffrGetUnchecked(pTok_stream->pSrc_bffr, 0);
-    parser_state.src_bffr_size = DT_ByteBffrSize(pTok_stream->pSrc_bffr);
+        CONT_ArrRawUnchecked(pTok_stream->pRbrace_idxs, &parser_state.rbrace_len);
+    parser_state.pSrc_bffr = CONT_ByteBffrGetUnchecked(pTok_stream->pSrc_bffr, 0);
+    parser_state.src_bffr_size = CONT_ByteBffrSize(pTok_stream->pSrc_bffr);
 
     for (; parser_state.types_idx < parser_state.types_len;
          parser_state.types_idx++) {
@@ -407,12 +407,12 @@ PRP_Result ParserParseTokStream(const FECS_WCTokStream *pTok_stream,
 }
 
 void ParserParseTableDelete(FECS_WCParseTable *pParse_table) {
-    DT_ArrForEachUnchecked(pParse_table->pLayout_table, LayoutDelCb, NULL);
-    DT_ArrDeleteUnchecked(&pParse_table->pLayout_table);
+    CONT_ArrForEachUnchecked(pParse_table->pLayout_table, LayoutDelCb, NULL);
+    CONT_ArrDeleteUnchecked(&pParse_table->pLayout_table);
 
-    DT_ArrForEachUnchecked(pParse_table->pSystem_instance_table,
+    CONT_ArrForEachUnchecked(pParse_table->pSystem_instance_table,
                            SystemInstanceDelCb, NULL);
-    DT_ArrDeleteUnchecked(&pParse_table->pSystem_instance_table);
+    CONT_ArrDeleteUnchecked(&pParse_table->pSystem_instance_table);
 
-    DT_ByteBffrDeleteUnchecked(&pParse_table->pIdentifiers_bffr);
+    CONT_ByteBffrDeleteUnchecked(&pParse_table->pIdentifiers_bffr);
 }

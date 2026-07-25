@@ -4,9 +4,9 @@
 extern "C" {
 #endif
 
-#include "DataTypes/Arr.h"
-#include "DataTypes/Bitmap.h"
-#include "DataTypes/DSArr.h"
+#include "Containers/Arr.h"
+#include "Containers/Bitmap.h"
+#include "Containers/DSArr.h"
 #include <string.h>
 
 /* ----  VARIOUS IDS ---- */
@@ -16,7 +16,7 @@ typedef PRP_Size FECS_SystemId;
 
 typedef PRP_Size FECS_LayoutId;
 typedef PRP_Size FECS_SystemInstanceId;
-typedef DT_DSId FECS_WorldId;
+typedef CONT_DSId FECS_WorldId;
 
 #define FECS_INVALID_ID ((PRP_Size)(-1))
 /*
@@ -45,7 +45,7 @@ typedef struct {
 
 typedef struct {
     FECS_LayoutId layout_id;
-    DT_Arr *pChunk_views;
+    CONT_Arr *pChunk_views;
 } FECS_EntityGroupId;
 
 /* ----  SYSTEMS ---- */
@@ -61,7 +61,7 @@ typedef void (*FECS_SystemFunc)(
  */
 #define FECS_SYSTEM_EXEC_FOREACH_OCCUPIED(occupancy_mask, idx)                 \
     while ((occupancy_mask) != 0 &&                                            \
-           (((idx) = DT_BitwordFFS(occupancy_mask)), 1) &&                     \
+           (((idx) = CONT_BitwordFFS(occupancy_mask)), 1) &&                     \
            (((occupancy_mask) &= (occupancy_mask) - 1), 1))
 
 #ifdef __cplusplus
