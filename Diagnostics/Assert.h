@@ -5,7 +5,6 @@ extern "C" {
 #endif
 
 #include "Log.h"
-#include <pthread.h>
 
 /* ----  ALWAYS ON ---- */
 
