@@ -7,7 +7,7 @@ extern "C" {
 #include "Math/Float.h"
 #include "Math/Transcendental.h"
 
-typedef struct {
+typedef struct MATH_Vec2 {
     PRP_F32 x;
     PRP_F32 y;
 } MATH_Vec2;

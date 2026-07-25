@@ -205,7 +205,7 @@ void LayoutDelete(FECS_Layout *pLayout) {
 /**
  * A chunk view is data upon a chunk's entire free slots allocated at once.
  */
-typedef struct {
+typedef struct ChunkView {
     PRP_Size chunk_idx;
     FECS_ChunkFreeSlotType occupied_slots;
     PRP_U32 gens[CHUNK_CAP];
@@ -517,7 +517,7 @@ PRP_Result EntitySetComp(FECS_World *pWorld, FECS_EntityId entity,
     return PRP_OK;
 }
 
-typedef struct {
+typedef struct IterationData {
     FECS_Layout *pLayout;
     PRP_Size comp_size;
     PRP_Size comp_stride;

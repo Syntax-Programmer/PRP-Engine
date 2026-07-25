@@ -9,7 +9,7 @@ extern "C" {
 #include "Math/EulerAngle.h"
 #include "Math/Vector/Vec3.h"
 
-typedef struct {
+typedef struct MATH_Quat {
     PRP_F32 x;
     PRP_F32 y;
     PRP_F32 z;
@@ -55,9 +55,8 @@ static inline MATH_Quat MATH_QuatCreateAxisZ(PRP_F32 rad) {
 }
 
 PRP_API MATH_Quat PRP_CALL MATH_QuatCreateAxis(MATH_Vec3 axis, PRP_F32 rad);
-PRP_API MATH_Quat PRP_CALL MATH_QuatCreateAxisSafe(MATH_Vec3 axis,
-                                                      PRP_F32 rad,
-                                                      MATH_Quat fallback);
+PRP_API MATH_Quat PRP_CALL MATH_QuatCreateAxisSafe(MATH_Vec3 axis, PRP_F32 rad,
+                                                   MATH_Quat fallback);
 
 PRP_API MATH_Quat PRP_CALL MATH_QuatCreateEulerXYZ(MATH_EulerAngle angles);
 PRP_API MATH_Quat PRP_CALL MATH_QuatCreateEulerZXY(MATH_EulerAngle angles);
@@ -237,7 +236,7 @@ PRP_API MATH_Quat PRP_CALL MATH_QuatLog(MATH_Quat x);
 PRP_API MATH_Quat PRP_CALL MATH_QuatLogSafe(MATH_Quat x, MATH_Quat fallback);
 PRP_API MATH_Quat PRP_CALL MATH_QuatPow(MATH_Quat x, PRP_F32 y);
 PRP_API MATH_Quat PRP_CALL MATH_QuatPowSafe(MATH_Quat x, PRP_F32 y,
-                                               MATH_Quat fallback);
+                                            MATH_Quat fallback);
 
 /* ----  ALGEBRAIC EXTRACTIONS  ---- */
 

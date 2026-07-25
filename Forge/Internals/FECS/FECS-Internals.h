@@ -16,7 +16,7 @@ extern "C" {
 
 /* ----  INTERNAL CONTEXT ---- */
 
-typedef struct {
+typedef struct FECS_InternalCtx {
     CONT_Arr *pComp_sizes;
     CONT_StrArr *pComp_names;
 
@@ -58,7 +58,7 @@ PRP_Result CompRegister(PRP_Char8 *pName, PRP_Size name_len, PRP_Size comp_size,
 
 /* ----  SYTEMS ---- */
 
-typedef struct {
+typedef struct FECS_SystemInfo {
     FECS_SystemFunc systmem_func;
     PRP_Size comp_ids_needed_count;
     FECS_CompId *pComp_ids_needed;

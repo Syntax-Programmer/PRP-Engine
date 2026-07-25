@@ -10,7 +10,7 @@ extern "C" {
 #define MATH_MAT4_ELEM_COUNT (16)
 
 // Its a column major matrix.
-typedef struct {
+typedef struct MATH_Mat4 {
     PRP_F32 membs[MATH_MAT4_ELEM_COUNT];
 } MATH_Mat4;
 

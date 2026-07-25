@@ -2,7 +2,7 @@
 #include "Diagnostics/Assert.h"
 #include <string.h>
 
-struct _Arr {
+struct CONT_Arr {
     PRP_Size cap;
     PRP_Size len;
     PRP_Size memb_size;

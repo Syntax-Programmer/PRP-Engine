@@ -3,7 +3,7 @@
 #define TOKS_PER_FIELD (2)
 #define EMPTY_DECL_TOK_COUNT (4)
 
-typedef struct {
+typedef struct ParserState {
     const FECS_WCTokType *pTypes;
     PRP_Size types_len;
     PRP_Size types_idx;

@@ -37,20 +37,20 @@ typedef CONT_DSId FECS_WorldId;
 
 /* ----  ENTITIES ---- */
 
-typedef struct {
+typedef struct FECS_EntityId {
     FECS_LayoutId layout_id;
     PRP_Size entity_idx;
     PRP_U32 gen;
 } FECS_EntityId;
 
-typedef struct {
+typedef struct FECS_EntityGroupId {
     FECS_LayoutId layout_id;
     CONT_Arr *pChunk_views;
 } FECS_EntityGroupId;
 
 /* ----  SYSTEMS ---- */
 
-typedef struct SystemData FECS_SystemExecInternalData;
+typedef struct FECS_SystemExecInternalData FECS_SystemExecInternalData;
 typedef PRP_U64 FECS_SystemExecOccupancyMask;
 typedef void (*FECS_SystemFunc)(
     const FECS_SystemExecInternalData *pExec_internals,

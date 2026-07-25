@@ -10,7 +10,7 @@ extern "C" {
 
 /* ----  LEXER ---- */
 
-typedef enum {
+typedef enum FECS_WCTokType {
     // A name token
     WC_TOK_IDENTIFIER,
 
@@ -32,12 +32,12 @@ typedef enum {
     WC_TOK_SYSTEM_INSTANCE,
 } FECS_WCTokType;
 
-typedef struct {
+typedef struct FECS_WCIdentifierTok {
     PRP_Size ofs;
     PRP_Size size;
 } FECS_WCIdentifierTok;
 
-typedef struct {
+typedef struct FECS_WCTokStream {
     CONT_Arr *pTypes;
     CONT_Arr *pIdentifiers;
     CONT_Arr *pRbrace_idxs;
@@ -87,19 +87,19 @@ void LexerTokStreamDelete(FECS_WCTokStream *pTok_stream);
 
 /* ----  PARSER ---- */
 
-typedef struct {
+typedef struct FECS_WCLayoutDecl {
     FECS_WCIdentifierTok layout_name;
     CONT_Arr *pComp_names;
 } FECS_WCLayoutDecl;
 
-typedef struct {
+typedef struct FECS_WCSystemInstanceDecl {
     FECS_WCIdentifierTok system_instance_name;
     FECS_WCIdentifierTok system_name;
     CONT_Arr *pInc_comp_names;
     CONT_Arr *pExc_comp_names;
 } FECS_WCSystemInstanceDecl;
 
-typedef struct {
+typedef struct FECS_WCParseTable {
     CONT_Arr *pLayout_table;
     CONT_Arr *pSystem_instance_table;
     PRP_Size layout_names_size;

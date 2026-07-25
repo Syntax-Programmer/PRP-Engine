@@ -2,12 +2,12 @@
 #include "Diagnostics/Assert.h"
 #include <string.h>
 
-typedef struct {
+typedef struct StrInfo {
     PRP_Size ofs;
     PRP_Size len;
 } StrInfo;
 
-struct _StrArr {
+struct CONT_StrArr {
     PRP_Size len;
     PRP_Size cap;
     StrInfo *pStr_info;

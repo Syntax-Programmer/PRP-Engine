@@ -16,7 +16,7 @@ extern "C" {
 
 /* ----  CREATE INFO ---- */
 
-typedef struct {
+typedef struct FECS_SystemInstanceCreateInfo {
     FECS_SystemId system_id;
     PRP_Size layout_id_match_count;
     // These will be taken ownership of by the world.
@@ -29,7 +29,7 @@ typedef struct {
     PRP_Size stride_dispatch_count;
 } FECS_SystemInstanceCreateInfo;
 
-typedef struct {
+typedef struct FECS_WorldCreateInfo {
     PRP_Size layout_count;
     // These will be freed.
     CONT_Bitmap **ppLayout_create_infos;
@@ -50,7 +50,7 @@ typedef struct {
 #define CHUNK_CAP (64)
 typedef PRP_U64 FECS_ChunkFreeSlotType;
 
-typedef struct {
+typedef struct FECS_Chunk {
     PRP_U32 gens[CHUNK_CAP];
     FECS_ChunkFreeSlotType free_slot_bitset;
     PRP_U8 pChunk_mem[];
@@ -59,7 +59,7 @@ typedef struct {
 DIAG_STATIC_ASSERT(CHUNK_CAP == sizeof(PRP_U64) * 8,
                    "free_slot bit width must match CHUNK_CAP");
 
-typedef struct {
+typedef struct FECS_Layout {
     CONT_Bitmap *pComp_set;
     /*
      * This stores the stride of each component's arrays the layout chunk
@@ -136,7 +136,7 @@ void LayoutDelete(FECS_Layout *pLayout);
 
 /* ----  SYSTEM INSTANCES ---- */
 
-typedef struct {
+typedef struct FECS_SystemInstance {
     FECS_SystemId system_id;
     PRP_Size layout_id_match_count;
     FECS_LayoutId *pLayout_id_matches;
@@ -172,7 +172,7 @@ void SystemInstanceDelete(FECS_SystemInstance *pSystem_instance);
 
 /* ----  WORLD ---- */
 
-typedef struct {
+typedef struct FECS_World {
     PRP_Size layout_count;
     FECS_Layout *pLayouts;
     CONT_StrArr *pLayout_names;

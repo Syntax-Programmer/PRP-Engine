@@ -44,7 +44,7 @@ PRP_U64 CONT_HmHashSplitMix64(const void *u64_key);
  * - Supports custom destruction callbacks for keys and values.
  * - Designed as a lean alternative to high-level hashmaps (e.g. Python dict).
  */
-typedef struct _Hm CONT_Hm;
+typedef struct CONT_Hm CONT_Hm;
 
 /**
  * Checks whether the given hashmap is structurally valid.

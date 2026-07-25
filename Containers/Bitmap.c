@@ -51,7 +51,7 @@ PRP_API PRP_Size PRP_CALL CONT_BitwordFFS(CONT_Bitword word) {
 
 /* ----  BITMAP UTILS ---- */
 
-struct _Bitmap {
+struct CONT_Bitmap {
     // The count of bits currently set.
     PRP_Size set_c;
     /*

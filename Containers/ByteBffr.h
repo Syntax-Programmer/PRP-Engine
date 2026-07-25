@@ -17,7 +17,7 @@ extern "C" {
  * - Memory returned by getters becomes invalid after any mutating operation.
  * - Buffer must be deleted using CONT_ByteBffrDelete* APIs.
  */
-typedef struct _ByteBffr CONT_ByteBffr;
+typedef struct CONT_ByteBffr CONT_ByteBffr;
 
 #define CONT_BYTE_BFFR_MAX_SIZE (PRP_SIZE_MAX)
 #define CONT_BYTE_BFFR_DEFAULT_SIZE (128)

@@ -2,7 +2,7 @@
 #include "Diagnostics/Assert.h"
 #include <string.h>
 
-struct _ByteBffr {
+struct CONT_ByteBffr {
     PRP_Size size;
     PRP_U8 *mem;
 };

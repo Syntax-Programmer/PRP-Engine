@@ -17,7 +17,7 @@ extern "C" {
  *
  * Suitable for frequently created and destroyed objects of uniform size.
  */
-typedef struct _Pool MEM_Pool;
+typedef struct MEM_Pool MEM_Pool;
 
 /**
  * Checks whether the given pool is structurally valid.

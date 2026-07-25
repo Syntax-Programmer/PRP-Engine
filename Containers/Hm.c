@@ -54,14 +54,14 @@ PRP_U64 CONT_HmHashSplitMix64(const void *u64_key) {
 
 #define INIT_ELEM_CAP (8)
 
-typedef struct {
+typedef struct Elem {
     void *key;
     void *val;
     // To avoid recomputation each time we lookup.
     PRP_U64 hash;
 } Elem;
 
-struct _Hm {
+struct CONT_Hm {
     /*
      * Stores the indices of entries mapped to physical hashed locations.
      * This step saves about 67% percent of mem and improves cache locality, by

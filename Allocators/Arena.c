@@ -2,7 +2,7 @@
 #include "Diagnostics/Assert.h"
 #include <string.h>
 
-struct _Arena {
+struct MEM_Arena {
     PRP_Size size;
     PRP_Size ofs;
     PRP_U8 mem[];

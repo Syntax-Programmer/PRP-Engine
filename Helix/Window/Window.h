@@ -6,7 +6,7 @@ extern "C" {
 
 #include "Core/Defs.h"
 
-typedef enum {
+typedef enum HLIX_WindowCreateFlagBits {
     HLIX_WINDOW_CREATE_FLAG_RESIZABLE_BIT = (1 << 0),
     HLIX_WINDOW_CREATE_FLAG_FULLSCREEN_BIT = (1 << 1),
     HLIX_WINDOW_CREATE_FLAG_BORDERLESS_BIT = (1 << 2),
@@ -25,7 +25,7 @@ typedef enum {
 
 typedef PRP_U32 HLIX_WindowCreateFlags;
 
-typedef struct {
+typedef struct HLIX_WindowCreateInfo {
     const PRP_Char8 *pTitle;
 
     PRP_U32 width;

@@ -73,7 +73,7 @@ PRP_API PRP_Size PRP_CALL CONT_BitwordFFS(CONT_Bitword word);
  * - Bits are stored in linear memory.
  * - Capacity grows is controlled by user.
  */
-typedef struct _Bitmap CONT_Bitmap;
+typedef struct CONT_Bitmap CONT_Bitmap;
 
 #define CONT_BITMAP_DEFAULT_BIT_CAP (64)
 #define CONT_BITMAP_MAX_BIT_CAP (PRP_SIZE_MAX)

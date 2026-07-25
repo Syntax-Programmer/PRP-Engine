@@ -28,7 +28,7 @@ extern "C" {
 
 #define PRP_ALIGN_UP(val, align) (((val) + ((align) - 1)) & ~((align) - 1))
 
-typedef enum {
+typedef enum PRP_Result {
     PRP_OK = 0,
     PRP_ERR_INV_ARG,
     PRP_ERR_INV_STATE,

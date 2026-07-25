@@ -19,7 +19,7 @@ extern "C" {
  * - Memory returned by getters becomes invalid after any mutating operation.
  * - Array must be deleted using CONT_ArrDelete* APIs.
  */
-typedef struct _Arr CONT_Arr;
+typedef struct CONT_Arr CONT_Arr;
 
 #define CONT_ARR_DEFAULT_CAP (16)
 #define CONT_ARR_MAX_CAP(memb_size) (PRP_SIZE_MAX / (memb_size))

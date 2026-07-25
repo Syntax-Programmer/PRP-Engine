@@ -1,12 +1,12 @@
 #include "Forge/Internals/FECS/FECS-Internals.h"
 #include "Forge/Internals/World-Compiler/Compiler-Internals.h"
 
-typedef struct {
+typedef struct DeclResolveData {
     CONT_ByteBffr *pIdentifier_bffr;
     FECS_WorldCreateInfo *pCreate_info;
 } DeclResolveData;
 
-typedef struct {
+typedef struct CompResolveData {
     CONT_ByteBffr *pIdentifier_bffr;
 
     CONT_Bitmap *pComp_set;

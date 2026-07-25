@@ -1,7 +1,7 @@
 #include "Forge/Internals/FECS-World/World-Internals.h"
 #include "Forge/Internals/FECS/FECS-Internals.h"
 
-struct SystemData {
+struct FECS_SystemExecInternalData {
     FECS_SystemFunc func;
 
     PRP_Size stides_len;

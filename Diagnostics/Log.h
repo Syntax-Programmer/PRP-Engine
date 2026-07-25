@@ -7,7 +7,7 @@ extern "C" {
 #include "Core/Defs.h"
 #include <stdio.h>
 
-typedef enum {
+typedef enum DIAG_LogCode {
     DIAG_LOG_CODE_NONE,
     DIAG_LOG_CODE_ASSERT,
     DIAG_LOG_CODE_INVARIANT_VOILATION,
@@ -25,7 +25,7 @@ typedef enum {
     DIAG_LOG_CODE_DEGRADED_MODE,
 } DIAG_LogCode;
 
-typedef enum {
+typedef enum DIAG_LogLevel {
     DIAG_LOG_LEVEL_TRACE,
     DIAG_LOG_LEVEL_DEBUG,
     DIAG_LOG_LEVEL_INFO,

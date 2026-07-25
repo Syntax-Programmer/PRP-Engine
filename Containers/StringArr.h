@@ -19,7 +19,7 @@ extern "C" {
  * - Buffer must be deleted using CONT_StrAr
  rDelete* APIs.
  */
-typedef struct _StrArr CONT_StrArr;
+typedef struct CONT_StrArr CONT_StrArr;
 
 /**
  * Checks whether the given string-array is structurally valid.

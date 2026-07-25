@@ -7,7 +7,7 @@ extern "C" {
 #include "Consts.h"
 #include "Transcendental.h"
 
-typedef enum {
+typedef enum MATH_EulerAngleOrder {
     MATH_EULER_ANGLE_ORDER_XYZ,
     MATH_EULER_ANGLE_ORDER_ZXY,
     MATH_EULER_ANGLE_ORDER_YZX,
@@ -16,7 +16,7 @@ typedef enum {
     MATH_EULER_ANGLE_ORDER_XZY,
 } MATH_EulerAngleOrder;
 
-typedef struct {
+typedef struct MATH_EulerAngle {
     PRP_F32 x_rad;
     PRP_F32 y_rad;
     PRP_F32 z_rad;

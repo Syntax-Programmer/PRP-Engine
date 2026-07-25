@@ -2,7 +2,7 @@
 #include "Diagnostics/Assert.h"
 #include <string.h>
 
-struct _Pool {
+struct MEM_Pool {
     PRP_Size cap;
     PRP_Size memb_size;
     PRP_U8 *free_list;

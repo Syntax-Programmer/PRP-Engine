@@ -17,7 +17,7 @@ extern "C" {
  *
  * This allocator is extremely fast but requires careful lifetime management.
  */
-typedef struct _Arena MEM_Arena;
+typedef struct MEM_Arena MEM_Arena;
 
 /**
  * Checks whether the given arena is structurally valid.

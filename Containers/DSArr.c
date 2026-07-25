@@ -2,7 +2,7 @@
 #include "Diagnostics/Assert.h"
 #include <string.h>
 
-struct _DSArr {
+struct CONT_DSArr {
     PRP_Size memb_size;
     /*
      * The callback used to free internal allocations of the elements of the

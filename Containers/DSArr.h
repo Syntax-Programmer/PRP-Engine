@@ -22,7 +22,7 @@ extern "C" {
  * Limitations:
  * - Maximum capacity limited to U32_MAX elements
  */
-typedef struct _DSArr CONT_DSArr;
+typedef struct CONT_DSArr CONT_DSArr;
 /**
  * Stable identifier used to access elements.
  */
