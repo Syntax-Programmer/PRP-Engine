@@ -14,17 +14,15 @@ struct _Arena {
     DIAG_ASSERT_MSG(MEM_ArenaIsValid(arena),                                   \
                     "The given arena is either NULL, or is corrupted.")
 
-PRP_FN_API PRP_Bool PRP_FN_CALL MEM_ArenaIsValid(const MEM_Arena *arena) {
+PRP_API PRP_Bool PRP_CALL MEM_ArenaIsValid(const MEM_Arena *arena) {
     return (arena != NULL && arena->size > 0 &&
             arena->size <= MAX_ALLOCABLE_SIZE && arena->ofs <= arena->size);
 }
 
-PRP_FN_API PRP_Size PRP_FN_CALL MEM_ArenaMaxSize(void) {
-    return MAX_ALLOCABLE_SIZE;
-}
+PRP_API PRP_Size PRP_CALL MEM_ArenaMaxSize(void) { return MAX_ALLOCABLE_SIZE; }
 
-PRP_FN_API PRP_Result PRP_FN_CALL MEM_ArenaCreateUnchecked(PRP_Size size,
-                                                           MEM_Arena **pArena) {
+PRP_API PRP_Result PRP_CALL MEM_ArenaCreateUnchecked(PRP_Size size,
+                                                     MEM_Arena **pArena) {
     DIAG_ASSERT(size > 0);
     DIAG_ASSERT(size <= MAX_ALLOCABLE_SIZE);
     DIAG_ASSERT(pArena != NULL);
@@ -40,8 +38,8 @@ PRP_FN_API PRP_Result PRP_FN_CALL MEM_ArenaCreateUnchecked(PRP_Size size,
     return PRP_OK;
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL MEM_ArenaCreateChecked(PRP_Size size,
-                                                         MEM_Arena **pArena) {
+PRP_API PRP_Result PRP_CALL MEM_ArenaCreateChecked(PRP_Size size,
+                                                   MEM_Arena **pArena) {
     if (!size || size > MAX_ALLOCABLE_SIZE || !pArena) {
         return PRP_ERR_INV_ARG;
     }
@@ -49,7 +47,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL MEM_ArenaCreateChecked(PRP_Size size,
     return MEM_ArenaCreateUnchecked(size, pArena);
 }
 
-PRP_FN_API void PRP_FN_CALL MEM_ArenaDeleteUnchecked(MEM_Arena **pArena) {
+PRP_API void PRP_CALL MEM_ArenaDeleteUnchecked(MEM_Arena **pArena) {
     DIAG_ASSERT(pArena != NULL);
     DIAG_ASSERT(*pArena != NULL);
 
@@ -58,7 +56,7 @@ PRP_FN_API void PRP_FN_CALL MEM_ArenaDeleteUnchecked(MEM_Arena **pArena) {
     *pArena = NULL;
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL MEM_ArenaDeleteChecked(MEM_Arena **pArena) {
+PRP_API PRP_Result PRP_CALL MEM_ArenaDeleteChecked(MEM_Arena **pArena) {
     if (!pArena || !(*pArena)) {
         return PRP_ERR_INV_ARG;
     }
@@ -68,9 +66,9 @@ PRP_FN_API PRP_Result PRP_FN_CALL MEM_ArenaDeleteChecked(MEM_Arena **pArena) {
     return PRP_OK;
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL MEM_ArenaAllocUnchecked(MEM_Arena *arena,
-                                                          PRP_Size size,
-                                                          void **pDest) {
+PRP_API PRP_Result PRP_CALL MEM_ArenaAllocUnchecked(MEM_Arena *arena,
+                                                    PRP_Size size,
+                                                    void **pDest) {
     ASSERT_INVARIANT_EXPR(arena);
     DIAG_ASSERT(size > 0);
     DIAG_ASSERT(pDest != NULL);
@@ -86,9 +84,8 @@ PRP_FN_API PRP_Result PRP_FN_CALL MEM_ArenaAllocUnchecked(MEM_Arena *arena,
     return PRP_OK;
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL MEM_ArenaAllocChecked(MEM_Arena *arena,
-                                                        PRP_Size size,
-                                                        void **pDest) {
+PRP_API PRP_Result PRP_CALL MEM_ArenaAllocChecked(MEM_Arena *arena,
+                                                  PRP_Size size, void **pDest) {
     if (!MEM_ArenaIsValid(arena) || !size || !pDest) {
         return PRP_ERR_INV_ARG;
     }
@@ -96,9 +93,9 @@ PRP_FN_API PRP_Result PRP_FN_CALL MEM_ArenaAllocChecked(MEM_Arena *arena,
     return MEM_ArenaAllocUnchecked(arena, size, pDest);
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL MEM_ArenaCallocUnchecked(MEM_Arena *arena,
-                                                           PRP_Size size,
-                                                           void **pDest) {
+PRP_API PRP_Result PRP_CALL MEM_ArenaCallocUnchecked(MEM_Arena *arena,
+                                                     PRP_Size size,
+                                                     void **pDest) {
     ASSERT_INVARIANT_EXPR(arena);
     DIAG_ASSERT(size > 0);
     DIAG_ASSERT(pDest != NULL);
@@ -115,9 +112,9 @@ PRP_FN_API PRP_Result PRP_FN_CALL MEM_ArenaCallocUnchecked(MEM_Arena *arena,
     return PRP_OK;
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL MEM_ArenaCallocChecked(MEM_Arena *arena,
-                                                         PRP_Size size,
-                                                         void **pDest) {
+PRP_API PRP_Result PRP_CALL MEM_ArenaCallocChecked(MEM_Arena *arena,
+                                                   PRP_Size size,
+                                                   void **pDest) {
     if (!MEM_ArenaIsValid(arena) || !size || !pDest) {
         return PRP_ERR_INV_ARG;
     }
@@ -125,7 +122,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL MEM_ArenaCallocChecked(MEM_Arena *arena,
     return MEM_ArenaCallocUnchecked(arena, size, pDest);
 }
 
-PRP_FN_API void PRP_FN_CALL MEM_ArenaResetUnchecked(MEM_Arena *arena) {
+PRP_API void PRP_CALL MEM_ArenaResetUnchecked(MEM_Arena *arena) {
     ASSERT_INVARIANT_EXPR(arena);
 
     arena->ofs = 0;
@@ -134,7 +131,7 @@ PRP_FN_API void PRP_FN_CALL MEM_ArenaResetUnchecked(MEM_Arena *arena) {
 #endif
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL MEM_ArenaResetChecked(MEM_Arena *arena) {
+PRP_API PRP_Result PRP_CALL MEM_ArenaResetChecked(MEM_Arena *arena) {
     if (!MEM_ArenaIsValid(arena)) {
         return PRP_ERR_INV_ARG;
     }

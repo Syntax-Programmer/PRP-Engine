@@ -43,7 +43,7 @@ typedef PRP_U64 CONT_DSId;
  *
  * @return PRP_True if valid, PRP_False otherwise.
  */
-PRP_FN_API PRP_Bool PRP_FN_CALL CONT_DSArrIsValid(const CONT_DSArr *ds_arr);
+PRP_API PRP_Bool PRP_CALL CONT_DSArrIsValid(const CONT_DSArr *ds_arr);
 
 /**
  * Creates a dynamic array.
@@ -58,7 +58,7 @@ PRP_FN_API PRP_Bool PRP_FN_CALL CONT_DSArrIsValid(const CONT_DSArr *ds_arr);
  * @note Unchecked variant:
  * - Asserts on invalid arguments in debug.
  */
-PRP_FN_API PRP_Result PRP_FN_CALL CONT_DSArrCreateUnchecked(
+PRP_API PRP_Result PRP_CALL CONT_DSArrCreateUnchecked(
     PRP_Size memb_size, PRP_Result (*elem_del_cb)(void *elem),
     CONT_DSArr **pDs_arr);
 /**
@@ -72,7 +72,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL CONT_DSArrCreateUnchecked(
  * @return PRP_ERR_OOM if allocation fails.
  * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
-PRP_FN_API PRP_Result PRP_FN_CALL CONT_DSArrCreateChecked(
+PRP_API PRP_Result PRP_CALL CONT_DSArrCreateChecked(
     PRP_Size memb_size, PRP_Result (*elem_del_cb)(void *elem),
     CONT_DSArr **pDs_arr);
 /**
@@ -83,7 +83,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL CONT_DSArrCreateChecked(
  * @note Unchecked variant:
  * - Asserts on invalid arguments in debug.
  */
-PRP_FN_API void PRP_FN_CALL CONT_DSArrDeleteUnchecked(CONT_DSArr **pDs_arr);
+PRP_API void PRP_CALL CONT_DSArrDeleteUnchecked(CONT_DSArr **pDs_arr);
 /**
  * Deletes the ds array and nullifies the pointer.
  *
@@ -92,7 +92,7 @@ PRP_FN_API void PRP_FN_CALL CONT_DSArrDeleteUnchecked(CONT_DSArr **pDs_arr);
  * @return PRP_OK on success.
  * @return PRP_ERR_INV_ARG if pDs_arr or *pDs_arr is invalid.
  */
-PRP_FN_API PRP_Result PRP_FN_CALL CONT_DSArrDeleteChecked(CONT_DSArr **pDs_arr);
+PRP_API PRP_Result PRP_CALL CONT_DSArrDeleteChecked(CONT_DSArr **pDs_arr);
 /**
  * Returns the number of elements currently stored.
  *
@@ -102,7 +102,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL CONT_DSArrDeleteChecked(CONT_DSArr **pDs_arr);
  *
  * @note Assumes valid array (asserts in debug).
  */
-PRP_FN_API PRP_U32 PRP_FN_CALL CONT_DSArrLen(const CONT_DSArr *ds_arr);
+PRP_API PRP_U32 PRP_CALL CONT_DSArrLen(const CONT_DSArr *ds_arr);
 /**
  * Fetches the data corresponding to the given id.
  *
@@ -114,8 +114,8 @@ PRP_FN_API PRP_U32 PRP_FN_CALL CONT_DSArrLen(const CONT_DSArr *ds_arr);
  * @note Unchecked variant:
  * - Asserts on invalid arguments in debug.
  */
-PRP_FN_API void *PRP_FN_CALL CONT_DSIdToDataUnchecked(const CONT_DSArr *ds_arr,
-                                                      CONT_DSId id);
+PRP_API void *PRP_CALL CONT_DSIdToDataUnchecked(const CONT_DSArr *ds_arr,
+                                                CONT_DSId id);
 /**
  * Fetches the data corresponding to the given id.
  *
@@ -128,8 +128,8 @@ PRP_FN_API void *PRP_FN_CALL CONT_DSIdToDataUnchecked(const CONT_DSArr *ds_arr,
  * @return PRP_ERR_INV_STATE if the id is stale/already deleted.
  * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
-PRP_FN_API PRP_Result PRP_FN_CALL
-CONT_DSIdToDataChecked(const CONT_DSArr *ds_arr, CONT_DSId id, void **dest);
+PRP_API PRP_Result PRP_CALL CONT_DSIdToDataChecked(const CONT_DSArr *ds_arr,
+                                                   CONT_DSId id, void **dest);
 /**
  * Checks if the given id is valid.
  *
@@ -141,8 +141,8 @@ CONT_DSIdToDataChecked(const CONT_DSArr *ds_arr, CONT_DSId id, void **dest);
  * @note Unchecked variant:
  * - Asserts on invalid arguments in debug.
  */
-PRP_FN_API PRP_Bool PRP_FN_CALL
-CONT_DSIdIsValidUnchecked(const CONT_DSArr *ds_arr, CONT_DSId id);
+PRP_API PRP_Bool PRP_CALL CONT_DSIdIsValidUnchecked(const CONT_DSArr *ds_arr,
+                                                    CONT_DSId id);
 /**
  * Checks if the given id is valid.
  *
@@ -153,8 +153,9 @@ CONT_DSIdIsValidUnchecked(const CONT_DSArr *ds_arr, CONT_DSId id);
  * @return PRP_OK on success.
  * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
-PRP_FN_API PRP_Result PRP_FN_CALL CONT_DSIdIsValidChecked(
-    const CONT_DSArr *ds_arr, CONT_DSId id, PRP_Bool *pRslt);
+PRP_API PRP_Result PRP_CALL CONT_DSIdIsValidChecked(const CONT_DSArr *ds_arr,
+                                                    CONT_DSId id,
+                                                    PRP_Bool *pRslt);
 /**
  * Adds the given data to the ds array.
  *
@@ -169,9 +170,8 @@ PRP_FN_API PRP_Result PRP_FN_CALL CONT_DSIdIsValidChecked(
  * @note Unchecked variant:
  * - Asserts on invalid arguments in debug.
  */
-PRP_FN_API PRP_Result PRP_FN_CALL CONT_DSArrAddUnchecked(CONT_DSArr *ds_arr,
-                                                         void *data,
-                                                         CONT_DSId *pId);
+PRP_API PRP_Result PRP_CALL CONT_DSArrAddUnchecked(CONT_DSArr *ds_arr,
+                                                   void *data, CONT_DSId *pId);
 /**
  * Adds the given data to the ds array.
  *
@@ -184,9 +184,8 @@ PRP_FN_API PRP_Result PRP_FN_CALL CONT_DSArrAddUnchecked(CONT_DSArr *ds_arr,
  * @return PRP_ERR_OOM if allocation fails.
  * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
-PRP_FN_API PRP_Result PRP_FN_CALL CONT_DSArrAddChecked(CONT_DSArr *ds_arr,
-                                                       void *data,
-                                                       CONT_DSId *pId);
+PRP_API PRP_Result PRP_CALL CONT_DSArrAddChecked(CONT_DSArr *ds_arr, void *data,
+                                                 CONT_DSId *pId);
 /**
  * Remove the data associated by the given id and invalidates the id.
  *
@@ -196,8 +195,8 @@ PRP_FN_API PRP_Result PRP_FN_CALL CONT_DSArrAddChecked(CONT_DSArr *ds_arr,
  * @note Unchecked variant:
  * - Asserts on invalid arguments in debug.
  */
-PRP_FN_API void PRP_FN_CALL CONT_DSArrDelElemUnchecked(CONT_DSArr *ds_arr,
-                                                       CONT_DSId *pId);
+PRP_API void PRP_CALL CONT_DSArrDelElemUnchecked(CONT_DSArr *ds_arr,
+                                                 CONT_DSId *pId);
 /**
  * Remove the data associated by the given id and invalidates the id.
  *
@@ -209,8 +208,8 @@ PRP_FN_API void PRP_FN_CALL CONT_DSArrDelElemUnchecked(CONT_DSArr *ds_arr,
  * @return PRP_ERR_INV_STATE if the id is stale/already deleted.
  * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
-PRP_FN_API PRP_Result PRP_FN_CALL CONT_DSArrDelElemChecked(CONT_DSArr *ds_arr,
-                                                           CONT_DSId *pId);
+PRP_API PRP_Result PRP_CALL CONT_DSArrDelElemChecked(CONT_DSArr *ds_arr,
+                                                     CONT_DSId *pId);
 /**
  * Reserves <count> number of elements in the array.
  *
@@ -224,8 +223,8 @@ PRP_FN_API PRP_Result PRP_FN_CALL CONT_DSArrDelElemChecked(CONT_DSArr *ds_arr,
  * @note Unchecked variant:
  * - Asserts on invalid arguments in debug.
  */
-PRP_FN_API PRP_Result PRP_FN_CALL CONT_DSArrReserveUnchecked(CONT_DSArr *ds_arr,
-                                                             PRP_U32 count);
+PRP_API PRP_Result PRP_CALL CONT_DSArrReserveUnchecked(CONT_DSArr *ds_arr,
+                                                       PRP_U32 count);
 /**
  * Reserves <count> number of elements in the array.
  *
@@ -237,8 +236,8 @@ PRP_FN_API PRP_Result PRP_FN_CALL CONT_DSArrReserveUnchecked(CONT_DSArr *ds_arr,
  * @return PRP_ERR_OOM if allocation fails.
  * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
-PRP_FN_API PRP_Result PRP_FN_CALL CONT_DSArrReserveChecked(CONT_DSArr *ds_arr,
-                                                           PRP_U32 count);
+PRP_API PRP_Result PRP_CALL CONT_DSArrReserveChecked(CONT_DSArr *ds_arr,
+                                                     PRP_U32 count);
 /**
  * Iterates over all elements of the array.
  *
@@ -252,7 +251,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL CONT_DSArrReserveChecked(CONT_DSArr *ds_arr,
  * @note Unchecked variant:
  * - Asserts on invalid arguments in debug.
  */
-PRP_FN_API PRP_Result PRP_FN_CALL CONT_DSArrForEachUnchecked(
+PRP_API PRP_Result PRP_CALL CONT_DSArrForEachUnchecked(
     CONT_DSArr *ds_arr, PRP_Result (*cb)(void *pVal, void *pUser_data),
     void *pUser_data);
 /**
@@ -266,7 +265,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL CONT_DSArrForEachUnchecked(
  * @return Callback error if cb returns non-PRP_OK.
  * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
-PRP_FN_API PRP_Result PRP_FN_CALL CONT_DSArrForEachChecked(
+PRP_API PRP_Result PRP_CALL CONT_DSArrForEachChecked(
     CONT_DSArr *ds_arr, PRP_Result (*cb)(void *pVal, void *pUser_data),
     void *pUser_data);
 

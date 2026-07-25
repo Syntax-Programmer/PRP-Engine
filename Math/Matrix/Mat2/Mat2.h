@@ -4,7 +4,6 @@
 extern "C" {
 #endif
 
-#include "Core/Defs.h"
 #include "Defs.h"
 #include "Diagnostics/Assert.h"
 #include "Math/Vector/Vec2.h"
@@ -111,7 +110,7 @@ static inline PRP_Bool MATH_Mat2IsIdentity(MATH_Mat2 a) {
                       MATH_AlmostEqF32(a.membs[3], 1.0f));
 }
 
-PRP_FN_API PRP_Bool PRP_FN_CALL MATH_Mat2IsOrthonormal(MATH_Mat2 a);
+PRP_API PRP_Bool PRP_CALL MATH_Mat2IsOrthonormal(MATH_Mat2 a);
 
 /* ----  BASIC OPS  ---- */
 
@@ -185,7 +184,7 @@ static inline MATH_Mat2 MATH_Mat2ScalarDivSafe(MATH_Mat2 a, PRP_F32 s,
     return MATH_Mat2ScalarDiv(a, s);
 }
 
-PRP_FN_API MATH_Mat2 PRP_FN_CALL MATH_Mat2Mul(MATH_Mat2 a, MATH_Mat2 b);
+PRP_API MATH_Mat2 PRP_CALL MATH_Mat2Mul(MATH_Mat2 a, MATH_Mat2 b);
 
 static inline MATH_Mat2 MATH_Mat2Outer(MATH_Vec2 u, MATH_Vec2 v) {
     return (MATH_Mat2){.membs = {u.x * v.x, u.y * v.x, u.x * v.y, u.y * v.y}};
@@ -291,8 +290,8 @@ static inline MATH_Mat2 MATH_Mat2InvOrthonormal(MATH_Mat2 a) {
     return MATH_Mat2Transpose(a);
 }
 
-PRP_FN_API MATH_Mat2 PRP_FN_CALL MATH_Mat2Inv(MATH_Mat2 a,
-                                              MATH_Mat2 det_zero_fallback);
+PRP_API MATH_Mat2 PRP_CALL MATH_Mat2Inv(MATH_Mat2 a,
+                                        MATH_Mat2 det_zero_fallback);
 
 static inline PRP_F32 MATH_Mat2FrobeniusNorm(MATH_Mat2 a) {
     return MATH_SqrtF32((a.membs[0] * a.membs[0]) + (a.membs[1] * a.membs[1]) +
@@ -304,9 +303,9 @@ static inline PRP_F32 MATH_Mat2FrobeniusNormSq(MATH_Mat2 a) {
            (a.membs[2] * a.membs[2]) + (a.membs[3] * a.membs[3]);
 }
 
-PRP_FN_API MATH_Mat2 PRP_FN_CALL MATH_Mat2Orthonormalize(MATH_Mat2 a);
-PRP_FN_API MATH_Mat2 PRP_FN_CALL
-MATH_Mat2OrthonormalizeSafe(MATH_Mat2 a, MATH_Mat2 fallback);
+PRP_API MATH_Mat2 PRP_CALL MATH_Mat2Orthonormalize(MATH_Mat2 a);
+PRP_API MATH_Mat2 PRP_CALL MATH_Mat2OrthonormalizeSafe(MATH_Mat2 a,
+                                                       MATH_Mat2 fallback);
 
 #ifdef __cplusplus
 }

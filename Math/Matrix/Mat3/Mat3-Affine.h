@@ -4,7 +4,6 @@
 extern "C" {
 #endif
 
-#include "Core/Defs.h"
 #include "Defs.h"
 #include "Math/Vector/Vec2.h"
 
@@ -96,7 +95,7 @@ static inline PRP_Bool MATH_Mat3IsAffine(MATH_Mat3 a) {
                       MATH_AlmostEqF32(a.membs[8], 1.0f));
 }
 
-PRP_FN_API PRP_Bool PRP_FN_CALL MATH_Mat3IsAffineOrthonormal(MATH_Mat3 a);
+PRP_API PRP_Bool PRP_CALL MATH_Mat3IsAffineOrthonormal(MATH_Mat3 a);
 
 /* ----  BASIC OPS  ---- */
 
@@ -109,11 +108,11 @@ static inline MATH_Vec2 MATH_Mat3MulVec2Affine(MATH_Mat3 a, MATH_Vec2 v) {
 
 /* ----  BASIC ALGEBRA  ---- */
 
-PRP_FN_API MATH_Mat3 PRP_FN_CALL
-MATH_Mat3InvAffine(MATH_Mat3 a, MATH_Mat3 det_zero_fallback);
-PRP_FN_API MATH_Mat3 PRP_FN_CALL MATH_Mat3InvAffineOrthonormal(MATH_Mat3 a);
-PRP_FN_API MATH_Mat3 PRP_FN_CALL MATH_Mat3AffineOrthonormalize(MATH_Mat3 a);
-PRP_FN_API MATH_Mat3 PRP_FN_CALL
+PRP_API MATH_Mat3 PRP_CALL MATH_Mat3InvAffine(MATH_Mat3 a,
+                                              MATH_Mat3 det_zero_fallback);
+PRP_API MATH_Mat3 PRP_CALL MATH_Mat3InvAffineOrthonormal(MATH_Mat3 a);
+PRP_API MATH_Mat3 PRP_CALL MATH_Mat3AffineOrthonormalize(MATH_Mat3 a);
+PRP_API MATH_Mat3 PRP_CALL
 MATH_Mat3AffineOrthonormalizeSafe(MATH_Mat3 a, MATH_Mat3 fallback);
 
 /* ----  ALGEBRAIC EXTRACTIONS  ---- */
@@ -125,9 +124,9 @@ static inline MATH_Vec2 MATH_Mat3ExtractTranslation(MATH_Mat3 a) {
     };
 }
 
-PRP_FN_API PRP_F32 PRP_FN_CALL MATH_Mat3ExtractRotation(MATH_Mat3 a);
-PRP_FN_API MATH_Vec2 PRP_FN_CALL MATH_Mat3ExtractScale(MATH_Mat3 a);
-PRP_FN_API MATH_Mat3 PRP_FN_CALL MATH_Mat3NormBasis(MATH_Mat3 a);
+PRP_API PRP_F32 PRP_CALL MATH_Mat3ExtractRotation(MATH_Mat3 a);
+PRP_API MATH_Vec2 PRP_CALL MATH_Mat3ExtractScale(MATH_Mat3 a);
+PRP_API MATH_Mat3 PRP_CALL MATH_Mat3NormBasis(MATH_Mat3 a);
 
 static inline MATH_Vec2 MATH_Mat3Right(MATH_Mat3 a) {
     return (MATH_Vec2){

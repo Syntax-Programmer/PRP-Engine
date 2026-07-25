@@ -2,7 +2,7 @@
 
 /* ----  COMPARE FUNCTIONS  ---- */
 
-PRP_FN_API PRP_Bool PRP_FN_CALL MATH_Mat2IsOrthonormal(MATH_Mat2 a) {
+PRP_API PRP_Bool PRP_CALL MATH_Mat2IsOrthonormal(MATH_Mat2 a) {
     MATH_Vec2 c0 = {.x = a.membs[0], .y = a.membs[1]};
     MATH_Vec2 c1 = {.x = a.membs[2], .y = a.membs[3]};
     PRP_F32 dot = MATH_Vec2Dot(c0, c1);
@@ -15,7 +15,7 @@ PRP_FN_API PRP_Bool PRP_FN_CALL MATH_Mat2IsOrthonormal(MATH_Mat2 a) {
 
 /* ----  BASIC OPS  ---- */
 
-PRP_FN_API MATH_Mat2 PRP_FN_CALL MATH_Mat2Mul(MATH_Mat2 a, MATH_Mat2 b) {
+PRP_API MATH_Mat2 PRP_CALL MATH_Mat2Mul(MATH_Mat2 a, MATH_Mat2 b) {
     PRP_F32 a00 = a.membs[0], a10 = a.membs[1];
     PRP_F32 a01 = a.membs[2], a11 = a.membs[3];
 
@@ -33,8 +33,8 @@ PRP_FN_API MATH_Mat2 PRP_FN_CALL MATH_Mat2Mul(MATH_Mat2 a, MATH_Mat2 b) {
 
 /* ----  BASIC ALGEBRA  ---- */
 
-PRP_FN_API MATH_Mat2 PRP_FN_CALL MATH_Mat2Inv(MATH_Mat2 a,
-                                              MATH_Mat2 det_zero_fallback) {
+PRP_API MATH_Mat2 PRP_CALL MATH_Mat2Inv(MATH_Mat2 a,
+                                        MATH_Mat2 det_zero_fallback) {
     PRP_F32 a00 = a.membs[0];
     PRP_F32 a10 = a.membs[1];
     PRP_F32 a01 = a.membs[2];
@@ -56,7 +56,7 @@ PRP_FN_API MATH_Mat2 PRP_FN_CALL MATH_Mat2Inv(MATH_Mat2 a,
     return a;
 }
 
-PRP_FN_API MATH_Mat2 PRP_FN_CALL MATH_Mat2Orthonormalize(MATH_Mat2 a) {
+PRP_API MATH_Mat2 PRP_CALL MATH_Mat2Orthonormalize(MATH_Mat2 a) {
     MATH_Vec2 c0 = {a.membs[0], a.membs[1]};
     MATH_Vec2 c1 = {a.membs[2], a.membs[3]};
 
@@ -74,8 +74,8 @@ PRP_FN_API MATH_Mat2 PRP_FN_CALL MATH_Mat2Orthonormalize(MATH_Mat2 a) {
     return a;
 }
 
-PRP_FN_API MATH_Mat2 PRP_FN_CALL
-MATH_Mat2OrthonormalizeSafe(MATH_Mat2 a, MATH_Mat2 fallback) {
+PRP_API MATH_Mat2 PRP_CALL MATH_Mat2OrthonormalizeSafe(MATH_Mat2 a,
+                                                       MATH_Mat2 fallback) {
     if (MATH_IsZeroF32(
             MATH_Vec2LenSq((MATH_Vec2){.x = a.membs[0], .y = a.membs[1]})) ||
 

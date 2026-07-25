@@ -30,7 +30,7 @@ typedef PRP_F64 PRP_TimeMeasure;
  * @return The time in the given unit, with PRP_TIME_NS as a fallback if unit is
  * invalid.
  */
-PRP_FN_API PRP_TimeMeasure PRP_FN_CALL PRP_TimerGetTime(PRP_TimeUnit unit);
+PRP_API PRP_TimeMeasure PRP_CALL PRP_TimerGetTime(PRP_TimeUnit unit);
 
 /* ----  TIMER  ---- */
 
@@ -53,7 +53,7 @@ typedef struct {
  *
  * @return PRP_ERR_INV_ARG if the timer is invalid, otherwise PRP_OK.
  */
-PRP_FN_API PRP_Result PRP_FN_CALL PRP_TimerStart(PRP_Timer *timer);
+PRP_API PRP_Result PRP_CALL PRP_TimerStart(PRP_Timer *timer);
 /**
  * Gets the total elapsed time from the timer start till the call time.
  *
@@ -62,7 +62,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL PRP_TimerStart(PRP_Timer *timer);
  * @return PRP_INVALID_TIME_MEASURE if the timer is invalid, otherwise the
  * elapsed time in the timer's units.
  */
-PRP_FN_API PRP_TimeMeasure PRP_FN_CALL PRP_TimerElapsed(const PRP_Timer *timer);
+PRP_API PRP_TimeMeasure PRP_CALL PRP_TimerElapsed(const PRP_Timer *timer);
 /**
  * Changes the unit of the timer and updates the currently set time safely.
  *
@@ -71,8 +71,8 @@ PRP_FN_API PRP_TimeMeasure PRP_FN_CALL PRP_TimerElapsed(const PRP_Timer *timer);
  *
  * @return PRP_ERR_INV_ARG if the timer is invalid, otherwise PRP_OK.
  */
-PRP_FN_API PRP_Result PRP_FN_CALL PRP_TimerChangeUnit(PRP_Timer *timer,
-                                                      PRP_TimeUnit unit);
+PRP_API PRP_Result PRP_CALL PRP_TimerChangeUnit(PRP_Timer *timer,
+                                                PRP_TimeUnit unit);
 
 #ifdef __cplusplus
 }

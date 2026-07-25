@@ -4,8 +4,7 @@
 extern "C" {
 #endif
 
-#include "Core/Types.h"
-#include "Utils/Defs.h"
+#include "Core/Defs.h"
 
 typedef enum {
     HLIX_WINDOW_CREATE_FLAG_RESIZABLE_BIT = (1 << 0),
@@ -37,26 +36,26 @@ typedef struct {
 
 typedef struct _Window HLIX_Window;
 
-PRP_FN_API PRP_Result PRP_FN_CALL
+PRP_API PRP_Result PRP_CALL
 HLIX_WindowCreate(HLIX_WindowCreateInfo *pCreate_info, HLIX_Window **ppWindow);
-PRP_FN_API PRP_Result PRP_FN_CALL HLIX_WindowDestroy(HLIX_Window **ppWindow);
+PRP_API PRP_Result PRP_CALL HLIX_WindowDestroy(HLIX_Window **ppWindow);
 
-PRP_FN_API PRP_Result PRP_FN_CALL
-HLIX_WindowShouldClose(const HLIX_Window *pWindow, PRP_Bool *pRslt);
-PRP_FN_API PRP_Result PRP_FN_CALL HLIX_WindowClose(HLIX_Window *pWindow);
+PRP_API PRP_Result PRP_CALL HLIX_WindowShouldClose(const HLIX_Window *pWindow,
+                                                   PRP_Bool *pRslt);
+PRP_API PRP_Result PRP_CALL HLIX_WindowClose(HLIX_Window *pWindow);
 
-PRP_FN_API PRP_Result PRP_FN_CALL
-HLIX_WindowGetFlags(const HLIX_Window *pWindow, HLIX_WindowCreateFlags *pFlags);
-PRP_FN_API PRP_Result PRP_FN_CALL
-HLIX_WindowIsFocused(const HLIX_Window *pWindow, PRP_Bool *pRslt);
-PRP_FN_API PRP_Result PRP_FN_CALL
-HLIX_WindowIsMinimized(const HLIX_Window *pWindow, PRP_Bool *pRslt);
-PRP_FN_API PRP_Result PRP_FN_CALL
-HLIX_WindowIsMaximized(const HLIX_Window *pWindow, PRP_Bool *pRslt);
-PRP_FN_API PRP_Result PRP_FN_CALL
-HLIX_WindowIsFullscreen(const HLIX_Window *pWindow, PRP_Bool *pRslt);
-PRP_FN_API PRP_Result PRP_FN_CALL
-HLIX_WindowIsVisible(const HLIX_Window *pWindow, PRP_Bool *pRslt);
+PRP_API PRP_Result PRP_CALL HLIX_WindowGetFlags(const HLIX_Window *pWindow,
+                                                HLIX_WindowCreateFlags *pFlags);
+PRP_API PRP_Result PRP_CALL HLIX_WindowIsFocused(const HLIX_Window *pWindow,
+                                                 PRP_Bool *pRslt);
+PRP_API PRP_Result PRP_CALL HLIX_WindowIsMinimized(const HLIX_Window *pWindow,
+                                                   PRP_Bool *pRslt);
+PRP_API PRP_Result PRP_CALL HLIX_WindowIsMaximized(const HLIX_Window *pWindow,
+                                                   PRP_Bool *pRslt);
+PRP_API PRP_Result PRP_CALL HLIX_WindowIsFullscreen(const HLIX_Window *pWindow,
+                                                    PRP_Bool *pRslt);
+PRP_API PRP_Result PRP_CALL HLIX_WindowIsVisible(const HLIX_Window *pWindow,
+                                                 PRP_Bool *pRslt);
 
 /*
  * void HLIX_WindowShow();

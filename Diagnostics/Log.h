@@ -42,7 +42,7 @@ typedef enum {
  * @param dest: The file to output the logs to.
  * @parma msg: The msg to output to the file.
  */
-PRP_FN_API void PRP_FN_CALL DIAG_Write(FILE *dest, const PRP_Char8 *msg);
+PRP_API void PRP_CALL DIAG_Write(FILE *dest, const PRP_Char8 *msg);
 
 /**
  * A thread-safe way to output logs in the engine
@@ -58,10 +58,10 @@ PRP_FN_API void PRP_FN_CALL DIAG_Write(FILE *dest, const PRP_Char8 *msg);
  * __func__ as the param.
  * @param fmt: The user written message, that is to be logged.
  */
-PRP_FN_API void PRP_FN_CALL DIAG_Log(DIAG_LogLevel lvl, DIAG_LogCode code,
-                                     const PRP_Char8 *file, PRP_Size line,
-                                     const PRP_Char8 *func,
-                                     const PRP_Char8 *msg, ...);
+PRP_API void PRP_CALL DIAG_Log(DIAG_LogLevel lvl, DIAG_LogCode code,
+                               const PRP_Char8 *file, PRP_Size line,
+                               const PRP_Char8 *func, const PRP_Char8 *msg,
+                               ...);
 
 #define DIAG_LOG_TRACE(code, msg, ...)                                         \
     DIAG_Log(DIAG_LOG_LEVEL_TRACE, code, __FILE__, __LINE__, __func__, msg,    \

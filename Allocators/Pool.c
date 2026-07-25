@@ -17,14 +17,14 @@ struct _Pool {
     DIAG_ASSERT_MSG(MEM_PoolIsValid(pool),                                     \
                     "The given pool is either NULL, or is corrupted.")
 
-PRP_FN_API PRP_Bool PRP_FN_CALL MEM_PoolIsValid(const MEM_Pool *pool) {
+PRP_API PRP_Bool PRP_CALL MEM_PoolIsValid(const MEM_Pool *pool) {
     return (pool != NULL && pool->memb_size > 0 &&
             pool->cap <= MAX_CAP(pool->memb_size));
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL MEM_PoolCreateUnchecked(PRP_Size memb_size,
-                                                          PRP_Size cap,
-                                                          MEM_Pool **pPool) {
+PRP_API PRP_Result PRP_CALL MEM_PoolCreateUnchecked(PRP_Size memb_size,
+                                                    PRP_Size cap,
+                                                    MEM_Pool **pPool) {
     DIAG_ASSERT(memb_size > 0);
     DIAG_ASSERT(cap > 0);
     DIAG_ASSERT(pPool != NULL);
@@ -55,9 +55,9 @@ PRP_FN_API PRP_Result PRP_FN_CALL MEM_PoolCreateUnchecked(PRP_Size memb_size,
     return PRP_OK;
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL MEM_PoolCreateChecked(PRP_Size memb_size,
-                                                        PRP_Size cap,
-                                                        MEM_Pool **pPool) {
+PRP_API PRP_Result PRP_CALL MEM_PoolCreateChecked(PRP_Size memb_size,
+                                                  PRP_Size cap,
+                                                  MEM_Pool **pPool) {
     if (!memb_size || !cap || !pPool) {
         return PRP_ERR_INV_ARG;
     }
@@ -65,7 +65,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL MEM_PoolCreateChecked(PRP_Size memb_size,
     return MEM_PoolCreateUnchecked(memb_size, cap, pPool);
 }
 
-PRP_FN_API void PRP_FN_CALL MEM_PoolDeleteUnchecked(MEM_Pool **pPool) {
+PRP_API void PRP_CALL MEM_PoolDeleteUnchecked(MEM_Pool **pPool) {
     DIAG_ASSERT(pPool != NULL);
     DIAG_ASSERT(*pPool != NULL);
 
@@ -77,7 +77,7 @@ PRP_FN_API void PRP_FN_CALL MEM_PoolDeleteUnchecked(MEM_Pool **pPool) {
     *pPool = NULL;
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL MEM_PoolDeleteChecked(MEM_Pool **pPool) {
+PRP_API PRP_Result PRP_CALL MEM_PoolDeleteChecked(MEM_Pool **pPool) {
     if (!pPool || !(*pPool)) {
         return PRP_ERR_INV_ARG;
     }
@@ -87,8 +87,8 @@ PRP_FN_API PRP_Result PRP_FN_CALL MEM_PoolDeleteChecked(MEM_Pool **pPool) {
     return PRP_OK;
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL MEM_PoolAllocUnchecked(MEM_Pool *pool,
-                                                         void **pDest) {
+PRP_API PRP_Result PRP_CALL MEM_PoolAllocUnchecked(MEM_Pool *pool,
+                                                   void **pDest) {
     ASSERT_INVARIANT_EXPR(pool);
     DIAG_ASSERT(pDest != NULL);
 
@@ -103,8 +103,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL MEM_PoolAllocUnchecked(MEM_Pool *pool,
     return PRP_OK;
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL MEM_PoolAllocChecked(MEM_Pool *pool,
-                                                       void **pDest) {
+PRP_API PRP_Result PRP_CALL MEM_PoolAllocChecked(MEM_Pool *pool, void **pDest) {
     if (!MEM_PoolIsValid(pool) || !pDest) {
         return PRP_ERR_INV_ARG;
     }
@@ -112,8 +111,8 @@ PRP_FN_API PRP_Result PRP_FN_CALL MEM_PoolAllocChecked(MEM_Pool *pool,
     return MEM_PoolAllocUnchecked(pool, pDest);
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL MEM_PoolCallocUnchecked(MEM_Pool *pool,
-                                                          void **pDest) {
+PRP_API PRP_Result PRP_CALL MEM_PoolCallocUnchecked(MEM_Pool *pool,
+                                                    void **pDest) {
     ASSERT_INVARIANT_EXPR(pool);
     DIAG_ASSERT(pDest != NULL);
 
@@ -129,8 +128,8 @@ PRP_FN_API PRP_Result PRP_FN_CALL MEM_PoolCallocUnchecked(MEM_Pool *pool,
     return PRP_OK;
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL MEM_PoolCallocChecked(MEM_Pool *pool,
-                                                        void **pDest) {
+PRP_API PRP_Result PRP_CALL MEM_PoolCallocChecked(MEM_Pool *pool,
+                                                  void **pDest) {
     if (!MEM_PoolIsValid(pool) || !pDest) {
         return PRP_ERR_INV_ARG;
     }
@@ -138,7 +137,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL MEM_PoolCallocChecked(MEM_Pool *pool,
     return MEM_PoolCallocUnchecked(pool, pDest);
 }
 
-PRP_FN_API void PRP_FN_CALL MEM_PoolFreeUnchecked(MEM_Pool *pool, void *ptr) {
+PRP_API void PRP_CALL MEM_PoolFreeUnchecked(MEM_Pool *pool, void *ptr) {
     DIAG_ASSERT(ptr != NULL);
     ASSERT_INVARIANT_EXPR(pool);
     DIAG_ASSERT_MSG(
@@ -157,8 +156,7 @@ PRP_FN_API void PRP_FN_CALL MEM_PoolFreeUnchecked(MEM_Pool *pool, void *ptr) {
     pool->free_list = ptr;
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL MEM_PoolFreeChecked(MEM_Pool *pool,
-                                                      void *ptr) {
+PRP_API PRP_Result PRP_CALL MEM_PoolFreeChecked(MEM_Pool *pool, void *ptr) {
     if (!ptr || !MEM_PoolIsValid(pool)) {
         return PRP_ERR_INV_ARG;
     }
@@ -173,25 +171,25 @@ PRP_FN_API PRP_Result PRP_FN_CALL MEM_PoolFreeChecked(MEM_Pool *pool,
     return PRP_OK;
 }
 
-PRP_FN_API PRP_Size PRP_FN_CALL MEM_PoolCap(const MEM_Pool *pool) {
+PRP_API PRP_Size PRP_CALL MEM_PoolCap(const MEM_Pool *pool) {
     ASSERT_INVARIANT_EXPR(pool);
 
     return pool->cap;
 }
 
-PRP_FN_API PRP_Size PRP_FN_CALL MEM_PoolMembSize(const MEM_Pool *pool) {
+PRP_API PRP_Size PRP_CALL MEM_PoolMembSize(const MEM_Pool *pool) {
     ASSERT_INVARIANT_EXPR(pool);
 
     return pool->memb_size;
 }
 
-PRP_FN_API PRP_Size PRP_FN_CALL MEM_PoolMaxCap(const MEM_Pool *pool) {
+PRP_API PRP_Size PRP_CALL MEM_PoolMaxCap(const MEM_Pool *pool) {
     ASSERT_INVARIANT_EXPR(pool);
 
     return MAX_CAP(pool->memb_size);
 }
 
-PRP_FN_API void PRP_FN_CALL MEM_PoolResetUnchecked(MEM_Pool *pool) {
+PRP_API void PRP_CALL MEM_PoolResetUnchecked(MEM_Pool *pool) {
     ASSERT_INVARIANT_EXPR(pool);
 
     pool->free_list = NULL;
@@ -204,7 +202,7 @@ PRP_FN_API void PRP_FN_CALL MEM_PoolResetUnchecked(MEM_Pool *pool) {
     pool->free_list = pool->mem;
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL MEM_PoolResetChecked(MEM_Pool *pool) {
+PRP_API PRP_Result PRP_CALL MEM_PoolResetChecked(MEM_Pool *pool) {
     if (!MEM_PoolIsValid(pool)) {
         return PRP_ERR_INV_ARG;
     }

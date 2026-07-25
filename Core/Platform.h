@@ -4,6 +4,22 @@
 extern "C" {
 #endif
 
+/**
+ * Compile-time configuration macros recognized by PRP.
+ *
+ * PRP_NDEBUG
+ *     Builds PRP in release mode. Disables debug-only diagnostics,
+ *     assertions, and validation checks.
+ *
+ * PRP_BUILD_DLL
+ *     Indicates that PRP itself is being built as a shared library.
+ *     Public symbols are exported.
+ *
+ * PRP_USE_DLL
+ *     Indicates that PRP is being linked against as a shared library.
+ *     Public symbols are imported.
+ */
+
 #ifdef PRP_NDEBUG
 #define PRP_DEBUG_MODE 1
 #else
@@ -637,6 +653,33 @@ extern "C" {
 #define PRP_ATTR_EXPORT __attribute__((visibility("default")))
 #define PRP_ATTR_IMPORT
 #endif
+
+/* ---- API ---- */
+
+#if defined(PRP_BUILD_DLL)
+#define PRP_API PRP_ATTR_EXPORT;
+
+#elif defined(PRP_USE_DLL)
+#define PRP_API PRP_ATTR_IMPORT;
+
+#else
+#define PRP_API
+#endif
+
+/* ---- CALLING ---- */
+
+#if defined(PRP_COMPILER_MSVC)
+#define PRP_CDECL __cdecl
+#define PRP_STDCALL __stdcall
+#define PRP_FASTCALL __fastcall
+
+#else
+#define PRP_CDECL
+#define PRP_STDCALL
+#define PRP_FASTCALL
+#endif
+
+#define PRP_CALL PRP_CDECL
 
 /* ----  FORCEINLINE and NOINLINE ---- */
 

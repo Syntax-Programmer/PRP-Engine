@@ -4,7 +4,6 @@
 extern "C" {
 #endif
 
-#include "Core/Defs.h"
 #include "Defs.h"
 #include "Diagnostics/Assert.h"
 #include "Math/Vector/Vec2.h"
@@ -166,7 +165,7 @@ static inline PRP_Bool MATH_Mat3IsIdentity(MATH_Mat3 a) {
                   MATH_AlmostEqF32(a.membs[8], 1.0f));
 }
 
-PRP_FN_API PRP_Bool PRP_FN_CALL MATH_Mat3IsOrthonormal(MATH_Mat3 a);
+PRP_API PRP_Bool PRP_CALL MATH_Mat3IsOrthonormal(MATH_Mat3 a);
 
 /* ----  BASIC OPS  ---- */
 
@@ -260,7 +259,7 @@ static inline MATH_Mat3 MATH_Mat3ScalarDivSafe(MATH_Mat3 a, PRP_F32 s,
     return MATH_Mat3ScalarDiv(a, s);
 }
 
-PRP_FN_API MATH_Mat3 PRP_FN_CALL MATH_Mat3Mul(MATH_Mat3 a, MATH_Mat3 b);
+PRP_API MATH_Mat3 PRP_CALL MATH_Mat3Mul(MATH_Mat3 a, MATH_Mat3 b);
 
 static inline MATH_Mat3 MATH_Mat3Outer(MATH_Vec3 u, MATH_Vec3 v) {
     return (MATH_Mat3){.membs = {(u.x * v.x), (u.y * v.x), (u.z * v.x),
@@ -376,9 +375,9 @@ static inline MATH_Mat3 MATH_Mat3SetAt(MATH_Mat3 a, PRP_Size row, PRP_Size col,
 
 /* ----  BASIC ALGEBRA  ---- */
 
-PRP_FN_API MATH_Mat3 PRP_FN_CALL MATH_Mat3Transpose(MATH_Mat3 a);
-PRP_FN_API MATH_Mat3 PRP_FN_CALL MATH_Mat3Adjoint(MATH_Mat3 a);
-PRP_FN_API PRP_F32 PRP_FN_CALL MATH_Mat3Det(MATH_Mat3 a);
+PRP_API MATH_Mat3 PRP_CALL MATH_Mat3Transpose(MATH_Mat3 a);
+PRP_API MATH_Mat3 PRP_CALL MATH_Mat3Adjoint(MATH_Mat3 a);
+PRP_API PRP_F32 PRP_CALL MATH_Mat3Det(MATH_Mat3 a);
 
 static inline PRP_Bool MATH_Mat3IsFlipped(MATH_Mat3 a) {
     return (PRP_Bool)(MATH_Mat3Det(a) < 0.0f);
@@ -388,8 +387,8 @@ static inline MATH_Mat3 MATH_Mat3InvOrthonormal(MATH_Mat3 a) {
     return MATH_Mat3Transpose(a);
 }
 
-PRP_FN_API MATH_Mat3 PRP_FN_CALL MATH_Mat3Inv(MATH_Mat3 a,
-                                              MATH_Mat3 det_zero_fallback);
+PRP_API MATH_Mat3 PRP_CALL MATH_Mat3Inv(MATH_Mat3 a,
+                                        MATH_Mat3 det_zero_fallback);
 
 static inline PRP_F32 MATH_Mat3FrobeniusNorm(MATH_Mat3 a) {
     return MATH_SqrtF32((a.membs[0] * a.membs[0]) + (a.membs[1] * a.membs[1]) +
@@ -407,9 +406,9 @@ static inline PRP_F32 MATH_Mat3FrobeniusNormSq(MATH_Mat3 a) {
            (a.membs[8] * a.membs[8]);
 }
 
-PRP_FN_API MATH_Mat3 PRP_FN_CALL MATH_Mat3Orthonormalize(MATH_Mat3 a);
-PRP_FN_API MATH_Mat3 PRP_FN_CALL
-MATH_Mat3OrthonormalizeSafe(MATH_Mat3 a, MATH_Mat3 fallback);
+PRP_API MATH_Mat3 PRP_CALL MATH_Mat3Orthonormalize(MATH_Mat3 a);
+PRP_API MATH_Mat3 PRP_CALL MATH_Mat3OrthonormalizeSafe(MATH_Mat3 a,
+                                                       MATH_Mat3 fallback);
 
 #ifdef __cplusplus
 }

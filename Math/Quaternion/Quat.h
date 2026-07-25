@@ -54,24 +54,17 @@ static inline MATH_Quat MATH_QuatCreateAxisZ(PRP_F32 rad) {
     return (MATH_Quat){.x = 0.0f, .y = 0.0f, .z = s, .w = c};
 }
 
-PRP_FN_API MATH_Quat PRP_FN_CALL MATH_QuatCreateAxis(MATH_Vec3 axis,
-                                                     PRP_F32 rad);
-PRP_FN_API MATH_Quat PRP_FN_CALL MATH_QuatCreateAxisSafe(MATH_Vec3 axis,
-                                                         PRP_F32 rad,
-                                                         MATH_Quat fallback);
+PRP_API MATH_Quat PRP_CALL MATH_QuatCreateAxis(MATH_Vec3 axis, PRP_F32 rad);
+PRP_API MATH_Quat PRP_CALL MATH_QuatCreateAxisSafe(MATH_Vec3 axis,
+                                                      PRP_F32 rad,
+                                                      MATH_Quat fallback);
 
-PRP_FN_API MATH_Quat PRP_FN_CALL
-MATH_QuatCreateEulerXYZ(MATH_EulerAngle angles);
-PRP_FN_API MATH_Quat PRP_FN_CALL
-MATH_QuatCreateEulerZXY(MATH_EulerAngle angles);
-PRP_FN_API MATH_Quat PRP_FN_CALL
-MATH_QuatCreateEulerYZX(MATH_EulerAngle angles);
-PRP_FN_API MATH_Quat PRP_FN_CALL
-MATH_QuatCreateEulerYXZ(MATH_EulerAngle angles);
-PRP_FN_API MATH_Quat PRP_FN_CALL
-MATH_QuatCreateEulerZYX(MATH_EulerAngle angles);
-PRP_FN_API MATH_Quat PRP_FN_CALL
-MATH_QuatCreateEulerXZY(MATH_EulerAngle angles);
+PRP_API MATH_Quat PRP_CALL MATH_QuatCreateEulerXYZ(MATH_EulerAngle angles);
+PRP_API MATH_Quat PRP_CALL MATH_QuatCreateEulerZXY(MATH_EulerAngle angles);
+PRP_API MATH_Quat PRP_CALL MATH_QuatCreateEulerYZX(MATH_EulerAngle angles);
+PRP_API MATH_Quat PRP_CALL MATH_QuatCreateEulerYXZ(MATH_EulerAngle angles);
+PRP_API MATH_Quat PRP_CALL MATH_QuatCreateEulerZYX(MATH_EulerAngle angles);
+PRP_API MATH_Quat PRP_CALL MATH_QuatCreateEulerXZY(MATH_EulerAngle angles);
 
 static inline MATH_Quat MATH_QuatCreateEuler(MATH_EulerAngle angles,
                                              MATH_EulerAngleOrder order) {
@@ -197,7 +190,7 @@ static inline MATH_Quat MATH_QuatScalarDivSafe(MATH_Quat a, PRP_F32 s,
     return MATH_QuatScalarDiv(a, s);
 }
 
-PRP_FN_API MATH_Quat PRP_FN_CALL MATH_QuatMul(MATH_Quat a, MATH_Quat b);
+PRP_API MATH_Quat PRP_CALL MATH_QuatMul(MATH_Quat a, MATH_Quat b);
 
 /* ----  BASIC ALGEBRA  ---- */
 
@@ -239,13 +232,12 @@ static inline MATH_Quat MATH_QuatInv(MATH_Quat a) {
                : MATH_QuatScalarMul(MATH_QuatConjugate(a), 1.0f / len_sq);
 }
 
-PRP_FN_API MATH_Quat PRP_FN_CALL MATH_QuatExp(MATH_Quat x);
-PRP_FN_API MATH_Quat PRP_FN_CALL MATH_QuatLog(MATH_Quat x);
-PRP_FN_API MATH_Quat PRP_FN_CALL MATH_QuatLogSafe(MATH_Quat x,
-                                                  MATH_Quat fallback);
-PRP_FN_API MATH_Quat PRP_FN_CALL MATH_QuatPow(MATH_Quat x, PRP_F32 y);
-PRP_FN_API MATH_Quat PRP_FN_CALL MATH_QuatPowSafe(MATH_Quat x, PRP_F32 y,
-                                                  MATH_Quat fallback);
+PRP_API MATH_Quat PRP_CALL MATH_QuatExp(MATH_Quat x);
+PRP_API MATH_Quat PRP_CALL MATH_QuatLog(MATH_Quat x);
+PRP_API MATH_Quat PRP_CALL MATH_QuatLogSafe(MATH_Quat x, MATH_Quat fallback);
+PRP_API MATH_Quat PRP_CALL MATH_QuatPow(MATH_Quat x, PRP_F32 y);
+PRP_API MATH_Quat PRP_CALL MATH_QuatPowSafe(MATH_Quat x, PRP_F32 y,
+                                               MATH_Quat fallback);
 
 /* ----  ALGEBRAIC EXTRACTIONS  ---- */
 

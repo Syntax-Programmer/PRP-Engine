@@ -2,8 +2,7 @@
 
 /* ----  CONSTRUCTORS ---- */
 
-PRP_FN_API MATH_Quat PRP_FN_API MATH_QuatCreateAxis(MATH_Vec3 axis,
-                                                    PRP_F32 rad) {
+PRP_API MATH_Quat PRP_API MATH_QuatCreateAxis(MATH_Vec3 axis, PRP_F32 rad) {
     PRP_F32 half = rad * 0.5f;
     PRP_F32 s = MATH_SinF32(half);
     PRP_F32 c = MATH_CosF32(half);
@@ -17,9 +16,8 @@ PRP_FN_API MATH_Quat PRP_FN_API MATH_QuatCreateAxis(MATH_Vec3 axis,
     };
 }
 
-PRP_FN_API MATH_Quat PRP_FN_CALL MATH_QuatCreateAxisSafe(MATH_Vec3 axis,
-                                                         PRP_F32 rad,
-                                                         MATH_Quat fallback) {
+PRP_API MATH_Quat PRP_CALL MATH_QuatCreateAxisSafe(MATH_Vec3 axis, PRP_F32 rad,
+                                                   MATH_Quat fallback) {
     if (MATH_IsZeroF32(MATH_Vec3LenSq(axis))) {
         return fallback;
     }
@@ -27,8 +25,7 @@ PRP_FN_API MATH_Quat PRP_FN_CALL MATH_QuatCreateAxisSafe(MATH_Vec3 axis,
     return MATH_QuatCreateAxis(axis, rad);
 }
 
-PRP_FN_API MATH_Quat PRP_FN_CALL
-MATH_QuatCreateEulerXYZ(MATH_EulerAngle angles) {
+PRP_API MATH_Quat PRP_CALL MATH_QuatCreateEulerXYZ(MATH_EulerAngle angles) {
     PRP_F32 hx = angles.x_rad * 0.5f;
     PRP_F32 hy = angles.y_rad * 0.5f;
     PRP_F32 hz = angles.z_rad * 0.5f;
@@ -48,8 +45,7 @@ MATH_QuatCreateEulerXYZ(MATH_EulerAngle angles) {
     return quat;
 }
 
-PRP_FN_API MATH_Quat PRP_FN_CALL
-MATH_QuatCreateEulerZXY(MATH_EulerAngle angles) {
+PRP_API MATH_Quat PRP_CALL MATH_QuatCreateEulerZXY(MATH_EulerAngle angles) {
     PRP_F32 hx = angles.x_rad * 0.5f;
     PRP_F32 hy = angles.y_rad * 0.5f;
     PRP_F32 hz = angles.z_rad * 0.5f;
@@ -69,8 +65,7 @@ MATH_QuatCreateEulerZXY(MATH_EulerAngle angles) {
     return quat;
 }
 
-PRP_FN_API MATH_Quat PRP_FN_CALL
-MATH_QuatCreateEulerYZX(MATH_EulerAngle angles) {
+PRP_API MATH_Quat PRP_CALL MATH_QuatCreateEulerYZX(MATH_EulerAngle angles) {
     PRP_F32 hx = angles.x_rad * 0.5f;
     PRP_F32 hy = angles.y_rad * 0.5f;
     PRP_F32 hz = angles.z_rad * 0.5f;
@@ -90,8 +85,7 @@ MATH_QuatCreateEulerYZX(MATH_EulerAngle angles) {
     return quat;
 }
 
-PRP_FN_API MATH_Quat PRP_FN_CALL
-MATH_QuatCreateEulerYXZ(MATH_EulerAngle angles) {
+PRP_API MATH_Quat PRP_CALL MATH_QuatCreateEulerYXZ(MATH_EulerAngle angles) {
     PRP_F32 hx = angles.x_rad * 0.5f;
     PRP_F32 hy = angles.y_rad * 0.5f;
     PRP_F32 hz = angles.z_rad * 0.5f;
@@ -111,8 +105,7 @@ MATH_QuatCreateEulerYXZ(MATH_EulerAngle angles) {
     return quat;
 }
 
-PRP_FN_API MATH_Quat PRP_FN_CALL
-MATH_QuatCreateEulerZYX(MATH_EulerAngle angles) {
+PRP_API MATH_Quat PRP_CALL MATH_QuatCreateEulerZYX(MATH_EulerAngle angles) {
     PRP_F32 hx = angles.x_rad * 0.5f;
     PRP_F32 hy = angles.y_rad * 0.5f;
     PRP_F32 hz = angles.z_rad * 0.5f;
@@ -132,8 +125,7 @@ MATH_QuatCreateEulerZYX(MATH_EulerAngle angles) {
     return quat;
 }
 
-PRP_FN_API MATH_Quat PRP_FN_CALL
-MATH_QuatCreateEulerXZY(MATH_EulerAngle angles) {
+PRP_API MATH_Quat PRP_CALL MATH_QuatCreateEulerXZY(MATH_EulerAngle angles) {
     PRP_F32 hx = angles.x_rad * 0.5f;
     PRP_F32 hy = angles.y_rad * 0.5f;
     PRP_F32 hz = angles.z_rad * 0.5f;
@@ -155,7 +147,7 @@ MATH_QuatCreateEulerXZY(MATH_EulerAngle angles) {
 
 /* ----  BASIC OPS ---- */
 
-PRP_FN_API MATH_Quat PRP_FN_CALL MATH_QuatMul(MATH_Quat a, MATH_Quat b) {
+PRP_API MATH_Quat PRP_CALL MATH_QuatMul(MATH_Quat a, MATH_Quat b) {
     MATH_Quat quat;
 
     quat.x = (a.w * b.x) + (a.x * b.w) + (a.y * b.z) - (a.z * b.y);
@@ -168,7 +160,7 @@ PRP_FN_API MATH_Quat PRP_FN_CALL MATH_QuatMul(MATH_Quat a, MATH_Quat b) {
 
 /* ----  BASIC ALGEBRA  ---- */
 
-PRP_FN_API MATH_Quat PRP_FN_CALL MATH_QuatExp(MATH_Quat x) {
+PRP_API MATH_Quat PRP_CALL MATH_QuatExp(MATH_Quat x) {
     PRP_F32 exp_w = MATH_ExpF32(x.w);
     PRP_F32 v_len = MATH_SqrtF32((x.x * x.x) + (x.y * x.y) + (x.z * x.z));
     PRP_F32 v_const;
@@ -189,7 +181,7 @@ PRP_FN_API MATH_Quat PRP_FN_CALL MATH_QuatExp(MATH_Quat x) {
     return x;
 }
 
-PRP_FN_API MATH_Quat PRP_FN_CALL MATH_QuatLog(MATH_Quat x) {
+PRP_API MATH_Quat PRP_CALL MATH_QuatLog(MATH_Quat x) {
     PRP_F32 v_len_sq = (x.x * x.x) + (x.y * x.y) + (x.z * x.z);
     PRP_F32 q_len = MATH_SqrtF32(v_len_sq + (x.w * x.w));
 
@@ -210,8 +202,7 @@ PRP_FN_API MATH_Quat PRP_FN_CALL MATH_QuatLog(MATH_Quat x) {
     return x;
 }
 
-PRP_FN_API MATH_Quat PRP_FN_CALL MATH_QuatLogSafe(MATH_Quat x,
-                                                  MATH_Quat fallback) {
+PRP_API MATH_Quat PRP_CALL MATH_QuatLogSafe(MATH_Quat x, MATH_Quat fallback) {
     PRP_F32 q_len_sq = (x.x * x.x) + (x.y * x.y) + (x.z * x.z) + (x.w * x.w);
     if (MATH_IsZeroF32(q_len_sq)) {
         return fallback;
@@ -220,12 +211,12 @@ PRP_FN_API MATH_Quat PRP_FN_CALL MATH_QuatLogSafe(MATH_Quat x,
     return MATH_QuatLog(x);
 }
 
-PRP_FN_API MATH_Quat PRP_FN_CALL MATH_QuatPow(MATH_Quat x, PRP_F32 y) {
+PRP_API MATH_Quat PRP_CALL MATH_QuatPow(MATH_Quat x, PRP_F32 y) {
     return MATH_QuatExp(MATH_QuatScalarMul(MATH_QuatLog(x), y));
 }
 
-PRP_FN_API MATH_Quat PRP_FN_CALL MATH_QuatPowSafe(MATH_Quat x, PRP_F32 y,
-                                                  MATH_Quat fallback) {
+PRP_API MATH_Quat PRP_CALL MATH_QuatPowSafe(MATH_Quat x, PRP_F32 y,
+                                            MATH_Quat fallback) {
     PRP_F32 q_len_sq = (x.x * x.x) + (x.y * x.y) + (x.z * x.z) + (x.w * x.w);
     if (MATH_IsZeroF32(q_len_sq)) {
         return fallback;

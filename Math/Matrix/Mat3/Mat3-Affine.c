@@ -2,7 +2,7 @@
 
 /* ----  COMPARE FUNCTIONS  ---- */
 
-PRP_FN_API PRP_Bool PRP_FN_CALL MATH_Mat3IsAffineOrthonormal(MATH_Mat3 a) {
+PRP_API PRP_Bool PRP_CALL MATH_Mat3IsAffineOrthonormal(MATH_Mat3 a) {
     MATH_Vec2 c0 = {.x = a.membs[0], .y = a.membs[1]};
     MATH_Vec2 c1 = {.x = a.membs[3], .y = a.membs[4]};
 
@@ -19,8 +19,8 @@ PRP_FN_API PRP_Bool PRP_FN_CALL MATH_Mat3IsAffineOrthonormal(MATH_Mat3 a) {
 
 /* ----  BASIC ALGEBRA  ---- */
 
-PRP_FN_API MATH_Mat3 PRP_FN_CALL
-MATH_Mat3InvAffine(MATH_Mat3 a, MATH_Mat3 det_zero_fallback) {
+PRP_API MATH_Mat3 PRP_CALL MATH_Mat3InvAffine(MATH_Mat3 a,
+                                              MATH_Mat3 det_zero_fallback) {
     PRP_F32 a00 = a.membs[0], a10 = a.membs[1];
     PRP_F32 a01 = a.membs[3], a11 = a.membs[4];
     PRP_F32 tx = a.membs[6], ty = a.membs[7];
@@ -44,7 +44,7 @@ MATH_Mat3InvAffine(MATH_Mat3 a, MATH_Mat3 det_zero_fallback) {
         .membs = {r00, r10, 0.0f, r01, r11, 0.0f, itx, ity, 1.0f}};
 }
 
-PRP_FN_API MATH_Mat3 PRP_FN_CALL MATH_Mat3InvAffineOrthonormal(MATH_Mat3 a) {
+PRP_API MATH_Mat3 PRP_CALL MATH_Mat3InvAffineOrthonormal(MATH_Mat3 a) {
     PRP_F32 r00 = a.membs[0], r10 = a.membs[1];
     PRP_F32 r01 = a.membs[3], r11 = a.membs[4];
     PRP_F32 tx = a.membs[6];
@@ -58,7 +58,7 @@ PRP_FN_API MATH_Mat3 PRP_FN_CALL MATH_Mat3InvAffineOrthonormal(MATH_Mat3 a) {
                                  -((r01 * tx) + (r11 * ty)), 1.0f}};
 }
 
-PRP_FN_API MATH_Mat3 PRP_FN_CALL MATH_Mat3AffineOrthonormalize(MATH_Mat3 a) {
+PRP_API MATH_Mat3 PRP_CALL MATH_Mat3AffineOrthonormalize(MATH_Mat3 a) {
     MATH_Vec2 c0 = {a.membs[0], a.membs[1]};
     MATH_Vec2 c1 = {a.membs[3], a.membs[4]};
     c0 = MATH_Vec2Normalize(c0);
@@ -77,7 +77,7 @@ PRP_FN_API MATH_Mat3 PRP_FN_CALL MATH_Mat3AffineOrthonormalize(MATH_Mat3 a) {
     return a;
 }
 
-PRP_FN_API MATH_Mat3 PRP_FN_CALL
+PRP_API MATH_Mat3 PRP_CALL
 MATH_Mat3AffineOrthonormalizeSafe(MATH_Mat3 a, MATH_Mat3 fallback) {
     if (MATH_IsZeroF32(
             MATH_Vec2LenSq((MATH_Vec2){.x = a.membs[0], .y = a.membs[1]})) ||
@@ -92,7 +92,7 @@ MATH_Mat3AffineOrthonormalizeSafe(MATH_Mat3 a, MATH_Mat3 fallback) {
 
 /* ----  ALGEBRAIC EXTRACTIONS  ---- */
 
-PRP_FN_API PRP_F32 PRP_FN_CALL MATH_Mat3ExtractRotation(MATH_Mat3 a) {
+PRP_API PRP_F32 PRP_CALL MATH_Mat3ExtractRotation(MATH_Mat3 a) {
     PRP_F32 a00 = a.membs[0], a10 = a.membs[1];
     MATH_Vec2 c0 = {.x = a00, .y = a10};
     PRP_F32 len = MATH_Vec2Len(c0);
@@ -106,7 +106,7 @@ PRP_FN_API PRP_F32 PRP_FN_CALL MATH_Mat3ExtractRotation(MATH_Mat3 a) {
     return MATH_ATan2F32(y, x);
 }
 
-PRP_FN_API MATH_Vec2 PRP_FN_CALL MATH_Mat3ExtractScale(MATH_Mat3 a) {
+PRP_API MATH_Vec2 PRP_CALL MATH_Mat3ExtractScale(MATH_Mat3 a) {
     MATH_Vec2 c0 = {.x = a.membs[0], .y = a.membs[1]};
     MATH_Vec2 c1 = {.x = a.membs[3], .y = a.membs[4]};
 
@@ -116,7 +116,7 @@ PRP_FN_API MATH_Vec2 PRP_FN_CALL MATH_Mat3ExtractScale(MATH_Mat3 a) {
     };
 }
 
-PRP_FN_API MATH_Mat3 PRP_FN_CALL MATH_Mat3NormBasis(MATH_Mat3 a) {
+PRP_API MATH_Mat3 PRP_CALL MATH_Mat3NormBasis(MATH_Mat3 a) {
     MATH_Vec2 s = MATH_Mat3ExtractScale(a);
     if (!MATH_IsZeroF32(s.x)) {
         a.membs[0] /= s.x;

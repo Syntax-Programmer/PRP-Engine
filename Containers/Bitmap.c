@@ -4,7 +4,7 @@
 
 /* ----  BITWORD UTILS ---- */
 
-PRP_FN_API PRP_Size PRP_FN_CALL CONT_BitwordCTZ(CONT_Bitword word) {
+PRP_API PRP_Size PRP_CALL CONT_BitwordCTZ(CONT_Bitword word) {
     if (!word) {
         return PRP_INVALID_INDEX;
     }
@@ -17,7 +17,7 @@ PRP_FN_API PRP_Size PRP_FN_CALL CONT_BitwordCTZ(CONT_Bitword word) {
 #endif
 }
 
-PRP_FN_API PRP_Size PRP_FN_CALL CONT_BitwordCLZ(CONT_Bitword word) {
+PRP_API PRP_Size PRP_CALL CONT_BitwordCLZ(CONT_Bitword word) {
     if (!word) {
         return PRP_INVALID_INDEX;
     }
@@ -30,7 +30,7 @@ PRP_FN_API PRP_Size PRP_FN_CALL CONT_BitwordCLZ(CONT_Bitword word) {
 #endif
 }
 
-PRP_FN_API PRP_Size PRP_FN_CALL CONT_BitwordPopCnt(CONT_Bitword word) {
+PRP_API PRP_Size PRP_CALL CONT_BitwordPopCnt(CONT_Bitword word) {
 #ifdef PRP_COMPILER_MSVC
     return (PRP_Size)__popcnt64(word);
 #else
@@ -38,7 +38,7 @@ PRP_FN_API PRP_Size PRP_FN_CALL CONT_BitwordPopCnt(CONT_Bitword word) {
 #endif
 }
 
-PRP_FN_API PRP_Size PRP_FN_CALL CONT_BitwordFFS(CONT_Bitword word) {
+PRP_API PRP_Size PRP_CALL CONT_BitwordFFS(CONT_Bitword word) {
 #ifdef PRP_COMPILER_MSVC
     unsigned long i;
     if (_BitScanForward64(&i, word))
@@ -120,15 +120,15 @@ static void BitmapCalcFirstSet(CONT_Bitmap *bmp, PRP_Size start) {
     bmp->first_set = PRP_INVALID_INDEX;
 }
 
-PRP_FN_API PRP_Bool PRP_FN_CALL CONT_BitmapIsValid(const CONT_Bitmap *bmp) {
+PRP_API PRP_Bool PRP_CALL CONT_BitmapIsValid(const CONT_Bitmap *bmp) {
     return (bmp != NULL && bmp->words != NULL &&
             bmp->bit_cap <= CONT_BITMAP_MAX_BIT_CAP &&
             bmp->set_c <= bmp->bit_cap &&
             WORD_I(bmp->bit_cap) == bmp->word_cap - 1);
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL
-CONT_BitmapCreateUnchecked(PRP_Size bit_cap, CONT_Bitmap **pBmp) {
+PRP_API PRP_Result PRP_CALL CONT_BitmapCreateUnchecked(PRP_Size bit_cap,
+                                                       CONT_Bitmap **pBmp) {
     DIAG_ASSERT(bit_cap > 0 && bit_cap <= CONT_BITMAP_MAX_BIT_CAP);
     DIAG_ASSERT(pBmp != NULL);
 
@@ -151,8 +151,8 @@ CONT_BitmapCreateUnchecked(PRP_Size bit_cap, CONT_Bitmap **pBmp) {
     return PRP_OK;
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL CONT_BitmapCreateChecked(PRP_Size bit_cap,
-                                                           CONT_Bitmap **pBmp) {
+PRP_API PRP_Result PRP_CALL CONT_BitmapCreateChecked(PRP_Size bit_cap,
+                                                     CONT_Bitmap **pBmp) {
     if (!bit_cap || bit_cap > CONT_BITMAP_MAX_BIT_CAP || !pBmp) {
         return PRP_ERR_INV_ARG;
     }
@@ -160,8 +160,8 @@ PRP_FN_API PRP_Result PRP_FN_CALL CONT_BitmapCreateChecked(PRP_Size bit_cap,
     return CONT_BitmapCreateUnchecked(bit_cap, pBmp);
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL
-CONT_BitmapCloneUnchecked(const CONT_Bitmap *bmp, CONT_Bitmap **pBmp) {
+PRP_API PRP_Result PRP_CALL CONT_BitmapCloneUnchecked(const CONT_Bitmap *bmp,
+                                                      CONT_Bitmap **pBmp) {
     ASSERT_INVARIANT_EXPR(bmp);
     DIAG_ASSERT(pBmp != NULL);
 
@@ -177,8 +177,8 @@ CONT_BitmapCloneUnchecked(const CONT_Bitmap *bmp, CONT_Bitmap **pBmp) {
     return PRP_OK;
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL
-CONT_BitmapCloneChecked(const CONT_Bitmap *bmp, CONT_Bitmap **pBmp) {
+PRP_API PRP_Result PRP_CALL CONT_BitmapCloneChecked(const CONT_Bitmap *bmp,
+                                                    CONT_Bitmap **pBmp) {
     if (!CONT_BitmapIsValid(bmp)) {
         return PRP_ERR_INV_ARG;
     }
@@ -186,7 +186,7 @@ CONT_BitmapCloneChecked(const CONT_Bitmap *bmp, CONT_Bitmap **pBmp) {
     return CONT_BitmapCloneUnchecked(bmp, pBmp);
 }
 
-PRP_FN_API void PRP_FN_CALL CONT_BitmapDeleteUnchecked(CONT_Bitmap **pBmp) {
+PRP_API void PRP_CALL CONT_BitmapDeleteUnchecked(CONT_Bitmap **pBmp) {
     DIAG_ASSERT(pBmp != NULL);
     DIAG_ASSERT(*pBmp != NULL && (*pBmp)->words != NULL);
 
@@ -204,7 +204,7 @@ PRP_FN_API void PRP_FN_CALL CONT_BitmapDeleteUnchecked(CONT_Bitmap **pBmp) {
     *pBmp = NULL;
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL CONT_BitmapDeleteChecked(CONT_Bitmap **pBmp) {
+PRP_API PRP_Result PRP_CALL CONT_BitmapDeleteChecked(CONT_Bitmap **pBmp) {
     if (!pBmp || !(*pBmp) || !(*pBmp)->words) {
         return PRP_ERR_INV_ARG;
     }
@@ -214,7 +214,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL CONT_BitmapDeleteChecked(CONT_Bitmap **pBmp) {
     return PRP_OK;
 }
 
-PRP_FN_API const CONT_Bitword *PRP_FN_CALL CONT_BitmapRawUnchecked(
+PRP_API const CONT_Bitword *PRP_CALL CONT_BitmapRawUnchecked(
     const CONT_Bitmap *bmp, PRP_Size *pWord_cap, PRP_Size *pBit_cap) {
     ASSERT_INVARIANT_EXPR(bmp);
     DIAG_ASSERT(pWord_cap != NULL);
@@ -226,10 +226,10 @@ PRP_FN_API const CONT_Bitword *PRP_FN_CALL CONT_BitmapRawUnchecked(
     return bmp->words;
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL CONT_BitmapRawChecked(const CONT_Bitmap *bmp,
-                                                        PRP_Size *pWord_cap,
-                                                        PRP_Size *pBit_cap,
-                                                        void **pRaw) {
+PRP_API PRP_Result PRP_CALL CONT_BitmapRawChecked(const CONT_Bitmap *bmp,
+                                                  PRP_Size *pWord_cap,
+                                                  PRP_Size *pBit_cap,
+                                                  void **pRaw) {
     if (!CONT_BitmapIsValid(bmp) || !pWord_cap || !pBit_cap || !pRaw) {
         return PRP_ERR_INV_ARG;
     }
@@ -242,26 +242,25 @@ PRP_FN_API PRP_Result PRP_FN_CALL CONT_BitmapRawChecked(const CONT_Bitmap *bmp,
     return PRP_OK;
 }
 
-PRP_FN_API PRP_Size PRP_FN_CALL CONT_BitmapSetCount(const CONT_Bitmap *bmp) {
+PRP_API PRP_Size PRP_CALL CONT_BitmapSetCount(const CONT_Bitmap *bmp) {
     ASSERT_INVARIANT_EXPR(bmp);
 
     return bmp->set_c;
 }
 
-PRP_FN_API PRP_Size PRP_FN_CALL CONT_BitmapFFS(const CONT_Bitmap *bmp) {
+PRP_API PRP_Size PRP_CALL CONT_BitmapFFS(const CONT_Bitmap *bmp) {
     ASSERT_INVARIANT_EXPR(bmp);
 
     return bmp->first_set;
 }
 
-PRP_FN_API PRP_Size PRP_FN_CALL CONT_BitmapBitCap(const CONT_Bitmap *bmp) {
+PRP_API PRP_Size PRP_CALL CONT_BitmapBitCap(const CONT_Bitmap *bmp) {
     ASSERT_INVARIANT_EXPR(bmp);
 
     return bmp->bit_cap;
 }
 
-PRP_FN_API void PRP_FN_CALL CONT_BitmapSetUnchecked(CONT_Bitmap *bmp,
-                                                    PRP_Size i) {
+PRP_API void PRP_CALL CONT_BitmapSetUnchecked(CONT_Bitmap *bmp, PRP_Size i) {
     ASSERT_INVARIANT_EXPR(bmp);
     DIAG_ASSERT(i < bmp->bit_cap);
 
@@ -278,8 +277,8 @@ PRP_FN_API void PRP_FN_CALL CONT_BitmapSetUnchecked(CONT_Bitmap *bmp,
     }
 }
 
-PRP_FN_API PRP_Size PRP_FN_CALL
-CONT_BitmapBitRankUnchecked(const CONT_Bitmap *bmp, PRP_Size i) {
+PRP_API PRP_Size PRP_CALL CONT_BitmapBitRankUnchecked(const CONT_Bitmap *bmp,
+                                                      PRP_Size i) {
     ASSERT_INVARIANT_EXPR(bmp);
     DIAG_ASSERT(i < bmp->bit_cap);
 
@@ -292,8 +291,9 @@ CONT_BitmapBitRankUnchecked(const CONT_Bitmap *bmp, PRP_Size i) {
     return idx;
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL
-CONT_BitmapBitRankChecked(const CONT_Bitmap *bmp, PRP_Size i, PRP_Size *pRank) {
+PRP_API PRP_Result PRP_CALL CONT_BitmapBitRankChecked(const CONT_Bitmap *bmp,
+                                                      PRP_Size i,
+                                                      PRP_Size *pRank) {
     if (!CONT_BitmapIsValid(bmp)) {
         return PRP_ERR_INV_ARG;
     }
@@ -306,8 +306,8 @@ CONT_BitmapBitRankChecked(const CONT_Bitmap *bmp, PRP_Size i, PRP_Size *pRank) {
     return PRP_OK;
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL CONT_BitmapSetChecked(CONT_Bitmap *bmp,
-                                                        PRP_Size i) {
+PRP_API PRP_Result PRP_CALL CONT_BitmapSetChecked(CONT_Bitmap *bmp,
+                                                  PRP_Size i) {
     if (!CONT_BitmapIsValid(bmp)) {
         return PRP_ERR_INV_ARG;
     }
@@ -320,8 +320,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL CONT_BitmapSetChecked(CONT_Bitmap *bmp,
     return PRP_OK;
 }
 
-PRP_FN_API void PRP_FN_CALL CONT_BitmapClrUnchecked(CONT_Bitmap *bmp,
-                                                    PRP_Size i) {
+PRP_API void PRP_CALL CONT_BitmapClrUnchecked(CONT_Bitmap *bmp, PRP_Size i) {
     ASSERT_INVARIANT_EXPR(bmp);
     DIAG_ASSERT(i < bmp->bit_cap);
 
@@ -337,8 +336,8 @@ PRP_FN_API void PRP_FN_CALL CONT_BitmapClrUnchecked(CONT_Bitmap *bmp,
     }
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL CONT_BitmapClrChecked(CONT_Bitmap *bmp,
-                                                        PRP_Size i) {
+PRP_API PRP_Result PRP_CALL CONT_BitmapClrChecked(CONT_Bitmap *bmp,
+                                                  PRP_Size i) {
     if (!CONT_BitmapIsValid(bmp)) {
         return PRP_ERR_INV_ARG;
     }
@@ -351,8 +350,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL CONT_BitmapClrChecked(CONT_Bitmap *bmp,
     return PRP_OK;
 }
 
-PRP_FN_API void PRP_FN_CALL CONT_BitmapToggleUnchecked(CONT_Bitmap *bmp,
-                                                       PRP_Size i) {
+PRP_API void PRP_CALL CONT_BitmapToggleUnchecked(CONT_Bitmap *bmp, PRP_Size i) {
     ASSERT_INVARIANT_EXPR(bmp);
     DIAG_ASSERT(i < bmp->bit_cap);
 
@@ -375,8 +373,8 @@ PRP_FN_API void PRP_FN_CALL CONT_BitmapToggleUnchecked(CONT_Bitmap *bmp,
     }
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL CONT_BitmapToggleChecked(CONT_Bitmap *bmp,
-                                                           PRP_Size i) {
+PRP_API PRP_Result PRP_CALL CONT_BitmapToggleChecked(CONT_Bitmap *bmp,
+                                                     PRP_Size i) {
     if (!CONT_BitmapIsValid(bmp)) {
         return PRP_ERR_INV_ARG;
     }
@@ -389,16 +387,17 @@ PRP_FN_API PRP_Result PRP_FN_CALL CONT_BitmapToggleChecked(CONT_Bitmap *bmp,
     return PRP_OK;
 }
 
-PRP_FN_API PRP_Bool PRP_FN_CALL
-CONT_BitmapIsSetUnchecked(const CONT_Bitmap *bmp, PRP_Size i) {
+PRP_API PRP_Bool PRP_CALL CONT_BitmapIsSetUnchecked(const CONT_Bitmap *bmp,
+                                                    PRP_Size i) {
     ASSERT_INVARIANT_EXPR(bmp);
     DIAG_ASSERT(i < bmp->bit_cap);
 
     return ((bmp->words[WORD_I(i)] & BIT_MASK(i)) != 0);
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL
-CONT_BitmapIsSetChecked(const CONT_Bitmap *bmp, PRP_Size i, PRP_Bool *pRslt) {
+PRP_API PRP_Result PRP_CALL CONT_BitmapIsSetChecked(const CONT_Bitmap *bmp,
+                                                    PRP_Size i,
+                                                    PRP_Bool *pRslt) {
     if (!CONT_BitmapIsValid(bmp) || !pRslt) {
         return PRP_ERR_INV_ARG;
     }
@@ -449,9 +448,8 @@ CONT_BitmapIsSetChecked(const CONT_Bitmap *bmp, PRP_Size i, PRP_Bool *pRslt) {
             (BIT_I(last) == 63) ? (CONT_Bitword)~0 : (BIT_MASK(last + 1) - 1); \
     } while (0)
 
-PRP_FN_API void PRP_FN_CALL CONT_BitmapSetRangeUnchecked(CONT_Bitmap *bmp,
-                                                         PRP_Size i,
-                                                         PRP_Size j) {
+PRP_API void PRP_CALL CONT_BitmapSetRangeUnchecked(CONT_Bitmap *bmp, PRP_Size i,
+                                                   PRP_Size j) {
     ASSERT_RANGE_OPS_VALIDITY(bmp, i, j);
 
     PRP_Size last = j - 1;
@@ -486,9 +484,8 @@ PRP_FN_API void PRP_FN_CALL CONT_BitmapSetRangeUnchecked(CONT_Bitmap *bmp,
     }
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL CONT_BitmapSetRangeChecked(CONT_Bitmap *bmp,
-                                                             PRP_Size i,
-                                                             PRP_Size j) {
+PRP_API PRP_Result PRP_CALL CONT_BitmapSetRangeChecked(CONT_Bitmap *bmp,
+                                                       PRP_Size i, PRP_Size j) {
     CHECK_RANGE_OPS_VALIDITY(bmp, i, j);
 
     CONT_BitmapSetRangeUnchecked(bmp, i, j);
@@ -496,9 +493,8 @@ PRP_FN_API PRP_Result PRP_FN_CALL CONT_BitmapSetRangeChecked(CONT_Bitmap *bmp,
     return PRP_OK;
 }
 
-PRP_FN_API void PRP_FN_CALL CONT_BitmapClrRangeUnchecked(CONT_Bitmap *bmp,
-                                                         PRP_Size i,
-                                                         PRP_Size j) {
+PRP_API void PRP_CALL CONT_BitmapClrRangeUnchecked(CONT_Bitmap *bmp, PRP_Size i,
+                                                   PRP_Size j) {
     ASSERT_RANGE_OPS_VALIDITY(bmp, i, j);
 
     if (!bmp->set_c) {
@@ -534,9 +530,8 @@ PRP_FN_API void PRP_FN_CALL CONT_BitmapClrRangeUnchecked(CONT_Bitmap *bmp,
     }
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL CONT_BitmapClrRangeChecked(CONT_Bitmap *bmp,
-                                                             PRP_Size i,
-                                                             PRP_Size j) {
+PRP_API PRP_Result PRP_CALL CONT_BitmapClrRangeChecked(CONT_Bitmap *bmp,
+                                                       PRP_Size i, PRP_Size j) {
     CHECK_RANGE_OPS_VALIDITY(bmp, i, j);
 
     CONT_BitmapClrRangeUnchecked(bmp, i, j);
@@ -544,9 +539,8 @@ PRP_FN_API PRP_Result PRP_FN_CALL CONT_BitmapClrRangeChecked(CONT_Bitmap *bmp,
     return PRP_OK;
 }
 
-PRP_FN_API void PRP_FN_CALL CONT_BitmapToggleRangeUnchecked(CONT_Bitmap *bmp,
-                                                            PRP_Size i,
-                                                            PRP_Size j) {
+PRP_API void PRP_CALL CONT_BitmapToggleRangeUnchecked(CONT_Bitmap *bmp,
+                                                      PRP_Size i, PRP_Size j) {
     ASSERT_RANGE_OPS_VALIDITY(bmp, i, j);
 
     PRP_Size last = j - 1;
@@ -580,8 +574,9 @@ PRP_FN_API void PRP_FN_CALL CONT_BitmapToggleRangeUnchecked(CONT_Bitmap *bmp,
     BitmapCalcFirstSet(bmp, i);
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL
-CONT_BitmapToggleRangeChecked(CONT_Bitmap *bmp, PRP_Size i, PRP_Size j) {
+PRP_API PRP_Result PRP_CALL CONT_BitmapToggleRangeChecked(CONT_Bitmap *bmp,
+                                                          PRP_Size i,
+                                                          PRP_Size j) {
     CHECK_RANGE_OPS_VALIDITY(bmp, i, j);
 
     CONT_BitmapToggleRangeUnchecked(bmp, i, j);
@@ -589,7 +584,7 @@ CONT_BitmapToggleRangeChecked(CONT_Bitmap *bmp, PRP_Size i, PRP_Size j) {
     return PRP_OK;
 }
 
-PRP_FN_API PRP_Bool PRP_FN_CALL CONT_BitmapIsSetRangeAnyUnchecked(
+PRP_API PRP_Bool PRP_CALL CONT_BitmapIsSetRangeAnyUnchecked(
     const CONT_Bitmap *bmp, PRP_Size i, PRP_Size j) {
     ASSERT_RANGE_OPS_VALIDITY(bmp, i, j);
 
@@ -622,7 +617,7 @@ PRP_FN_API PRP_Bool PRP_FN_CALL CONT_BitmapIsSetRangeAnyUnchecked(
     return PRP_False;
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL CONT_BitmapIsSetRangeAnyChecked(
+PRP_API PRP_Result PRP_CALL CONT_BitmapIsSetRangeAnyChecked(
     const CONT_Bitmap *bmp, PRP_Size i, PRP_Size j, PRP_Bool *pRslt) {
     CHECK_RANGE_OPS_VALIDITY(bmp, i, j);
     if (!pRslt) {
@@ -634,7 +629,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL CONT_BitmapIsSetRangeAnyChecked(
     return PRP_OK;
 }
 
-PRP_FN_API PRP_Bool PRP_FN_CALL CONT_BitmapIsSetRangeAllUnchecked(
+PRP_API PRP_Bool PRP_CALL CONT_BitmapIsSetRangeAllUnchecked(
     const CONT_Bitmap *bmp, PRP_Size i, PRP_Size j) {
     ASSERT_RANGE_OPS_VALIDITY(bmp, i, j);
 
@@ -667,7 +662,7 @@ PRP_FN_API PRP_Bool PRP_FN_CALL CONT_BitmapIsSetRangeAllUnchecked(
     return PRP_True;
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL CONT_BitmapIsSetRangeAllChecked(
+PRP_API PRP_Result PRP_CALL CONT_BitmapIsSetRangeAllChecked(
     const CONT_Bitmap *bmp, PRP_Size i, PRP_Size j, PRP_Bool *pRslt) {
     CHECK_RANGE_OPS_VALIDITY(bmp, i, j);
     if (!pRslt) {
@@ -679,15 +674,14 @@ PRP_FN_API PRP_Result PRP_FN_CALL CONT_BitmapIsSetRangeAllChecked(
     return PRP_OK;
 }
 
-PRP_FN_API PRP_Bool PRP_FN_CALL
-CONT_BitmapIsEmptyUnchecked(const CONT_Bitmap *bmp) {
+PRP_API PRP_Bool PRP_CALL CONT_BitmapIsEmptyUnchecked(const CONT_Bitmap *bmp) {
     ASSERT_INVARIANT_EXPR(bmp);
 
     return (bmp->set_c == 0);
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL
-CONT_BitmapIsEmptyChecked(const CONT_Bitmap *bmp, PRP_Bool *pRslt) {
+PRP_API PRP_Result PRP_CALL CONT_BitmapIsEmptyChecked(const CONT_Bitmap *bmp,
+                                                      PRP_Bool *pRslt) {
     if (!CONT_BitmapIsValid(bmp) || !pRslt) {
         return PRP_ERR_INV_ARG;
     }
@@ -697,15 +691,14 @@ CONT_BitmapIsEmptyChecked(const CONT_Bitmap *bmp, PRP_Bool *pRslt) {
     return PRP_OK;
 }
 
-PRP_FN_API PRP_Bool PRP_FN_CALL
-CONT_BitmapIsFullUnchecked(const CONT_Bitmap *bmp) {
+PRP_API PRP_Bool PRP_CALL CONT_BitmapIsFullUnchecked(const CONT_Bitmap *bmp) {
     ASSERT_INVARIANT_EXPR(bmp);
 
     return (bmp->set_c == bmp->bit_cap);
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL
-CONT_BitmapIsFullChecked(const CONT_Bitmap *bmp, PRP_Bool *pRslt) {
+PRP_API PRP_Result PRP_CALL CONT_BitmapIsFullChecked(const CONT_Bitmap *bmp,
+                                                     PRP_Bool *pRslt) {
     if (!CONT_BitmapIsValid(bmp) || !pRslt) {
         return PRP_ERR_INV_ARG;
     }
@@ -715,7 +708,7 @@ CONT_BitmapIsFullChecked(const CONT_Bitmap *bmp, PRP_Bool *pRslt) {
     return PRP_OK;
 }
 
-PRP_FN_API void PRP_FN_CALL CONT_BitmapNotUnchecked(CONT_Bitmap *bmp) {
+PRP_API void PRP_CALL CONT_BitmapNotUnchecked(CONT_Bitmap *bmp) {
     ASSERT_INVARIANT_EXPR(bmp);
 
     bmp->first_set = PRP_INVALID_INDEX;
@@ -737,7 +730,7 @@ PRP_FN_API void PRP_FN_CALL CONT_BitmapNotUnchecked(CONT_Bitmap *bmp) {
     bmp->words[bmp->word_cap - 1] &= mask;
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL CONT_BitmapNotChecked(CONT_Bitmap *bmp) {
+PRP_API PRP_Result PRP_CALL CONT_BitmapNotChecked(CONT_Bitmap *bmp) {
     if (!CONT_BitmapIsValid(bmp)) {
         return PRP_ERR_INV_ARG;
     }
@@ -747,8 +740,8 @@ PRP_FN_API PRP_Result PRP_FN_CALL CONT_BitmapNotChecked(CONT_Bitmap *bmp) {
     return PRP_OK;
 }
 
-PRP_FN_API void PRP_FN_CALL CONT_BitmapAndUnchecked(CONT_Bitmap *bmp1,
-                                                    const CONT_Bitmap *bmp2) {
+PRP_API void PRP_CALL CONT_BitmapAndUnchecked(CONT_Bitmap *bmp1,
+                                              const CONT_Bitmap *bmp2) {
     ASSERT_INVARIANT_EXPR(bmp1);
     ASSERT_INVARIANT_EXPR(bmp2);
 
@@ -772,8 +765,8 @@ PRP_FN_API void PRP_FN_CALL CONT_BitmapAndUnchecked(CONT_Bitmap *bmp1,
     }
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL
-CONT_BitmapAndChecked(CONT_Bitmap *bmp1, const CONT_Bitmap *bmp2) {
+PRP_API PRP_Result PRP_CALL CONT_BitmapAndChecked(CONT_Bitmap *bmp1,
+                                                  const CONT_Bitmap *bmp2) {
     if (!CONT_BitmapIsValid(bmp1) || !CONT_BitmapIsValid(bmp2)) {
         return PRP_ERR_INV_ARG;
     }
@@ -783,8 +776,8 @@ CONT_BitmapAndChecked(CONT_Bitmap *bmp1, const CONT_Bitmap *bmp2) {
     return PRP_OK;
 }
 
-PRP_FN_API void PRP_FN_CALL CONT_BitmapOrUnchecked(CONT_Bitmap *bmp1,
-                                                   const CONT_Bitmap *bmp2) {
+PRP_API void PRP_CALL CONT_BitmapOrUnchecked(CONT_Bitmap *bmp1,
+                                             const CONT_Bitmap *bmp2) {
     ASSERT_INVARIANT_EXPR(bmp1);
     ASSERT_INVARIANT_EXPR(bmp2);
 
@@ -815,8 +808,8 @@ PRP_FN_API void PRP_FN_CALL CONT_BitmapOrUnchecked(CONT_Bitmap *bmp1,
     }
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL
-CONT_BitmapOrChecked(CONT_Bitmap *bmp1, const CONT_Bitmap *bmp2) {
+PRP_API PRP_Result PRP_CALL CONT_BitmapOrChecked(CONT_Bitmap *bmp1,
+                                                 const CONT_Bitmap *bmp2) {
     if (!CONT_BitmapIsValid(bmp1) || !CONT_BitmapIsValid(bmp2)) {
         return PRP_ERR_INV_ARG;
     }
@@ -826,8 +819,8 @@ CONT_BitmapOrChecked(CONT_Bitmap *bmp1, const CONT_Bitmap *bmp2) {
     return PRP_OK;
 }
 
-PRP_FN_API PRP_Bool PRP_FN_CALL
-CONT_BitmapHasAllUnchecked(const CONT_Bitmap *bmp1, const CONT_Bitmap *bmp2) {
+PRP_API PRP_Bool PRP_CALL CONT_BitmapHasAllUnchecked(const CONT_Bitmap *bmp1,
+                                                     const CONT_Bitmap *bmp2) {
     ASSERT_INVARIANT_EXPR(bmp1);
     ASSERT_INVARIANT_EXPR(bmp2);
 
@@ -846,8 +839,9 @@ CONT_BitmapHasAllUnchecked(const CONT_Bitmap *bmp1, const CONT_Bitmap *bmp2) {
     return PRP_True;
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL CONT_BitmapHasAllChecked(
-    const CONT_Bitmap *bmp1, const CONT_Bitmap *bmp2, PRP_Bool *pRslt) {
+PRP_API PRP_Result PRP_CALL CONT_BitmapHasAllChecked(const CONT_Bitmap *bmp1,
+                                                     const CONT_Bitmap *bmp2,
+                                                     PRP_Bool *pRslt) {
     if (!CONT_BitmapIsValid(bmp1) || !CONT_BitmapIsValid(bmp2) || !pRslt) {
         return PRP_ERR_INV_ARG;
     }
@@ -857,8 +851,8 @@ PRP_FN_API PRP_Result PRP_FN_CALL CONT_BitmapHasAllChecked(
     return PRP_OK;
 }
 
-PRP_FN_API PRP_Bool PRP_FN_CALL
-CONT_BitmapHasAnyUnchecked(const CONT_Bitmap *bmp1, const CONT_Bitmap *bmp2) {
+PRP_API PRP_Bool PRP_CALL CONT_BitmapHasAnyUnchecked(const CONT_Bitmap *bmp1,
+                                                     const CONT_Bitmap *bmp2) {
     ASSERT_INVARIANT_EXPR(bmp1);
     ASSERT_INVARIANT_EXPR(bmp2);
 
@@ -873,8 +867,9 @@ CONT_BitmapHasAnyUnchecked(const CONT_Bitmap *bmp1, const CONT_Bitmap *bmp2) {
     return PRP_False;
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL CONT_BitmapHasAnyChecked(
-    const CONT_Bitmap *bmp1, const CONT_Bitmap *bmp2, PRP_Bool *pRslt) {
+PRP_API PRP_Result PRP_CALL CONT_BitmapHasAnyChecked(const CONT_Bitmap *bmp1,
+                                                     const CONT_Bitmap *bmp2,
+                                                     PRP_Bool *pRslt) {
     if (!CONT_BitmapIsValid(bmp1) || !CONT_BitmapIsValid(bmp2) || !pRslt) {
         return PRP_ERR_INV_ARG;
     }
@@ -884,8 +879,8 @@ PRP_FN_API PRP_Result PRP_FN_CALL CONT_BitmapHasAnyChecked(
     return PRP_OK;
 }
 
-PRP_FN_API PRP_Bool PRP_FN_CALL
-CONT_BitmapCmpUnchecked(const CONT_Bitmap *bmp1, const CONT_Bitmap *bmp2) {
+PRP_API PRP_Bool PRP_CALL CONT_BitmapCmpUnchecked(const CONT_Bitmap *bmp1,
+                                                  const CONT_Bitmap *bmp2) {
     ASSERT_INVARIANT_EXPR(bmp1);
     ASSERT_INVARIANT_EXPR(bmp2);
 
@@ -910,9 +905,9 @@ CONT_BitmapCmpUnchecked(const CONT_Bitmap *bmp1, const CONT_Bitmap *bmp2) {
     return PRP_True;
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL CONT_BitmapCmpChecked(const CONT_Bitmap *bmp1,
-                                                        const CONT_Bitmap *bmp2,
-                                                        PRP_Bool *pRslt) {
+PRP_API PRP_Result PRP_CALL CONT_BitmapCmpChecked(const CONT_Bitmap *bmp1,
+                                                  const CONT_Bitmap *bmp2,
+                                                  PRP_Bool *pRslt) {
     if (!CONT_BitmapIsValid(bmp1) || !CONT_BitmapIsValid(bmp2) || !pRslt) {
         return PRP_ERR_INV_ARG;
     }
@@ -922,7 +917,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL CONT_BitmapCmpChecked(const CONT_Bitmap *bmp1,
     return PRP_OK;
 }
 
-PRP_FN_API void PRP_FN_CALL CONT_BitmapResetUnchecked(CONT_Bitmap *bmp) {
+PRP_API void PRP_CALL CONT_BitmapResetUnchecked(CONT_Bitmap *bmp) {
     ASSERT_INVARIANT_EXPR(bmp);
 
     bmp->set_c = 0;
@@ -930,7 +925,7 @@ PRP_FN_API void PRP_FN_CALL CONT_BitmapResetUnchecked(CONT_Bitmap *bmp) {
     memset(bmp->words, 0, sizeof(CONT_Bitword) * bmp->word_cap);
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL CONT_BitmapResetChecked(CONT_Bitmap *bmp) {
+PRP_API PRP_Result PRP_CALL CONT_BitmapResetChecked(CONT_Bitmap *bmp) {
     if (!CONT_BitmapIsValid(bmp)) {
         return PRP_ERR_INV_ARG;
     }
@@ -940,8 +935,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL CONT_BitmapResetChecked(CONT_Bitmap *bmp) {
     return PRP_OK;
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL
-CONT_BitmapShrinkFitUnchecked(CONT_Bitmap *bmp) {
+PRP_API PRP_Result PRP_CALL CONT_BitmapShrinkFitUnchecked(CONT_Bitmap *bmp) {
     ASSERT_INVARIANT_EXPR(bmp);
 
     if (bmp->set_c) {
@@ -955,8 +949,7 @@ CONT_BitmapShrinkFitUnchecked(CONT_Bitmap *bmp) {
     }
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL
-CONT_BitmapShrinkFitChecked(CONT_Bitmap *bmp) {
+PRP_API PRP_Result PRP_CALL CONT_BitmapShrinkFitChecked(CONT_Bitmap *bmp) {
     if (!CONT_BitmapIsValid(bmp)) {
         return PRP_ERR_INV_ARG;
     }
@@ -964,7 +957,7 @@ CONT_BitmapShrinkFitChecked(CONT_Bitmap *bmp) {
     return CONT_BitmapShrinkFitUnchecked(bmp);
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL
+PRP_API PRP_Result PRP_CALL
 CONT_BitmapChangeSizeUnchecked(CONT_Bitmap *bmp, PRP_Size new_bit_cap) {
     ASSERT_INVARIANT_EXPR(bmp);
     DIAG_ASSERT(new_bit_cap > 0 && new_bit_cap <= CONT_BITMAP_MAX_BIT_CAP);
@@ -1015,8 +1008,8 @@ CONT_BitmapChangeSizeUnchecked(CONT_Bitmap *bmp, PRP_Size new_bit_cap) {
     return PRP_OK;
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL
-CONT_BitmapChangeSizeChecked(CONT_Bitmap *bmp, PRP_Size new_bit_cap) {
+PRP_API PRP_Result PRP_CALL CONT_BitmapChangeSizeChecked(CONT_Bitmap *bmp,
+                                                         PRP_Size new_bit_cap) {
     if (!CONT_BitmapIsValid(bmp) || !new_bit_cap ||
         new_bit_cap > CONT_BITMAP_MAX_BIT_CAP) {
         return PRP_ERR_INV_ARG;

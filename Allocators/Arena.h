@@ -26,14 +26,14 @@ typedef struct _Arena MEM_Arena;
  *
  * @return PRP_True if valid, PRP_False otherwise.
  */
-PRP_FN_API PRP_Bool PRP_FN_CALL MEM_ArenaIsValid(const MEM_Arena *arena);
+PRP_API PRP_Bool PRP_CALL MEM_ArenaIsValid(const MEM_Arena *arena);
 
 /**
  * Returns the maximum allocatable arena size in bytes.
  *
  * @return Maximum supported arena size.
  */
-PRP_FN_API PRP_Size PRP_FN_CALL MEM_ArenaMaxSize(void);
+PRP_API PRP_Size PRP_CALL MEM_ArenaMaxSize(void);
 
 /**
  * Creates a new arena.
@@ -49,8 +49,8 @@ PRP_FN_API PRP_Size PRP_FN_CALL MEM_ArenaMaxSize(void);
  * - Asserts on invalid arguments in debug.
  * - Caller must ensure validity.
  */
-PRP_FN_API PRP_Result PRP_FN_CALL MEM_ArenaCreateUnchecked(PRP_Size size,
-                                                           MEM_Arena **pArena);
+PRP_API PRP_Result PRP_CALL MEM_ArenaCreateUnchecked(PRP_Size size,
+                                                     MEM_Arena **pArena);
 
 /**
  * Creates a new arena with full argument validation.
@@ -62,8 +62,8 @@ PRP_FN_API PRP_Result PRP_FN_CALL MEM_ArenaCreateUnchecked(PRP_Size size,
  * @return PRP_ERR_INV_ARG if arguments are invalid.
  * @return PRP_ERR_OOM if allocation fails.
  */
-PRP_FN_API PRP_Result PRP_FN_CALL MEM_ArenaCreateChecked(PRP_Size size,
-                                                         MEM_Arena **pArena);
+PRP_API PRP_Result PRP_CALL MEM_ArenaCreateChecked(PRP_Size size,
+                                                   MEM_Arena **pArena);
 
 /**
  * Deletes the arena and nullifies the pointer.
@@ -74,7 +74,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL MEM_ArenaCreateChecked(PRP_Size size,
  * - Asserts on invalid arguments in debug.
  * - Caller must ensure validity.
  */
-PRP_FN_API void PRP_FN_CALL MEM_ArenaDeleteUnchecked(MEM_Arena **pArena);
+PRP_API void PRP_CALL MEM_ArenaDeleteUnchecked(MEM_Arena **pArena);
 
 /**
  * Deletes the arena and nullifies the pointer.
@@ -84,7 +84,7 @@ PRP_FN_API void PRP_FN_CALL MEM_ArenaDeleteUnchecked(MEM_Arena **pArena);
  * @return PRP_OK on success.
  * @return PRP_ERR_INV_ARG if pArena or *pArena is invalid.
  */
-PRP_FN_API PRP_Result PRP_FN_CALL MEM_ArenaDeleteChecked(MEM_Arena **pArena);
+PRP_API PRP_Result PRP_CALL MEM_ArenaDeleteChecked(MEM_Arena **pArena);
 
 /**
  * Allocates a block of memory from the arena.
@@ -106,9 +106,9 @@ PRP_FN_API PRP_Result PRP_FN_CALL MEM_ArenaDeleteChecked(MEM_Arena **pArena);
  * `dest` MUST be a `void **`.
  * Passing `T **` (e.g., `int **`) is undefined behavior.
  */
-PRP_FN_API PRP_Result PRP_FN_CALL MEM_ArenaAllocUnchecked(MEM_Arena *arena,
-                                                          PRP_Size size,
-                                                          void **pDest);
+PRP_API PRP_Result PRP_CALL MEM_ArenaAllocUnchecked(MEM_Arena *arena,
+                                                    PRP_Size size,
+                                                    void **pDest);
 
 /**
  * Allocates a block of memory from the arena with validation.
@@ -127,9 +127,8 @@ PRP_FN_API PRP_Result PRP_FN_CALL MEM_ArenaAllocUnchecked(MEM_Arena *arena,
  * `dest` MUST be a `void **`.
  * Passing `T **` (e.g., `int **`) is undefined behavior.
  */
-PRP_FN_API PRP_Result PRP_FN_CALL MEM_ArenaAllocChecked(MEM_Arena *arena,
-                                                        PRP_Size size,
-                                                        void **pDest);
+PRP_API PRP_Result PRP_CALL MEM_ArenaAllocChecked(MEM_Arena *arena,
+                                                  PRP_Size size, void **pDest);
 
 /**
  * Allocates a zero-initialized block of memory from the arena.
@@ -149,9 +148,9 @@ PRP_FN_API PRP_Result PRP_FN_CALL MEM_ArenaAllocChecked(MEM_Arena *arena,
  * `dest` MUST be a `void **`.
  * Passing `T **` (e.g., `int **`) is undefined behavior.
  */
-PRP_FN_API PRP_Result PRP_FN_CALL MEM_ArenaCallocUnchecked(MEM_Arena *arena,
-                                                           PRP_Size size,
-                                                           void **pDest);
+PRP_API PRP_Result PRP_CALL MEM_ArenaCallocUnchecked(MEM_Arena *arena,
+                                                     PRP_Size size,
+                                                     void **pDest);
 
 /**
  * Allocates a zero-initialized block of memory with validation.
@@ -168,9 +167,8 @@ PRP_FN_API PRP_Result PRP_FN_CALL MEM_ArenaCallocUnchecked(MEM_Arena *arena,
  * `dest` MUST be a `void **`.
  * Passing `T **` (e.g., `int **`) is undefined behavior.
  */
-PRP_FN_API PRP_Result PRP_FN_CALL MEM_ArenaCallocChecked(MEM_Arena *arena,
-                                                         PRP_Size size,
-                                                         void **pDest);
+PRP_API PRP_Result PRP_CALL MEM_ArenaCallocChecked(MEM_Arena *arena,
+                                                   PRP_Size size, void **pDest);
 
 /**
  * Resets the arena.
@@ -184,7 +182,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL MEM_ArenaCallocChecked(MEM_Arena *arena,
  * - Asserts on invalid arguments in debug.
  * - Caller must ensure validity.
  */
-PRP_FN_API void PRP_FN_CALL MEM_ArenaResetUnchecked(MEM_Arena *arena);
+PRP_API void PRP_CALL MEM_ArenaResetUnchecked(MEM_Arena *arena);
 
 /**
  * Resets the arena with validation.
@@ -194,7 +192,7 @@ PRP_FN_API void PRP_FN_CALL MEM_ArenaResetUnchecked(MEM_Arena *arena);
  * @return PRP_OK on success.
  * @return PRP_ERR_INV_ARG if arena is invalid.
  */
-PRP_FN_API PRP_Result PRP_FN_CALL MEM_ArenaResetChecked(MEM_Arena *arena);
+PRP_API PRP_Result PRP_CALL MEM_ArenaResetChecked(MEM_Arena *arena);
 
 #ifdef __cplusplus
 }

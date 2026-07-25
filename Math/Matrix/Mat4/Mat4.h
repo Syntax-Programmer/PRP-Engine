@@ -4,7 +4,6 @@
 extern "C" {
 #endif
 
-#include "Core/Defs.h"
 #include "Defs.h"
 #include "Diagnostics/Assert.h"
 #include "Math/Vector/Vec3.h"
@@ -232,7 +231,7 @@ static inline PRP_Bool MATH_Mat4IsIdentity(MATH_Mat4 a) {
                   MATH_AlmostEqF32(a.membs[15], 1.0f));
 }
 
-PRP_FN_API PRP_Bool PRP_FN_CALL MATH_Mat4IsOrthonormal(MATH_Mat4 a);
+PRP_API PRP_Bool PRP_CALL MATH_Mat4IsOrthonormal(MATH_Mat4 a);
 
 /* ----  BASIC OPS  ---- */
 
@@ -354,7 +353,7 @@ static inline MATH_Mat4 MATH_Mat4ScalarDivSafe(MATH_Mat4 a, PRP_F32 s,
     return MATH_Mat4ScalarDiv(a, s);
 }
 
-PRP_FN_API MATH_Mat4 PRP_FN_CALL MATH_Mat4Mul(MATH_Mat4 a, MATH_Mat4 b);
+PRP_API MATH_Mat4 PRP_CALL MATH_Mat4Mul(MATH_Mat4 a, MATH_Mat4 b);
 
 static inline MATH_Mat4 MATH_Mat4Outer(MATH_Vec4 u, MATH_Vec4 v) {
 
@@ -495,9 +494,9 @@ static inline MATH_Mat4 MATH_Mat4SetAt(MATH_Mat4 a, PRP_Size row, PRP_Size col,
 
 /* ----  BASIC ALGEBRA  ---- */
 
-PRP_FN_API MATH_Mat4 PRP_FN_CALL MATH_Mat4Transpose(MATH_Mat4 a);
-PRP_FN_API MATH_Mat4 PRP_FN_CALL MATH_Mat4Adjoint(MATH_Mat4 a);
-PRP_FN_API PRP_F32 PRP_FN_CALL MATH_Mat4Det(MATH_Mat4 a);
+PRP_API MATH_Mat4 PRP_CALL MATH_Mat4Transpose(MATH_Mat4 a);
+PRP_API MATH_Mat4 PRP_CALL MATH_Mat4Adjoint(MATH_Mat4 a);
+PRP_API PRP_F32 PRP_CALL MATH_Mat4Det(MATH_Mat4 a);
 
 static inline PRP_Bool MATH_Mat4IsFlipped(MATH_Mat4 a) {
     return (PRP_Bool)(MATH_Mat4Det(a) < 0.0f);
@@ -507,8 +506,8 @@ static inline MATH_Mat4 MATH_Mat4InvOrthonormal(MATH_Mat4 a) {
     return MATH_Mat4Transpose(a);
 }
 
-PRP_FN_API MATH_Mat4 PRP_FN_CALL MATH_Mat4Inv(MATH_Mat4 a,
-                                              MATH_Mat4 det_zero_fallback);
+PRP_API MATH_Mat4 PRP_CALL MATH_Mat4Inv(MATH_Mat4 a,
+                                        MATH_Mat4 det_zero_fallback);
 
 static inline PRP_F32 MATH_Mat4FrobeniusNorm(MATH_Mat4 a) {
     return MATH_SqrtF32(
@@ -533,9 +532,9 @@ static inline PRP_F32 MATH_Mat4FrobeniusNormSq(MATH_Mat4 a) {
            (a.membs[14] * a.membs[14]) + (a.membs[15] * a.membs[15]);
 }
 
-PRP_FN_API MATH_Mat4 PRP_FN_CALL MATH_Mat4Orthonormalize(MATH_Mat4 a);
-PRP_FN_API MATH_Mat4 PRP_FN_CALL
-MATH_Mat4OrthonormalizeSafe(MATH_Mat4 a, MATH_Mat4 fallback);
+PRP_API MATH_Mat4 PRP_CALL MATH_Mat4Orthonormalize(MATH_Mat4 a);
+PRP_API MATH_Mat4 PRP_CALL MATH_Mat4OrthonormalizeSafe(MATH_Mat4 a,
+                                                       MATH_Mat4 fallback);
 
 #ifdef __cplusplus
 }

@@ -43,7 +43,7 @@ static PRP_TimeMeasure GetTimeNs(void) {
 
 static const PRP_F64 TIME_UNIT_SCALE[] = {1, 1e3, 1e6, 1e9};
 
-PRP_FN_API PRP_TimeMeasure PRP_FN_CALL PRP_TimerGetTime(PRP_TimeUnit unit) {
+PRP_API PRP_TimeMeasure PRP_CALL PRP_TimerGetTime(PRP_TimeUnit unit) {
     if (unit < 0 || unit > PRP_TIME_S) {
         unit = PRP_TIME_NS; // fallback
     }
@@ -53,19 +53,18 @@ PRP_FN_API PRP_TimeMeasure PRP_FN_CALL PRP_TimerGetTime(PRP_TimeUnit unit) {
 
 /* ----  TIMER  ---- */
 
-PRP_FN_API PRP_Result PRP_FN_CALL PRP_TimerStart(PRP_Timer *timer) {
+PRP_API PRP_Result PRP_CALL PRP_TimerStart(PRP_Timer *timer) {
     timer->start = PRP_TimerGetTime(timer->unit);
 
     return PRP_OK;
 }
 
-PRP_FN_API PRP_TimeMeasure PRP_FN_CALL
-PRP_TimerElapsed(const PRP_Timer *timer) {
+PRP_API PRP_TimeMeasure PRP_CALL PRP_TimerElapsed(const PRP_Timer *timer) {
     return PRP_TimerGetTime(timer->unit) - timer->start;
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL PRP_TimerChangeUnit(PRP_Timer *timer,
-                                                      PRP_TimeUnit unit) {
+PRP_API PRP_Result PRP_CALL PRP_TimerChangeUnit(PRP_Timer *timer,
+                                                PRP_TimeUnit unit) {
     if (unit < 0 || unit > PRP_TIME_S) {
         unit = PRP_TIME_NS; // fallback
     }

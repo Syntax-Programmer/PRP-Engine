@@ -4,7 +4,6 @@
 extern "C" {
 #endif
 
-#include "Core/Defs.h"
 #include "Defs.h"
 #include "Diagnostics/Assert.h"
 #include "Math/EulerAngle.h"
@@ -19,10 +18,11 @@ static inline MATH_Mat4 MATH_Mat4CreateTranslation(MATH_Vec3 pos) {
                                  1.0f}};
 }
 
-PRP_FN_API MATH_Mat4 PRP_FN_CALL MATH_Mat4CreateRotationAxis(MATH_Vec3 axis,
-                                                             PRP_F32 angle);
-PRP_FN_API MATH_Mat4 PRP_FN_CALL MATH_Mat4CreateRotationAxisSafe(
-    MATH_Vec3 axis, PRP_F32 angle, MATH_Mat4 fallback);
+PRP_API MATH_Mat4 PRP_CALL MATH_Mat4CreateRotationAxis(MATH_Vec3 axis,
+                                                       PRP_F32 angle);
+PRP_API MATH_Mat4 PRP_CALL MATH_Mat4CreateRotationAxisSafe(MATH_Vec3 axis,
+                                                           PRP_F32 angle,
+                                                           MATH_Mat4 fallback);
 
 static inline MATH_Mat4 MATH_Mat4CreateRotationAxisX(PRP_F32 angle) {
     PRP_F32 c = MATH_CosF32(angle);
@@ -63,17 +63,17 @@ static inline MATH_Mat4 MATH_Mat4CreateRotationAxisZ(PRP_F32 angle) {
                                  0.0f, 0.0f, 0.0f, 1.0f}};
 }
 
-PRP_FN_API MATH_Mat4 PRP_FN_CALL
+PRP_API MATH_Mat4 PRP_CALL
 MATH_Mat4CreateRotationEulerXYZ(MATH_EulerAngle angles);
-PRP_FN_API MATH_Mat4 PRP_FN_CALL
+PRP_API MATH_Mat4 PRP_CALL
 MATH_Mat4CreateRotationEulerZXY(MATH_EulerAngle angles);
-PRP_FN_API MATH_Mat4 PRP_FN_CALL
+PRP_API MATH_Mat4 PRP_CALL
 MATH_Mat4CreateRotationEulerYZX(MATH_EulerAngle angles);
-PRP_FN_API MATH_Mat4 PRP_FN_CALL
+PRP_API MATH_Mat4 PRP_CALL
 MATH_Mat4CreateRotationEulerYXZ(MATH_EulerAngle angles);
-PRP_FN_API MATH_Mat4 PRP_FN_CALL
+PRP_API MATH_Mat4 PRP_CALL
 MATH_Mat4CreateRotationEulerZYX(MATH_EulerAngle angles);
-PRP_FN_API MATH_Mat4 PRP_FN_CALL
+PRP_API MATH_Mat4 PRP_CALL
 MATH_Mat4CreateRotationEulerXZY(MATH_EulerAngle angles);
 
 static inline MATH_Mat4
@@ -107,11 +107,11 @@ static inline MATH_Mat4 MATH_Mat4CreateScale(MATH_Vec3 scale) {
                                  0.0f, 1.0f}};
 }
 
-PRP_FN_API MATH_Mat4 PRP_FN_CALL MATH_Mat4CreateTRSAxis(MATH_Vec3 pos,
-                                                        MATH_Vec3 rot_axis,
-                                                        PRP_F32 rot_rad,
-                                                        MATH_Vec3 scale);
-PRP_FN_API MATH_Mat4 PRP_FN_CALL
+PRP_API MATH_Mat4 PRP_CALL MATH_Mat4CreateTRSAxis(MATH_Vec3 pos,
+                                                  MATH_Vec3 rot_axis,
+                                                  PRP_F32 rot_rad,
+                                                  MATH_Vec3 scale);
+PRP_API MATH_Mat4 PRP_CALL
 MATH_Mat4CreateTRSEuler(MATH_Vec3 pos, MATH_EulerAngle rot_angles,
                         MATH_EulerAngleOrder rot_order, MATH_Vec3 scale);
 
@@ -124,7 +124,7 @@ static inline PRP_Bool MATH_Mat4IsAffine(MATH_Mat4 a) {
                       MATH_AlmostEqF32(a.membs[15], 1.0f));
 }
 
-PRP_FN_API PRP_Bool PRP_FN_CALL MATH_Mat4IsAffineOrthonormal(MATH_Mat4 a);
+PRP_API PRP_Bool PRP_CALL MATH_Mat4IsAffineOrthonormal(MATH_Mat4 a);
 
 /* ----  BASIC OPS  ---- */
 
@@ -141,11 +141,11 @@ static inline MATH_Vec3 MATH_Mat4MulVec3Affine(MATH_Mat4 a, MATH_Vec3 v) {
 
 /* ----  BASIC ALGEBRA  ---- */
 
-PRP_FN_API MATH_Mat4 PRP_FN_CALL
-MATH_Mat4InvAffine(MATH_Mat4 a, MATH_Mat4 det_zero_fallback);
-PRP_FN_API MATH_Mat4 PRP_FN_CALL MATH_Mat4InvAffineOrthonormal(MATH_Mat4 a);
-PRP_FN_API MATH_Mat4 PRP_FN_CALL MATH_Mat4AffineOrthonormalize(MATH_Mat4 a);
-PRP_FN_API MATH_Mat4 PRP_FN_CALL
+PRP_API MATH_Mat4 PRP_CALL MATH_Mat4InvAffine(MATH_Mat4 a,
+                                              MATH_Mat4 det_zero_fallback);
+PRP_API MATH_Mat4 PRP_CALL MATH_Mat4InvAffineOrthonormal(MATH_Mat4 a);
+PRP_API MATH_Mat4 PRP_CALL MATH_Mat4AffineOrthonormalize(MATH_Mat4 a);
+PRP_API MATH_Mat4 PRP_CALL
 MATH_Mat4AffineOrthonormalizeSafe(MATH_Mat4 a, MATH_Mat4 fallback);
 
 /* ----  ALGEBRAIC EXTRACTIONS  ---- */
@@ -158,9 +158,9 @@ static inline MATH_Vec3 MATH_Mat4ExtractTranslation(MATH_Mat4 a) {
     };
 }
 
-PRP_FN_API MATH_Mat3 PRP_FN_CALL MATH_Mat4ExtractRotation(MATH_Mat4 a);
-PRP_FN_API MATH_Vec3 PRP_FN_CALL MATH_Mat4ExtractScale(MATH_Mat4 a);
-PRP_FN_API MATH_Mat4 PRP_FN_CALL MATH_Mat4NormBasis(MATH_Mat4 a);
+PRP_API MATH_Mat3 PRP_CALL MATH_Mat4ExtractRotation(MATH_Mat4 a);
+PRP_API MATH_Vec3 PRP_CALL MATH_Mat4ExtractScale(MATH_Mat4 a);
+PRP_API MATH_Mat4 PRP_CALL MATH_Mat4NormBasis(MATH_Mat4 a);
 
 static inline MATH_Vec3 MATH_Mat4Right(MATH_Mat4 a) {
     return (MATH_Vec3){

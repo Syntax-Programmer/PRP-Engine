@@ -45,7 +45,7 @@ static const PRP_Char8 *LevelToColor(DIAG_LogLevel lvl);
  */
 static const PRP_Char8 *LevelToStr(DIAG_LogLevel lvl);
 
-PRP_FN_API void PRP_FN_CALL DIAG_Write(FILE *dest, const PRP_Char8 *msg) {
+PRP_API void PRP_CALL DIAG_Write(FILE *dest, const PRP_Char8 *msg) {
     if (!dest) {
         dest = DIAG_DEFAULT_LOG_DEST;
     }
@@ -129,10 +129,10 @@ static const PRP_Char8 *LevelToStr(DIAG_LogLevel lvl) {
     }
 }
 
-PRP_FN_API void PRP_FN_CALL DIAG_Log(DIAG_LogLevel lvl, DIAG_LogCode code,
-                                     const PRP_Char8 *file, PRP_Size line,
-                                     const PRP_Char8 *func,
-                                     const PRP_Char8 *msg, ...) {
+PRP_API void PRP_CALL DIAG_Log(DIAG_LogLevel lvl, DIAG_LogCode code,
+                               const PRP_Char8 *file, PRP_Size line,
+                               const PRP_Char8 *func, const PRP_Char8 *msg,
+                               ...) {
     va_list args;
     va_start(args, msg);
     PRP_Char8 bffr[DIAG_MSG_BUFFER_SIZE];

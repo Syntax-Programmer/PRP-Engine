@@ -140,7 +140,7 @@ static void GrowHmLayout(CONT_Hm *hm);
 static PRP_Result FetchLayoutElemI(const CONT_Hm *hm, const void *key,
                                    PRP_Size *pLayout_i, PRP_Size *pElem_i);
 
-PRP_FN_API PRP_Bool PRP_FN_CALL CONT_HmIsValid(const CONT_Hm *hm) {
+PRP_API PRP_Bool PRP_CALL CONT_HmIsValid(const CONT_Hm *hm) {
     return (hm != NULL && hm->layout != NULL && hm->elems != NULL &&
             hm->layout_cap > 0 && hm->elem_cap > 0 &&
             hm->layout_cap <= MAX_LAYOUT_CAP &&
@@ -150,7 +150,7 @@ PRP_FN_API PRP_Bool PRP_FN_CALL CONT_HmIsValid(const CONT_Hm *hm) {
             hm->key_cmp_cb != NULL);
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL
+PRP_API PRP_Result PRP_CALL
 CONT_HmCreateUnchecked(PRP_U64 (*hash_fn)(const void *key),
                        PRP_Bool (*key_cmp_cb)(const void *k1, const void *k2),
                        PRP_Result (*key_del_cb)(void *key),
@@ -190,7 +190,7 @@ CONT_HmCreateUnchecked(PRP_U64 (*hash_fn)(const void *key),
     return PRP_OK;
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL
+PRP_API PRP_Result PRP_CALL
 CONT_HmCreateChecked(PRP_U64 (*hash_fn)(const void *key),
                      PRP_Bool (*key_cmp_cb)(const void *k1, const void *k2),
                      PRP_Result (*key_del_cb)(void *key),
@@ -203,7 +203,7 @@ CONT_HmCreateChecked(PRP_U64 (*hash_fn)(const void *key),
                                   pHm);
 }
 
-PRP_FN_API void PRP_FN_CALL CONT_HmDeleteUnchecked(CONT_Hm **pHm) {
+PRP_API void PRP_CALL CONT_HmDeleteUnchecked(CONT_Hm **pHm) {
     DIAG_ASSERT(pHm != NULL);
     DIAG_ASSERT(*pHm != NULL);
     DIAG_ASSERT((*pHm)->layout != NULL && (*pHm)->elems != NULL);
@@ -235,7 +235,7 @@ PRP_FN_API void PRP_FN_CALL CONT_HmDeleteUnchecked(CONT_Hm **pHm) {
     *pHm = NULL;
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL CONT_HmDeleteChecked(CONT_Hm **pHm) {
+PRP_API PRP_Result PRP_CALL CONT_HmDeleteChecked(CONT_Hm **pHm) {
     if (!pHm || !(*pHm) || !(*pHm)->layout || !(*pHm)->elems) {
         return PRP_ERR_INV_ARG;
     }
@@ -293,8 +293,9 @@ static void GrowHmLayout(CONT_Hm *hm) {
     return;
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL CONT_HmAddUnchecked(
-    CONT_Hm *hm, void *key, void *val, PRP_Bool fail_on_duplicate) {
+PRP_API PRP_Result PRP_CALL CONT_HmAddUnchecked(CONT_Hm *hm, void *key,
+                                                void *val,
+                                                PRP_Bool fail_on_duplicate) {
     ASSERT_INVARIANT_EXPR(hm);
     DIAG_ASSERT(key != NULL);
 
@@ -344,8 +345,8 @@ PRP_FN_API PRP_Result PRP_FN_CALL CONT_HmAddUnchecked(
     return PRP_OK;
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL CONT_HmAddChecked(
-    CONT_Hm *hm, void *key, void *val, PRP_Bool fail_on_duplicate) {
+PRP_API PRP_Result PRP_CALL CONT_HmAddChecked(CONT_Hm *hm, void *key, void *val,
+                                              PRP_Bool fail_on_duplicate) {
     if (!CONT_HmIsValid(hm) || !key) {
         return PRP_ERR_INV_ARG;
     }
@@ -353,8 +354,8 @@ PRP_FN_API PRP_Result PRP_FN_CALL CONT_HmAddChecked(
     return CONT_HmAddUnchecked(hm, key, val, fail_on_duplicate);
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL CONT_HmGetUnchecked(const CONT_Hm *hm,
-                                                      void *key, void **pVal) {
+PRP_API PRP_Result PRP_CALL CONT_HmGetUnchecked(const CONT_Hm *hm, void *key,
+                                                void **pVal) {
     ASSERT_INVARIANT_EXPR(hm);
     DIAG_ASSERT(key != NULL);
     DIAG_ASSERT(pVal != NULL);
@@ -378,8 +379,8 @@ PRP_FN_API PRP_Result PRP_FN_CALL CONT_HmGetUnchecked(const CONT_Hm *hm,
     return PRP_ERR_NOT_FOUND;
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL CONT_HmGetChecked(const CONT_Hm *hm,
-                                                    void *key, void **pVal) {
+PRP_API PRP_Result PRP_CALL CONT_HmGetChecked(const CONT_Hm *hm, void *key,
+                                              void **pVal) {
     if (!CONT_HmIsValid(hm) || !key || !pVal) {
         return PRP_ERR_INV_ARG;
     }
@@ -410,8 +411,7 @@ static PRP_Result FetchLayoutElemI(const CONT_Hm *hm, const void *key,
     return PRP_ERR_NOT_FOUND;
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL CONT_HmDelElemUnchecked(CONT_Hm *hm,
-                                                          void *key) {
+PRP_API PRP_Result PRP_CALL CONT_HmDelElemUnchecked(CONT_Hm *hm, void *key) {
     ASSERT_INVARIANT_EXPR(hm);
     DIAG_ASSERT(key != NULL);
 
@@ -442,8 +442,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL CONT_HmDelElemUnchecked(CONT_Hm *hm,
     return PRP_OK;
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL CONT_HmDelElemChecked(CONT_Hm *hm,
-                                                        void *key) {
+PRP_API PRP_Result PRP_CALL CONT_HmDelElemChecked(CONT_Hm *hm, void *key) {
     if (!CONT_HmIsValid(hm) || !key) {
         return PRP_ERR_INV_ARG;
     }
@@ -451,15 +450,15 @@ PRP_FN_API PRP_Result PRP_FN_CALL CONT_HmDelElemChecked(CONT_Hm *hm,
     return CONT_HmDelElemUnchecked(hm, key);
 }
 
-PRP_FN_API PRP_Size PRP_FN_CALL CONT_HmLen(const CONT_Hm *hm) {
+PRP_API PRP_Size PRP_CALL CONT_HmLen(const CONT_Hm *hm) {
     ASSERT_INVARIANT_EXPR(hm);
 
     return hm->elem_len;
 }
 
-PRP_FN_API PRP_Size PRP_FN_CALL CONT_HmMaxCap(void) { return MAX_ELEM_CAP; }
+PRP_API PRP_Size PRP_CALL CONT_HmMaxCap(void) { return MAX_ELEM_CAP; }
 
-PRP_FN_API PRP_Result PRP_FN_CALL CONT_HmForEachUnchecked(
+PRP_API PRP_Result PRP_CALL CONT_HmForEachUnchecked(
     CONT_Hm *hm, PRP_Result (*cb)(void *key, void *val, void *pUser_data),
     void *pUser_data) {
     ASSERT_INVARIANT_EXPR(hm);
@@ -476,7 +475,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL CONT_HmForEachUnchecked(
     return PRP_OK;
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL CONT_HmForEachChecked(
+PRP_API PRP_Result PRP_CALL CONT_HmForEachChecked(
     CONT_Hm *hm, PRP_Result (*cb)(void *key, void *val, void *pUser_data),
     void *pUser_data) {
     if (!CONT_HmIsValid(hm) || !cb) {
@@ -486,7 +485,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL CONT_HmForEachChecked(
     return CONT_HmForEachUnchecked(hm, cb, pUser_data);
 }
 
-PRP_FN_API void PRP_FN_CALL CONT_HmResetUnchecked(CONT_Hm *hm) {
+PRP_API void PRP_CALL CONT_HmResetUnchecked(CONT_Hm *hm) {
     ASSERT_INVARIANT_EXPR(hm);
 
     // Setting all to empty indices as memset works per byte.
@@ -506,7 +505,7 @@ PRP_FN_API void PRP_FN_CALL CONT_HmResetUnchecked(CONT_Hm *hm) {
     hm->elem_len = 0;
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL CONT_HmResetChecked(CONT_Hm *hm) {
+PRP_API PRP_Result PRP_CALL CONT_HmResetChecked(CONT_Hm *hm) {
     if (!CONT_HmIsValid(hm)) {
         return PRP_ERR_INV_ARG;
     }

@@ -2,7 +2,7 @@
 
 /* ----  COMPARE FUNCTIONS  ---- */
 
-PRP_FN_API PRP_Bool PRP_FN_CALL MATH_Mat4IsOrthonormal(MATH_Mat4 a) {
+PRP_API PRP_Bool PRP_CALL MATH_Mat4IsOrthonormal(MATH_Mat4 a) {
     MATH_Vec4 c0 = {
         .x = a.membs[0], .y = a.membs[1], .z = a.membs[2], .w = a.membs[3]};
     MATH_Vec4 c1 = {
@@ -34,7 +34,7 @@ PRP_FN_API PRP_Bool PRP_FN_CALL MATH_Mat4IsOrthonormal(MATH_Mat4 a) {
 
 /* ----  BASIC OPS  ---- */
 
-PRP_FN_API MATH_Mat4 PRP_FN_CALL MATH_Mat4Mul(MATH_Mat4 a, MATH_Mat4 b) {
+PRP_API MATH_Mat4 PRP_CALL MATH_Mat4Mul(MATH_Mat4 a, MATH_Mat4 b) {
     PRP_F32 a00 = a.membs[0], a10 = a.membs[1], a20 = a.membs[2],
             a30 = a.membs[3];
     PRP_F32 a01 = a.membs[4], a11 = a.membs[5], a21 = a.membs[6],
@@ -78,7 +78,7 @@ PRP_FN_API MATH_Mat4 PRP_FN_CALL MATH_Mat4Mul(MATH_Mat4 a, MATH_Mat4 b) {
 
 /* ----  BASIC ALGEBRA  ---- */
 
-PRP_FN_API MATH_Mat4 PRP_FN_CALL MATH_Mat4Transpose(MATH_Mat4 a) {
+PRP_API MATH_Mat4 PRP_CALL MATH_Mat4Transpose(MATH_Mat4 a) {
     MATH_Mat4 rslt;
 
     rslt.membs[0 * MATH_MAT4_SIZE + 0] = a.membs[0 * MATH_MAT4_SIZE + 0];
@@ -101,7 +101,7 @@ PRP_FN_API MATH_Mat4 PRP_FN_CALL MATH_Mat4Transpose(MATH_Mat4 a) {
     return rslt;
 }
 
-PRP_FN_API MATH_Mat4 PRP_FN_CALL MATH_Mat4Adjoint(MATH_Mat4 a) {
+PRP_API MATH_Mat4 PRP_CALL MATH_Mat4Adjoint(MATH_Mat4 a) {
     PRP_F32 a00 = a.membs[0], a10 = a.membs[1], a20 = a.membs[2],
             a30 = a.membs[3];
     PRP_F32 a01 = a.membs[4], a11 = a.membs[5], a21 = a.membs[6],
@@ -168,7 +168,7 @@ PRP_FN_API MATH_Mat4 PRP_FN_CALL MATH_Mat4Adjoint(MATH_Mat4 a) {
                                  c12, c22, c32, c03, c13, c23, c33}};
 }
 
-PRP_FN_API PRP_F32 PRP_FN_CALL MATH_Mat4Det(MATH_Mat4 a) {
+PRP_API PRP_F32 PRP_CALL MATH_Mat4Det(MATH_Mat4 a) {
     const PRP_F32 *m = a.membs;
 
     PRP_F32 s0 = m[0] * m[5] - m[1] * m[4];
@@ -189,8 +189,8 @@ PRP_FN_API PRP_F32 PRP_FN_CALL MATH_Mat4Det(MATH_Mat4 a) {
            (s5 * c0);
 }
 
-PRP_FN_API MATH_Mat4 PRP_FN_CALL MATH_Mat4Inv(MATH_Mat4 a,
-                                              MATH_Mat4 det_zero_fallback) {
+PRP_API MATH_Mat4 PRP_CALL MATH_Mat4Inv(MATH_Mat4 a,
+                                        MATH_Mat4 det_zero_fallback) {
     /**
      * Adjugate (cofactor) method for matrix inversion, in an
      optimized/unrolled
@@ -243,7 +243,7 @@ PRP_FN_API MATH_Mat4 PRP_FN_CALL MATH_Mat4Inv(MATH_Mat4 a,
     return r;
 }
 
-PRP_FN_API MATH_Mat4 PRP_FN_CALL MATH_Mat4Orthonormalize(MATH_Mat4 a) {
+PRP_API MATH_Mat4 PRP_CALL MATH_Mat4Orthonormalize(MATH_Mat4 a) {
     MATH_Vec4 c0 = {
         .x = a.membs[0], .y = a.membs[1], .z = a.membs[2], .w = a.membs[3]};
     MATH_Vec4 c1 = {
@@ -305,8 +305,8 @@ PRP_FN_API MATH_Mat4 PRP_FN_CALL MATH_Mat4Orthonormalize(MATH_Mat4 a) {
                                  c3.w}};
 }
 
-PRP_FN_API MATH_Mat4 PRP_FN_CALL
-MATH_Mat4OrthonormalizeSafe(MATH_Mat4 a, MATH_Mat4 fallback) {
+PRP_API MATH_Mat4 PRP_CALL MATH_Mat4OrthonormalizeSafe(MATH_Mat4 a,
+                                                       MATH_Mat4 fallback) {
     if (MATH_IsZeroF32(MATH_Vec4LenSq((MATH_Vec4){.x = a.membs[0],
                                                   .y = a.membs[1],
                                                   .z = a.membs[2],

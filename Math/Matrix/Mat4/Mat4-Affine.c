@@ -2,8 +2,8 @@
 
 /* ----  CONSTRUCTORS ---- */
 
-PRP_FN_API MATH_Mat4 PRP_FN_CALL MATH_Mat4CreateRotationAxis(MATH_Vec3 axis,
-                                                             PRP_F32 angle) {
+PRP_API MATH_Mat4 PRP_CALL MATH_Mat4CreateRotationAxis(MATH_Vec3 axis,
+                                                       PRP_F32 angle) {
     axis = MATH_Vec3Normalize(axis);
     PRP_F32 c = MATH_CosF32(angle);
     PRP_F32 s = MATH_SinF32(angle);
@@ -27,8 +27,9 @@ PRP_FN_API MATH_Mat4 PRP_FN_CALL MATH_Mat4CreateRotationAxis(MATH_Vec3 axis,
     return m;
 }
 
-PRP_FN_API MATH_Mat4 PRP_FN_CALL MATH_Mat4CreateRotationAxisSafe(
-    MATH_Vec3 axis, PRP_F32 angle, MATH_Mat4 fallback) {
+PRP_API MATH_Mat4 PRP_CALL MATH_Mat4CreateRotationAxisSafe(MATH_Vec3 axis,
+                                                           PRP_F32 angle,
+                                                           MATH_Mat4 fallback) {
     if (MATH_IsZeroF32(MATH_Vec3LenSq(axis))) {
         return fallback;
     }
@@ -36,7 +37,7 @@ PRP_FN_API MATH_Mat4 PRP_FN_CALL MATH_Mat4CreateRotationAxisSafe(
     return MATH_Mat4CreateRotationAxis(axis, angle);
 }
 
-PRP_FN_API MATH_Mat4 PRP_FN_CALL
+PRP_API MATH_Mat4 PRP_CALL
 MATH_Mat4CreateRotationEulerXYZ(MATH_EulerAngle angles) {
     PRP_F32 cx = MATH_CosF32(angles.x_rad), sx = MATH_SinF32(angles.x_rad);
     PRP_F32 cy = MATH_CosF32(angles.y_rad), sy = MATH_SinF32(angles.y_rad);
@@ -60,7 +61,7 @@ MATH_Mat4CreateRotationEulerXYZ(MATH_EulerAngle angles) {
     return m;
 }
 
-PRP_FN_API MATH_Mat4 PRP_FN_CALL
+PRP_API MATH_Mat4 PRP_CALL
 MATH_Mat4CreateRotationEulerZXY(MATH_EulerAngle angles) {
     PRP_F32 cx = MATH_CosF32(angles.x_rad), sx = MATH_SinF32(angles.x_rad);
     PRP_F32 cy = MATH_CosF32(angles.y_rad), sy = MATH_SinF32(angles.y_rad);
@@ -84,7 +85,7 @@ MATH_Mat4CreateRotationEulerZXY(MATH_EulerAngle angles) {
     return m;
 }
 
-PRP_FN_API MATH_Mat4 PRP_FN_CALL
+PRP_API MATH_Mat4 PRP_CALL
 MATH_Mat4CreateRotationEulerYZX(MATH_EulerAngle angles) {
     PRP_F32 cx = MATH_CosF32(angles.x_rad), sx = MATH_SinF32(angles.x_rad);
     PRP_F32 cy = MATH_CosF32(angles.y_rad), sy = MATH_SinF32(angles.y_rad);
@@ -108,7 +109,7 @@ MATH_Mat4CreateRotationEulerYZX(MATH_EulerAngle angles) {
     return m;
 }
 
-PRP_FN_API MATH_Mat4 PRP_FN_CALL
+PRP_API MATH_Mat4 PRP_CALL
 MATH_Mat4CreateRotationEulerYXZ(MATH_EulerAngle angles) {
     PRP_F32 cx = MATH_CosF32(angles.x_rad), sx = MATH_SinF32(angles.x_rad);
     PRP_F32 cy = MATH_CosF32(angles.y_rad), sy = MATH_SinF32(angles.y_rad);
@@ -132,7 +133,7 @@ MATH_Mat4CreateRotationEulerYXZ(MATH_EulerAngle angles) {
     return m;
 }
 
-PRP_FN_API MATH_Mat4 PRP_FN_CALL
+PRP_API MATH_Mat4 PRP_CALL
 MATH_Mat4CreateRotationEulerZYX(MATH_EulerAngle angles) {
     PRP_F32 cx = MATH_CosF32(angles.x_rad), sx = MATH_SinF32(angles.x_rad);
     PRP_F32 cy = MATH_CosF32(angles.y_rad), sy = MATH_SinF32(angles.y_rad);
@@ -156,7 +157,7 @@ MATH_Mat4CreateRotationEulerZYX(MATH_EulerAngle angles) {
     return m;
 }
 
-PRP_FN_API MATH_Mat4 PRP_FN_CALL
+PRP_API MATH_Mat4 PRP_CALL
 MATH_Mat4CreateRotationEulerXZY(MATH_EulerAngle angles) {
     PRP_F32 cx = MATH_CosF32(angles.x_rad), sx = MATH_SinF32(angles.x_rad);
     PRP_F32 cy = MATH_CosF32(angles.y_rad), sy = MATH_SinF32(angles.y_rad);
@@ -180,10 +181,10 @@ MATH_Mat4CreateRotationEulerXZY(MATH_EulerAngle angles) {
     return m;
 }
 
-PRP_FN_API MATH_Mat4 PRP_FN_CALL MATH_Mat4CreateTRSAxis(MATH_Vec3 pos,
-                                                        MATH_Vec3 rot_axis,
-                                                        PRP_F32 rot_rad,
-                                                        MATH_Vec3 scale) {
+PRP_API MATH_Mat4 PRP_CALL MATH_Mat4CreateTRSAxis(MATH_Vec3 pos,
+                                                  MATH_Vec3 rot_axis,
+                                                  PRP_F32 rot_rad,
+                                                  MATH_Vec3 scale) {
     MATH_Mat4 m = MATH_Mat4CreateRotationAxis(rot_axis, rot_rad);
     // applying scale on it.
     m.membs[0] *= scale.x;
@@ -204,7 +205,7 @@ PRP_FN_API MATH_Mat4 PRP_FN_CALL MATH_Mat4CreateTRSAxis(MATH_Vec3 pos,
     return m;
 }
 
-PRP_FN_API MATH_Mat4 PRP_FN_CALL
+PRP_API MATH_Mat4 PRP_CALL
 MATH_Mat4CreateTRSEuler(MATH_Vec3 pos, MATH_EulerAngle rot_angles,
                         MATH_EulerAngleOrder rot_order, MATH_Vec3 scale) {
     MATH_Mat4 m = MATH_Mat4CreateRotationEuler(rot_angles, rot_order);
@@ -229,7 +230,7 @@ MATH_Mat4CreateTRSEuler(MATH_Vec3 pos, MATH_EulerAngle rot_angles,
 
 /* ----  COMPARE FUNCTIONS  ---- */
 
-PRP_FN_API PRP_Bool PRP_FN_CALL MATH_Mat4IsAffineOrthonormal(MATH_Mat4 a) {
+PRP_API PRP_Bool PRP_CALL MATH_Mat4IsAffineOrthonormal(MATH_Mat4 a) {
     MATH_Vec3 c0 = {.x = a.membs[0], .y = a.membs[1], .z = a.membs[2]};
     MATH_Vec3 c1 = {.x = a.membs[4], .y = a.membs[5], .z = a.membs[6]};
     MATH_Vec3 c2 = {.x = a.membs[8], .y = a.membs[9], .z = a.membs[10]};
@@ -253,8 +254,8 @@ PRP_FN_API PRP_Bool PRP_FN_CALL MATH_Mat4IsAffineOrthonormal(MATH_Mat4 a) {
 
 /* ----  BASIC ALGEBRA  ---- */
 
-PRP_FN_API MATH_Mat4 PRP_FN_CALL
-MATH_Mat4InvAffine(MATH_Mat4 a, MATH_Mat4 det_zero_fallback) {
+PRP_API MATH_Mat4 PRP_CALL MATH_Mat4InvAffine(MATH_Mat4 a,
+                                              MATH_Mat4 det_zero_fallback) {
     // Extract 3x3 linear part
     PRP_F32 a00 = a.membs[0], a01 = a.membs[4], a02 = a.membs[8];
     PRP_F32 a10 = a.membs[1], a11 = a.membs[5], a12 = a.membs[9];
@@ -296,7 +297,7 @@ MATH_Mat4InvAffine(MATH_Mat4 a, MATH_Mat4 det_zero_fallback) {
     return a;
 }
 
-PRP_FN_API MATH_Mat4 PRP_FN_CALL MATH_Mat4InvAffineOrthonormal(MATH_Mat4 a) {
+PRP_API MATH_Mat4 PRP_CALL MATH_Mat4InvAffineOrthonormal(MATH_Mat4 a) {
     PRP_F32 r00 = a.membs[0];
     PRP_F32 r10 = a.membs[1];
     PRP_F32 r20 = a.membs[2];
@@ -329,7 +330,7 @@ PRP_FN_API MATH_Mat4 PRP_FN_CALL MATH_Mat4InvAffineOrthonormal(MATH_Mat4 a) {
                                  itx, ity, itz, 1.0f}};
 }
 
-PRP_FN_API MATH_Mat4 PRP_FN_CALL MATH_Mat4AffineOrthonormalize(MATH_Mat4 a) {
+PRP_API MATH_Mat4 PRP_CALL MATH_Mat4AffineOrthonormalize(MATH_Mat4 a) {
     MATH_Vec3 c0 = {.x = a.membs[0], .y = a.membs[1], .z = a.membs[2]};
     MATH_Vec3 c1 = {.x = a.membs[4], .y = a.membs[5], .z = a.membs[6]};
     MATH_Vec3 c2 = {.x = a.membs[8], .y = a.membs[9], .z = a.membs[10]};
@@ -374,7 +375,7 @@ PRP_FN_API MATH_Mat4 PRP_FN_CALL MATH_Mat4AffineOrthonormalize(MATH_Mat4 a) {
     return a;
 }
 
-PRP_FN_API MATH_Mat4 PRP_FN_CALL
+PRP_API MATH_Mat4 PRP_CALL
 MATH_Mat4AffineOrthonormalizeSafe(MATH_Mat4 a, MATH_Mat4 fallback) {
     if (MATH_IsZeroF32(MATH_Vec3LenSq(
             (MATH_Vec3){.x = a.membs[0], .y = a.membs[1], .z = a.membs[2]})) ||
@@ -392,7 +393,7 @@ MATH_Mat4AffineOrthonormalizeSafe(MATH_Mat4 a, MATH_Mat4 fallback) {
 
 /* ----  ALGEBRAIC EXTRACTIONS  ---- */
 
-PRP_FN_API MATH_Mat3 PRP_FN_CALL MATH_Mat4ExtractRotation(MATH_Mat4 a) {
+PRP_API MATH_Mat3 PRP_CALL MATH_Mat4ExtractRotation(MATH_Mat4 a) {
     MATH_Vec3 scale = MATH_Mat4ExtractScale(a);
     MATH_Mat3 rslt = {0};
 
@@ -415,7 +416,7 @@ PRP_FN_API MATH_Mat3 PRP_FN_CALL MATH_Mat4ExtractRotation(MATH_Mat4 a) {
     return rslt;
 }
 
-PRP_FN_API MATH_Vec3 PRP_FN_CALL MATH_Mat4ExtractScale(MATH_Mat4 a) {
+PRP_API MATH_Vec3 PRP_CALL MATH_Mat4ExtractScale(MATH_Mat4 a) {
     MATH_Vec3 c0 = {.x = a.membs[0], .y = a.membs[1], .z = a.membs[2]};
     MATH_Vec3 c1 = {.x = a.membs[4], .y = a.membs[5], .z = a.membs[6]};
     MATH_Vec3 c2 = {.x = a.membs[8], .y = a.membs[9], .z = a.membs[10]};
@@ -427,7 +428,7 @@ PRP_FN_API MATH_Vec3 PRP_FN_CALL MATH_Mat4ExtractScale(MATH_Mat4 a) {
     };
 }
 
-PRP_FN_API MATH_Mat4 PRP_FN_CALL MATH_Mat4NormBasis(MATH_Mat4 a) {
+PRP_API MATH_Mat4 PRP_CALL MATH_Mat4NormBasis(MATH_Mat4 a) {
     MATH_Vec3 s = MATH_Mat4ExtractScale(a);
 
     if (!MATH_IsZeroF32(s.x)) {

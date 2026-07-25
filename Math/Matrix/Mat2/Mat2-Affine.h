@@ -4,7 +4,6 @@
 extern "C" {
 #endif
 
-#include "Core/Defs.h"
 #include "Defs.h"
 #include "Math/Vector/Vec2.h"
 
@@ -35,9 +34,9 @@ static inline MATH_Mat2 MATH_Mat2CreateShear(MATH_Vec2 shear) {
 
 /* ----  ALGEBRAIC EXTRACTIONS  ---- */
 
-PRP_FN_API PRP_F32 PRP_FN_CALL MATH_Mat2ExtractRotation(MATH_Mat2 a);
-PRP_FN_API MATH_Vec2 PRP_FN_CALL MATH_Mat2ExtractScale(MATH_Mat2 a);
-PRP_FN_API MATH_Mat2 PRP_FN_CALL MATH_Mat2NormBasis(MATH_Mat2 a);
+PRP_API PRP_F32 PRP_CALL MATH_Mat2ExtractRotation(MATH_Mat2 a);
+PRP_API MATH_Vec2 PRP_CALL MATH_Mat2ExtractScale(MATH_Mat2 a);
+PRP_API MATH_Mat2 PRP_CALL MATH_Mat2NormBasis(MATH_Mat2 a);
 
 static inline MATH_Vec2 MATH_Mat2Right(MATH_Mat2 a) {
     return (MATH_Vec2){

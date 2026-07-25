@@ -159,7 +159,7 @@ static PRP_Result GrowDataLayer(CONT_DSArr *ds_arr, PRP_U32 to_add);
  */
 static PRP_Result GrowIdLayer(CONT_DSArr *ds_arr, PRP_U32 to_add);
 
-PRP_FN_API PRP_Bool PRP_FN_CALL CONT_DSArrIsValid(const CONT_DSArr *ds_arr) {
+PRP_API PRP_Bool PRP_CALL CONT_DSArrIsValid(const CONT_DSArr *ds_arr) {
     return (ds_arr != NULL && ds_arr->memb_size > 0 &&
             ds_arr->data_layer.elems != NULL &&
             ds_arr->data_layer.data_to_id_table != NULL &&
@@ -186,7 +186,7 @@ PRP_FN_API PRP_Bool PRP_FN_CALL CONT_DSArrIsValid(const CONT_DSArr *ds_arr) {
         }                                                                      \
     } while (0);
 
-PRP_FN_API PRP_Result PRP_FN_CALL CONT_DSArrCreateUnchecked(
+PRP_API PRP_Result PRP_CALL CONT_DSArrCreateUnchecked(
     PRP_Size memb_size, PRP_Result (*elem_del_cb)(void *elem),
     CONT_DSArr **pDs_arr) {
     DIAG_ASSERT(memb_size > 0);
@@ -237,7 +237,7 @@ err_path:
     return PRP_ERR_OOM;
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL CONT_DSArrCreateChecked(
+PRP_API PRP_Result PRP_CALL CONT_DSArrCreateChecked(
     PRP_Size memb_size, PRP_Result (*elem_del_cb)(void *elem),
     CONT_DSArr **pDs_arr) {
     if (!memb_size || !pDs_arr) {
@@ -247,7 +247,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL CONT_DSArrCreateChecked(
     return CONT_DSArrCreateUnchecked(memb_size, elem_del_cb, pDs_arr);
 }
 
-PRP_FN_API void PRP_FN_CALL CONT_DSArrDeleteUnchecked(CONT_DSArr **pDs_arr) {
+PRP_API void PRP_CALL CONT_DSArrDeleteUnchecked(CONT_DSArr **pDs_arr) {
     DIAG_ASSERT(pDs_arr != NULL);
     DIAG_ASSERT(*pDs_arr != NULL);
     DIAG_ASSERT((*pDs_arr)->data_layer.elems != NULL);
@@ -281,8 +281,7 @@ PRP_FN_API void PRP_FN_CALL CONT_DSArrDeleteUnchecked(CONT_DSArr **pDs_arr) {
     *pDs_arr = NULL;
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL
-CONT_DSArrDeleteChecked(CONT_DSArr **pDs_arr) {
+PRP_API PRP_Result PRP_CALL CONT_DSArrDeleteChecked(CONT_DSArr **pDs_arr) {
     if (!pDs_arr || !(*pDs_arr)) {
         return PRP_ERR_INV_ARG;
     }
@@ -297,7 +296,7 @@ CONT_DSArrDeleteChecked(CONT_DSArr **pDs_arr) {
     return PRP_OK;
 }
 
-PRP_FN_API PRP_U32 PRP_FN_CALL CONT_DSArrLen(const CONT_DSArr *ds_arr) {
+PRP_API PRP_U32 PRP_CALL CONT_DSArrLen(const CONT_DSArr *ds_arr) {
     ASSERT_INVARIANT_EXPR(ds_arr);
 
     return ds_arr->data_layer.len;
@@ -319,8 +318,8 @@ static inline PRP_Result GetIdData(const CONT_DSArr *ds_arr, CONT_DSId id,
     return PRP_OK;
 }
 
-PRP_FN_API void *PRP_FN_CALL CONT_DSIdToDataUnchecked(const CONT_DSArr *ds_arr,
-                                                      CONT_DSId id) {
+PRP_API void *PRP_CALL CONT_DSIdToDataUnchecked(const CONT_DSArr *ds_arr,
+                                                CONT_DSId id) {
     ASSERT_INVARIANT_EXPR(ds_arr);
 
     // Initializing the slot_data_i doesn't change shit but we do it to satisfy
@@ -335,8 +334,8 @@ PRP_FN_API void *PRP_FN_CALL CONT_DSIdToDataUnchecked(const CONT_DSArr *ds_arr,
     return ds_arr->data_layer.elems + (ds_arr->memb_size * slot_data_i);
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL
-CONT_DSIdToDataChecked(const CONT_DSArr *ds_arr, CONT_DSId id, void **dest) {
+PRP_API PRP_Result PRP_CALL CONT_DSIdToDataChecked(const CONT_DSArr *ds_arr,
+                                                   CONT_DSId id, void **dest) {
     if (!CONT_DSArrIsValid(ds_arr) || !dest) {
         return PRP_ERR_INV_ARG;
     }
@@ -353,8 +352,8 @@ CONT_DSIdToDataChecked(const CONT_DSArr *ds_arr, CONT_DSId id, void **dest) {
     return PRP_OK;
 }
 
-PRP_FN_API PRP_Bool PRP_FN_CALL
-CONT_DSIdIsValidUnchecked(const CONT_DSArr *ds_arr, CONT_DSId id) {
+PRP_API PRP_Bool PRP_CALL CONT_DSIdIsValidUnchecked(const CONT_DSArr *ds_arr,
+                                                    CONT_DSId id) {
     ASSERT_INVARIANT_EXPR(ds_arr);
 
     PRP_U32 dummy1, dummy2, dummy3, dummy4;
@@ -363,8 +362,9 @@ CONT_DSIdIsValidUnchecked(const CONT_DSArr *ds_arr, CONT_DSId id) {
     return code == PRP_OK;
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL CONT_DSIdIsValidChecked(
-    const CONT_DSArr *ds_arr, CONT_DSId id, PRP_Bool *pRslt) {
+PRP_API PRP_Result PRP_CALL CONT_DSIdIsValidChecked(const CONT_DSArr *ds_arr,
+                                                    CONT_DSId id,
+                                                    PRP_Bool *pRslt) {
     if (!CONT_DSArrIsValid(ds_arr) || !pRslt) {
         return PRP_ERR_INV_ARG;
     }
@@ -447,9 +447,8 @@ static PRP_Result GrowIdLayer(CONT_DSArr *ds_arr, PRP_U32 to_add) {
     return PRP_OK;
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL CONT_DSArrAddUnchecked(CONT_DSArr *ds_arr,
-                                                         void *data,
-                                                         CONT_DSId *pId) {
+PRP_API PRP_Result PRP_CALL CONT_DSArrAddUnchecked(CONT_DSArr *ds_arr,
+                                                   void *data, CONT_DSId *pId) {
     ASSERT_INVARIANT_EXPR(ds_arr);
     DIAG_ASSERT(data != NULL);
     DIAG_ASSERT(pId != NULL);
@@ -488,9 +487,8 @@ PRP_FN_API PRP_Result PRP_FN_CALL CONT_DSArrAddUnchecked(CONT_DSArr *ds_arr,
     return PRP_OK;
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL CONT_DSArrAddChecked(CONT_DSArr *ds_arr,
-                                                       void *data,
-                                                       CONT_DSId *pId) {
+PRP_API PRP_Result PRP_CALL CONT_DSArrAddChecked(CONT_DSArr *ds_arr, void *data,
+                                                 CONT_DSId *pId) {
     if (!CONT_DSArrIsValid(ds_arr) || !data || !pId) {
         return PRP_ERR_INV_ARG;
     }
@@ -542,8 +540,8 @@ static inline void DelElem(CONT_DSArr *ds_arr, CONT_DSId *pId, PRP_U32 id_i,
     *pId = CONT_DS_INVALID_ID;
 }
 
-PRP_FN_API void PRP_FN_CALL CONT_DSArrDelElemUnchecked(CONT_DSArr *ds_arr,
-                                                       CONT_DSId *pId) {
+PRP_API void PRP_CALL CONT_DSArrDelElemUnchecked(CONT_DSArr *ds_arr,
+                                                 CONT_DSId *pId) {
     ASSERT_INVARIANT_EXPR(ds_arr);
     DIAG_ASSERT(pId != NULL);
 
@@ -558,8 +556,8 @@ PRP_FN_API void PRP_FN_CALL CONT_DSArrDelElemUnchecked(CONT_DSArr *ds_arr,
     DelElem(ds_arr, pId, id_i, slot_data_i, slot_gen);
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL CONT_DSArrDelElemChecked(CONT_DSArr *ds_arr,
-                                                           CONT_DSId *pId) {
+PRP_API PRP_Result PRP_CALL CONT_DSArrDelElemChecked(CONT_DSArr *ds_arr,
+                                                     CONT_DSId *pId) {
     if (!CONT_DSArrIsValid(ds_arr) || !pId) {
         return PRP_ERR_INV_ARG;
     }
@@ -577,8 +575,8 @@ PRP_FN_API PRP_Result PRP_FN_CALL CONT_DSArrDelElemChecked(CONT_DSArr *ds_arr,
     return PRP_OK;
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL CONT_DSArrReserveUnchecked(CONT_DSArr *ds_arr,
-                                                             PRP_U32 count) {
+PRP_API PRP_Result PRP_CALL CONT_DSArrReserveUnchecked(CONT_DSArr *ds_arr,
+                                                       PRP_U32 count) {
     ASSERT_INVARIANT_EXPR(ds_arr);
     DIAG_ASSERT(count > 0);
 
@@ -597,8 +595,8 @@ PRP_FN_API PRP_Result PRP_FN_CALL CONT_DSArrReserveUnchecked(CONT_DSArr *ds_arr,
 
     return PRP_OK;
 }
-PRP_FN_API PRP_Result PRP_FN_CALL CONT_DSArrReserveChecked(CONT_DSArr *ds_arr,
-                                                           PRP_U32 count) {
+PRP_API PRP_Result PRP_CALL CONT_DSArrReserveChecked(CONT_DSArr *ds_arr,
+                                                     PRP_U32 count) {
     if (!CONT_DSArrIsValid(ds_arr) || !count) {
         return PRP_ERR_INV_ARG;
     }
@@ -606,7 +604,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL CONT_DSArrReserveChecked(CONT_DSArr *ds_arr,
     return CONT_DSArrReserveUnchecked(ds_arr, count);
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL CONT_DSArrForEachUnchecked(
+PRP_API PRP_Result PRP_CALL CONT_DSArrForEachUnchecked(
     CONT_DSArr *ds_arr, PRP_Result (*cb)(void *pVal, void *pUser_data),
     void *pUser_data) {
     ASSERT_INVARIANT_EXPR(ds_arr);
@@ -624,7 +622,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL CONT_DSArrForEachUnchecked(
     return PRP_OK;
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL CONT_DSArrForEachChecked(
+PRP_API PRP_Result PRP_CALL CONT_DSArrForEachChecked(
     CONT_DSArr *ds_arr, PRP_Result (*cb)(void *pVal, void *pUser_data),
     void *pUser_data) {
     if (!CONT_DSArrIsValid(ds_arr) || !cb) {
