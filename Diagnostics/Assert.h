@@ -15,7 +15,7 @@ extern "C" {
             DIAG_Log(DIAG_LOG_LEVEL_FATAL, DIAG_LOG_CODE_INVARIANT_VOILATION,  \
                      __FILE__, __LINE__, __func__, "VERIFY failed: %s",        \
                      #expr);                                                   \
-            DIAG_DEBUG_BREAK();                                                \
+            PRP_DEBUG_BREAK();                                                 \
         }                                                                      \
     } while (0)
 
@@ -24,7 +24,7 @@ extern "C" {
         if (!(expr)) {                                                         \
             DIAG_Log(DIAG_LOG_LEVEL_FATAL, DIAG_LOG_CODE_INVARIANT_VOILATION,  \
                      __FILE__, __LINE__, __func__, msg, ##__VA_ARGS__);        \
-            DIAG_DEBUG_BREAK();                                                \
+            PRP_DEBUG_BREAK();                                                 \
         }                                                                      \
     } while (0)
 
@@ -34,26 +34,8 @@ extern "C" {
     do {                                                                       \
         DIAG_Log(DIAG_LOG_LEVEL_FATAL, DIAG_LOG_CODE_RUNTIME_FAIL, __FILE__,   \
                  __LINE__, __func__, msg, ##__VA_ARGS__);                      \
-        DIAG_DEBUG_BREAK();                                                    \
+        PRP_DEBUG_BREAK();                                                     \
     } while (0)
-
-/* ----  UNREACHABLE---- */
-
-#if defined(__clang__) || defined(__GNUC__)
-#define DIAG_UNREACHABLE()                                                     \
-    do {                                                                       \
-        DIAG_PANIC("UNREACHABLE reached");                                     \
-        __builtin_unreachable();                                               \
-    } while (0)
-#elif defined(_MSC_VER)
-#define DIAG_UNREACHABLE()                                                     \
-    do {                                                                       \
-        DIAG_PANIC("UNREACHABLE reached");                                     \
-        __assume(0);                                                           \
-    } while (0)
-#else
-#define DIAG_UNREACHABLE() DIAG_PANIC("UNREACHABLE reached")
-#endif
 
 /* ----  STATIC ASSERT ---- */
 
@@ -61,28 +43,25 @@ extern "C" {
 
 /* ----  DEBUG ONLY ASSERTS ---- */
 
-#if defined(PRP_NDEBUG)
-
+#ifdef PRP_RELEASE_MODE
 #define DIAG_ASSERT(expr) ((void)0)
 #define DIAG_ASSERT_MSG(e, msg, ...) ((void)0)
 
 #else
-
 #define DIAG_ASSERT(expr)                                                      \
     do {                                                                       \
         if (!(expr)) {                                                         \
             DIAG_Log(DIAG_LOG_LEVEL_FATAL, DIAG_LOG_CODE_ASSERT, __FILE__,     \
                      __LINE__, __func__, "ASSERT failed: %s", #expr);          \
-            DIAG_DEBUG_BREAK();                                                \
+            PRP_DEBUG_BREAK();                                                 \
         }                                                                      \
     } while (0)
-
 #define DIAG_ASSERT_MSG(expr, msg, ...)                                        \
     do {                                                                       \
         if (!(expr)) {                                                         \
             DIAG_Log(DIAG_LOG_LEVEL_FATAL, DIAG_LOG_CODE_ASSERT, __FILE__,     \
                      __LINE__, __func__, msg, ##__VA_ARGS__);                  \
-            DIAG_DEBUG_BREAK();                                                \
+            PRP_DEBUG_BREAK();                                                 \
         }                                                                      \
     } while (0)
 

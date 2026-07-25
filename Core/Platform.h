@@ -712,18 +712,18 @@ extern "C" {
 
 /* ---- DEBUG BREAK ---- */
 
-#if defined(_MSC_VER)
-#define DIAG_DEBUG_BREAK() __debugbreak()
+#if defined(PRP_COMPILER_MSVC)
+#define PRP_DEBUG_BREAK() __debugbreak()
 
 #elif defined(PRP_HAS_BUILTIN_DEBUG_TRAP)
-#define DIAG_DEBUG_BREAK() __builtin_debugtrap()
+#define PRP_DEBUG_BREAK() __builtin_debugtrap()
 
 #elif defined(PRP_HAS_BUILTIN_TRAP)
-#define DIAG_DEBUG_BREAK() __builtin_trap()
+#define PRP_DEBUG_BREAK() __builtin_trap()
 
 #else
 #include <stdlib.h>
-#define DIAG_DEBUG_BREAK() abort()
+#define PRP_DEBUG_BREAK() abort()
 
 #endif
 
