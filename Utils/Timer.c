@@ -11,7 +11,7 @@
  */
 static PRP_TimeMeasure GetTimeNs(void);
 
-#if defined(_WIN32) || defined(_WIN64)
+#ifdef PRP_HAS_INCLUDE_WINDOWS
 #include <windows.h>
 
 static LARGE_INTEGER freq;

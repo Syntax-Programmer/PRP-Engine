@@ -129,7 +129,7 @@ PRP_FN_API void PRP_FN_CALL MEM_ArenaResetUnchecked(MEM_Arena *arena) {
     ASSERT_INVARIANT_EXPR(arena);
 
     arena->ofs = 0;
-#if !defined(PRP_NDEBUG)
+#ifdef PRP_DEBUG_MODE
     memset(arena->mem, 0, arena->size);
 #endif
 }

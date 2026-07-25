@@ -78,15 +78,15 @@ static PRP_Result TokStreamInit(FECS_WCTokStream *pTok_stream, FILE *file,
     if (code != PRP_OK) {
         return code;
     }
-    code =
-        CONT_ArrCreateUnchecked(sizeof(FECS_WCIdentifierTok), CONT_ARR_DEFAULT_CAP,
-                              &pTok_stream->pIdentifiers);
+    code = CONT_ArrCreateUnchecked(sizeof(FECS_WCIdentifierTok),
+                                   CONT_ARR_DEFAULT_CAP,
+                                   &pTok_stream->pIdentifiers);
     if (code != PRP_OK) {
         CONT_ArrDeleteUnchecked(&pTok_stream->pTypes);
         return code;
     }
     code = CONT_ArrCreateUnchecked(sizeof(PRP_Size), CONT_ARR_DEFAULT_CAP,
-                                 &pTok_stream->pRbrace_idxs);
+                                   &pTok_stream->pRbrace_idxs);
     if (code != PRP_OK) {
         CONT_ArrDeleteUnchecked(&pTok_stream->pTypes);
         CONT_ArrDeleteUnchecked(&pTok_stream->pIdentifiers);
@@ -170,7 +170,8 @@ static PRP_Result TokenizeMultiCharTok(const PRP_Char8 *pSrc_bffr,
     }
     if (type == WC_TOK_IDENTIFIER) {
         FECS_WCIdentifierTok identifier_tok = {.ofs = *pIdx, .size = size};
-        code = CONT_ArrPushUnchecked(pTok_stream->pIdentifiers, &identifier_tok);
+        code =
+            CONT_ArrPushUnchecked(pTok_stream->pIdentifiers, &identifier_tok);
         if (code != PRP_OK) {
             return code;
         }

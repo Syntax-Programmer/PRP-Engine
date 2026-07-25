@@ -7,15 +7,6 @@ extern "C" {
 #include "Log.h"
 #include <pthread.h>
 
-// Platform specific debug break.
-#if defined(_MSC_VER)
-#define DIAG_DEBUG_BREAK() __debugbreak()
-#elif defined(__clang__) || defined(__GNUC__)
-#define DIAG_DEBUG_BREAK() __builtin_trap()
-#else
-#define DIAG_DEBUG_BREAK() abort()
-#endif
-
 /* ----  ALWAYS ON ---- */
 
 #define DIAG_VERIFY(expr)                                                      \

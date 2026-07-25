@@ -29,12 +29,14 @@ typedef struct {
 extern FECS_InternalCtx *g_ctx;
 
 #define CTX_INVARIANT_EXPR                                                     \
-    (g_ctx != NULL && CONT_ArrIsValid(g_ctx->pComp_sizes) &&                     \
-     CONT_ArrIsValid(g_ctx->pSystem_infos) && CONT_DSArrIsValid(g_ctx->pWorlds) && \
-     CONT_StrArrIsValid(g_ctx->pComp_names) &&                                   \
-     CONT_StrArrIsValid(g_ctx->pSystem_names) &&                                 \
-     CONT_ArrLen(g_ctx->pComp_sizes) == CONT_StrArrLen(g_ctx->pComp_names) &&      \
-     CONT_ArrLen(g_ctx->pSystem_infos) == CONT_StrArrLen(g_ctx->pSystem_names))
+    (g_ctx != NULL && CONT_ArrIsValid(g_ctx->pComp_sizes) &&                   \
+     CONT_ArrIsValid(g_ctx->pSystem_infos) &&                                  \
+     CONT_DSArrIsValid(g_ctx->pWorlds) &&                                      \
+     CONT_StrArrIsValid(g_ctx->pComp_names) &&                                 \
+     CONT_StrArrIsValid(g_ctx->pSystem_names) &&                               \
+     CONT_ArrLen(g_ctx->pComp_sizes) == CONT_StrArrLen(g_ctx->pComp_names) &&  \
+     CONT_ArrLen(g_ctx->pSystem_infos) ==                                      \
+         CONT_StrArrLen(g_ctx->pSystem_names))
 
 /* ----  COMPS ---- */
 

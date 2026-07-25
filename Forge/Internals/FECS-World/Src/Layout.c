@@ -127,7 +127,7 @@ PRP_Result LayoutCreate(CONT_Bitmap *pCreate_info, FECS_Layout *pLayout) {
         goto err_path;
     }
     code = CONT_BitmapCreateUnchecked(CONT_ARR_DEFAULT_CAP,
-                                    &pLayout->pFree_chunk_bitset);
+                                      &pLayout->pFree_chunk_bitset);
     if (code != PRP_OK) {
         goto err_path;
     }
@@ -182,7 +182,7 @@ void LayoutDelete(FECS_Layout *pLayout) {
     free(pLayout->pComp_arr_strides);
     free(pLayout->pWord_prefix_popcnts);
 
-#if !defined(PRP_NDEBUG)
+#ifdef PRP_DEBUG_MODE
     pLayout->pComp_arr_strides = NULL;
     pLayout->pWord_prefix_popcnts = NULL;
 #endif
@@ -279,7 +279,7 @@ PRP_Result EntityGroupSpawn(FECS_World *pWorld, FECS_LayoutId layout_id,
         return PRP_ERR_OOM;
     }
     PRP_Result code = CONT_ArrCreateUnchecked(sizeof(ChunkView), min_cap,
-                                            &pGroup->pChunk_views);
+                                              &pGroup->pChunk_views);
     if (code != PRP_OK) {
         free(pGroup);
         return code;
@@ -319,7 +319,8 @@ PRP_Result EntityGroupSpawn(FECS_World *pWorld, FECS_LayoutId layout_id,
         alloc_count += CONT_BitwordPopCnt(occupied_slots_mask);
         PRP_BIT_CLR(pChunk->free_slot_bitset, occupied_slots_mask);
         if (!pChunk->free_slot_bitset) {
-            CONT_BitmapClrUnchecked(pLayout->pFree_chunk_bitset, free_chunk_idx);
+            CONT_BitmapClrUnchecked(pLayout->pFree_chunk_bitset,
+                                    free_chunk_idx);
         }
     }
     *ppGroup = pGroup;
@@ -390,7 +391,7 @@ PRP_Bool EntityGroupIsValid(FECS_World *pWorld,
     }
     FECS_Layout *pLayout = &pWorld->pLayouts[pGroup->layout_id];
     PRP_Result code = CONT_ArrForEachUnchecked(pGroup->pChunk_views,
-                                             EntityGroupValidityCb, pLayout);
+                                               EntityGroupValidityCb, pLayout);
 
     return code == PRP_OK;
 }
@@ -426,7 +427,7 @@ static PRP_Result EntityGroupKillCb(void *pVal, void *pUser_data) {
             if (mask != pChunk_view->occupied_slots) {
                 // We deleted not all entities but now chunk has free spot.
                 CONT_BitmapSetUnchecked(pLayout->pFree_chunk_bitset,
-                                      pChunk_view->chunk_idx);
+                                        pChunk_view->chunk_idx);
             }
             return PRP_ERR_INV_ARG;
         }
@@ -434,7 +435,8 @@ static PRP_Result EntityGroupKillCb(void *pVal, void *pUser_data) {
         PRP_BIT_SET(pChunk->free_slot_bitset, BIT_MASK(slot));
         pChunk->gens[slot]++;
     }
-    CONT_BitmapSetUnchecked(pLayout->pFree_chunk_bitset, pChunk_view->chunk_idx);
+    CONT_BitmapSetUnchecked(pLayout->pFree_chunk_bitset,
+                            pChunk_view->chunk_idx);
 
     return PRP_OK;
 }
@@ -443,7 +445,7 @@ PRP_Result EntityGroupKill(FECS_World *pWorld, FECS_EntityGroupId **ppGroup) {
     FECS_EntityGroupId *pGroup = *ppGroup;
     FECS_Layout *pLayout = &pWorld->pLayouts[pGroup->layout_id];
     PRP_Result code = CONT_ArrForEachUnchecked(pGroup->pChunk_views,
-                                             EntityGroupKillCb, pLayout);
+                                               EntityGroupKillCb, pLayout);
     if (code != PRP_OK) {
         return code;
     }
@@ -473,8 +475,8 @@ PRP_Result EntityGetComp(FECS_World *pWorld, const FECS_EntityId entity,
         CONT_BitmapRawUnchecked(pLayout->pComp_set, &_, &_);
     PRP_Size word_i = WORD_I(comp_id);
     PRP_Size prefix_popcnt = pLayout->pWord_prefix_popcnts[word_i];
-    PRP_U16 rank_in_word =
-        (PRP_U16)CONT_BitwordPopCnt(pBitwords[word_i] & (BIT_MASK(comp_id) - 1));
+    PRP_U16 rank_in_word = (PRP_U16)CONT_BitwordPopCnt(pBitwords[word_i] &
+                                                       (BIT_MASK(comp_id) - 1));
     PRP_Size comp_stride =
         pLayout->pComp_arr_strides[prefix_popcnt + rank_in_word];
 
@@ -503,8 +505,8 @@ PRP_Result EntitySetComp(FECS_World *pWorld, FECS_EntityId entity,
         CONT_BitmapRawUnchecked(pLayout->pComp_set, &_, &_);
     PRP_Size word_i = WORD_I(comp_id);
     PRP_Size prefix_popcnt = pLayout->pWord_prefix_popcnts[word_i];
-    PRP_U16 rank_in_word =
-        (PRP_U16)CONT_BitwordPopCnt(pBitwords[word_i] & (BIT_MASK(comp_id) - 1));
+    PRP_U16 rank_in_word = (PRP_U16)CONT_BitwordPopCnt(pBitwords[word_i] &
+                                                       (BIT_MASK(comp_id) - 1));
     PRP_Size comp_stride =
         pLayout->pComp_arr_strides[prefix_popcnt + rank_in_word];
 
@@ -540,7 +542,7 @@ static PRP_Result EntityGroupIterationCb(void *pVal, void *pUser_data) {
             if (mask != pChunk_view->occupied_slots) {
                 // We deleted not all entities but now chunk has free spot.
                 CONT_BitmapSetUnchecked(pI_data->pLayout->pFree_chunk_bitset,
-                                      pChunk_view->chunk_idx);
+                                        pChunk_view->chunk_idx);
             }
             return PRP_ERR_INV_ARG;
         }
@@ -574,11 +576,11 @@ PRP_Result EntityGroupForEach(
         CONT_BitmapRawUnchecked(i_data.pLayout->pComp_set, &_, &_);
     PRP_Size word_i = WORD_I(comp_id);
     PRP_Size prefix_popcnt = i_data.pLayout->pWord_prefix_popcnts[word_i];
-    PRP_U16 rank_in_word =
-        (PRP_U16)CONT_BitwordPopCnt(pBitwords[word_i] & (BIT_MASK(comp_id) - 1));
+    PRP_U16 rank_in_word = (PRP_U16)CONT_BitwordPopCnt(pBitwords[word_i] &
+                                                       (BIT_MASK(comp_id) - 1));
     i_data.comp_stride =
         i_data.pLayout->pComp_arr_strides[prefix_popcnt + rank_in_word];
 
-    return CONT_ArrForEachUnchecked(pGroup->pChunk_views, EntityGroupIterationCb,
-                                  &i_data);
+    return CONT_ArrForEachUnchecked(pGroup->pChunk_views,
+                                    EntityGroupIterationCb, &i_data);
 }

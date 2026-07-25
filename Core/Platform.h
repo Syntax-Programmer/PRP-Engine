@@ -4,9 +4,15 @@
 extern "C" {
 #endif
 
+#ifdef PRP_NDEBUG
+#define PRP_DEBUG_MODE 1
+#else
+#define PRP_RELEASE_MODE 1
+#endif
+
 /* ----  OS DETECTION ---- */
 
-#if defined(_WIN32)
+#if defined(_WIN32) || defined(_WIN64)
 #define PRP_PLATFORM_WINDOWS 1
 
 #elif defined(__ANDROID__)

@@ -52,7 +52,7 @@ void SystemInstanceDelete(FECS_SystemInstance *pSystem_instance) {
     free(pSystem_instance->pStride_dispatches);
     free(pSystem_instance->pLayout_id_matches);
 
-#if !defined(PRP_NDEBUG)
+#ifdef PRP_DEBUG_MODE
     pSystem_instance->system_id = PRP_INVALID_INDEX;
     pSystem_instance->layout_id_match_count = 0;
     pSystem_instance->pLayout_id_matches = NULL;

@@ -4,6 +4,7 @@
 extern "C" {
 #endif
 
+#include "Platform.h"
 #include "Types.h"
 
 #define PRP_INVALID_SIZE ((PRP_Size)(-1))

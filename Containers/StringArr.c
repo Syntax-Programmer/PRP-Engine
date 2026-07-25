@@ -21,7 +21,7 @@ struct _StrArr {
 
 #define ASSERT_INVARIANT_EXPR(str_arr)                                         \
     DIAG_ASSERT_MSG(                                                           \
-        CONT_StrArrIsValid(str_arr),                                             \
+        CONT_StrArrIsValid(str_arr),                                           \
         "The given string buffer is either NULL, or is corrupted.")
 
 /**
@@ -92,7 +92,7 @@ CONT_StrArrCloneUnchecked(const CONT_StrArr *str_arr, CONT_StrArr **pStr_arr) {
     DIAG_ASSERT(pStr_arr != NULL);
 
     PRP_Result code = CONT_StrArrCreateUnchecked(str_arr->occupied_size,
-                                               str_arr->len, pStr_arr);
+                                                 str_arr->len, pStr_arr);
     if (code != PRP_OK) {
         return code;
     }
@@ -122,7 +122,7 @@ PRP_FN_API void PRP_FN_CALL CONT_StrArrDeleteUnchecked(CONT_StrArr **pStr_arr) {
     free(str_arr->pBffr);
     free(str_arr->pStr_info);
 
-#if !defined(PRP_NDEBUG)
+#ifdef PRP_DEBUG_MODE
     str_arr->pBffr = NULL;
     str_arr->pStr_info = NULL;
     str_arr->bffr_size = str_arr->occupied_size = 0;
@@ -133,7 +133,8 @@ PRP_FN_API void PRP_FN_CALL CONT_StrArrDeleteUnchecked(CONT_StrArr **pStr_arr) {
     *pStr_arr = NULL;
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL CONT_StrArrDeleteChecked(CONT_StrArr **pStr_arr) {
+PRP_FN_API PRP_Result PRP_FN_CALL
+CONT_StrArrDeleteChecked(CONT_StrArr **pStr_arr) {
     if (!pStr_arr || !(*pStr_arr) || !(*pStr_arr)->pBffr ||
         !(*pStr_arr)->pStr_info) {
         return PRP_ERR_INV_ARG;
@@ -162,10 +163,9 @@ PRP_FN_API const PRP_Char8 *PRP_FN_CALL CONT_StrArrGetUnchecked(
     return str_arr->pBffr + (info.ofs);
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL CONT_StrArrGetChecked(const CONT_StrArr *str_arr,
-                                                      PRP_Size i,
-                                                      PRP_Size *pStr_len,
-                                                      const PRP_Char8 **pStr) {
+PRP_FN_API PRP_Result PRP_FN_CALL
+CONT_StrArrGetChecked(const CONT_StrArr *str_arr, PRP_Size i,
+                      PRP_Size *pStr_len, const PRP_Char8 **pStr) {
     if (!CONT_StrArrIsValid(str_arr) || !pStr || !pStr_len) {
         return PRP_ERR_INV_ARG;
     }
@@ -218,9 +218,8 @@ static PRP_Result AccomodateString(CONT_StrArr *str_arr, PRP_Size str_len) {
     return PRP_OK;
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL CONT_StrArrPushUnchecked(CONT_StrArr *str_arr,
-                                                         const PRP_Char8 *pStr,
-                                                         PRP_Size str_len) {
+PRP_FN_API PRP_Result PRP_FN_CALL CONT_StrArrPushUnchecked(
+    CONT_StrArr *str_arr, const PRP_Char8 *pStr, PRP_Size str_len) {
     ASSERT_INVARIANT_EXPR(str_arr);
     DIAG_ASSERT(pStr != NULL);
     DIAG_ASSERT(str_len > 0);
@@ -238,8 +237,8 @@ PRP_FN_API PRP_Result PRP_FN_CALL CONT_StrArrPushUnchecked(CONT_StrArr *str_arr,
 }
 
 PRP_FN_API PRP_Result PRP_FN_CALL CONT_StrArrPushChecked(CONT_StrArr *str_arr,
-                                                       const PRP_Char8 *pStr,
-                                                       PRP_Size str_len) {
+                                                         const PRP_Char8 *pStr,
+                                                         PRP_Size str_len) {
     if (!CONT_StrArrIsValid(str_arr) || !pStr || !str_len) {
         return PRP_ERR_INV_ARG;
     }
@@ -283,10 +282,8 @@ PRP_FN_API PRP_Result PRP_FN_CALL CONT_StrArrInsertUnchecked(
     return PRP_OK;
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL CONT_StrArrInsertChecked(CONT_StrArr *str_arr,
-                                                         const PRP_Char8 *pStr,
-                                                         PRP_Size str_len,
-                                                         PRP_Size i) {
+PRP_FN_API PRP_Result PRP_FN_CALL CONT_StrArrInsertChecked(
+    CONT_StrArr *str_arr, const PRP_Char8 *pStr, PRP_Size str_len, PRP_Size i) {
     if (!CONT_StrArrIsValid(str_arr) || !pStr || !str_len) {
         return PRP_ERR_INV_ARG;
     }
@@ -298,8 +295,8 @@ PRP_FN_API PRP_Result PRP_FN_CALL CONT_StrArrInsertChecked(CONT_StrArr *str_arr,
 }
 
 PRP_FN_API PRP_Result PRP_FN_CALL CONT_StrArrPopUnchecked(CONT_StrArr *str_arr,
-                                                        PRP_Char8 **ppStr,
-                                                        PRP_Size *pStr_len) {
+                                                          PRP_Char8 **ppStr,
+                                                          PRP_Size *pStr_len) {
     ASSERT_INVARIANT_EXPR(str_arr);
     DIAG_ASSERT_MSG((ppStr == NULL) == (pStr_len == NULL),
                     "Both params shall either be provided or excluded.");
@@ -321,8 +318,8 @@ PRP_FN_API PRP_Result PRP_FN_CALL CONT_StrArrPopUnchecked(CONT_StrArr *str_arr,
 }
 
 PRP_FN_API PRP_Result PRP_FN_CALL CONT_StrArrPopChecked(CONT_StrArr *str_arr,
-                                                      PRP_Char8 **ppStr,
-                                                      PRP_Size *pStr_len) {
+                                                        PRP_Char8 **ppStr,
+                                                        PRP_Size *pStr_len) {
     if (!CONT_StrArrIsValid(str_arr) || (ppStr == NULL) != (pStr_len == NULL) ||
         (ppStr && !(*ppStr))) {
         return PRP_ERR_INV_ARG;
@@ -332,9 +329,9 @@ PRP_FN_API PRP_Result PRP_FN_CALL CONT_StrArrPopChecked(CONT_StrArr *str_arr,
 }
 
 PRP_FN_API void PRP_FN_CALL CONT_StrArrRemoveUnchecked(CONT_StrArr *str_arr,
-                                                     PRP_Char8 **ppStr,
-                                                     PRP_Size *pStr_len,
-                                                     PRP_Size i) {
+                                                       PRP_Char8 **ppStr,
+                                                       PRP_Size *pStr_len,
+                                                       PRP_Size i) {
     ASSERT_INVARIANT_EXPR(str_arr);
     DIAG_ASSERT(i < str_arr->len);
     DIAG_ASSERT_MSG((ppStr == NULL) == (pStr_len == NULL),
@@ -360,9 +357,9 @@ PRP_FN_API void PRP_FN_CALL CONT_StrArrRemoveUnchecked(CONT_StrArr *str_arr,
 }
 
 PRP_FN_API PRP_Result PRP_FN_CALL CONT_StrArrRemoveChecked(CONT_StrArr *str_arr,
-                                                         PRP_Char8 **ppStr,
-                                                         PRP_Size *pStr_len,
-                                                         PRP_Size i) {
+                                                           PRP_Char8 **ppStr,
+                                                           PRP_Size *pStr_len,
+                                                           PRP_Size i) {
     if (!CONT_StrArrIsValid(str_arr) || (ppStr == NULL) != (pStr_len == NULL)) {
         return PRP_ERR_INV_ARG;
     }
@@ -378,7 +375,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL CONT_StrArrRemoveChecked(CONT_StrArr *str_arr,
 PRP_FN_API void PRP_FN_CALL CONT_StrArrResetUnchecked(CONT_StrArr *str_arr) {
     ASSERT_INVARIANT_EXPR(str_arr);
 
-#if !defined(PRP_NDEBUG)
+#ifdef PRP_DEBUG_MODE
     memset(str_arr->pBffr, 0, str_arr->bffr_size);
     memset(str_arr->pStr_info, 0, str_arr->cap * sizeof(StrInfo));
 #endif
@@ -387,7 +384,8 @@ PRP_FN_API void PRP_FN_CALL CONT_StrArrResetUnchecked(CONT_StrArr *str_arr) {
     str_arr->occupied_size = 0;
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL CONT_StrArrResetChecked(CONT_StrArr *str_arr) {
+PRP_FN_API PRP_Result PRP_FN_CALL
+CONT_StrArrResetChecked(CONT_StrArr *str_arr) {
     if (!CONT_StrArrIsValid(str_arr)) {
         return PRP_ERR_INV_ARG;
     }
@@ -399,7 +397,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL CONT_StrArrResetChecked(CONT_StrArr *str_arr) 
 
 PRP_FN_API PRP_Bool PRP_FN_CALL
 CONT_StrArrSearchUnchecked(const CONT_StrArr *str_arr, const PRP_Char8 *pStr,
-                         PRP_Size str_len, PRP_Size *pIdx) {
+                           PRP_Size str_len, PRP_Size *pIdx) {
     ASSERT_INVARIANT_EXPR(str_arr);
     DIAG_ASSERT(pStr != NULL);
     DIAG_ASSERT(str_len > 0);
@@ -422,7 +420,7 @@ CONT_StrArrSearchUnchecked(const CONT_StrArr *str_arr, const PRP_Char8 *pStr,
 
 PRP_FN_API PRP_Result PRP_FN_CALL
 CONT_StrArrSearchChecked(const CONT_StrArr *str_arr, const PRP_Char8 *pStr,
-                       PRP_Size str_len, PRP_Bool *pRslt, PRP_Size *pIdx) {
+                         PRP_Size str_len, PRP_Bool *pRslt, PRP_Size *pIdx) {
     if (!CONT_StrArrIsValid(str_arr) || !pStr || !str_len || !pRslt) {
         return PRP_ERR_INV_ARG;
     }

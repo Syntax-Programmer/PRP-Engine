@@ -33,7 +33,7 @@ PRP_Result WorldDeleteCb(void *pWorld) {
     if (pWorld_instance->pSystem_instance_names) {
         CONT_StrArrDeleteUnchecked(&pWorld_instance->pSystem_instance_names);
     }
-#if !defined(PRP_NDEBUG)
+#ifdef PRP_DEBUG_MODE
     pWorld_instance->pLayouts = NULL;
     pWorld_instance->pSystem_instances = NULL;
     pWorld_instance->pLayout_names = NULL;
@@ -155,7 +155,7 @@ FECS_LayoutId WorldFindLayout(const FECS_World *pWorld, const PRP_Char8 *pName,
     PRP_Size idx;
     if (pWorld->layout_count == 0 ||
         !CONT_StrArrSearchUnchecked(pWorld->pLayout_names, pName, name_len,
-                                  &idx)) {
+                                    &idx)) {
         return FECS_INVALID_ID;
     }
 
@@ -168,7 +168,7 @@ FECS_SystemInstanceId WorldFindSystemInstance(const FECS_World *pWorld,
     PRP_Size idx;
     if (pWorld->system_instance_count == 0 ||
         !CONT_StrArrSearchUnchecked(pWorld->pSystem_instance_names, pName,
-                                  name_len, &idx)) {
+                                    name_len, &idx)) {
         return FECS_INVALID_ID;
     }
 

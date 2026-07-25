@@ -8,10 +8,11 @@ struct _ByteBffr {
 };
 
 #define ASSERT_INVARIANT_EXPR(b_bffr)                                          \
-    DIAG_ASSERT_MSG(CONT_ByteBffrIsValid(b_bffr),                                \
+    DIAG_ASSERT_MSG(CONT_ByteBffrIsValid(b_bffr),                              \
                     "The given byte buffer is either NULL, or is corrupted.")
 
-PRP_FN_API PRP_Bool PRP_FN_CALL CONT_ByteBffrIsValid(const CONT_ByteBffr *b_bffr) {
+PRP_FN_API
+PRP_Bool PRP_FN_CALL CONT_ByteBffrIsValid(const CONT_ByteBffr *b_bffr) {
     return (b_bffr != NULL && b_bffr->mem != NULL && b_bffr->size > 0);
 }
 
@@ -45,8 +46,8 @@ CONT_ByteBffrCreateChecked(PRP_Size size, CONT_ByteBffr **pB_bffr) {
     return CONT_ByteBffrCreateUnchecked(size, pB_bffr);
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL
-CONT_ByteBffrCloneUnchecked(const CONT_ByteBffr *b_bffr, CONT_ByteBffr **pB_bffr) {
+PRP_FN_API PRP_Result PRP_FN_CALL CONT_ByteBffrCloneUnchecked(
+    const CONT_ByteBffr *b_bffr, CONT_ByteBffr **pB_bffr) {
     ASSERT_INVARIANT_EXPR(b_bffr);
     DIAG_ASSERT(pB_bffr != NULL);
 
@@ -61,8 +62,8 @@ CONT_ByteBffrCloneUnchecked(const CONT_ByteBffr *b_bffr, CONT_ByteBffr **pB_bffr
     return PRP_OK;
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL
-CONT_ByteBffrCloneChecked(const CONT_ByteBffr *b_bffr, CONT_ByteBffr **pB_bffr) {
+PRP_FN_API PRP_Result PRP_FN_CALL CONT_ByteBffrCloneChecked(
+    const CONT_ByteBffr *b_bffr, CONT_ByteBffr **pB_bffr) {
     if (!CONT_ByteBffrIsValid(b_bffr) || !pB_bffr) {
         return PRP_ERR_INV_ARG;
     }
@@ -70,7 +71,8 @@ CONT_ByteBffrCloneChecked(const CONT_ByteBffr *b_bffr, CONT_ByteBffr **pB_bffr) 
     return CONT_ByteBffrCloneUnchecked(b_bffr, pB_bffr);
 }
 
-PRP_FN_API void PRP_FN_CALL CONT_ByteBffrDeleteUnchecked(CONT_ByteBffr **pB_bffr) {
+PRP_FN_API void PRP_FN_CALL
+CONT_ByteBffrDeleteUnchecked(CONT_ByteBffr **pB_bffr) {
     DIAG_ASSERT(pB_bffr != NULL);
     DIAG_ASSERT(*pB_bffr != NULL && (*pB_bffr)->mem != NULL);
 
@@ -78,7 +80,7 @@ PRP_FN_API void PRP_FN_CALL CONT_ByteBffrDeleteUnchecked(CONT_ByteBffr **pB_bffr
 
     free(b_bffr->mem);
 
-#if !defined(PRP_NDEBUG)
+#ifdef PRP_DEBUG_MODE
     b_bffr->mem = NULL;
     b_bffr->size = 0;
 #endif
@@ -108,8 +110,8 @@ CONT_ByteBffrRawUnchecked(const CONT_ByteBffr *b_bffr, PRP_Size *pSize) {
     return b_bffr->mem;
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL
-CONT_ByteBffrRawChecked(const CONT_ByteBffr *b_bffr, PRP_Size *pSize, void **pRaw) {
+PRP_FN_API PRP_Result PRP_FN_CALL CONT_ByteBffrRawChecked(
+    const CONT_ByteBffr *b_bffr, PRP_Size *pSize, void **pRaw) {
     if (!CONT_ByteBffrIsValid(b_bffr) || !pSize || !pRaw) {
         return PRP_ERR_INV_ARG;
     }
@@ -126,16 +128,16 @@ PRP_FN_API PRP_Size PRP_FN_CALL CONT_ByteBffrSize(const CONT_ByteBffr *b_bffr) {
     return b_bffr->size;
 }
 
-PRP_FN_API void *PRP_FN_CALL CONT_ByteBffrGetUnchecked(const CONT_ByteBffr *b_bffr,
-                                                     PRP_Size ofs) {
+PRP_FN_API void *PRP_FN_CALL
+CONT_ByteBffrGetUnchecked(const CONT_ByteBffr *b_bffr, PRP_Size ofs) {
     ASSERT_INVARIANT_EXPR(b_bffr);
     DIAG_ASSERT(ofs < b_bffr->size);
 
     return b_bffr->mem + ofs;
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL
-CONT_ByteBffrGetChecked(const CONT_ByteBffr *b_bffr, PRP_Size ofs, void **ppDest) {
+PRP_FN_API PRP_Result PRP_FN_CALL CONT_ByteBffrGetChecked(
+    const CONT_ByteBffr *b_bffr, PRP_Size ofs, void **ppDest) {
     if (!CONT_ByteBffrIsValid(b_bffr) || !ppDest) {
         return PRP_ERR_INV_ARG;
     }
@@ -149,9 +151,9 @@ CONT_ByteBffrGetChecked(const CONT_ByteBffr *b_bffr, PRP_Size ofs, void **ppDest
 }
 
 PRP_FN_API void PRP_FN_CALL CONT_ByteBffrUploadUnchecked(CONT_ByteBffr *b_bffr,
-                                                       PRP_Size ofs,
-                                                       PRP_Size size,
-                                                       void *pData) {
+                                                         PRP_Size ofs,
+                                                         PRP_Size size,
+                                                         void *pData) {
     ASSERT_INVARIANT_EXPR(b_bffr);
     DIAG_ASSERT(ofs < b_bffr->size);
     DIAG_ASSERT(b_bffr->size - ofs >= size);
@@ -160,10 +162,8 @@ PRP_FN_API void PRP_FN_CALL CONT_ByteBffrUploadUnchecked(CONT_ByteBffr *b_bffr,
     memcpy(b_bffr->mem + ofs, pData, size);
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL CONT_ByteBffrUploadChecked(CONT_ByteBffr *b_bffr,
-                                                           PRP_Size ofs,
-                                                           PRP_Size size,
-                                                           void *pData) {
+PRP_FN_API PRP_Result PRP_FN_CALL CONT_ByteBffrUploadChecked(
+    CONT_ByteBffr *b_bffr, PRP_Size ofs, PRP_Size size, void *pData) {
     if (!CONT_ByteBffrIsValid(b_bffr) || !pData) {
         return PRP_ERR_INV_ARG;
     }
@@ -176,11 +176,9 @@ PRP_FN_API PRP_Result PRP_FN_CALL CONT_ByteBffrUploadChecked(CONT_ByteBffr *b_bf
     return PRP_OK;
 }
 
-PRP_FN_API void PRP_FN_CALL CONT_ByteBffrCopyUnchecked(const CONT_ByteBffr *b_bffr1,
-                                                     PRP_Size ofs1,
-                                                     CONT_ByteBffr *b_bffr2,
-                                                     PRP_Size ofs2,
-                                                     PRP_Size size) {
+PRP_FN_API void PRP_FN_CALL CONT_ByteBffrCopyUnchecked(
+    const CONT_ByteBffr *b_bffr1, PRP_Size ofs1, CONT_ByteBffr *b_bffr2,
+    PRP_Size ofs2, PRP_Size size) {
     ASSERT_INVARIANT_EXPR(b_bffr1);
     ASSERT_INVARIANT_EXPR(b_bffr2);
     DIAG_ASSERT(ofs1 < b_bffr1->size);
@@ -193,7 +191,7 @@ PRP_FN_API void PRP_FN_CALL CONT_ByteBffrCopyUnchecked(const CONT_ByteBffr *b_bf
 
 PRP_FN_API PRP_Result PRP_FN_CALL
 CONT_ByteBffrCopyChecked(const CONT_ByteBffr *b_bffr1, PRP_Size ofs1,
-                       CONT_ByteBffr *b_bffr2, PRP_Size ofs2, PRP_Size size) {
+                         CONT_ByteBffr *b_bffr2, PRP_Size ofs2, PRP_Size size) {
     if (!CONT_ByteBffrIsValid(b_bffr1) || !CONT_ByteBffrIsValid(b_bffr2)) {
         return PRP_ERR_INV_ARG;
     }
@@ -208,9 +206,9 @@ CONT_ByteBffrCopyChecked(const CONT_ByteBffr *b_bffr1, PRP_Size ofs1,
 }
 
 PRP_FN_API void PRP_FN_CALL CONT_ByteBffrFillUnchecked(CONT_ByteBffr *b_bffr,
-                                                     PRP_Size ofs,
-                                                     PRP_Size size,
-                                                     PRP_U8 byte) {
+                                                       PRP_Size ofs,
+                                                       PRP_Size size,
+                                                       PRP_U8 byte) {
     ASSERT_INVARIANT_EXPR(b_bffr);
     DIAG_ASSERT(ofs < b_bffr->size);
     DIAG_ASSERT(b_bffr->size - ofs >= size);
@@ -218,10 +216,8 @@ PRP_FN_API void PRP_FN_CALL CONT_ByteBffrFillUnchecked(CONT_ByteBffr *b_bffr,
     memset(b_bffr->mem + ofs, byte, size);
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL CONT_ByteBffrFillChecked(CONT_ByteBffr *b_bffr,
-                                                         PRP_Size ofs,
-                                                         PRP_Size size,
-                                                         PRP_U8 byte) {
+PRP_FN_API PRP_Result PRP_FN_CALL CONT_ByteBffrFillChecked(
+    CONT_ByteBffr *b_bffr, PRP_Size ofs, PRP_Size size, PRP_U8 byte) {
     if (!CONT_ByteBffrIsValid(b_bffr)) {
         return PRP_ERR_INV_ARG;
     }
@@ -246,8 +242,9 @@ PRP_FN_API PRP_Bool PRP_FN_CALL CONT_ByteBffrCmpUnchecked(
     return (memcmp(b_bffr1->mem, b_bffr2->mem, b_bffr1->size) == 0);
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL CONT_ByteBffrCmpChecked(
-    const CONT_ByteBffr *b_bffr1, const CONT_ByteBffr *b_bffr2, PRP_Bool *pRslt) {
+PRP_FN_API PRP_Result PRP_FN_CALL
+CONT_ByteBffrCmpChecked(const CONT_ByteBffr *b_bffr1,
+                        const CONT_ByteBffr *b_bffr2, PRP_Bool *pRslt) {
     if (!CONT_ByteBffrIsValid(b_bffr1) || !CONT_ByteBffrIsValid(b_bffr2) ||
         !pRslt) {
         return PRP_ERR_INV_ARG;
@@ -258,8 +255,8 @@ PRP_FN_API PRP_Result PRP_FN_CALL CONT_ByteBffrCmpChecked(
     return PRP_OK;
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL
-CONT_ByteBffrExtendUnchecked(CONT_ByteBffr *b_bffr1, const CONT_ByteBffr *b_bffr2) {
+PRP_FN_API PRP_Result PRP_FN_CALL CONT_ByteBffrExtendUnchecked(
+    CONT_ByteBffr *b_bffr1, const CONT_ByteBffr *b_bffr2) {
     ASSERT_INVARIANT_EXPR(b_bffr1);
     ASSERT_INVARIANT_EXPR(b_bffr2);
 
@@ -276,8 +273,8 @@ CONT_ByteBffrExtendUnchecked(CONT_ByteBffr *b_bffr1, const CONT_ByteBffr *b_bffr
     return PRP_OK;
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL
-CONT_ByteBffrExtendChecked(CONT_ByteBffr *b_bffr1, const CONT_ByteBffr *b_bffr2) {
+PRP_FN_API PRP_Result PRP_FN_CALL CONT_ByteBffrExtendChecked(
+    CONT_ByteBffr *b_bffr1, const CONT_ByteBffr *b_bffr2) {
     if (!CONT_ByteBffrIsValid(b_bffr1) || !CONT_ByteBffrIsValid(b_bffr2)) {
         return PRP_ERR_INV_ARG;
     }
@@ -285,11 +282,9 @@ CONT_ByteBffrExtendChecked(CONT_ByteBffr *b_bffr1, const CONT_ByteBffr *b_bffr2)
     return CONT_ByteBffrExtendUnchecked(b_bffr1, b_bffr2);
 }
 
-PRP_FN_API void PRP_FN_CALL CONT_ByteBffrSwapRegionUnchecked(CONT_ByteBffr *b_bffr,
-                                                           PRP_Size ofs1,
-                                                           PRP_Size ofs2,
-                                                           PRP_Size size,
-                                                           void *pSwap_bffr) {
+PRP_FN_API void PRP_FN_CALL CONT_ByteBffrSwapRegionUnchecked(
+    CONT_ByteBffr *b_bffr, PRP_Size ofs1, PRP_Size ofs2, PRP_Size size,
+    void *pSwap_bffr) {
     ASSERT_INVARIANT_EXPR(b_bffr);
     DIAG_ASSERT(pSwap_bffr != NULL);
     DIAG_ASSERT(ofs1 < b_bffr->size);
@@ -311,8 +306,8 @@ PRP_FN_API void PRP_FN_CALL CONT_ByteBffrSwapRegionUnchecked(CONT_ByteBffr *b_bf
 }
 
 PRP_FN_API PRP_Result PRP_FN_CALL
-CONT_ByteBffrSwapRegionChecked(CONT_ByteBffr *b_bffr, PRP_Size ofs1, PRP_Size ofs2,
-                             PRP_Size size, void *pSwap_bffr) {
+CONT_ByteBffrSwapRegionChecked(CONT_ByteBffr *b_bffr, PRP_Size ofs1,
+                               PRP_Size ofs2, PRP_Size size, void *pSwap_bffr) {
     if (!CONT_ByteBffrIsValid(b_bffr) || !pSwap_bffr) {
         return PRP_ERR_INV_ARG;
     }
@@ -335,7 +330,8 @@ PRP_FN_API void PRP_FN_CALL CONT_ByteBffrClearUnchecked(CONT_ByteBffr *b_bffr) {
     memset(b_bffr->mem, 0, b_bffr->size);
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL CONT_ByteBffrClearChecked(CONT_ByteBffr *b_bffr) {
+PRP_FN_API PRP_Result PRP_FN_CALL
+CONT_ByteBffrClearChecked(CONT_ByteBffr *b_bffr) {
     if (!CONT_ByteBffrIsValid(b_bffr)) {
         return PRP_ERR_INV_ARG;
     }
@@ -345,8 +341,8 @@ PRP_FN_API PRP_Result PRP_FN_CALL CONT_ByteBffrClearChecked(CONT_ByteBffr *b_bff
     return PRP_OK;
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL
-CONT_ByteBffrReserveUnchecked(CONT_ByteBffr *b_bffr, PRP_Size ofs, PRP_Size size) {
+PRP_FN_API PRP_Result PRP_FN_CALL CONT_ByteBffrReserveUnchecked(
+    CONT_ByteBffr *b_bffr, PRP_Size ofs, PRP_Size size) {
     ASSERT_INVARIANT_EXPR(b_bffr);
     DIAG_ASSERT(ofs <= b_bffr->size);
     DIAG_ASSERT(CONT_BYTE_BFFR_MAX_SIZE - ofs >= size);
@@ -358,9 +354,8 @@ CONT_ByteBffrReserveUnchecked(CONT_ByteBffr *b_bffr, PRP_Size ofs, PRP_Size size
     return CONT_ByteBffrChangeSizeUnchecked(b_bffr, new_size);
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL CONT_ByteBffrReserveChecked(CONT_ByteBffr *b_bffr,
-                                                            PRP_Size ofs,
-                                                            PRP_Size size) {
+PRP_FN_API PRP_Result PRP_FN_CALL CONT_ByteBffrReserveChecked(
+    CONT_ByteBffr *b_bffr, PRP_Size ofs, PRP_Size size) {
     if (!CONT_ByteBffrIsValid(b_bffr)) {
         return PRP_ERR_INV_ARG;
     }

@@ -72,9 +72,9 @@ PRP_FN_API PRP_Bool PRP_FN_CALL CONT_HmIsValid(const CONT_Hm *hm);
  */
 PRP_FN_API PRP_Result PRP_FN_CALL
 CONT_HmCreateUnchecked(PRP_U64 (*hash_fn)(const void *key),
-                     PRP_Bool (*key_cmp_cb)(const void *k1, const void *k2),
-                     PRP_Result (*key_del_cb)(void *key),
-                     PRP_Result (*val_del_cb)(void *val), CONT_Hm **pHm);
+                       PRP_Bool (*key_cmp_cb)(const void *k1, const void *k2),
+                       PRP_Result (*key_del_cb)(void *key),
+                       PRP_Result (*val_del_cb)(void *val), CONT_Hm **pHm);
 
 /**
  * Creates a hashmap with validation.
@@ -91,9 +91,9 @@ CONT_HmCreateUnchecked(PRP_U64 (*hash_fn)(const void *key),
  */
 PRP_FN_API PRP_Result PRP_FN_CALL
 CONT_HmCreateChecked(PRP_U64 (*hash_fn)(const void *key),
-                   PRP_Bool (*key_cmp_cb)(const void *k1, const void *k2),
-                   PRP_Result (*key_del_cb)(void *key),
-                   PRP_Result (*val_del_cb)(void *val), CONT_Hm **pHm);
+                     PRP_Bool (*key_cmp_cb)(const void *k1, const void *k2),
+                     PRP_Result (*key_del_cb)(void *key),
+                     PRP_Result (*val_del_cb)(void *val), CONT_Hm **pHm);
 
 /**
  * Deletes the hashmap and nullifies the pointer.
@@ -128,9 +128,8 @@ PRP_FN_API PRP_Result PRP_FN_CALL CONT_HmDeleteChecked(CONT_Hm **pHm);
  * @note Unchecked variant:
  * - Asserts on invalid arguments in debug.
  */
-PRP_FN_API PRP_Result PRP_FN_CALL CONT_HmAddUnchecked(CONT_Hm *hm, void *key,
-                                                    void *val,
-                                                    PRP_Bool fail_on_duplicate);
+PRP_FN_API PRP_Result PRP_FN_CALL CONT_HmAddUnchecked(
+    CONT_Hm *hm, void *key, void *val, PRP_Bool fail_on_duplicate);
 
 /**
  * Inserts a key-value pair with validation.
@@ -144,8 +143,8 @@ PRP_FN_API PRP_Result PRP_FN_CALL CONT_HmAddUnchecked(CONT_Hm *hm, void *key,
  * @return PRP_ERR_OOM or PRP_ERR_RES_EXHAUSTED if insertion fails.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL CONT_HmAddChecked(CONT_Hm *hm, void *key,
-                                                  void *val,
-                                                  PRP_Bool fail_on_duplicate);
+                                                    void *val,
+                                                    PRP_Bool fail_on_duplicate);
 
 /**
  * Retrieves the value associated with a key.
@@ -160,8 +159,8 @@ PRP_FN_API PRP_Result PRP_FN_CALL CONT_HmAddChecked(CONT_Hm *hm, void *key,
  * @note Unchecked variant:
  * - Asserts on invalid arguments in debug.
  */
-PRP_FN_API PRP_Result PRP_FN_CALL CONT_HmGetUnchecked(const CONT_Hm *hm, void *key,
-                                                    void **pVal);
+PRP_FN_API PRP_Result PRP_FN_CALL CONT_HmGetUnchecked(const CONT_Hm *hm,
+                                                      void *key, void **pVal);
 
 /**
  * Retrieves the value associated with a key with validation.
@@ -174,8 +173,8 @@ PRP_FN_API PRP_Result PRP_FN_CALL CONT_HmGetUnchecked(const CONT_Hm *hm, void *k
  * @return PRP_ERR_NOT_FOUND if key does not exist.
  * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
-PRP_FN_API PRP_Result PRP_FN_CALL CONT_HmGetChecked(const CONT_Hm *hm, void *key,
-                                                  void **pVal);
+PRP_FN_API PRP_Result PRP_FN_CALL CONT_HmGetChecked(const CONT_Hm *hm,
+                                                    void *key, void **pVal);
 
 /**
  * Removes a key-value pair from the hashmap.
@@ -189,7 +188,8 @@ PRP_FN_API PRP_Result PRP_FN_CALL CONT_HmGetChecked(const CONT_Hm *hm, void *key
  * @note Unchecked variant:
  * - Asserts on invalid arguments in debug.
  */
-PRP_FN_API PRP_Result PRP_FN_CALL CONT_HmDelElemUnchecked(CONT_Hm *hm, void *key);
+PRP_FN_API PRP_Result PRP_FN_CALL CONT_HmDelElemUnchecked(CONT_Hm *hm,
+                                                          void *key);
 
 /**
  * Removes a key-value pair with validation.

@@ -10,7 +10,7 @@ PRP_Result CompRegister(PRP_Char8 *pName, PRP_Size name_len, PRP_Size comp_size,
     *pComp_id = FECS_INVALID_ID;
 
     if (CONT_StrArrSearchUnchecked(g_ctx->pComp_names, pName, name_len,
-                                 pComp_id)) {
+                                   pComp_id)) {
         return PRP_ERR_ALREADY_EXISTS;
     }
 
@@ -43,7 +43,7 @@ PRP_Result SystemRegister(PRP_Char8 *pName, PRP_Size name_len,
     *pSystem_id = FECS_INVALID_ID;
 
     if (CONT_StrArrSearchUnchecked(g_ctx->pSystem_names, pName, name_len,
-                                 pSystem_id)) {
+                                   pSystem_id)) {
 
         return PRP_ERR_ALREADY_EXISTS;
     }
@@ -88,7 +88,7 @@ PRP_Result SystemInfoDeleteCb(void *pVal, void *_) {
     FECS_SystemInfo *pSystem_info = pVal;
 
     free(pSystem_info->pComp_ids_needed);
-#if !defined(PRP_NDEBUG)
+#ifdef PRP_DEBUG_MODE
     pSystem_info->pComp_ids_needed = NULL;
 #endif
 

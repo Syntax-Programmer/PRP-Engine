@@ -505,25 +505,25 @@ PRP_FN_API PRP_Result PRP_FN_CALL FECS_Init(void) {
     if (code != PRP_OK) {
         goto err_path;
     }
-    code = CONT_ArrCreateUnchecked(sizeof(FECS_SystemInfo), CONT_ARR_DEFAULT_CAP,
-                                 &g_ctx->pSystem_infos);
+    code = CONT_ArrCreateUnchecked(sizeof(FECS_SystemInfo),
+                                   CONT_ARR_DEFAULT_CAP, &g_ctx->pSystem_infos);
     if (code != PRP_OK) {
         goto err_path;
     }
     code = CONT_DSArrCreateUnchecked(sizeof(FECS_World), WorldDeleteCb,
-                                   &g_ctx->pWorlds);
+                                     &g_ctx->pWorlds);
     if (code != PRP_OK) {
         goto err_path;
     }
     const PRP_Size INIT_BFFR_SIZE = 256;
     const PRP_Size INIT_CAP = 16;
-    code =
-        CONT_StrArrCreateUnchecked(INIT_BFFR_SIZE, INIT_CAP, &g_ctx->pComp_names);
+    code = CONT_StrArrCreateUnchecked(INIT_BFFR_SIZE, INIT_CAP,
+                                      &g_ctx->pComp_names);
     if (code != PRP_OK) {
         goto err_path;
     }
     code = CONT_StrArrCreateUnchecked(INIT_BFFR_SIZE, INIT_CAP,
-                                    &g_ctx->pSystem_names);
+                                      &g_ctx->pSystem_names);
     if (code != PRP_OK) {
         goto err_path;
     }

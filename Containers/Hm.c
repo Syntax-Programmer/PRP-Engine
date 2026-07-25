@@ -101,7 +101,7 @@ struct _Hm {
 #define MAX_ELEM_CAP (PRP_SIZE_MAX / sizeof(Elem))
 
 #define ASSERT_INVARIANT_EXPR(hm)                                              \
-    DIAG_ASSERT_MSG(CONT_HmIsValid(hm),                                          \
+    DIAG_ASSERT_MSG(CONT_HmIsValid(hm),                                        \
                     "The given hashmap is either NULL, or is corrupted.")
 
 /**
@@ -152,9 +152,9 @@ PRP_FN_API PRP_Bool PRP_FN_CALL CONT_HmIsValid(const CONT_Hm *hm) {
 
 PRP_FN_API PRP_Result PRP_FN_CALL
 CONT_HmCreateUnchecked(PRP_U64 (*hash_fn)(const void *key),
-                     PRP_Bool (*key_cmp_cb)(const void *k1, const void *k2),
-                     PRP_Result (*key_del_cb)(void *key),
-                     PRP_Result (*val_del_cb)(void *val), CONT_Hm **pHm) {
+                       PRP_Bool (*key_cmp_cb)(const void *k1, const void *k2),
+                       PRP_Result (*key_del_cb)(void *key),
+                       PRP_Result (*val_del_cb)(void *val), CONT_Hm **pHm) {
     DIAG_ASSERT(hash_fn != NULL);
     DIAG_ASSERT(key_cmp_cb != NULL);
     DIAG_ASSERT(pHm != NULL);
@@ -192,15 +192,15 @@ CONT_HmCreateUnchecked(PRP_U64 (*hash_fn)(const void *key),
 
 PRP_FN_API PRP_Result PRP_FN_CALL
 CONT_HmCreateChecked(PRP_U64 (*hash_fn)(const void *key),
-                   PRP_Bool (*key_cmp_cb)(const void *k1, const void *k2),
-                   PRP_Result (*key_del_cb)(void *key),
-                   PRP_Result (*val_del_cb)(void *val), CONT_Hm **pHm) {
+                     PRP_Bool (*key_cmp_cb)(const void *k1, const void *k2),
+                     PRP_Result (*key_del_cb)(void *key),
+                     PRP_Result (*val_del_cb)(void *val), CONT_Hm **pHm) {
     if (!hash_fn || !key_cmp_cb || !key_del_cb || !val_del_cb || !pHm) {
         return PRP_ERR_INV_ARG;
     }
 
     return CONT_HmCreateUnchecked(hash_fn, key_cmp_cb, key_del_cb, val_del_cb,
-                                pHm);
+                                  pHm);
 }
 
 PRP_FN_API void PRP_FN_CALL CONT_HmDeleteUnchecked(CONT_Hm **pHm) {
@@ -222,7 +222,7 @@ PRP_FN_API void PRP_FN_CALL CONT_HmDeleteUnchecked(CONT_Hm **pHm) {
     }
     free(hm->elems);
 
-#if !defined(PRP_NDEBUG)
+#ifdef PRP_DEBUG_MODE
     hm->layout = NULL;
     hm->elems = NULL;
     hm->elem_cap = hm->layout_cap = hm->elem_len = 0;
@@ -293,8 +293,8 @@ static void GrowHmLayout(CONT_Hm *hm) {
     return;
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL
-CONT_HmAddUnchecked(CONT_Hm *hm, void *key, void *val, PRP_Bool fail_on_duplicate) {
+PRP_FN_API PRP_Result PRP_FN_CALL CONT_HmAddUnchecked(
+    CONT_Hm *hm, void *key, void *val, PRP_Bool fail_on_duplicate) {
     ASSERT_INVARIANT_EXPR(hm);
     DIAG_ASSERT(key != NULL);
 
@@ -344,9 +344,8 @@ CONT_HmAddUnchecked(CONT_Hm *hm, void *key, void *val, PRP_Bool fail_on_duplicat
     return PRP_OK;
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL CONT_HmAddChecked(CONT_Hm *hm, void *key,
-                                                  void *val,
-                                                  PRP_Bool fail_on_duplicate) {
+PRP_FN_API PRP_Result PRP_FN_CALL CONT_HmAddChecked(
+    CONT_Hm *hm, void *key, void *val, PRP_Bool fail_on_duplicate) {
     if (!CONT_HmIsValid(hm) || !key) {
         return PRP_ERR_INV_ARG;
     }
@@ -354,8 +353,8 @@ PRP_FN_API PRP_Result PRP_FN_CALL CONT_HmAddChecked(CONT_Hm *hm, void *key,
     return CONT_HmAddUnchecked(hm, key, val, fail_on_duplicate);
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL CONT_HmGetUnchecked(const CONT_Hm *hm, void *key,
-                                                    void **pVal) {
+PRP_FN_API PRP_Result PRP_FN_CALL CONT_HmGetUnchecked(const CONT_Hm *hm,
+                                                      void *key, void **pVal) {
     ASSERT_INVARIANT_EXPR(hm);
     DIAG_ASSERT(key != NULL);
     DIAG_ASSERT(pVal != NULL);
@@ -379,8 +378,8 @@ PRP_FN_API PRP_Result PRP_FN_CALL CONT_HmGetUnchecked(const CONT_Hm *hm, void *k
     return PRP_ERR_NOT_FOUND;
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL CONT_HmGetChecked(const CONT_Hm *hm, void *key,
-                                                  void **pVal) {
+PRP_FN_API PRP_Result PRP_FN_CALL CONT_HmGetChecked(const CONT_Hm *hm,
+                                                    void *key, void **pVal) {
     if (!CONT_HmIsValid(hm) || !key || !pVal) {
         return PRP_ERR_INV_ARG;
     }
@@ -411,7 +410,8 @@ static PRP_Result FetchLayoutElemI(const CONT_Hm *hm, const void *key,
     return PRP_ERR_NOT_FOUND;
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL CONT_HmDelElemUnchecked(CONT_Hm *hm, void *key) {
+PRP_FN_API PRP_Result PRP_FN_CALL CONT_HmDelElemUnchecked(CONT_Hm *hm,
+                                                          void *key) {
     ASSERT_INVARIANT_EXPR(hm);
     DIAG_ASSERT(key != NULL);
 
@@ -442,7 +442,8 @@ PRP_FN_API PRP_Result PRP_FN_CALL CONT_HmDelElemUnchecked(CONT_Hm *hm, void *key
     return PRP_OK;
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL CONT_HmDelElemChecked(CONT_Hm *hm, void *key) {
+PRP_FN_API PRP_Result PRP_FN_CALL CONT_HmDelElemChecked(CONT_Hm *hm,
+                                                        void *key) {
     if (!CONT_HmIsValid(hm) || !key) {
         return PRP_ERR_INV_ARG;
     }
@@ -499,7 +500,7 @@ PRP_FN_API void PRP_FN_CALL CONT_HmResetUnchecked(CONT_Hm *hm) {
             hm->val_del_cb(elem.val);
         }
     }
-#if !defined(PRP_NDEBUG)
+#ifdef PRP_DEBUG_MODE
     memset(hm->elems, 0, hm->elem_len * sizeof(Elem));
 #endif
     hm->elem_len = 0;

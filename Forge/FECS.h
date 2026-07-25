@@ -293,8 +293,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL FECS_EntitySetComp(FECS_WorldId world_id,
  */
 PRP_FN_API PRP_Result PRP_FN_CALL FECS_EntityGroupForEach(
     FECS_WorldId world_id, FECS_EntityGroupId *pGroup, FECS_CompId comp_id,
-    PRP_Result (*cb)(void *pComp_data, void *pUser_data),
-    void *pUser_data);
+    PRP_Result (*cb)(void *pComp_data, void *pUser_data), void *pUser_data);
 
 /* ----  SYSTEM INSTANCE ---- */
 

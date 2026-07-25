@@ -4,11 +4,11 @@
 extern "C" {
 #endif
 
+#include "Core/Defs.h"
 #include "Defs.h"
 #include "Diagnostics/Assert.h"
 #include "Math/Vector/Vec2.h"
 #include "Math/Vector/Vec3.h"
-#include "Core/Defs.h"
 
 /* ----  CONSTRUCTORS  ---- */
 

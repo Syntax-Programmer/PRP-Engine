@@ -99,8 +99,8 @@ PRP_FN_API PRP_Bool PRP_FN_CALL CONT_BitmapIsValid(const CONT_Bitmap *bmp);
  * @note Unchecked variant:
  * - Asserts on invalid arguments in debug.
  */
-PRP_FN_API PRP_Result PRP_FN_CALL CONT_BitmapCreateUnchecked(PRP_Size bit_cap,
-                                                           CONT_Bitmap **pBmp);
+PRP_FN_API PRP_Result PRP_FN_CALL
+CONT_BitmapCreateUnchecked(PRP_Size bit_cap, CONT_Bitmap **pBmp);
 /**
  * Creates a dynamic bitmap.
  *
@@ -112,7 +112,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL CONT_BitmapCreateUnchecked(PRP_Size bit_cap,
  * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL CONT_BitmapCreateChecked(PRP_Size bit_cap,
-                                                         CONT_Bitmap **pBmp);
+                                                           CONT_Bitmap **pBmp);
 /**
  * Deep clones the given bitmap.
  *
@@ -125,8 +125,8 @@ PRP_FN_API PRP_Result PRP_FN_CALL CONT_BitmapCreateChecked(PRP_Size bit_cap,
  * @note Unchecked variant:
  * - Asserts on invalid arguments in debug.
  */
-PRP_FN_API PRP_Result PRP_FN_CALL CONT_BitmapCloneUnchecked(const CONT_Bitmap *bmp,
-                                                          CONT_Bitmap **pBmp);
+PRP_FN_API PRP_Result PRP_FN_CALL
+CONT_BitmapCloneUnchecked(const CONT_Bitmap *bmp, CONT_Bitmap **pBmp);
 /**
  * Deep clones the given bitmap.
  *
@@ -137,8 +137,8 @@ PRP_FN_API PRP_Result PRP_FN_CALL CONT_BitmapCloneUnchecked(const CONT_Bitmap *b
  * @return PRP_ERR_OOM if allocation fails.
  * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
-PRP_FN_API PRP_Result PRP_FN_CALL CONT_BitmapCloneChecked(const CONT_Bitmap *bmp,
-                                                        CONT_Bitmap **pBmp);
+PRP_FN_API PRP_Result PRP_FN_CALL
+CONT_BitmapCloneChecked(const CONT_Bitmap *bmp, CONT_Bitmap **pBmp);
 
 /**
  * Deletes the bitmap and nullifies the pointer.
@@ -189,9 +189,9 @@ PRP_FN_API const CONT_Bitword *PRP_FN_CALL CONT_BitmapRawUnchecked(
  * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL CONT_BitmapRawChecked(const CONT_Bitmap *bmp,
-                                                      PRP_Size *pWord_cap,
-                                                      PRP_Size *pBit_cap,
-                                                      void **pRaw);
+                                                        PRP_Size *pWord_cap,
+                                                        PRP_Size *pBit_cap,
+                                                        void **pRaw);
 
 /**
  * Returns the number of set bits currently stored.
@@ -235,8 +235,8 @@ PRP_FN_API PRP_Size PRP_FN_CALL CONT_BitmapBitCap(const CONT_Bitmap *bmp);
  * @note Unchecked variant:
  * - Asserts on invalid arguments in debug.
  */
-PRP_FN_API PRP_Size PRP_FN_CALL CONT_BitmapBitRankUnchecked(const CONT_Bitmap *bmp,
-                                                          PRP_Size i);
+PRP_FN_API PRP_Size PRP_FN_CALL
+CONT_BitmapBitRankUnchecked(const CONT_Bitmap *bmp, PRP_Size i);
 /**
  * Finds exclusive rank of the given bit.
  *
@@ -248,9 +248,8 @@ PRP_FN_API PRP_Size PRP_FN_CALL CONT_BitmapBitRankUnchecked(const CONT_Bitmap *b
  * @return PRP_ERR_INV_ARG if arguments are invalid.
  * @return PRP_ERR_OOB if index out of bounds.
  */
-PRP_FN_API PRP_Result PRP_FN_CALL CONT_BitmapBitRankChecked(const CONT_Bitmap *bmp,
-                                                          PRP_Size i,
-                                                          PRP_Size *pRank);
+PRP_FN_API PRP_Result PRP_FN_CALL
+CONT_BitmapBitRankChecked(const CONT_Bitmap *bmp, PRP_Size i, PRP_Size *pRank);
 /**
  * Sets bit of the given index.
  *
@@ -260,7 +259,8 @@ PRP_FN_API PRP_Result PRP_FN_CALL CONT_BitmapBitRankChecked(const CONT_Bitmap *b
  * @note Unchecked variant:
  * - Asserts on invalid arguments in debug.
  */
-PRP_FN_API void PRP_FN_CALL CONT_BitmapSetUnchecked(CONT_Bitmap *bmp, PRP_Size i);
+PRP_FN_API void PRP_FN_CALL CONT_BitmapSetUnchecked(CONT_Bitmap *bmp,
+                                                    PRP_Size i);
 /**
  * Sets bit of the given index.
  *
@@ -272,7 +272,7 @@ PRP_FN_API void PRP_FN_CALL CONT_BitmapSetUnchecked(CONT_Bitmap *bmp, PRP_Size i
  * @return PRP_ERR_OOB if index out of bounds.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL CONT_BitmapSetChecked(CONT_Bitmap *bmp,
-                                                      PRP_Size i);
+                                                        PRP_Size i);
 /**
  * Clears bit of the given index.
  *
@@ -282,7 +282,8 @@ PRP_FN_API PRP_Result PRP_FN_CALL CONT_BitmapSetChecked(CONT_Bitmap *bmp,
  * @note Unchecked variant:
  * - Asserts on invalid arguments in debug.
  */
-PRP_FN_API void PRP_FN_CALL CONT_BitmapClrUnchecked(CONT_Bitmap *bmp, PRP_Size i);
+PRP_FN_API void PRP_FN_CALL CONT_BitmapClrUnchecked(CONT_Bitmap *bmp,
+                                                    PRP_Size i);
 /**
  * Clears bit of the given index.
  *
@@ -294,7 +295,7 @@ PRP_FN_API void PRP_FN_CALL CONT_BitmapClrUnchecked(CONT_Bitmap *bmp, PRP_Size i
  * @return PRP_ERR_OOB if index out of bounds.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL CONT_BitmapClrChecked(CONT_Bitmap *bmp,
-                                                      PRP_Size i);
+                                                        PRP_Size i);
 /**
  * Toggles bit of the given index.
  *
@@ -305,7 +306,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL CONT_BitmapClrChecked(CONT_Bitmap *bmp,
  * - Asserts on invalid arguments in debug.
  */
 PRP_FN_API void PRP_FN_CALL CONT_BitmapToggleUnchecked(CONT_Bitmap *bmp,
-                                                     PRP_Size i);
+                                                       PRP_Size i);
 /**
  * Toggles bit of the given index.
  *
@@ -317,7 +318,7 @@ PRP_FN_API void PRP_FN_CALL CONT_BitmapToggleUnchecked(CONT_Bitmap *bmp,
  * @return PRP_ERR_OOB if index out of bounds.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL CONT_BitmapToggleChecked(CONT_Bitmap *bmp,
-                                                         PRP_Size i);
+                                                           PRP_Size i);
 /**
  * Checks if bit set on given index.
  *
@@ -329,8 +330,8 @@ PRP_FN_API PRP_Result PRP_FN_CALL CONT_BitmapToggleChecked(CONT_Bitmap *bmp,
  * @note Unchecked variant:
  * - Asserts on invalid arguments in debug.
  */
-PRP_FN_API PRP_Bool PRP_FN_CALL CONT_BitmapIsSetUnchecked(const CONT_Bitmap *bmp,
-                                                        PRP_Size i);
+PRP_FN_API PRP_Bool PRP_FN_CALL
+CONT_BitmapIsSetUnchecked(const CONT_Bitmap *bmp, PRP_Size i);
 /**
  * Checks if bit set on given index.
  *
@@ -342,9 +343,8 @@ PRP_FN_API PRP_Bool PRP_FN_CALL CONT_BitmapIsSetUnchecked(const CONT_Bitmap *bmp
  * @return PRP_ERR_INV_ARG if arguments are invalid.
  * @return PRP_ERR_OOB if index out of bounds.
  */
-PRP_FN_API PRP_Result PRP_FN_CALL CONT_BitmapIsSetChecked(const CONT_Bitmap *bmp,
-                                                        PRP_Size i,
-                                                        PRP_Bool *pRslt);
+PRP_FN_API PRP_Result PRP_FN_CALL
+CONT_BitmapIsSetChecked(const CONT_Bitmap *bmp, PRP_Size i, PRP_Bool *pRslt);
 
 /**
  * Sets bits in the range.
@@ -357,7 +357,8 @@ PRP_FN_API PRP_Result PRP_FN_CALL CONT_BitmapIsSetChecked(const CONT_Bitmap *bmp
  * - Asserts on invalid arguments in debug.
  */
 PRP_FN_API void PRP_FN_CALL CONT_BitmapSetRangeUnchecked(CONT_Bitmap *bmp,
-                                                       PRP_Size i, PRP_Size j);
+                                                         PRP_Size i,
+                                                         PRP_Size j);
 /**
  * Sets bits in the range.
  *
@@ -370,8 +371,8 @@ PRP_FN_API void PRP_FN_CALL CONT_BitmapSetRangeUnchecked(CONT_Bitmap *bmp,
  * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL CONT_BitmapSetRangeChecked(CONT_Bitmap *bmp,
-                                                           PRP_Size i,
-                                                           PRP_Size j);
+                                                             PRP_Size i,
+                                                             PRP_Size j);
 /**
  * Clears bits in the range.
  *
@@ -383,7 +384,8 @@ PRP_FN_API PRP_Result PRP_FN_CALL CONT_BitmapSetRangeChecked(CONT_Bitmap *bmp,
  * - Asserts on invalid arguments in debug.
  */
 PRP_FN_API void PRP_FN_CALL CONT_BitmapClrRangeUnchecked(CONT_Bitmap *bmp,
-                                                       PRP_Size i, PRP_Size j);
+                                                         PRP_Size i,
+                                                         PRP_Size j);
 /**
  * Clears bits in the range.
  *
@@ -396,8 +398,8 @@ PRP_FN_API void PRP_FN_CALL CONT_BitmapClrRangeUnchecked(CONT_Bitmap *bmp,
  * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL CONT_BitmapClrRangeChecked(CONT_Bitmap *bmp,
-                                                           PRP_Size i,
-                                                           PRP_Size j);
+                                                             PRP_Size i,
+                                                             PRP_Size j);
 /**
  * Toggles bits in the range.
  *
@@ -409,8 +411,8 @@ PRP_FN_API PRP_Result PRP_FN_CALL CONT_BitmapClrRangeChecked(CONT_Bitmap *bmp,
  * - Asserts on invalid arguments in debug.
  */
 PRP_FN_API void PRP_FN_CALL CONT_BitmapToggleRangeUnchecked(CONT_Bitmap *bmp,
-                                                          PRP_Size i,
-                                                          PRP_Size j);
+                                                            PRP_Size i,
+                                                            PRP_Size j);
 /**
  * Toggles bits in the range.
  *
@@ -422,9 +424,8 @@ PRP_FN_API void PRP_FN_CALL CONT_BitmapToggleRangeUnchecked(CONT_Bitmap *bmp,
  * @return PRP_ERR_OOB if any indices are out of bounds.
  * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
-PRP_FN_API PRP_Result PRP_FN_CALL CONT_BitmapToggleRangeChecked(CONT_Bitmap *bmp,
-                                                              PRP_Size i,
-                                                              PRP_Size j);
+PRP_FN_API PRP_Result PRP_FN_CALL
+CONT_BitmapToggleRangeChecked(CONT_Bitmap *bmp, PRP_Size i, PRP_Size j);
 /**
  * Checks if any bits are set in the range.
  *
@@ -437,8 +438,8 @@ PRP_FN_API PRP_Result PRP_FN_CALL CONT_BitmapToggleRangeChecked(CONT_Bitmap *bmp
  * @note Unchecked variant:
  * - Asserts on invalid arguments in debug.
  */
-PRP_FN_API PRP_Bool PRP_FN_CALL
-CONT_BitmapIsSetRangeAnyUnchecked(const CONT_Bitmap *bmp, PRP_Size i, PRP_Size j);
+PRP_FN_API PRP_Bool PRP_FN_CALL CONT_BitmapIsSetRangeAnyUnchecked(
+    const CONT_Bitmap *bmp, PRP_Size i, PRP_Size j);
 /**
  * Checks if any bits are set in the range.
  *
@@ -465,8 +466,8 @@ PRP_FN_API PRP_Result PRP_FN_CALL CONT_BitmapIsSetRangeAnyChecked(
  * @note Unchecked variant:
  * - Asserts on invalid arguments in debug.
  */
-PRP_FN_API PRP_Bool PRP_FN_CALL
-CONT_BitmapIsSetRangeAllUnchecked(const CONT_Bitmap *bmp, PRP_Size i, PRP_Size j);
+PRP_FN_API PRP_Bool PRP_FN_CALL CONT_BitmapIsSetRangeAllUnchecked(
+    const CONT_Bitmap *bmp, PRP_Size i, PRP_Size j);
 /**
  * Checks if all bits are set in the range.
  *
@@ -492,7 +493,8 @@ PRP_FN_API PRP_Result PRP_FN_CALL CONT_BitmapIsSetRangeAllChecked(
  * @note Unchecked variant:
  * - Asserts on invalid arguments in debug.
  */
-PRP_FN_API PRP_Bool PRP_FN_CALL CONT_BitmapIsEmptyUnchecked(const CONT_Bitmap *bmp);
+PRP_FN_API PRP_Bool PRP_FN_CALL
+CONT_BitmapIsEmptyUnchecked(const CONT_Bitmap *bmp);
 /**
  * Checks if there is no bits set in bitmap.
  *
@@ -502,8 +504,8 @@ PRP_FN_API PRP_Bool PRP_FN_CALL CONT_BitmapIsEmptyUnchecked(const CONT_Bitmap *b
  * @return PRP_OK on success.
  * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
-PRP_FN_API PRP_Result PRP_FN_CALL CONT_BitmapIsEmptyChecked(const CONT_Bitmap *bmp,
-                                                          PRP_Bool *pRslt);
+PRP_FN_API PRP_Result PRP_FN_CALL
+CONT_BitmapIsEmptyChecked(const CONT_Bitmap *bmp, PRP_Bool *pRslt);
 /**
  * Checks if the bitmap is full.
  *
@@ -514,7 +516,8 @@ PRP_FN_API PRP_Result PRP_FN_CALL CONT_BitmapIsEmptyChecked(const CONT_Bitmap *b
  * @note Unchecked variant:
  * - Asserts on invalid arguments in debug.
  */
-PRP_FN_API PRP_Bool PRP_FN_CALL CONT_BitmapIsFullUnchecked(const CONT_Bitmap *bmp);
+PRP_FN_API PRP_Bool PRP_FN_CALL
+CONT_BitmapIsFullUnchecked(const CONT_Bitmap *bmp);
 /**
  * Checks if the bitmap is full.
  *
@@ -524,8 +527,8 @@ PRP_FN_API PRP_Bool PRP_FN_CALL CONT_BitmapIsFullUnchecked(const CONT_Bitmap *bm
  * @return PRP_OK on success.
  * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
-PRP_FN_API PRP_Result PRP_FN_CALL CONT_BitmapIsFullChecked(const CONT_Bitmap *bmp,
-                                                         PRP_Bool *pRslt);
+PRP_FN_API PRP_Result PRP_FN_CALL
+CONT_BitmapIsFullChecked(const CONT_Bitmap *bmp, PRP_Bool *pRslt);
 
 /**
  * Performs a NOT operation on every bit in bitmap.
@@ -557,7 +560,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL CONT_BitmapNotChecked(CONT_Bitmap *bmp);
  * - Asserts on invalid arguments in debug.
  */
 PRP_FN_API void PRP_FN_CALL CONT_BitmapAndUnchecked(CONT_Bitmap *bmp1,
-                                                  const CONT_Bitmap *bmp2);
+                                                    const CONT_Bitmap *bmp2);
 /**
  * Performs an AND operation b/w bmp1 and bmp2.
  *
@@ -569,8 +572,8 @@ PRP_FN_API void PRP_FN_CALL CONT_BitmapAndUnchecked(CONT_Bitmap *bmp1,
  * @return PRP_OK on success.
  * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
-PRP_FN_API PRP_Result PRP_FN_CALL CONT_BitmapAndChecked(CONT_Bitmap *bmp1,
-                                                      const CONT_Bitmap *bmp2);
+PRP_FN_API PRP_Result PRP_FN_CALL
+CONT_BitmapAndChecked(CONT_Bitmap *bmp1, const CONT_Bitmap *bmp2);
 /**
  * Performs an OR operation b/w bmp1 and bmp2.
  *
@@ -583,7 +586,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL CONT_BitmapAndChecked(CONT_Bitmap *bmp1,
  * - Asserts on invalid arguments in debug.
  */
 PRP_FN_API void PRP_FN_CALL CONT_BitmapOrUnchecked(CONT_Bitmap *bmp1,
-                                                 const CONT_Bitmap *bmp2);
+                                                   const CONT_Bitmap *bmp2);
 /**
  * Performs an OR operation b/w bmp1 and bmp2.
  *
@@ -596,7 +599,7 @@ PRP_FN_API void PRP_FN_CALL CONT_BitmapOrUnchecked(CONT_Bitmap *bmp1,
  * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL CONT_BitmapOrChecked(CONT_Bitmap *bmp1,
-                                                     const CONT_Bitmap *bmp2);
+                                                       const CONT_Bitmap *bmp2);
 
 /**
  * Checks if bmp1 & bmp2 == bmp2.
@@ -609,8 +612,8 @@ PRP_FN_API PRP_Result PRP_FN_CALL CONT_BitmapOrChecked(CONT_Bitmap *bmp1,
  * @note Unchecked variant:
  * - Asserts on invalid arguments in debug.
  */
-PRP_FN_API PRP_Bool PRP_FN_CALL CONT_BitmapHasAllUnchecked(const CONT_Bitmap *bmp1,
-                                                         const CONT_Bitmap *bmp2);
+PRP_FN_API PRP_Bool PRP_FN_CALL
+CONT_BitmapHasAllUnchecked(const CONT_Bitmap *bmp1, const CONT_Bitmap *bmp2);
 /**
  * Checks if bmp1 & bmp2 == bmp2.
  *
@@ -621,9 +624,8 @@ PRP_FN_API PRP_Bool PRP_FN_CALL CONT_BitmapHasAllUnchecked(const CONT_Bitmap *bm
  * @return PRP_OK on success.
  * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
-PRP_FN_API PRP_Result PRP_FN_CALL CONT_BitmapHasAllChecked(const CONT_Bitmap *bmp1,
-                                                         const CONT_Bitmap *bmp2,
-                                                         PRP_Bool *pRslt);
+PRP_FN_API PRP_Result PRP_FN_CALL CONT_BitmapHasAllChecked(
+    const CONT_Bitmap *bmp1, const CONT_Bitmap *bmp2, PRP_Bool *pRslt);
 /**
  * Checks if bmp1 & bmp2 != 0.
  *
@@ -635,8 +637,8 @@ PRP_FN_API PRP_Result PRP_FN_CALL CONT_BitmapHasAllChecked(const CONT_Bitmap *bm
  * @note Unchecked variant:
  * - Asserts on invalid arguments in debug.
  */
-PRP_FN_API PRP_Bool PRP_FN_CALL CONT_BitmapHasAnyUnchecked(const CONT_Bitmap *bmp1,
-                                                         const CONT_Bitmap *bmp2);
+PRP_FN_API PRP_Bool PRP_FN_CALL
+CONT_BitmapHasAnyUnchecked(const CONT_Bitmap *bmp1, const CONT_Bitmap *bmp2);
 /**
  * Checks if bmp1 & bmp2 != 0.
  *
@@ -647,9 +649,8 @@ PRP_FN_API PRP_Bool PRP_FN_CALL CONT_BitmapHasAnyUnchecked(const CONT_Bitmap *bm
  * @return PRP_OK on success.
  * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
-PRP_FN_API PRP_Result PRP_FN_CALL CONT_BitmapHasAnyChecked(const CONT_Bitmap *bmp1,
-                                                         const CONT_Bitmap *bmp2,
-                                                         PRP_Bool *pRslt);
+PRP_FN_API PRP_Result PRP_FN_CALL CONT_BitmapHasAnyChecked(
+    const CONT_Bitmap *bmp1, const CONT_Bitmap *bmp2, PRP_Bool *pRslt);
 
 /**
  * Comares if bits of bmp1 are equal to bmp2.
@@ -662,8 +663,8 @@ PRP_FN_API PRP_Result PRP_FN_CALL CONT_BitmapHasAnyChecked(const CONT_Bitmap *bm
  * @note Unchecked variant:
  * - Asserts on invalid arguments in debug.
  */
-PRP_FN_API PRP_Bool PRP_FN_CALL CONT_BitmapCmpUnchecked(const CONT_Bitmap *bmp1,
-                                                      const CONT_Bitmap *bmp2);
+PRP_FN_API PRP_Bool PRP_FN_CALL
+CONT_BitmapCmpUnchecked(const CONT_Bitmap *bmp1, const CONT_Bitmap *bmp2);
 /**
  * Comares if bits of bmp1 are equal to bmp2.
  *
@@ -675,8 +676,8 @@ PRP_FN_API PRP_Bool PRP_FN_CALL CONT_BitmapCmpUnchecked(const CONT_Bitmap *bmp1,
  * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
 PRP_FN_API PRP_Result PRP_FN_CALL CONT_BitmapCmpChecked(const CONT_Bitmap *bmp1,
-                                                      const CONT_Bitmap *bmp2,
-                                                      PRP_Bool *pRslt);
+                                                        const CONT_Bitmap *bmp2,
+                                                        PRP_Bool *pRslt);
 /**
  * Resets the bitmap.
  *
@@ -707,7 +708,8 @@ PRP_FN_API PRP_Result PRP_FN_CALL CONT_BitmapResetChecked(CONT_Bitmap *bmp);
  * @note Unchecked variant:
  * - Asserts on invalid arguments in debug.
  */
-PRP_FN_API PRP_Result PRP_FN_CALL CONT_BitmapShrinkFitUnchecked(CONT_Bitmap *bmp);
+PRP_FN_API PRP_Result PRP_FN_CALL
+CONT_BitmapShrinkFitUnchecked(CONT_Bitmap *bmp);
 /**
  * Shrinks the bitmap to its MSB word.
  *

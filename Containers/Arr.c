@@ -10,7 +10,7 @@ struct _Arr {
 };
 
 #define ASSERT_INVARIANT_EXPR(arr)                                             \
-    DIAG_ASSERT_MSG(CONT_ArrIsValid(arr),                                        \
+    DIAG_ASSERT_MSG(CONT_ArrIsValid(arr),                                      \
                     "The given array is either NULL, or is corrupted.")
 
 /**
@@ -72,8 +72,8 @@ PRP_FN_API PRP_Bool PRP_FN_CALL CONT_ArrIsValid(const CONT_Arr *arr) {
 }
 
 PRP_FN_API PRP_Result PRP_FN_CALL CONT_ArrCreateUnchecked(PRP_Size memb_size,
-                                                        PRP_Size cap,
-                                                        CONT_Arr **pArr) {
+                                                          PRP_Size cap,
+                                                          CONT_Arr **pArr) {
     DIAG_ASSERT(memb_size > 0);
     DIAG_ASSERT(cap > 0);
     DIAG_ASSERT(pArr != NULL);
@@ -101,8 +101,8 @@ PRP_FN_API PRP_Result PRP_FN_CALL CONT_ArrCreateUnchecked(PRP_Size memb_size,
 }
 
 PRP_FN_API PRP_Result PRP_FN_CALL CONT_ArrCreateChecked(PRP_Size memb_size,
-                                                      PRP_Size cap,
-                                                      CONT_Arr **pArr) {
+                                                        PRP_Size cap,
+                                                        CONT_Arr **pArr) {
     if (!memb_size || !cap || !pArr) {
         return PRP_ERR_INV_ARG;
     }
@@ -111,7 +111,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL CONT_ArrCreateChecked(PRP_Size memb_size,
 }
 
 PRP_FN_API PRP_Result PRP_FN_CALL CONT_ArrCloneUnchecked(const CONT_Arr *arr,
-                                                       CONT_Arr **pArr) {
+                                                         CONT_Arr **pArr) {
     ASSERT_INVARIANT_EXPR(arr);
     DIAG_ASSERT(pArr != NULL);
 
@@ -129,7 +129,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL CONT_ArrCloneUnchecked(const CONT_Arr *arr,
 }
 
 PRP_FN_API PRP_Result PRP_FN_CALL CONT_ArrCloneChecked(const CONT_Arr *arr,
-                                                     CONT_Arr **pArr) {
+                                                       CONT_Arr **pArr) {
     if (!CONT_ArrIsValid(arr) || !pArr) {
         return PRP_ERR_INV_ARG;
     }
@@ -172,7 +172,7 @@ PRP_FN_API void PRP_FN_CALL CONT_ArrDeleteUnchecked(CONT_Arr **pArr) {
 
     free(arr->mem);
 
-#if !defined(PRP_NDEBUG)
+#ifdef PRP_DEBUG_MODE
     arr->mem = NULL;
     arr->cap = arr->len = arr->memb_size = 0;
 #endif
@@ -192,7 +192,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL CONT_ArrDeleteChecked(CONT_Arr **pArr) {
 }
 
 PRP_FN_API const void *PRP_FN_CALL CONT_ArrRawUnchecked(const CONT_Arr *arr,
-                                                      PRP_Size *pLen) {
+                                                        PRP_Size *pLen) {
     ASSERT_INVARIANT_EXPR(arr);
     DIAG_ASSERT(pLen != NULL);
 
@@ -202,8 +202,8 @@ PRP_FN_API const void *PRP_FN_CALL CONT_ArrRawUnchecked(const CONT_Arr *arr,
 }
 
 PRP_FN_API PRP_Result PRP_FN_CALL CONT_ArrRawChecked(const CONT_Arr *arr,
-                                                   PRP_Size *pLen,
-                                                   const void **pRaw) {
+                                                     PRP_Size *pLen,
+                                                     const void **pRaw) {
     if (!CONT_ArrIsValid(arr) || !pLen || !pRaw) {
         return PRP_ERR_INV_ARG;
     }
@@ -238,7 +238,8 @@ PRP_FN_API PRP_Size PRP_FN_CALL CONT_ArrMaxCap(const CONT_Arr *arr) {
     return CONT_ARR_MAX_CAP(arr->memb_size);
 }
 
-PRP_FN_API void *PRP_FN_CALL CONT_ArrGetUnchecked(const CONT_Arr *arr, PRP_Size i) {
+PRP_FN_API void *PRP_FN_CALL CONT_ArrGetUnchecked(const CONT_Arr *arr,
+                                                  PRP_Size i) {
     ASSERT_INVARIANT_EXPR(arr);
     DIAG_ASSERT(i < arr->len);
 
@@ -246,7 +247,7 @@ PRP_FN_API void *PRP_FN_CALL CONT_ArrGetUnchecked(const CONT_Arr *arr, PRP_Size 
 }
 
 PRP_FN_API PRP_Result PRP_FN_CALL CONT_ArrGetChecked(const CONT_Arr *arr,
-                                                   PRP_Size i, void **dest) {
+                                                     PRP_Size i, void **dest) {
     if (!CONT_ArrIsValid(arr) || !dest) {
         return PRP_ERR_INV_ARG;
     }
@@ -260,7 +261,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL CONT_ArrGetChecked(const CONT_Arr *arr,
 }
 
 PRP_FN_API void PRP_FN_CALL CONT_ArrSetUnchecked(CONT_Arr *arr, PRP_Size i,
-                                               const void *pData) {
+                                                 const void *pData) {
     ASSERT_INVARIANT_EXPR(arr);
     DIAG_ASSERT(pData != NULL);
     DIAG_ASSERT(i < arr->len);
@@ -269,7 +270,7 @@ PRP_FN_API void PRP_FN_CALL CONT_ArrSetUnchecked(CONT_Arr *arr, PRP_Size i,
 }
 
 PRP_FN_API PRP_Result PRP_FN_CALL CONT_ArrSetChecked(CONT_Arr *arr, PRP_Size i,
-                                                   const void *pData) {
+                                                     const void *pData) {
     if (!CONT_ArrIsValid(arr) || !pData) {
         return PRP_ERR_INV_ARG;
     }
@@ -283,7 +284,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL CONT_ArrSetChecked(CONT_Arr *arr, PRP_Size i,
 }
 
 PRP_FN_API PRP_Result PRP_FN_CALL CONT_ArrPushUnchecked(CONT_Arr *arr,
-                                                      const void *pData) {
+                                                        const void *pData) {
     ASSERT_INVARIANT_EXPR(arr);
     DIAG_ASSERT(pData != NULL);
 
@@ -304,7 +305,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL CONT_ArrPushUnchecked(CONT_Arr *arr,
 }
 
 PRP_FN_API PRP_Result PRP_FN_CALL CONT_ArrPushChecked(CONT_Arr *arr,
-                                                    const void *pData) {
+                                                      const void *pData) {
     if (!CONT_ArrIsValid(arr) || !pData) {
         return PRP_ERR_INV_ARG;
     }
@@ -313,7 +314,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL CONT_ArrPushChecked(CONT_Arr *arr,
 }
 
 PRP_FN_API PRP_Result PRP_FN_CALL CONT_ArrReserveUnchecked(CONT_Arr *arr,
-                                                         PRP_Size count) {
+                                                           PRP_Size count) {
     ASSERT_INVARIANT_EXPR(arr);
     DIAG_ASSERT(count > 0);
 
@@ -325,7 +326,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL CONT_ArrReserveUnchecked(CONT_Arr *arr,
 }
 
 PRP_FN_API PRP_Result PRP_FN_CALL CONT_ArrReserveChecked(CONT_Arr *arr,
-                                                       PRP_Size count) {
+                                                         PRP_Size count) {
     if (!CONT_ArrIsValid(arr) || !count) {
         return PRP_ERR_INV_ARG;
     }
@@ -334,8 +335,8 @@ PRP_FN_API PRP_Result PRP_FN_CALL CONT_ArrReserveChecked(CONT_Arr *arr,
 }
 
 PRP_FN_API PRP_Result PRP_FN_CALL CONT_ArrInsertUnchecked(CONT_Arr *arr,
-                                                        const void *pData,
-                                                        PRP_Size i) {
+                                                          const void *pData,
+                                                          PRP_Size i) {
     ASSERT_INVARIANT_EXPR(arr);
     DIAG_ASSERT(pData != NULL);
     DIAG_ASSERT(i <= arr->len);
@@ -360,8 +361,8 @@ PRP_FN_API PRP_Result PRP_FN_CALL CONT_ArrInsertUnchecked(CONT_Arr *arr,
 }
 
 PRP_FN_API PRP_Result PRP_FN_CALL CONT_ArrInsertChecked(CONT_Arr *arr,
-                                                      const void *pData,
-                                                      PRP_Size i) {
+                                                        const void *pData,
+                                                        PRP_Size i) {
     if (!CONT_ArrIsValid(arr) || !pData) {
         return PRP_ERR_INV_ARG;
     }
@@ -372,7 +373,8 @@ PRP_FN_API PRP_Result PRP_FN_CALL CONT_ArrInsertChecked(CONT_Arr *arr,
     return CONT_ArrInsertUnchecked(arr, pData, i);
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL CONT_ArrPopUnchecked(CONT_Arr *arr, void *pDest) {
+PRP_FN_API PRP_Result PRP_FN_CALL CONT_ArrPopUnchecked(CONT_Arr *arr,
+                                                       void *pDest) {
     ASSERT_INVARIANT_EXPR(arr);
 
     if (!arr->len) {
@@ -386,7 +388,8 @@ PRP_FN_API PRP_Result PRP_FN_CALL CONT_ArrPopUnchecked(CONT_Arr *arr, void *pDes
     return PRP_OK;
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL CONT_ArrPopChecked(CONT_Arr *arr, void *pDest) {
+PRP_FN_API PRP_Result PRP_FN_CALL CONT_ArrPopChecked(CONT_Arr *arr,
+                                                     void *pDest) {
     if (!CONT_ArrIsValid(arr)) {
         return PRP_ERR_INV_ARG;
     }
@@ -395,7 +398,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL CONT_ArrPopChecked(CONT_Arr *arr, void *pDest)
 }
 
 PRP_FN_API void PRP_FN_CALL CONT_ArrRemoveUnchecked(CONT_Arr *arr, void *pDest,
-                                                  PRP_Size i) {
+                                                    PRP_Size i) {
     ASSERT_INVARIANT_EXPR(arr);
     DIAG_ASSERT(i < arr->len);
 
@@ -408,8 +411,9 @@ PRP_FN_API void PRP_FN_CALL CONT_ArrRemoveUnchecked(CONT_Arr *arr, void *pDest,
     arr->len--;
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL CONT_ArrRemoveChecked(CONT_Arr *arr, void *pDest,
-                                                      PRP_Size i) {
+PRP_FN_API PRP_Result PRP_FN_CALL CONT_ArrRemoveChecked(CONT_Arr *arr,
+                                                        void *pDest,
+                                                        PRP_Size i) {
     if (!CONT_ArrIsValid(arr)) {
         return PRP_ERR_INV_ARG;
     }
@@ -423,7 +427,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL CONT_ArrRemoveChecked(CONT_Arr *arr, void *pDe
 }
 
 PRP_FN_API PRP_Bool PRP_FN_CALL CONT_ArrCmpUnchecked(const CONT_Arr *arr1,
-                                                   const CONT_Arr *arr2) {
+                                                     const CONT_Arr *arr2) {
     ASSERT_INVARIANT_EXPR(arr1);
     ASSERT_INVARIANT_EXPR(arr2);
 
@@ -435,8 +439,8 @@ PRP_FN_API PRP_Bool PRP_FN_CALL CONT_ArrCmpUnchecked(const CONT_Arr *arr1,
 }
 
 PRP_FN_API PRP_Result PRP_FN_CALL CONT_ArrCmpChecked(const CONT_Arr *arr1,
-                                                   const CONT_Arr *arr2,
-                                                   PRP_Bool *pRslt) {
+                                                     const CONT_Arr *arr2,
+                                                     PRP_Bool *pRslt) {
     if (!CONT_ArrIsValid(arr1) || !CONT_ArrIsValid(arr2) || !pRslt) {
         return PRP_ERR_INV_ARG;
     }
@@ -446,8 +450,8 @@ PRP_FN_API PRP_Result PRP_FN_CALL CONT_ArrCmpChecked(const CONT_Arr *arr1,
     return PRP_OK;
 }
 
-PRP_FN_API PRP_Result PRP_FN_CALL CONT_ArrExtendUnchecked(CONT_Arr *arr1,
-                                                        const CONT_Arr *arr2) {
+PRP_FN_API PRP_Result PRP_FN_CALL
+CONT_ArrExtendUnchecked(CONT_Arr *arr1, const CONT_Arr *arr2) {
     ASSERT_INVARIANT_EXPR(arr1);
     ASSERT_INVARIANT_EXPR(arr2);
     DIAG_ASSERT(arr1->memb_size == arr2->memb_size);
@@ -468,7 +472,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL CONT_ArrExtendUnchecked(CONT_Arr *arr1,
 }
 
 PRP_FN_API PRP_Result PRP_FN_CALL CONT_ArrExtendChecked(CONT_Arr *arr1,
-                                                      const CONT_Arr *arr2) {
+                                                        const CONT_Arr *arr2) {
     if (!CONT_ArrIsValid(arr1) || !CONT_ArrIsValid(arr2) ||
         arr1->memb_size != arr2->memb_size) {
         return PRP_ERR_INV_ARG;
@@ -478,7 +482,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL CONT_ArrExtendChecked(CONT_Arr *arr1,
 }
 
 PRP_FN_API void PRP_FN_CALL CONT_ArrSwapUnchecked(CONT_Arr *arr, PRP_Size i,
-                                                PRP_Size j, void *swap_bffr) {
+                                                  PRP_Size j, void *swap_bffr) {
     ASSERT_INVARIANT_EXPR(arr);
     DIAG_ASSERT(swap_bffr != NULL);
     DIAG_ASSERT(i < arr->len);
@@ -496,8 +500,8 @@ PRP_FN_API void PRP_FN_CALL CONT_ArrSwapUnchecked(CONT_Arr *arr, PRP_Size i,
 }
 
 PRP_FN_API PRP_Result PRP_FN_CALL CONT_ArrSwapChecked(CONT_Arr *arr, PRP_Size i,
-                                                    PRP_Size j,
-                                                    void *swap_bffr) {
+                                                      PRP_Size j,
+                                                      void *swap_bffr) {
     if (!CONT_ArrIsValid(arr) || !swap_bffr) {
         return PRP_ERR_INV_ARG;
     }
@@ -513,7 +517,7 @@ PRP_FN_API PRP_Result PRP_FN_CALL CONT_ArrSwapChecked(CONT_Arr *arr, PRP_Size i,
 PRP_FN_API void PRP_FN_CALL CONT_ArrResetUnchecked(CONT_Arr *arr) {
     ASSERT_INVARIANT_EXPR(arr);
 
-#if !defined(PRP_NDEBUG)
+#ifdef PRP_DEBUG_MODE
     memset(arr->mem, 0, arr->len * arr->memb_size);
 #endif
     arr->len = 0;

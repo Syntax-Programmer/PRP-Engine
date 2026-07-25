@@ -151,8 +151,8 @@ static PRP_Result CreateInfoInit(const FECS_WCParseTable *pParse_table,
         return PRP_ERR_OOM;
     }
     PRP_Result code =
-        CONT_StrArrCreateUnchecked(pParse_table->layout_names_size, layout_count,
-                                 &pCreate_info->pLayout_names);
+        CONT_StrArrCreateUnchecked(pParse_table->layout_names_size,
+                                   layout_count, &pCreate_info->pLayout_names);
     if (code != PRP_OK) {
         DestroyCreateInfo(pCreate_info);
         return code;
@@ -167,8 +167,8 @@ static PRP_Result CreateInfoInit(const FECS_WCParseTable *pParse_table,
         return PRP_ERR_OOM;
     }
     code = CONT_StrArrCreateUnchecked(pParse_table->system_instance_names_size,
-                                    system_instance_count,
-                                    &pCreate_info->pSystem_instance_names);
+                                      system_instance_count,
+                                      &pCreate_info->pSystem_instance_names);
     if (code != PRP_OK) {
         DestroyCreateInfo(pCreate_info);
         return code;
@@ -185,8 +185,8 @@ static PRP_Result ResolveCompName(void *pVal, void *pUser_data) {
     pComp_resolve_data->pName = CONT_ByteBffrGetUnchecked(
         pComp_resolve_data->pIdentifier_bffr, pTok->ofs);
     PRP_Size idx;
-    if (!CONT_StrArrSearchUnchecked(g_ctx->pComp_names, pComp_resolve_data->pName,
-                                  pTok->size, &idx)) {
+    if (!CONT_StrArrSearchUnchecked(
+            g_ctx->pComp_names, pComp_resolve_data->pName, pTok->size, &idx)) {
         return PRP_ERR_NOT_FOUND;
     }
 
@@ -203,7 +203,7 @@ static PRP_Result ResolveLayoutDecl(void *pVal, void *pUser_data) {
     PRP_Char8 *pLayout_name = CONT_ByteBffrGetUnchecked(
         pResolve_data->pIdentifier_bffr, pLayout_decl->layout_name.ofs);
     if (CONT_StrArrSearchUnchecked(pResolve_data->pCreate_info->pLayout_names,
-                                 pLayout_name, layout_name_len, NULL)) {
+                                   pLayout_name, layout_name_len, NULL)) {
         DIAG_LOG_INFO(DIAG_LOG_CODE_NONE,
                       "Layout: %.*s, already exists, the entire layout "
                       "declaration will be skipped.",
@@ -212,8 +212,8 @@ static PRP_Result ResolveLayoutDecl(void *pVal, void *pUser_data) {
     }
 
     CONT_Bitmap *pLayout_create_info;
-    PRP_Result code = CONT_BitmapCreateUnchecked(CONT_ArrLen(g_ctx->pComp_sizes),
-                                               &pLayout_create_info);
+    PRP_Result code = CONT_BitmapCreateUnchecked(
+        CONT_ArrLen(g_ctx->pComp_sizes), &pLayout_create_info);
     if (code != PRP_OK) {
         return PRP_ERR_OOM;
     }
@@ -221,7 +221,7 @@ static PRP_Result ResolveLayoutDecl(void *pVal, void *pUser_data) {
                                              pResolve_data->pIdentifier_bffr,
                                          .pComp_set = pLayout_create_info};
     code = CONT_ArrForEachUnchecked(pLayout_decl->pComp_names, ResolveCompName,
-                                  &comp_resolve_data);
+                                    &comp_resolve_data);
     if (code != PRP_OK) {
         CONT_BitmapDeleteUnchecked(&pLayout_create_info);
         DIAG_LOG_INFO(
@@ -234,7 +234,7 @@ static PRP_Result ResolveLayoutDecl(void *pVal, void *pUser_data) {
     }
 
     code = CONT_StrArrPushUnchecked(pResolve_data->pCreate_info->pLayout_names,
-                                  pLayout_name, layout_name_len);
+                                    pLayout_name, layout_name_len);
     if (code != PRP_OK) {
         CONT_BitmapDeleteUnchecked(&pLayout_create_info);
         return code;
@@ -252,13 +252,13 @@ static PRP_Result CreateSystemInstanceCompSets(
     FECS_WCSystemInstanceDecl *pSystem_instance_decl,
     CONT_ByteBffr *pIdentifier_bffr, CONT_Bitmap **ppInc_comp_set,
     CONT_Bitmap **ppExc_comp_set) {
-    PRP_Result code =
-        CONT_BitmapCreateUnchecked(CONT_ArrLen(g_ctx->pComp_sizes), ppInc_comp_set);
+    PRP_Result code = CONT_BitmapCreateUnchecked(
+        CONT_ArrLen(g_ctx->pComp_sizes), ppInc_comp_set);
     if (code != PRP_OK) {
         return code;
     }
-    code =
-        CONT_BitmapCreateUnchecked(CONT_ArrLen(g_ctx->pComp_sizes), ppExc_comp_set);
+    code = CONT_BitmapCreateUnchecked(CONT_ArrLen(g_ctx->pComp_sizes),
+                                      ppExc_comp_set);
     if (code != PRP_OK) {
         CONT_BitmapDeleteUnchecked(ppInc_comp_set);
         return code;
@@ -266,7 +266,7 @@ static PRP_Result CreateSystemInstanceCompSets(
     CompResolveData comp_resolve_data = {.pIdentifier_bffr = pIdentifier_bffr,
                                          .pComp_set = *ppInc_comp_set};
     code = CONT_ArrForEachUnchecked(pSystem_instance_decl->pInc_comp_names,
-                                  ResolveCompName, &comp_resolve_data);
+                                    ResolveCompName, &comp_resolve_data);
     if (code != PRP_OK) {
         CONT_BitmapDeleteUnchecked(ppInc_comp_set);
         CONT_BitmapDeleteUnchecked(ppExc_comp_set);
@@ -281,7 +281,7 @@ static PRP_Result CreateSystemInstanceCompSets(
     }
     comp_resolve_data.pComp_set = *ppExc_comp_set;
     code = CONT_ArrForEachUnchecked(pSystem_instance_decl->pExc_comp_names,
-                                  ResolveCompName, &comp_resolve_data);
+                                    ResolveCompName, &comp_resolve_data);
     if (code != PRP_OK) {
         CONT_BitmapDeleteUnchecked(ppInc_comp_set);
         CONT_BitmapDeleteUnchecked(ppExc_comp_set);
@@ -363,10 +363,10 @@ static PRP_Result ResolveSystemInstanceDecl(void *pVal, void *pUser_data) {
     FECS_SystemId system_id;
     PRP_Char8 *pSystem_name =
         CONT_ByteBffrGetUnchecked(pResolve_data->pIdentifier_bffr,
-                                pSystem_instance_decl->system_name.ofs);
+                                  pSystem_instance_decl->system_name.ofs);
     PRP_Size system_name_len = pSystem_instance_decl->system_name.size;
     if (!CONT_StrArrSearchUnchecked(g_ctx->pSystem_names, pSystem_name,
-                                  system_name_len, &system_id)) {
+                                    system_name_len, &system_id)) {
         DIAG_LOG_INFO(
             DIAG_LOG_CODE_INVALID_STATE,
             "System Instance: %.*s, contains unregistered system function "
@@ -458,13 +458,13 @@ PRP_Result ResolverResolveParseTables(const FECS_WCParseTable *pParse_table,
                                         pParse_table->pIdentifiers_bffr,
                                     .pCreate_info = pCreate_info};
     code = CONT_ArrForEachUnchecked(pParse_table->pLayout_table,
-                                  ResolveLayoutDecl, &resolve_data);
+                                    ResolveLayoutDecl, &resolve_data);
     if (code != PRP_OK) {
         DestroyCreateInfo(pCreate_info);
         return code;
     }
     code = CONT_ArrForEachUnchecked(pParse_table->pSystem_instance_table,
-                                  ResolveSystemInstanceDecl, &resolve_data);
+                                    ResolveSystemInstanceDecl, &resolve_data);
     if (code != PRP_OK) {
         DestroyCreateInfo(pCreate_info);
         return code;
