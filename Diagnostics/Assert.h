@@ -46,7 +46,7 @@ extern "C" {
 #define DIAG_ASSERT(expr) ((void)0)
 #define DIAG_ASSERT_MSG(e, msg, ...) ((void)0)
 
-#else
+#elif defined(PRP_DEBUG_MODE)
 #define DIAG_ASSERT(expr)                                                      \
     do {                                                                       \
         if (!(expr)) {                                                         \
