@@ -21,9 +21,9 @@ extern "C" {
  */
 
 #ifdef PRP_NDEBUG
-#define PRP_DEBUG_MODE 1
-#else
 #define PRP_RELEASE_MODE 1
+#else
+#define PRP_DEBUG_MODE 1
 #endif
 
 /* ----  OS DETECTION ---- */
