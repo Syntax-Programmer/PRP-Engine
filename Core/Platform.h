@@ -657,10 +657,10 @@ extern "C" {
 /* ---- API ---- */
 
 #if defined(PRP_BUILD_DLL)
-#define PRP_API PRP_ATTR_EXPORT;
+#define PRP_API PRP_ATTR_EXPORT
 
 #elif defined(PRP_USE_DLL)
-#define PRP_API PRP_ATTR_IMPORT;
+#define PRP_API PRP_ATTR_IMPORT
 
 #else
 #define PRP_API
