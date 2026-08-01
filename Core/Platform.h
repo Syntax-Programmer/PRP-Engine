@@ -688,7 +688,7 @@ extern "C" {
 #define PRP_ATTR_NOINLINE __declspec(noinline)
 
 #else
-#define PRP_ATTR_FORCEINLINE static inline __attribute__((always_inline))
+#define PRP_ATTR_FORCEINLINE __attribute__((always_inline))
 #define PRP_ATTR_NOINLINE __attribute__((noinline))
 #endif
 
