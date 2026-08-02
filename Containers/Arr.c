@@ -139,7 +139,7 @@ PRP_API PRP_Result PRP_CALL CONT_ArrCloneChecked(const CONT_Arr *pArr,
 }
 
 PRP_API PRP_Result PRP_CALL CONT_ArrCreateWithDataUnchecked(PRP_Size memb_size,
-                                                            const void *membs,
+                                                            const void *pMembs,
                                                             PRP_Size len,
                                                             CONT_Arr **ppArr) {
     DIAG_ASSERT(memb_size > 0);
@@ -152,21 +152,21 @@ PRP_API PRP_Result PRP_CALL CONT_ArrCreateWithDataUnchecked(PRP_Size memb_size,
     }
 
     CONT_Arr *pArr = *ppArr;
-    memcpy(pArr->mem, membs, memb_size * len);
+    memcpy(pArr->mem, pMembs, memb_size * len);
     pArr->len = len;
 
     return PRP_OK;
 }
 
 PRP_API PRP_Result PRP_CALL CONT_ArrCreateWithDataChecked(PRP_Size memb_size,
-                                                          const void *membs,
+                                                          const void *pMembs,
                                                           PRP_Size len,
                                                           CONT_Arr **ppArr) {
     if (!memb_size || !len || !ppArr) {
         return PRP_ERR_INV_ARG;
     }
 
-    return CONT_ArrCreateWithDataUnchecked(memb_size, membs, len, ppArr);
+    return CONT_ArrCreateWithDataUnchecked(memb_size, pMembs, len, ppArr);
 }
 
 PRP_API void PRP_CALL CONT_ArrDeleteUnchecked(CONT_Arr **ppArr) {
@@ -251,15 +251,15 @@ PRP_API void *PRP_CALL CONT_ArrGetUnchecked(const CONT_Arr *pArr, PRP_Size i) {
 }
 
 PRP_API PRP_Result PRP_CALL CONT_ArrGetChecked(const CONT_Arr *pArr, PRP_Size i,
-                                               void **dest) {
-    if (!CONT_ArrIsValid(pArr) || !dest) {
+                                               void **ppDest) {
+    if (!CONT_ArrIsValid(pArr) || !ppDest) {
         return PRP_ERR_INV_ARG;
     }
     if (i >= pArr->len) {
         return PRP_ERR_OOB;
     }
 
-    *dest = CONT_ArrGetUnchecked(pArr, i);
+    *ppDest = CONT_ArrGetUnchecked(pArr, i);
 
     return PRP_OK;
 }
@@ -486,9 +486,9 @@ PRP_API PRP_Result PRP_CALL CONT_ArrExtendChecked(CONT_Arr *pArr1,
 }
 
 PRP_API void PRP_CALL CONT_ArrSwapUnchecked(CONT_Arr *pArr, PRP_Size i,
-                                            PRP_Size j, void *swap_bffr) {
+                                            PRP_Size j, void *pSwap_bffr) {
     ASSERT_INVARIANT_EXPR(pArr);
-    DIAG_ASSERT(swap_bffr != NULL);
+    DIAG_ASSERT(pSwap_bffr != NULL);
     DIAG_ASSERT(i < pArr->len);
     DIAG_ASSERT(j < pArr->len);
 
@@ -498,21 +498,21 @@ PRP_API void PRP_CALL CONT_ArrSwapUnchecked(CONT_Arr *pArr, PRP_Size i,
 
     PRP_U8 *i_elem = pArr->mem + (i * pArr->memb_size);
     PRP_U8 *j_elem = pArr->mem + (j * pArr->memb_size);
-    memcpy(swap_bffr, i_elem, pArr->memb_size);
+    memcpy(pSwap_bffr, i_elem, pArr->memb_size);
     memcpy(i_elem, j_elem, pArr->memb_size);
-    memcpy(j_elem, swap_bffr, pArr->memb_size);
+    memcpy(j_elem, pSwap_bffr, pArr->memb_size);
 }
 
 PRP_API PRP_Result PRP_CALL CONT_ArrSwapChecked(CONT_Arr *pArr, PRP_Size i,
-                                                PRP_Size j, void *swap_bffr) {
-    if (!CONT_ArrIsValid(pArr) || !swap_bffr) {
+                                                PRP_Size j, void *pSwap_bffr) {
+    if (!CONT_ArrIsValid(pArr) || !pSwap_bffr) {
         return PRP_ERR_INV_ARG;
     }
     if (i >= pArr->len || j >= pArr->len) {
         return PRP_ERR_OOB;
     }
 
-    CONT_ArrSwapUnchecked(pArr, i, j, swap_bffr);
+    CONT_ArrSwapUnchecked(pArr, i, j, pSwap_bffr);
 
     return PRP_OK;
 }
@@ -551,14 +551,14 @@ PRP_API PRP_Result PRP_CALL CONT_ArrShrinkFitChecked(CONT_Arr *pArr) {
 }
 
 PRP_API PRP_Result PRP_CALL CONT_ArrForEachUnchecked(
-    CONT_Arr *pArr, PRP_Result (*cb)(void *pVal, void *pUser_data),
+    CONT_Arr *pArr, PRP_Result (*pCb)(void *pVal, void *pUser_data),
     void *pUser_data) {
     ASSERT_INVARIANT_EXPR(pArr);
-    DIAG_ASSERT(cb != NULL);
+    DIAG_ASSERT(pCb != NULL);
 
     PRP_U8 *mem = pArr->mem;
     for (PRP_Size i = 0; i < pArr->len; i++) {
-        PRP_Result code = cb(mem, pUser_data);
+        PRP_Result code = pCb(mem, pUser_data);
         if (code != PRP_OK) {
             return code;
         }
@@ -569,11 +569,11 @@ PRP_API PRP_Result PRP_CALL CONT_ArrForEachUnchecked(
 }
 
 PRP_API PRP_Result PRP_CALL CONT_ArrForEachChecked(
-    CONT_Arr *pArr, PRP_Result (*cb)(void *pVal, void *pUser_data),
+    CONT_Arr *pArr, PRP_Result (*pCb)(void *pVal, void *pUser_data),
     void *pUser_data) {
-    if (!CONT_ArrIsValid(pArr) || !cb) {
+    if (!CONT_ArrIsValid(pArr) || !pCb) {
         return PRP_ERR_INV_ARG;
     }
 
-    return CONT_ArrForEachUnchecked(pArr, cb, pUser_data);
+    return CONT_ArrForEachUnchecked(pArr, pCb, pUser_data);
 }

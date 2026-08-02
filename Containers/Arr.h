@@ -93,7 +93,7 @@ PRP_API PRP_Result PRP_CALL CONT_ArrCloneChecked(const CONT_Arr *pArr,
  * Creates the dynamic array with specified data.
  *
  * @param memb_size Size (in bytes) of each element.
- * @param membs     The array of data to initialize with.
+ * @param pMembs    The array of data to initialize with.
  * @param len       Len of the membs array.
  * @param ppArr     Output pointer receiving the array.
  *
@@ -104,14 +104,14 @@ PRP_API PRP_Result PRP_CALL CONT_ArrCloneChecked(const CONT_Arr *pArr,
  * - Asserts on invalid arguments in debug.
  */
 PRP_API PRP_Result PRP_CALL CONT_ArrCreateWithDataUnchecked(PRP_Size memb_size,
-                                                            const void *membs,
+                                                            const void *pMembs,
                                                             PRP_Size len,
                                                             CONT_Arr **ppArr);
 /**
  * Creates the dynamic array with specified data.
  *
  * @param memb_size Size (in bytes) of each element.
- * @param membs     The array of data to initialize with.
+ * @param pMembs    The array of data to initialize with.
  * @param len       Len of the membs array.
  * @param ppArr     Output pointer receiving the array.
  *
@@ -120,7 +120,7 @@ PRP_API PRP_Result PRP_CALL CONT_ArrCreateWithDataUnchecked(PRP_Size memb_size,
  * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
 PRP_API PRP_Result PRP_CALL CONT_ArrCreateWithDataChecked(PRP_Size memb_size,
-                                                          const void *membs,
+                                                          const void *pMembs,
                                                           PRP_Size len,
                                                           CONT_Arr **ppArr);
 
@@ -229,16 +229,16 @@ PRP_API void *PRP_CALL CONT_ArrGetUnchecked(const CONT_Arr *pArr, PRP_Size i);
 /**
  * Retrieves the value of the given index.
  *
- * @param pArr Array instance.
- * @param i    The index into the array.
- * @param dest The pointer to the value pointer.
+ * @param pArr   Array instance.
+ * @param i      The index into the array.
+ * @param ppDest The pointer to the value pointer.
  *
  * @return PRP_OK on success.
  * @return PRP_ERR_OOB if index out of bounds.
  * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
 PRP_API PRP_Result PRP_CALL CONT_ArrGetChecked(const CONT_Arr *pArr, PRP_Size i,
-                                               void **dest);
+                                               void **ppDest);
 /**
  * Sets the value of the given index.
  *
@@ -464,27 +464,27 @@ PRP_API PRP_Result PRP_CALL CONT_ArrExtendChecked(CONT_Arr *pArr1,
  * @param pArr      Array instance.
  * @param i         The first index.
  * @param j         The second index.
- * @param swap_bffr A temp buffer for swapping. Must be equal pArr's memb size.
+ * @param pSwap_bffr A temp buffer for swapping. Must be equal pArr's memb size.
  *
  * @note Unchecked variant:
  * - Asserts on invalid arguments in debug.
  */
 PRP_API void PRP_CALL CONT_ArrSwapUnchecked(CONT_Arr *pArr, PRP_Size i,
-                                            PRP_Size j, void *swap_bffr);
+                                            PRP_Size j, void *pSwap_bffr);
 /**
  * Swaps the elements in the given indices.
  *
  * @param pArr      Array instance.
  * @param i         The first index.
  * @param j         The second index.
- * @param swap_bffr A temp buffer for swapping. Must be equal pArr's memb size.
+ * @param pSwap_bffr A temp buffer for swapping. Must be equal pArr's memb size.
  *
  * @return PRP_OK on success.
  * @return PRP_ERR_OOB if any indices are out of bounds.
  * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
 PRP_API PRP_Result PRP_CALL CONT_ArrSwapChecked(CONT_Arr *pArr, PRP_Size i,
-                                                PRP_Size j, void *swap_bffr);
+                                                PRP_Size j, void *pSwap_bffr);
 /**
  * Resets the array.
  *
@@ -537,7 +537,7 @@ PRP_API PRP_Result PRP_CALL CONT_ArrShrinkFitChecked(CONT_Arr *pArr);
  * Iterates over all elements of the array.
  *
  * @param pArr       Array instance.
- * @param cb         Callback invoked per element.
+ * @param pCb        Callback invoked per element.
  * @param pUser_data User-provided context.
  *
  * @return PRP_OK if iteration completes.
@@ -547,13 +547,13 @@ PRP_API PRP_Result PRP_CALL CONT_ArrShrinkFitChecked(CONT_Arr *pArr);
  * - Asserts on invalid arguments in debug.
  */
 PRP_API PRP_Result PRP_CALL CONT_ArrForEachUnchecked(
-    CONT_Arr *pArr, PRP_Result (*cb)(void *pVal, void *pUser_data),
+    CONT_Arr *pArr, PRP_Result (*pCb)(void *pVal, void *pUser_data),
     void *pUser_data);
 /**
  * Iterates over all elements of the array.
  *
  * @param pArr       Array instance.
- * @param cb         Callback invoked per element.
+ * @param pCb        Callback invoked per element.
  * @param pUser_data User-provided context.
  *
  * @return PRP_OK if iteration completes.
@@ -561,7 +561,7 @@ PRP_API PRP_Result PRP_CALL CONT_ArrForEachUnchecked(
  * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
 PRP_API PRP_Result PRP_CALL CONT_ArrForEachChecked(
-    CONT_Arr *pArr, PRP_Result (*cb)(void *pVal, void *pUser_data),
+    CONT_Arr *pArr, PRP_Result (*pCb)(void *pVal, void *pUser_data),
     void *pUser_data);
 
 #ifdef __cplusplus
