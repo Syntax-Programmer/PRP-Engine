@@ -706,8 +706,12 @@ extern "C" {
 #if defined(PRP_COMPILER_MSVC)
 #define PRP_UNREACHABLE() __assume(0)
 
-#else
+#elif defined(PRP_COMPILER_GCC) || defined(PRP_COMPILER_CLANG)
 #define PRP_UNREACHABLE() __builtin_unreachable()
+
+#else
+#define PRP_UNREACHABLE() ((void)0)
+
 #endif
 
 /* ---- DEBUG BREAK ---- */
