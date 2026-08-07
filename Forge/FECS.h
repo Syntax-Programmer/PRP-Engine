@@ -111,7 +111,7 @@ PRP_API PRP_Result PRP_CALL FECS_WorldUnload(FECS_WorldId *pWorld_id);
  * -Panics and exits if FECS not initialized correctly.
  */
 PRP_API PRP_Result PRP_CALL FECS_WorldFindLayoutId(FECS_WorldId world_id,
-                                                   const char *pName,
+                                                   const PRP_Char8 *pName,
                                                    PRP_Size name_len,
                                                    FECS_LayoutId *pLayout_id);
 /**
@@ -132,7 +132,7 @@ PRP_API PRP_Result PRP_CALL FECS_WorldFindLayoutId(FECS_WorldId world_id,
  * -Panics and exits if FECS not initialized correctly.
  */
 PRP_API PRP_Result PRP_CALL FECS_WorldFindSystemInstanceId(
-    FECS_WorldId world_id, const char *pName, PRP_Size name_len,
+    FECS_WorldId world_id, const PRP_Char8 *pName, PRP_Size name_len,
     FECS_SystemInstanceId *pSystem_instance_id);
 
 /* ----  ENTITIES  ---- */

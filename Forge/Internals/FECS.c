@@ -123,7 +123,7 @@ PRP_API PRP_Result PRP_CALL FECS_WorldUnload(FECS_WorldId *pWorld_id) {
 }
 
 PRP_API PRP_Result PRP_CALL FECS_WorldFindLayoutId(FECS_WorldId world_id,
-                                                   const char *pName,
+                                                   const PRP_Char8 *pName,
                                                    PRP_Size name_len,
                                                    FECS_LayoutId *pLayout_id) {
     if (!CTX_INVARIANT_EXPR) {
@@ -154,7 +154,7 @@ PRP_API PRP_Result PRP_CALL FECS_WorldFindLayoutId(FECS_WorldId world_id,
 }
 
 PRP_API PRP_Result PRP_CALL FECS_WorldFindSystemInstanceId(
-    FECS_WorldId world_id, const char *pName, PRP_Size name_len,
+    FECS_WorldId world_id, const PRP_Char8 *pName, PRP_Size name_len,
     FECS_SystemInstanceId *pSystem_instance_id) {
     if (!CTX_INVARIANT_EXPR) {
         DIAG_PANIC("The engine is corrupted/not-initilized correctly.");

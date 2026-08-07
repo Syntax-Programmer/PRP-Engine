@@ -16,7 +16,7 @@ extern "C" {
  * @return The hash created of the key.
  *
  * @note Generic Use Case Tip:
- * - This can be used to hash any generic byte stream, just cast it to a char
+ * - This can be used to hash any generic byte stream, just cast it to a PRP_Char8
  * ptr and make sure the last byte is nul byte.
  */
 PRP_U64 CONT_HmHashStr(const void *str_key);
