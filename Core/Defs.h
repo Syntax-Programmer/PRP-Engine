@@ -28,6 +28,9 @@ extern "C" {
 
 #define PRP_ALIGN_UP(val, align) (((val) + ((align) - 1)) & ~((align) - 1))
 
+#define PRP_STRINGIFY_IMPL(x) #x
+#define PRP_STRINGIFY(x) PRP_STRINGIFY_IMPL(x)
+
 typedef enum PRP_Result {
     PRP_OK = 0,
     PRP_ERR_INV_ARG,
