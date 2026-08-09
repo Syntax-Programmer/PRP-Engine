@@ -29,6 +29,7 @@ PRP_API PRP_Result PRP_CALL MEM_PoolCreateUnchecked(PRP_Size memb_size,
     PRP_DIAG_ASSERT_MSG(cap > 0, "The cap of the pool must be > 0.");
     PRP_DIAG_ASSERT(ppPool != NULL);
 
+    *ppPool = NULL;
     memb_size = PRP_MAX(memb_size, sizeof(void *));
     if (cap > MAX_CAP(memb_size)) {
         return PRP_ERR_OOM;
