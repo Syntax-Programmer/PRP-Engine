@@ -1,6 +1,9 @@
 #include "Log.h"
+#include "Core/Defs.h"
+#include "Core/Platform.h"
 #include <pthread.h>
 #include <stdarg.h>
+#include <stdio.h>
 
 /**
  * This is a placeholder tech so that the logger can work before the true
@@ -8,8 +11,9 @@
  */
 static pthread_mutex_t log_mutex = PTHREAD_MUTEX_INITIALIZER;
 
-PRP_API PRP_I32 PRP_CALL PRP_LogFormat(PRP_Char8 *pDest, PRP_Size dest_size,
-                                       const PRP_Char8 *pMsg, ...) {
+PRP_API PRP_I32 PRP_CALL PRP_PRINTF_FORMAT(3, 4)
+    PRP_LogFormat(PRP_Char8 *pDest, PRP_Size dest_size, const PRP_Char8 *pMsg,
+                  ...) {
     if (!pDest || !pMsg || !dest_size) {
         return -1;
     }
@@ -22,8 +26,8 @@ PRP_API PRP_I32 PRP_CALL PRP_LogFormat(PRP_Char8 *pDest, PRP_Size dest_size,
     return result;
 }
 
-PRP_API PRP_Result PRP_CALL PRP_LogFormatF(FILE *pDest, const PRP_Char8 *pMsg,
-                                           ...) {
+PRP_API PRP_Result PRP_CALL PRP_PRINTF_FORMAT(2, 3)
+    PRP_LogFormatF(FILE *pDest, const PRP_Char8 *pMsg, ...) {
     if (!pDest || !pMsg) {
         return PRP_ERR_INV_ARG;
     }
@@ -38,59 +42,8 @@ PRP_API PRP_Result PRP_CALL PRP_LogFormatF(FILE *pDest, const PRP_Char8 *pMsg,
     return PRP_OK;
 }
 
-PRP_API PRP_Result PRP_CALL PRP_LogWrite(const PRP_Char8 *pMsg, PRP_Size len) {
-    if (!pMsg || !len) {
-        return PRP_ERR_INV_ARG;
-    }
-
-    pthread_mutex_lock(&log_mutex);
-
-    PRP_Result code = PRP_OK;
-    if (fwrite(pMsg, 1, len, PRP_LOG_DEFAULT_LOG_FILE) != len) {
-        code = PRP_ERR_IO;
-    }
-
-    pthread_mutex_unlock(&log_mutex);
-
-    return code;
-}
-
-PRP_API PRP_Result PRP_CALL PRP_LogWriteLn(const PRP_Char8 *pMsg,
-                                           PRP_Size len) {
-    if (!pMsg || !len) {
-        return PRP_ERR_INV_ARG;
-    }
-
-    pthread_mutex_lock(&log_mutex);
-
-    PRP_Result code = PRP_OK;
-    if (fwrite(pMsg, 1, len, PRP_LOG_DEFAULT_LOG_FILE) != len) {
-        code = PRP_ERR_IO;
-    }
-    if (fwrite("\n", 1, 1, PRP_LOG_DEFAULT_LOG_FILE) != 1) {
-        code = PRP_ERR_IO;
-    }
-
-    pthread_mutex_unlock(&log_mutex);
-
-    return code;
-}
-
-PRP_API PRP_Result PRP_CALL PRP_LogWriteChar(PRP_Char8 c) {
-    pthread_mutex_lock(&log_mutex);
-
-    PRP_Result code = PRP_OK;
-    if (fwrite(&c, 1, 1, PRP_LOG_DEFAULT_LOG_FILE) != 1) {
-        code = PRP_ERR_IO;
-    }
-
-    pthread_mutex_unlock(&log_mutex);
-
-    return code;
-}
-
-PRP_API PRP_Result PRP_CALL PRP_LogWriteF(const PRP_Char8 *pMsg, PRP_Size len,
-                                          FILE *pFile) {
+PRP_API PRP_Result PRP_CALL PRP_LogWrite(FILE *pFile, const PRP_Char8 *pMsg,
+                                         PRP_Size len) {
     if (!pMsg || !len || !pFile) {
         return PRP_ERR_INV_ARG;
     }
@@ -107,8 +60,29 @@ PRP_API PRP_Result PRP_CALL PRP_LogWriteF(const PRP_Char8 *pMsg, PRP_Size len,
     return code;
 }
 
-PRP_API PRP_Result PRP_CALL PRP_LogWriteLnF(const PRP_Char8 *pMsg, PRP_Size len,
-                                            FILE *pFile) {
+PRP_API PRP_Result PRP_CALL PRP_PRINTF_FORMAT(2, 3)
+    PRP_LogWriteFmt(FILE *pFile, const PRP_Char8 *pMsg, ...) {
+    if (!pMsg || !pFile) {
+        return PRP_ERR_INV_ARG;
+    }
+
+    PRP_Result code = PRP_OK;
+    va_list args;
+    va_start(args, pMsg);
+
+    pthread_mutex_lock(&log_mutex);
+    if (vfprintf(pFile, pMsg, args) < 0) {
+        code = PRP_ERR_IO;
+    }
+    pthread_mutex_unlock(&log_mutex);
+
+    va_end(args);
+
+    return code;
+}
+
+PRP_API PRP_Result PRP_CALL PRP_LogWriteLn(FILE *pFile, const PRP_Char8 *pMsg,
+                                           PRP_Size len) {
     if (!pMsg || !len || !pFile) {
         return PRP_ERR_INV_ARG;
     }
@@ -128,7 +102,31 @@ PRP_API PRP_Result PRP_CALL PRP_LogWriteLnF(const PRP_Char8 *pMsg, PRP_Size len,
     return code;
 }
 
-PRP_API PRP_Result PRP_CALL PRP_LogWriteCharF(PRP_Char8 c, FILE *pFile) {
+PRP_API PRP_Result PRP_CALL PRP_PRINTF_FORMAT(2, 3)
+    PRP_LogWriteLnFmt(FILE *pFile, const PRP_Char8 *pMsg, ...) {
+    if (!pMsg || !pFile) {
+        return PRP_ERR_INV_ARG;
+    }
+
+    PRP_Result code = PRP_OK;
+    va_list args;
+    va_start(args, pMsg);
+
+    pthread_mutex_lock(&log_mutex);
+    if (vfprintf(pFile, pMsg, args) < 0) {
+        code = PRP_ERR_IO;
+    }
+    if (fwrite("\n", 1, 1, pFile) != 1) {
+        code = PRP_ERR_IO;
+    }
+    pthread_mutex_unlock(&log_mutex);
+
+    va_end(args);
+
+    return code;
+}
+
+PRP_API PRP_Result PRP_CALL PRP_LogWriteChar(FILE *pFile, PRP_Char8 c) {
     if (!pFile) {
         return PRP_ERR_INV_ARG;
     }

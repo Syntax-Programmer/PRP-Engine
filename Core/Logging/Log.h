@@ -25,7 +25,8 @@ extern "C" {
  *
  */
 PRP_API PRP_I32 PRP_CALL PRP_LogFormat(PRP_Char8 *pDest, PRP_Size dest_size,
-                                       const PRP_Char8 *pMsg, ...);
+                                       const PRP_Char8 *pMsg, ...)
+    PRP_PRINTF_FORMAT(3, 4);
 /**
  * Formats the given string into the pDest file.
  *
@@ -37,79 +38,72 @@ PRP_API PRP_I32 PRP_CALL PRP_LogFormat(PRP_Char8 *pDest, PRP_Size dest_size,
  * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
 PRP_API PRP_Result PRP_CALL PRP_LogFormatF(FILE *pDest, const PRP_Char8 *pMsg,
-                                           ...);
-
-/**
- * Writes the given string message to the default log dest.
- *
- * @param pMsg The message to log.
- * @param len  The explicit len of the message.
- *
- * @return PRP_OK on success.
- * @return PRP_ERR_IO if write operation failed.
- * @return PRP_ERR_INV_ARG if arguments are invalid.
- */
-PRP_API PRP_Result PRP_CALL PRP_LogWrite(const PRP_Char8 *pMsg, PRP_Size len);
-/**
- * Writes the given string message plus a new line character to the default log
- * dest.
- *
- * @param pMsg The message to log.
- * @param len  The explicit len of the message.
- *
- * @return PRP_OK on success.
- * @return PRP_ERR_IO if write operation failed.
- * @return PRP_ERR_INV_ARG if arguments are invalid.
- */
-PRP_API PRP_Result PRP_CALL PRP_LogWriteLn(const PRP_Char8 *pMsg, PRP_Size len);
-/**
- * Writes the given character to the default log dest.
- *
- * @param c The character to log.
- *
- * @return PRP_OK on success.
- * @return PRP_ERR_IO if write operation failed.
- */
-PRP_API PRP_Result PRP_CALL PRP_LogWriteChar(PRP_Char8 c);
+                                           ...) PRP_PRINTF_FORMAT(2, 3);
 
 /**
  * Writes the given string message to the file dest.
  *
+ * @param pFile The destination file to log into.
  * @param pMsg  The message to log.
  * @param len   The explicit len of the message.
- * @param pFile The destination file to log into.
  *
  * @return PRP_OK on success.
  * @return PRP_ERR_IO if write operation failed.
  * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
-PRP_API PRP_Result PRP_CALL PRP_LogWriteF(const PRP_Char8 *pMsg, PRP_Size len,
-                                          FILE *pFile);
+PRP_API PRP_Result PRP_CALL PRP_LogWrite(FILE *pFile, const PRP_Char8 *pMsg,
+                                         PRP_Size len);
 /**
- * Writes the given string message plus a new line character to the default log
- * dest.
+ * Writes the given varadic argument messgae to the file dest.
  *
+ * @param pFile The destination file to log into
  * @param pMsg  The message to log.
- * @param len   The explicit len of the message.
- * @param pFile The destination file to log into.
  *
  * @return PRP_OK on success.
  * @return PRP_ERR_IO if write operation failed.
  * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
-PRP_API PRP_Result PRP_CALL PRP_LogWriteLnF(const PRP_Char8 *pMsg, PRP_Size len,
-                                            FILE *pFile);
+PRP_API PRP_Result PRP_CALL PRP_LogWriteFmt(FILE *pFile, const PRP_Char8 *pMsg,
+                                            ...) PRP_PRINTF_FORMAT(2, 3);
 /**
- * Writes the given character to the default log dest.
+ * Writes the given string message plus a new line character to the file dest.
  *
+ * @param pFile The destination file to log into.
+ * @param pMsg  The message to log.
+ * @param len   The explicit len of the message.
+ *
+ * @return PRP_OK on success.
+ * @return PRP_ERR_IO if write operation failed.
+ * @return PRP_ERR_INV_ARG if arguments are invalid.
+ */
+PRP_API PRP_Result PRP_CALL PRP_LogWriteLn(FILE *pFile, const PRP_Char8 *pMsg,
+                                           PRP_Size len);
+/**
+ * Writes the given varadic argument messgae plus a new line character to the
+ * file dest.
+ *
+ * @param pFile The destination file to log into.
+ * @param pMsg The message to log.
+ *
+ * @return PRP_OK on success.
+ * @return PRP_ERR_IO if write operation failed.
+ * @return PRP_ERR_INV_ARG if arguments are invalid.
+ */
+PRP_API PRP_Result PRP_CALL PRP_LogWriteLnFmt(FILE *pFile,
+                                              const PRP_Char8 *pMsg, ...)
+    PRP_PRINTF_FORMAT(2, 3);
+
+/**
+ * Writes the given character to the file dest.
+ *
+ * @param pFile The destination file to log into.
  * @param c     The character to log.
- * @param pFile The destination file to log into.
  *
  * @return PRP_OK on success.
  * @return PRP_ERR_IO if write operation failed.
  * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
-PRP_API PRP_Result PRP_CALL PRP_LogWriteCharF(PRP_Char8 c, FILE *pFile);
+PRP_API PRP_Result PRP_CALL PRP_LogWriteChar(FILE *pFile, PRP_Char8 c);
 
 #ifdef __cplusplus
 }
