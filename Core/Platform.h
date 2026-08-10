@@ -87,22 +87,58 @@ extern "C" {
 
 #endif
 
-/* ----  CPU ARCHITECTURE DETECTION ---- */
+/* ---- CPU ARCHITECTURE DETECTION ---- */
 
 #if defined(__x86_64__) || defined(_M_X64)
-#define PRP_CPU_ARCH_X64 1
+#define PRP_CPU_COMPILE_ARCH_X86_64_COMPILE 1
 
 #elif defined(__i386__) || defined(_M_IX86)
-#define PRP_CPU_ARCH_X86 1
+#define PRP_CPU_COMPILE_ARCH_X86_COMPILE 1
 
 #elif defined(__aarch64__) || defined(_M_ARM64)
-#define PRP_CPU_ARCH_ARM64 1
+#define PRP_CPU_COMPILE_ARCH_ARM64_COMPILE 1
 
 #elif defined(__arm__) || defined(_M_ARM)
-#define PRP_CPU_ARCH_ARM32 1
+#define PRP_CPU_COMPILE_ARCH_ARM32_COMPILE 1
 
 #elif defined(__riscv)
-#define PRP_CPU_ARCH_RISCV 1
+#if __riscv_xlen == 64
+#define PRP_CPU_COMPILE_ARCH_RISCV64_COMPILE 1
+#elif __riscv_xlen == 32
+#define PRP_CPU_COMPILE_ARCH_RISCV32_COMPILE 1
+#else
+#error Unsupported RISC-V XLEN
+#endif
+
+#elif defined(__powerpc64__) || defined(__ppc64__) || defined(_ARCH_PPC64)
+#define PRP_CPU_COMPILE_ARCH_PPC64_COMPILE 1
+
+#elif defined(__powerpc__) || defined(__ppc__) || defined(_ARCH_PPC)
+#define PRP_CPU_COMPILE_ARCH_PPC32_COMPILE 1
+
+#elif defined(__mips64) || defined(__mips64__)
+#define PRP_CPU_COMPILE_ARCH_MIPS64_COMPILE 1
+
+#elif defined(__mips__) || defined(__mips)
+#define PRP_CPU_COMPILE_ARCH_MIPS32_COMPILE 1
+
+#elif defined(__sparcv9) || defined(__sparc64__)
+#define PRP_CPU_COMPILE_ARCH_SPARC64_COMPILE 1
+
+#elif defined(__sparc__)
+#define PRP_CPU_COMPILE_ARCH_SPARC32_COMPILE 1
+
+#elif defined(__loongarch64)
+#define PRP_CPU_COMPILE_ARCH_LOONGARCH64_COMPILE 1
+
+#elif defined(__loongarch32)
+#define PRP_CPU_COMPILE_ARCH_LOONGARCH32_COMPILE 1
+
+#elif defined(__s390x__)
+#define PRP_CPU_COMPILE_ARCH_S390X_COMPILE 1
+
+#elif defined(__s390__)
+#define PRP_CPU_COMPILE_ARCH_S390_COMPILE 1
 
 #else
 #error Unsupported CPU Architecture Detected
@@ -732,6 +768,7 @@ extern "C" {
 
 #else
 #define PRP_DEBUG_BREAK() ((void)0)
+
 #endif
 
 /* ---- BRANCH PREDICTION ---- */
