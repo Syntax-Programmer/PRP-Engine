@@ -39,7 +39,6 @@ PRP_API PRP_I32 PRP_CALL PRP_LogFormat(PRP_Char8 *pDest, PRP_Size dest_size,
  */
 PRP_API PRP_Result PRP_CALL PRP_LogFormatF(FILE *pDest, const PRP_Char8 *pMsg,
                                            ...) PRP_PRINTF_FORMAT(2, 3);
-
 /**
  * Writes the given string message to the file dest.
  *
@@ -92,7 +91,6 @@ PRP_API PRP_Result PRP_CALL PRP_LogWriteLn(FILE *pFile, const PRP_Char8 *pMsg,
 PRP_API PRP_Result PRP_CALL PRP_LogWriteLnFmt(FILE *pFile,
                                               const PRP_Char8 *pMsg, ...)
     PRP_PRINTF_FORMAT(2, 3);
-
 /**
  * Writes the given character to the file dest.
  *
@@ -104,6 +102,57 @@ PRP_API PRP_Result PRP_CALL PRP_LogWriteLnFmt(FILE *pFile,
  * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
 PRP_API PRP_Result PRP_CALL PRP_LogWriteChar(FILE *pFile, PRP_Char8 c);
+
+/* ----  LOGGING ABSTRACTIONS ---- */
+
+#define PRP_LOG_MSG_MAX_LEN (2047)
+
+typedef enum PRP_LogLevel {
+    PRP_LOG_LVL_TRACE,
+    PRP_LOG_LVL_DEBUG,
+    PRP_LOG_LVL_INFO,
+    PRP_LOG_LVL_WARN,
+    PRP_LOG_LVL_ERROR,
+    PRP_LOG_LVL_FATAL,
+} PRP_LogLevel;
+
+/**
+ * Logging abstraction that logs to the log file.
+ *
+ * @param pLog_file The destination file to log into.
+ * @param level     The severity of the log.
+ * @param pFile     The name of the file in which the log function was called.
+ * @param pFunc     The name of the function which called the log function.
+ * @param line      The exact line where the log function was called in file.
+ * @param pMsg      The message to log.
+ *
+ * @return PRP_OK on success.
+ * @return PRP_ERR_IO if formatting into the file failed.
+ * @return PRP_ERR_INV_ARG if arguments are invalid.
+ */
+PRP_API PRP_Result PRP_CALL PRP_Log(FILE *pLog_file, PRP_LogLevel level,
+                                    const PRP_Char8 *pFile,
+                                    const PRP_Char8 *pFunc, PRP_Size line,
+                                    const PRP_Char8 *pMsg, ...);
+
+#define PRP_LOG_TRACE(pLog_file, pMsg, ...)                                    \
+    PRP_Log((pLog_file), PRP_LOG_LVL_TRACE, __FILE__, __func__, __LINE__,      \
+            (pMsg), ##__VA_ARGS__)
+#define PRP_LOG_DEBUG(pLog_file, pMsg, ...)                                    \
+    PRP_Log((pLog_file), PRP_LOG_LVL_DEBUG, __FILE__, __func__, __LINE__,      \
+            (pMsg), ##__VA_ARGS__)
+#define PRP_LOG_INFO(pLog_file, pMsg, ...)                                     \
+    PRP_Log((pLog_file), PRP_LOG_LVL_INFO, __FILE__, __func__, __LINE__,       \
+            (pMsg), ##__VA_ARGS__)
+#define PRP_LOG_WARN(pLog_file, pMsg, ...)                                     \
+    PRP_Log((pLog_file), PRP_LOG_LVL_WARN, __FILE__, __func__, __LINE__,       \
+            (pMsg), ##__VA_ARGS__)
+#define PRP_LOG_ERROR(pLog_file, pMsg, ...)                                    \
+    PRP_Log((pLog_file), PRP_LOG_LVL_ERROR, __FILE__, __func__, __LINE__,      \
+            (pMsg), ##__VA_ARGS__)
+#define PRP_LOG_FATAL(pLog_file, pMsg, ...)                                    \
+    PRP_Log((pLog_file), PRP_LOG_LVL_FATAL, __FILE__, __func__, __LINE__,      \
+            (pMsg), ##__VA_ARGS__)
 
 #ifdef __cplusplus
 }
