@@ -1,4 +1,5 @@
 #include "Forge/Internals/World-Compiler/Compiler-Internals.h"
+#include <stdio.h>
 
 /**
  * Initializes the tok stream to accomodate for lexing the file.

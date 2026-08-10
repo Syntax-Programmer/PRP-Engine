@@ -1,3 +1,4 @@
+#include "Core/Logging/Log.h"
 #include "Forge/Internals/FECS-World/World-Internals.h"
 #include "Forge/Internals/FECS/FECS-Internals.h"
 
@@ -171,7 +172,7 @@ err_path:
 }
 
 void LayoutDelete(FECS_Layout *pLayout) {
-    DIAG_ASSERT(pLayout != NULL);
+    PRP_DIAG_ASSERT(pLayout != NULL);
 
     CONT_BitmapDeleteUnchecked(&pLayout->pComp_set);
     CONT_BitmapDeleteUnchecked(&pLayout->pFree_chunk_bitset);
@@ -333,10 +334,10 @@ err_path:
         free(pGroup);
         return code;
     }
-    DIAG_LOG_WARN(DIAG_LOG_CODE_FALLBACK_USED,
-                  "Cannot create a batch of %zu entities, a batch "
-                  "with %zu entities is being created.",
-                  entity_count, alloc_count);
+    PRP_LOG_WARN(PRP_LOG_DEFAULT_LOG_FILE,
+                 "Cannot create a batch of %zu entities, a batch "
+                 "with %zu entities is being created.",
+                 entity_count, alloc_count);
     *ppGroup = pGroup;
     return PRP_OK;
 }

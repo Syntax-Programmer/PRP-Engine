@@ -5,7 +5,7 @@ extern "C" {
 #endif
 
 #include "Defs.h"
-#include "Diagnostics/Assert.h"
+#include "Core/Diagnostics/Assert/Assert.h"
 #include "Math/Vector/Vec2.h"
 #include "Math/Vector/Vec3.h"
 
@@ -315,7 +315,7 @@ static inline PRP_F32 MATH_Mat3Trace(MATH_Mat3 a) {
 /* ----  ACCESSORS  ---- */
 
 static inline MATH_Vec3 MATH_Mat3GetRow(MATH_Mat3 a, PRP_Size row) {
-    DIAG_ASSERT(row < MATH_MAT3_SIZE);
+    PRP_DIAG_ASSERT(row < MATH_MAT3_SIZE);
 
     return (MATH_Vec3){
         .x = a.membs[0 * MATH_MAT3_SIZE + row],
@@ -325,7 +325,7 @@ static inline MATH_Vec3 MATH_Mat3GetRow(MATH_Mat3 a, PRP_Size row) {
 }
 
 static inline MATH_Vec3 MATH_Mat3GetCol(MATH_Mat3 a, PRP_Size col) {
-    DIAG_ASSERT(col < MATH_MAT3_SIZE);
+    PRP_DIAG_ASSERT(col < MATH_MAT3_SIZE);
 
     return (MATH_Vec3){
         .x = a.membs[col * MATH_MAT3_SIZE + 0],
@@ -336,7 +336,7 @@ static inline MATH_Vec3 MATH_Mat3GetCol(MATH_Mat3 a, PRP_Size col) {
 
 static inline MATH_Mat3 MATH_Mat3SetRow(MATH_Mat3 a, PRP_Size row,
                                         MATH_Vec3 v) {
-    DIAG_ASSERT(row < MATH_MAT3_SIZE);
+    PRP_DIAG_ASSERT(row < MATH_MAT3_SIZE);
 
     a.membs[0 * MATH_MAT3_SIZE + row] = v.x;
     a.membs[1 * MATH_MAT3_SIZE + row] = v.y;
@@ -347,7 +347,7 @@ static inline MATH_Mat3 MATH_Mat3SetRow(MATH_Mat3 a, PRP_Size row,
 
 static inline MATH_Mat3 MATH_Mat3SetCol(MATH_Mat3 a, PRP_Size col,
                                         MATH_Vec3 v) {
-    DIAG_ASSERT(col < MATH_MAT3_SIZE);
+    PRP_DIAG_ASSERT(col < MATH_MAT3_SIZE);
 
     a.membs[col * MATH_MAT3_SIZE + 0] = v.x;
     a.membs[col * MATH_MAT3_SIZE + 1] = v.y;
@@ -357,16 +357,16 @@ static inline MATH_Mat3 MATH_Mat3SetCol(MATH_Mat3 a, PRP_Size col,
 }
 
 static inline PRP_F32 MATH_Mat3GetAt(MATH_Mat3 a, PRP_Size row, PRP_Size col) {
-    DIAG_ASSERT(row < MATH_MAT3_SIZE);
-    DIAG_ASSERT(col < MATH_MAT3_SIZE);
+    PRP_DIAG_ASSERT(row < MATH_MAT3_SIZE);
+    PRP_DIAG_ASSERT(col < MATH_MAT3_SIZE);
 
     return a.membs[col * MATH_MAT3_SIZE + row];
 }
 
 static inline MATH_Mat3 MATH_Mat3SetAt(MATH_Mat3 a, PRP_Size row, PRP_Size col,
                                        PRP_F32 val) {
-    DIAG_ASSERT(row < MATH_MAT3_SIZE);
-    DIAG_ASSERT(col < MATH_MAT3_SIZE);
+    PRP_DIAG_ASSERT(row < MATH_MAT3_SIZE);
+    PRP_DIAG_ASSERT(col < MATH_MAT3_SIZE);
 
     a.membs[col * MATH_MAT3_SIZE + row] = val;
 

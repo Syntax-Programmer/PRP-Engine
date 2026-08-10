@@ -148,8 +148,8 @@ static PRP_Result ParseTableInit(FECS_WCParseTable *pParse_table,
 static FECS_WCIdentifierTok
 RegisterIdentifier(ParserState *pParser_state,
                    FECS_WCParseTable *pParse_table) {
-    DIAG_ASSERT(pParser_state->identifiers_idx <
-                pParser_state->identifiers_len);
+    PRP_DIAG_ASSERT(pParser_state->identifiers_idx <
+                    pParser_state->identifiers_len);
 
     FECS_WCIdentifierTok old_identifier =
         pParser_state->pIdentifiers[pParser_state->identifiers_idx++];

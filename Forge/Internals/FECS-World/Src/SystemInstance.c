@@ -47,7 +47,7 @@ PRP_Result SystemInstanceCreate(FECS_SystemInstanceCreateInfo *pCreate_info,
 }
 
 void SystemInstanceDelete(FECS_SystemInstance *pSystem_instance) {
-    DIAG_ASSERT(pSystem_instance != NULL);
+    PRP_DIAG_ASSERT(pSystem_instance != NULL);
 
     free(pSystem_instance->pStride_dispatches);
     free(pSystem_instance->pLayout_id_matches);

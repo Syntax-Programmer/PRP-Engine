@@ -127,16 +127,6 @@ extern "C" {
 #define PRP_ENDIANNESS_BIG_ENDIAN 1
 #endif
 
-/* ----  THREADING DETECTION ---- */
-
-#if defined(PRP_PLATFORM_WINDOWS)
-#define PRP_THREADING_WINTHREADS 1
-
-#elif defined(PRP_PLATFORM_LINUX) || defined(PRP_PLATFORM_MACOS) ||            \
-    defined(PRP_PLATFORM_IOS) || defined(PRP_PLATFORM_ANDROID)
-#define PRP_THREADING_PTHREADS 1
-#endif
-
 /* ---- BIUILTIN DETECTION ---- */
 
 #ifdef __has_builtin
@@ -681,6 +671,15 @@ extern "C" {
 
 #define PRP_CALL PRP_CDECL
 
+/* ----  VARADIC ARG ATTR THING ---- */
+
+#if defined(PRP_COMPILER_CLANG) || defined(PRP_COMPILER_GCC)
+#define PRP_PRINTF_FORMAT(fmt_idx, arg_idx)                                    \
+    __attribute__((format(printf, fmt_idx, arg_idx)))
+#else
+#define PRP_PRINTF_FORMAT(fmt_idx, arg_idx)
+#endif
+
 /* ----  FORCEINLINE and NOINLINE ---- */
 
 #if defined(PRP_COMPILER_MSVC)
@@ -714,21 +713,25 @@ extern "C" {
 
 #endif
 
+/* ---- ABORT ---- */
+
+#define PRP_ABORT() abort();
+
 /* ---- DEBUG BREAK ---- */
 
+#ifdef PRP_DEBUG_MODE
 #if defined(PRP_COMPILER_MSVC)
 #define PRP_DEBUG_BREAK() __debugbreak()
-
 #elif defined(PRP_HAS_BUILTIN_DEBUG_TRAP)
 #define PRP_DEBUG_BREAK() __builtin_debugtrap()
-
 #elif defined(PRP_HAS_BUILTIN_TRAP)
 #define PRP_DEBUG_BREAK() __builtin_trap()
+#else
+#define PRP_DEBUG_BREAK() PRP_ABORT()
+#endif
 
 #else
-#include <stdlib.h>
-#define PRP_DEBUG_BREAK() abort()
-
+#define PRP_DEBUG_BREAK() ((void)0)
 #endif
 
 /* ---- BRANCH PREDICTION ---- */

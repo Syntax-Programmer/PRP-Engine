@@ -1,5 +1,4 @@
 #include "Forge/Internals/FECS/FECS-Internals.h"
-#include "Diagnostics/Assert.h"
 
 FECS_InternalCtx *g_ctx = NULL;
 
@@ -57,10 +56,6 @@ PRP_Result SystemRegister(PRP_Char8 *pName, PRP_Size name_len,
     PRP_Size comps_len = CONT_ArrLen(g_ctx->pComp_sizes);
     for (PRP_Size i = 0; i < comp_ids_needed_count; i++) {
         FECS_CompId comp_id = pComp_ids_needed[i];
-        DIAG_ASSERT_MSG(comp_id < comps_len,
-                        "The given system registration contains invalid comp "
-                        "id: %zu at pComp_ids_needed[%zu]",
-                        comp_id, i);
         if (comp_id >= comps_len) {
             return PRP_ERR_INV_ARG;
         }

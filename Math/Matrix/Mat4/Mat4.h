@@ -4,8 +4,8 @@
 extern "C" {
 #endif
 
+#include "Core/Diagnostics/Assert/Assert.h"
 #include "Defs.h"
-#include "Diagnostics/Assert.h"
 #include "Math/Vector/Vec3.h"
 #include "Math/Vector/Vec4.h"
 
@@ -430,7 +430,7 @@ static inline PRP_F32 MATH_Mat4Trace(MATH_Mat4 a) {
 /* ----  ACCESSORS  ---- */
 
 static inline MATH_Vec4 MATH_Mat4GetRow(MATH_Mat4 a, PRP_Size row) {
-    DIAG_ASSERT(row < MATH_MAT4_SIZE);
+    PRP_DIAG_ASSERT(row < MATH_MAT4_SIZE);
 
     return (MATH_Vec4){
         .x = a.membs[0 * MATH_MAT4_SIZE + row],
@@ -441,7 +441,7 @@ static inline MATH_Vec4 MATH_Mat4GetRow(MATH_Mat4 a, PRP_Size row) {
 }
 
 static inline MATH_Vec4 MATH_Mat4GetCol(MATH_Mat4 a, PRP_Size col) {
-    DIAG_ASSERT(col < MATH_MAT4_SIZE);
+    PRP_DIAG_ASSERT(col < MATH_MAT4_SIZE);
 
     return (MATH_Vec4){
         .x = a.membs[col * MATH_MAT4_SIZE + 0],
@@ -453,7 +453,7 @@ static inline MATH_Vec4 MATH_Mat4GetCol(MATH_Mat4 a, PRP_Size col) {
 
 static inline MATH_Mat4 MATH_Mat4SetRow(MATH_Mat4 a, PRP_Size row,
                                         MATH_Vec4 v) {
-    DIAG_ASSERT(row < MATH_MAT4_SIZE);
+    PRP_DIAG_ASSERT(row < MATH_MAT4_SIZE);
 
     a.membs[0 * MATH_MAT4_SIZE + row] = v.x;
     a.membs[1 * MATH_MAT4_SIZE + row] = v.y;
@@ -465,7 +465,7 @@ static inline MATH_Mat4 MATH_Mat4SetRow(MATH_Mat4 a, PRP_Size row,
 
 static inline MATH_Mat4 MATH_Mat4SetCol(MATH_Mat4 a, PRP_Size col,
                                         MATH_Vec4 v) {
-    DIAG_ASSERT(col < MATH_MAT4_SIZE);
+    PRP_DIAG_ASSERT(col < MATH_MAT4_SIZE);
 
     a.membs[col * MATH_MAT4_SIZE + 0] = v.x;
     a.membs[col * MATH_MAT4_SIZE + 1] = v.y;
@@ -476,16 +476,16 @@ static inline MATH_Mat4 MATH_Mat4SetCol(MATH_Mat4 a, PRP_Size col,
 }
 
 static inline PRP_F32 MATH_Mat4GetAt(MATH_Mat4 a, PRP_Size row, PRP_Size col) {
-    DIAG_ASSERT(row < MATH_MAT4_SIZE);
-    DIAG_ASSERT(col < MATH_MAT4_SIZE);
+    PRP_DIAG_ASSERT(row < MATH_MAT4_SIZE);
+    PRP_DIAG_ASSERT(col < MATH_MAT4_SIZE);
 
     return a.membs[col * MATH_MAT4_SIZE + row];
 }
 
 static inline MATH_Mat4 MATH_Mat4SetAt(MATH_Mat4 a, PRP_Size row, PRP_Size col,
                                        PRP_F32 val) {
-    DIAG_ASSERT(row < MATH_MAT4_SIZE);
-    DIAG_ASSERT(col < MATH_MAT4_SIZE);
+    PRP_DIAG_ASSERT(row < MATH_MAT4_SIZE);
+    PRP_DIAG_ASSERT(col < MATH_MAT4_SIZE);
 
     a.membs[col * MATH_MAT4_SIZE + row] = val;
 

@@ -1,3 +1,4 @@
+#include "Core/Logging/Log.h"
 #include "Forge/Internals/FECS/FECS-Internals.h"
 #include "Forge/Internals/World-Compiler/Compiler-Internals.h"
 
@@ -204,10 +205,10 @@ static PRP_Result ResolveLayoutDecl(void *pVal, void *pUser_data) {
         pResolve_data->pIdentifier_bffr, pLayout_decl->layout_name.ofs);
     if (CONT_StrArrSearchUnchecked(pResolve_data->pCreate_info->pLayout_names,
                                    pLayout_name, layout_name_len, NULL)) {
-        DIAG_LOG_INFO(DIAG_LOG_CODE_NONE,
-                      "Layout: %.*s, already exists, the entire layout "
-                      "declaration will be skipped.",
-                      (int)layout_name_len, pLayout_name);
+        PRP_LOG_INFO(PRP_LOG_DEFAULT_LOG_FILE,
+                     "Layout: %.*s, already exists, the entire layout "
+                     "declaration will be skipped.",
+                     (int)layout_name_len, pLayout_name);
         return PRP_OK;
     }
 
@@ -224,8 +225,8 @@ static PRP_Result ResolveLayoutDecl(void *pVal, void *pUser_data) {
                                     &comp_resolve_data);
     if (code != PRP_OK) {
         CONT_BitmapDeleteUnchecked(&pLayout_create_info);
-        DIAG_LOG_INFO(
-            DIAG_LOG_CODE_INVALID_STATE,
+        PRP_LOG_INFO(
+            PRP_LOG_DEFAULT_LOG_FILE,
             "Layout: %.*s, contains unregistered component "
             "name: %.*s, the entire layout declaration will be skipped.",
             (int)layout_name_len, pLayout_name,
@@ -270,8 +271,8 @@ static PRP_Result CreateSystemInstanceCompSets(
     if (code != PRP_OK) {
         CONT_BitmapDeleteUnchecked(ppInc_comp_set);
         CONT_BitmapDeleteUnchecked(ppExc_comp_set);
-        DIAG_LOG_INFO(
-            DIAG_LOG_CODE_INVALID_STATE,
+        PRP_LOG_INFO(
+            PRP_LOG_DEFAULT_LOG_FILE,
             "System Instance: %.*s, contains unregistered include component "
             "name: %.*s, the entire system instance declaration will be "
             "skipped.",
@@ -285,8 +286,8 @@ static PRP_Result CreateSystemInstanceCompSets(
     if (code != PRP_OK) {
         CONT_BitmapDeleteUnchecked(ppInc_comp_set);
         CONT_BitmapDeleteUnchecked(ppExc_comp_set);
-        DIAG_LOG_INFO(
-            DIAG_LOG_CODE_INVALID_STATE,
+        PRP_LOG_INFO(
+            PRP_LOG_DEFAULT_LOG_FILE,
             "System Instance: %.*s, contains unregistered exclude component "
             "name: %.*s, the entire system instance declaration will be "
             "skipped.",
@@ -352,8 +353,8 @@ static PRP_Result ResolveSystemInstanceDecl(void *pVal, void *pUser_data) {
     if (CONT_StrArrSearchUnchecked(
             pResolve_data->pCreate_info->pSystem_instance_names,
             pSystem_instance_name, system_instance_name_len, NULL)) {
-        DIAG_LOG_INFO(
-            DIAG_LOG_CODE_NONE,
+        PRP_LOG_INFO(
+            PRP_LOG_DEFAULT_LOG_FILE,
             "System Instance: %.*s, already exists, the entire system instance "
             "declaration will be skipped.",
             (int)system_instance_name_len, pSystem_instance_name);
@@ -367,8 +368,8 @@ static PRP_Result ResolveSystemInstanceDecl(void *pVal, void *pUser_data) {
     PRP_Size system_name_len = pSystem_instance_decl->system_name.size;
     if (!CONT_StrArrSearchUnchecked(g_ctx->pSystem_names, pSystem_name,
                                     system_name_len, &system_id)) {
-        DIAG_LOG_INFO(
-            DIAG_LOG_CODE_INVALID_STATE,
+        PRP_LOG_INFO(
+            PRP_LOG_DEFAULT_LOG_FILE,
             "System Instance: %.*s, contains unregistered system function "
             "name: %.*s, the entire system instance declaration will be "
             "skipped.",
@@ -397,8 +398,8 @@ static PRP_Result ResolveSystemInstanceDecl(void *pVal, void *pUser_data) {
             PRP_Size comp_name_len;
             const PRP_Char8 *pComp_name = CONT_StrArrGetUnchecked(
                 g_ctx->pComp_names, needed_comp_id, &comp_name_len);
-            DIAG_LOG_INFO(
-                DIAG_LOG_CODE_INVALID_STATE,
+            PRP_LOG_INFO(
+                PRP_LOG_DEFAULT_LOG_FILE,
                 "System Instance: %.*s, uses system: %.*s which requires comp "
                 "id: %zu(%.*s), which the system instance cannot guarantee, "
                 "because inc sub decl doesn't include it the entire system "
@@ -417,10 +418,10 @@ static PRP_Result ResolveSystemInstanceDecl(void *pVal, void *pUser_data) {
         .stride_dispatch_count = pSystem_info->comp_ids_needed_count};
     code = PRP_OK; // Never hurts to be explicit.
     if (CONT_BitmapHasAnyUnchecked(pExc_comp_set, pInc_comp_set)) {
-        DIAG_LOG_WARN(DIAG_LOG_CODE_INIT_FAIL,
-                      "System Instance: %.*s, has overlapping include and "
-                      "exclude components, this will not match any layouts.",
-                      system_instance_name_len, pSystem_instance_name);
+        PRP_LOG_INFO(PRP_LOG_DEFAULT_LOG_FILE,
+                     "System Instance: %.*s, has overlapping include and "
+                     "exclude components, this will not match any layouts.",
+                     system_instance_name_len, pSystem_instance_name);
     } else if (pResolve_data->pCreate_info->layout_count != 0) {
         code = FilterLayouts(pResolve_data, pInc_comp_set, pExc_comp_set,
                              &system_instance_create_info);

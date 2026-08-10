@@ -4,8 +4,8 @@
 extern "C" {
 #endif
 
+#include "Core/Diagnostics/Assert/Assert.h"
 #include "Defs.h"
-#include "Diagnostics/Assert.h"
 #include "Math/Vector/Vec2.h"
 
 /* ----  CONSTRUCTORS  ---- */
@@ -204,7 +204,7 @@ static inline PRP_F32 MATH_Mat2Trace(MATH_Mat2 a) {
 /* ----  ACCESSORS  ---- */
 
 static inline MATH_Vec2 MATH_Mat2GetRow(MATH_Mat2 a, PRP_Size row) {
-    DIAG_ASSERT(row < MATH_MAT2_SIZE);
+    PRP_DIAG_ASSERT(row < MATH_MAT2_SIZE);
 
     return (MATH_Vec2){
         .x = a.membs[0 * MATH_MAT2_SIZE + row],
@@ -213,7 +213,7 @@ static inline MATH_Vec2 MATH_Mat2GetRow(MATH_Mat2 a, PRP_Size row) {
 }
 
 static inline MATH_Vec2 MATH_Mat2GetCol(MATH_Mat2 a, PRP_Size col) {
-    DIAG_ASSERT(col < MATH_MAT2_SIZE);
+    PRP_DIAG_ASSERT(col < MATH_MAT2_SIZE);
 
     return (MATH_Vec2){
         .x = a.membs[col * MATH_MAT2_SIZE + 0],
@@ -223,7 +223,7 @@ static inline MATH_Vec2 MATH_Mat2GetCol(MATH_Mat2 a, PRP_Size col) {
 
 static inline MATH_Mat2 MATH_Mat2SetRow(MATH_Mat2 a, PRP_Size row,
                                         MATH_Vec2 v) {
-    DIAG_ASSERT(row < MATH_MAT2_SIZE);
+    PRP_DIAG_ASSERT(row < MATH_MAT2_SIZE);
 
     a.membs[0 * MATH_MAT2_SIZE + row] = v.x;
     a.membs[1 * MATH_MAT2_SIZE + row] = v.y;
@@ -233,7 +233,7 @@ static inline MATH_Mat2 MATH_Mat2SetRow(MATH_Mat2 a, PRP_Size row,
 
 static inline MATH_Mat2 MATH_Mat2SetCol(MATH_Mat2 a, PRP_Size col,
                                         MATH_Vec2 v) {
-    DIAG_ASSERT(col < MATH_MAT2_SIZE);
+    PRP_DIAG_ASSERT(col < MATH_MAT2_SIZE);
 
     a.membs[col * MATH_MAT2_SIZE + 0] = v.x;
     a.membs[col * MATH_MAT2_SIZE + 1] = v.y;
@@ -242,16 +242,16 @@ static inline MATH_Mat2 MATH_Mat2SetCol(MATH_Mat2 a, PRP_Size col,
 }
 
 static inline PRP_F32 MATH_Mat2GetAt(MATH_Mat2 a, PRP_Size row, PRP_Size col) {
-    DIAG_ASSERT(row < MATH_MAT2_SIZE);
-    DIAG_ASSERT(col < MATH_MAT2_SIZE);
+    PRP_DIAG_ASSERT(row < MATH_MAT2_SIZE);
+    PRP_DIAG_ASSERT(col < MATH_MAT2_SIZE);
 
     return a.membs[col * MATH_MAT2_SIZE + row];
 }
 
 static inline MATH_Mat2 MATH_Mat2SetAt(MATH_Mat2 a, PRP_Size row, PRP_Size col,
                                        PRP_F32 val) {
-    DIAG_ASSERT(row < MATH_MAT2_SIZE);
-    DIAG_ASSERT(col < MATH_MAT2_SIZE);
+    PRP_DIAG_ASSERT(row < MATH_MAT2_SIZE);
+    PRP_DIAG_ASSERT(col < MATH_MAT2_SIZE);
 
     a.membs[col * MATH_MAT2_SIZE + row] = val;
 

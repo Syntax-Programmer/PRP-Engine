@@ -4,8 +4,8 @@
 extern "C" {
 #endif
 
+#include "Core/Diagnostics/Assert/Assert.h"
 #include "Core/Types.h"
-#include "Diagnostics/Assert.h"
 #include "Math/EulerAngle.h"
 #include "Math/Vector/Vec3.h"
 
@@ -81,7 +81,7 @@ static inline MATH_Quat MATH_QuatCreateEuler(MATH_EulerAngle angles,
     case MATH_EULER_ANGLE_ORDER_XZY:
         return MATH_QuatCreateEulerXZY(angles);
     default:
-        DIAG_ASSERT(0 && "Invalid MATH_EulerOrder provided.");
+        PRP_DIAG_ASSERT(0 && "Invalid MATH_EulerOrder provided.");
         // Identity matrix.
         return MATH_QuatCreateIdentity();
     }

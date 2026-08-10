@@ -4,8 +4,8 @@
 extern "C" {
 #endif
 
+#include "Core/Diagnostics/Assert/Assert.h"
 #include "Defs.h"
-#include "Diagnostics/Assert.h"
 #include "Math/EulerAngle.h"
 #include "Math/Matrix/Mat3/Defs.h"
 #include "Math/Vector/Vec3.h"
@@ -93,7 +93,7 @@ MATH_Mat4CreateRotationEuler(MATH_EulerAngle angles,
     case MATH_EULER_ANGLE_ORDER_XZY:
         return MATH_Mat4CreateRotationEulerXZY(angles);
     default:
-        DIAG_ASSERT(0 && "Invalid MATH_EulerOrder provided.");
+        PRP_DIAG_ASSERT(0 && "Invalid MATH_EulerOrder provided.");
         // Identity matrix.
         return (MATH_Mat4){.membs = {1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
                                      0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f,

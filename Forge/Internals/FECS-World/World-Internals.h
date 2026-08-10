@@ -6,7 +6,7 @@ extern "C" {
 
 #include "Containers/Bitmap.h"
 #include "Containers/StringArr.h"
-#include "Diagnostics/Assert.h"
+#include "Core/Diagnostics/Assert/Assert.h"
 #include "Forge/Internals/Typedefs.h"
 
 /**
@@ -56,8 +56,8 @@ typedef struct FECS_Chunk {
     PRP_U8 pChunk_mem[];
 } FECS_Chunk;
 
-DIAG_STATIC_ASSERT(CHUNK_CAP == sizeof(PRP_U64) * 8,
-                   "free_slot bit width must match CHUNK_CAP");
+PRP_DIAG_STATIC_ASSERT(CHUNK_CAP == sizeof(PRP_U64) * 8,
+                       "free_slot bit width must match CHUNK_CAP");
 
 typedef struct FECS_Layout {
     CONT_Bitmap *pComp_set;
