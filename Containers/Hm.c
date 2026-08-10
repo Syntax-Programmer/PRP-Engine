@@ -1,5 +1,5 @@
 #include "Hm.h"
-#include "Diagnostics/Assert.h"
+#include "Core/Diagnostics/Assert/Assert.h"
 #include <string.h>
 
 /* ----  STD HASH FUNCS ---- */
@@ -101,8 +101,8 @@ struct CONT_Hm {
 #define MAX_ELEM_CAP (PRP_SIZE_MAX / sizeof(Elem))
 
 #define ASSERT_INVARIANT_EXPR(hm)                                              \
-    DIAG_ASSERT_MSG(CONT_HmIsValid(hm),                                        \
-                    "The given hashmap is either NULL, or is corrupted.")
+    PRP_DIAG_ASSERT_MSG(CONT_HmIsValid(hm),                                    \
+                        "The given hashmap is either NULL, or is corrupted.")
 
 /**
  * Grows the elem array of the hashmap safely.
@@ -155,9 +155,9 @@ CONT_HmCreateUnchecked(PRP_U64 (*hash_fn)(const void *key),
                        PRP_Bool (*key_cmp_cb)(const void *k1, const void *k2),
                        PRP_Result (*key_del_cb)(void *key),
                        PRP_Result (*val_del_cb)(void *val), CONT_Hm **pHm) {
-    DIAG_ASSERT(hash_fn != NULL);
-    DIAG_ASSERT(key_cmp_cb != NULL);
-    DIAG_ASSERT(pHm != NULL);
+    PRP_DIAG_ASSERT(hash_fn != NULL);
+    PRP_DIAG_ASSERT(key_cmp_cb != NULL);
+    PRP_DIAG_ASSERT(pHm != NULL);
 
     CONT_Hm *hm = calloc(1, sizeof(CONT_Hm));
     if (!hm) {
@@ -204,9 +204,9 @@ CONT_HmCreateChecked(PRP_U64 (*hash_fn)(const void *key),
 }
 
 PRP_API void PRP_CALL CONT_HmDeleteUnchecked(CONT_Hm **pHm) {
-    DIAG_ASSERT(pHm != NULL);
-    DIAG_ASSERT(*pHm != NULL);
-    DIAG_ASSERT((*pHm)->layout != NULL && (*pHm)->elems != NULL);
+    PRP_DIAG_ASSERT(pHm != NULL);
+    PRP_DIAG_ASSERT(*pHm != NULL);
+    PRP_DIAG_ASSERT((*pHm)->layout != NULL && (*pHm)->elems != NULL);
 
     CONT_Hm *hm = *pHm;
 
@@ -297,7 +297,7 @@ PRP_API PRP_Result PRP_CALL CONT_HmAddUnchecked(CONT_Hm *hm, void *key,
                                                 void *val,
                                                 PRP_Bool fail_on_duplicate) {
     ASSERT_INVARIANT_EXPR(hm);
-    DIAG_ASSERT(key != NULL);
+    PRP_DIAG_ASSERT(key != NULL);
 
     if (hm->elem_len == hm->elem_cap) {
         PRP_Result code = GrowHmElems(hm);
@@ -357,8 +357,8 @@ PRP_API PRP_Result PRP_CALL CONT_HmAddChecked(CONT_Hm *hm, void *key, void *val,
 PRP_API PRP_Result PRP_CALL CONT_HmGetUnchecked(const CONT_Hm *hm, void *key,
                                                 void **pVal) {
     ASSERT_INVARIANT_EXPR(hm);
-    DIAG_ASSERT(key != NULL);
-    DIAG_ASSERT(pVal != NULL);
+    PRP_DIAG_ASSERT(key != NULL);
+    PRP_DIAG_ASSERT(pVal != NULL);
 
     PRP_U64 mask = hm->layout_cap - 1;
     PRP_U64 hash = hm->hash_fn(key);
@@ -413,7 +413,7 @@ static PRP_Result FetchLayoutElemI(const CONT_Hm *hm, const void *key,
 
 PRP_API PRP_Result PRP_CALL CONT_HmDelElemUnchecked(CONT_Hm *hm, void *key) {
     ASSERT_INVARIANT_EXPR(hm);
-    DIAG_ASSERT(key != NULL);
+    PRP_DIAG_ASSERT(key != NULL);
 
     PRP_Size key_layout_i, key_elem_i;
     PRP_Result code = FetchLayoutElemI(hm, key, &key_layout_i, &key_elem_i);
@@ -424,7 +424,7 @@ PRP_API PRP_Result PRP_CALL CONT_HmDelElemUnchecked(CONT_Hm *hm, void *key) {
     // This shouldn't really fail ever.
     code = FetchLayoutElemI(hm, hm->elems[hm->elem_len - 1].key, &last_layout_i,
                             &last_elem_i);
-    DIAG_VERIFY(code == PRP_OK);
+    PRP_DIAG_VERIFY(code == PRP_OK);
 
     Elem to_del = hm->elems[key_elem_i];
     if (hm->key_del_cb) {
@@ -462,7 +462,7 @@ PRP_API PRP_Result PRP_CALL CONT_HmForEachUnchecked(
     CONT_Hm *hm, PRP_Result (*cb)(void *key, void *val, void *pUser_data),
     void *pUser_data) {
     ASSERT_INVARIANT_EXPR(hm);
-    DIAG_ASSERT(cb != NULL);
+    PRP_DIAG_ASSERT(cb != NULL);
 
     for (PRP_Size i = 0; i < hm->elem_len; i++) {
         Elem elem = hm->elems[i];

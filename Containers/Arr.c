@@ -1,5 +1,5 @@
 #include "Arr.h"
-#include "Diagnostics/Assert.h"
+#include "Core/Diagnostics/Assert/Assert.h"
 #include <string.h>
 
 struct CONT_Arr {
@@ -10,8 +10,7 @@ struct CONT_Arr {
 };
 
 #define ASSERT_INVARIANT_EXPR(pArr)                                            \
-    DIAG_ASSERT_MSG(CONT_ArrIsValid(pArr),                                     \
-                    "The given array is either NULL, or is corrupted.")
+    PRP_DIAG_ASSERT_MSG(CONT_ArrIsValid(pArr), "The given pArr is invalid.")
 
 /**
  * Centralized std policy for array cap increases.
@@ -74,10 +73,12 @@ PRP_API PRP_Bool PRP_CALL CONT_ArrIsValid(const CONT_Arr *pArr) {
 PRP_API PRP_Result PRP_CALL CONT_ArrCreateUnchecked(PRP_Size memb_size,
                                                     PRP_Size cap,
                                                     CONT_Arr **ppArr) {
-    DIAG_ASSERT(memb_size > 0);
-    DIAG_ASSERT(cap > 0);
-    DIAG_ASSERT(ppArr != NULL);
+    PRP_DIAG_ASSERT_MSG(memb_size > 0,
+                        "The memb_size of the array must be > 0.");
+    PRP_DIAG_ASSERT_MSG(cap > 0, "The cap of the array must be > 0.");
+    PRP_DIAG_ASSERT(ppArr != NULL);
 
+    *ppArr = NULL;
     if (cap > CONT_ARR_MAX_CAP(memb_size)) {
         return PRP_ERR_OOM;
     }
@@ -113,7 +114,7 @@ PRP_API PRP_Result PRP_CALL CONT_ArrCreateChecked(PRP_Size memb_size,
 PRP_API PRP_Result PRP_CALL CONT_ArrCloneUnchecked(const CONT_Arr *pArr,
                                                    CONT_Arr **ppArr) {
     ASSERT_INVARIANT_EXPR(pArr);
-    DIAG_ASSERT(ppArr != NULL);
+    PRP_DIAG_ASSERT(ppArr != NULL);
 
     // Unchecked since we checked for invariants above.
     PRP_Result code =
@@ -142,9 +143,12 @@ PRP_API PRP_Result PRP_CALL CONT_ArrCreateWithDataUnchecked(PRP_Size memb_size,
                                                             const void *pMembs,
                                                             PRP_Size len,
                                                             CONT_Arr **ppArr) {
-    DIAG_ASSERT(memb_size > 0);
-    DIAG_ASSERT(len > 0);
-    DIAG_ASSERT(ppArr != NULL);
+    PRP_DIAG_ASSERT_MSG(memb_size > 0,
+                        "The memb_size of the array must be > 0.");
+    PRP_DIAG_ASSERT_MSG(
+        len > 0, "At least one member to iniialize the array with needed.");
+    PRP_DIAG_ASSERT(pMembs != NULL);
+    PRP_DIAG_ASSERT(ppArr != NULL);
 
     PRP_Result code = CONT_ArrCreateUnchecked(memb_size, len, ppArr);
     if (code != PRP_OK) {
@@ -162,7 +166,7 @@ PRP_API PRP_Result PRP_CALL CONT_ArrCreateWithDataChecked(PRP_Size memb_size,
                                                           const void *pMembs,
                                                           PRP_Size len,
                                                           CONT_Arr **ppArr) {
-    if (!memb_size || !len || !ppArr) {
+    if (!memb_size || !len || !ppArr || !pMembs) {
         return PRP_ERR_INV_ARG;
     }
 
@@ -170,8 +174,9 @@ PRP_API PRP_Result PRP_CALL CONT_ArrCreateWithDataChecked(PRP_Size memb_size,
 }
 
 PRP_API void PRP_CALL CONT_ArrDeleteUnchecked(CONT_Arr **ppArr) {
-    DIAG_ASSERT(ppArr != NULL);
-    DIAG_ASSERT(*ppArr != NULL && (*ppArr)->mem != NULL);
+    PRP_DIAG_ASSERT(ppArr != NULL);
+    PRP_DIAG_ASSERT_MSG(*ppArr != NULL && (*ppArr)->mem != NULL,
+                        "The given *ppArr is invalid.");
 
     CONT_Arr *pArr = *ppArr;
 
@@ -199,7 +204,7 @@ PRP_API PRP_Result PRP_CALL CONT_ArrDeleteChecked(CONT_Arr **ppArr) {
 PRP_API const void *PRP_CALL CONT_ArrRawUnchecked(const CONT_Arr *pArr,
                                                   PRP_Size *pLen) {
     ASSERT_INVARIANT_EXPR(pArr);
-    DIAG_ASSERT(pLen != NULL);
+    PRP_DIAG_ASSERT(pLen != NULL);
 
     *pLen = pArr->len;
 
@@ -245,7 +250,7 @@ PRP_API PRP_Size PRP_CALL CONT_ArrMaxCap(const CONT_Arr *pArr) {
 
 PRP_API void *PRP_CALL CONT_ArrGetUnchecked(const CONT_Arr *pArr, PRP_Size i) {
     ASSERT_INVARIANT_EXPR(pArr);
-    DIAG_ASSERT(i < pArr->len);
+    PRP_DIAG_ASSERT_MSG(i < pArr->len, "The index i is out of bounds.");
 
     return pArr->mem + (i * pArr->memb_size);
 }
@@ -267,8 +272,8 @@ PRP_API PRP_Result PRP_CALL CONT_ArrGetChecked(const CONT_Arr *pArr, PRP_Size i,
 PRP_API void PRP_CALL CONT_ArrSetUnchecked(CONT_Arr *pArr, PRP_Size i,
                                            const void *pData) {
     ASSERT_INVARIANT_EXPR(pArr);
-    DIAG_ASSERT(pData != NULL);
-    DIAG_ASSERT(i < pArr->len);
+    PRP_DIAG_ASSERT(pData != NULL);
+    PRP_DIAG_ASSERT_MSG(i < pArr->len, "The index i is out of bounds.");
 
     memcpy(pArr->mem + (i * pArr->memb_size), pData, pArr->memb_size);
 }
@@ -290,7 +295,7 @@ PRP_API PRP_Result PRP_CALL CONT_ArrSetChecked(CONT_Arr *pArr, PRP_Size i,
 PRP_API PRP_Result PRP_CALL CONT_ArrPushUnchecked(CONT_Arr *pArr,
                                                   const void *pData) {
     ASSERT_INVARIANT_EXPR(pArr);
-    DIAG_ASSERT(pData != NULL);
+    PRP_DIAG_ASSERT(pData != NULL);
 
     if (pArr->len == pArr->cap) {
         PRP_Size new_cap =
@@ -321,7 +326,8 @@ PRP_API PRP_Result PRP_CALL CONT_ArrPushChecked(CONT_Arr *pArr,
 PRP_API PRP_Result PRP_CALL CONT_ArrReserveUnchecked(CONT_Arr *pArr,
                                                      PRP_Size count) {
     ASSERT_INVARIANT_EXPR(pArr);
-    DIAG_ASSERT(count > 0);
+    PRP_DIAG_ASSERT_MSG(
+        count > 0, "At least one element to reserve the array with needed.");
 
     if (pArr->cap - pArr->len >= count) {
         return PRP_OK;
@@ -343,8 +349,8 @@ PRP_API PRP_Result PRP_CALL CONT_ArrInsertUnchecked(CONT_Arr *pArr,
                                                     const void *pData,
                                                     PRP_Size i) {
     ASSERT_INVARIANT_EXPR(pArr);
-    DIAG_ASSERT(pData != NULL);
-    DIAG_ASSERT(i <= pArr->len);
+    PRP_DIAG_ASSERT(pData != NULL);
+    PRP_DIAG_ASSERT_MSG(i <= pArr->len, "The index i is out of bounds.");
 
     if (pArr->len == pArr->cap) {
         PRP_Size new_cap =
@@ -405,7 +411,7 @@ PRP_API PRP_Result PRP_CALL CONT_ArrPopChecked(CONT_Arr *pArr, void *pDest) {
 PRP_API void PRP_CALL CONT_ArrRemoveUnchecked(CONT_Arr *pArr, void *pDest,
                                               PRP_Size i) {
     ASSERT_INVARIANT_EXPR(pArr);
-    DIAG_ASSERT(i < pArr->len);
+    PRP_DIAG_ASSERT_MSG(i < pArr->len, "The index i is out of bounds.");
 
     if (pDest) {
         memcpy(pDest, pArr->mem + (i * pArr->memb_size), pArr->memb_size);
@@ -458,7 +464,8 @@ PRP_API PRP_Result PRP_CALL CONT_ArrExtendUnchecked(CONT_Arr *pArr1,
                                                     const CONT_Arr *pArr2) {
     ASSERT_INVARIANT_EXPR(pArr1);
     ASSERT_INVARIANT_EXPR(pArr2);
-    DIAG_ASSERT(pArr1->memb_size == pArr2->memb_size);
+    PRP_DIAG_ASSERT_MSG(pArr1->memb_size == pArr2->memb_size,
+                        "To extend, the memb_size of both arrays shall match.");
 
     if (pArr1->len > CONT_ARR_MAX_CAP(pArr1->memb_size) - pArr2->len) {
         return PRP_ERR_RES_EXHAUSTED;
@@ -488,9 +495,9 @@ PRP_API PRP_Result PRP_CALL CONT_ArrExtendChecked(CONT_Arr *pArr1,
 PRP_API void PRP_CALL CONT_ArrSwapUnchecked(CONT_Arr *pArr, PRP_Size i,
                                             PRP_Size j, void *pSwap_bffr) {
     ASSERT_INVARIANT_EXPR(pArr);
-    DIAG_ASSERT(pSwap_bffr != NULL);
-    DIAG_ASSERT(i < pArr->len);
-    DIAG_ASSERT(j < pArr->len);
+    PRP_DIAG_ASSERT(pSwap_bffr != NULL);
+    PRP_DIAG_ASSERT_MSG(i < pArr->len, "The index i is out of bounds.");
+    PRP_DIAG_ASSERT_MSG(j < pArr->len, "The index j is out of bounds.");
 
     if (i == j) {
         return;
@@ -554,7 +561,7 @@ PRP_API PRP_Result PRP_CALL CONT_ArrForEachUnchecked(
     CONT_Arr *pArr, PRP_Result (*pCb)(void *pVal, void *pUser_data),
     void *pUser_data) {
     ASSERT_INVARIANT_EXPR(pArr);
-    DIAG_ASSERT(pCb != NULL);
+    PRP_DIAG_ASSERT(pCb != NULL);
 
     PRP_U8 *mem = pArr->mem;
     for (PRP_Size i = 0; i < pArr->len; i++) {

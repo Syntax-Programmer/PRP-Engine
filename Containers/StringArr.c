@@ -1,5 +1,5 @@
 #include "StringArr.h"
-#include "Diagnostics/Assert.h"
+#include "Core/Diagnostics/Assert/Assert.h"
 #include <string.h>
 
 typedef struct StrInfo {
@@ -20,7 +20,7 @@ struct CONT_StrArr {
 #define MAX_CAP (PRP_SIZE_MAX / sizeof(StrInfo))
 
 #define ASSERT_INVARIANT_EXPR(str_arr)                                         \
-    DIAG_ASSERT_MSG(                                                           \
+    PRP_DIAG_ASSERT_MSG(                                                       \
         CONT_StrArrIsValid(str_arr),                                           \
         "The given string buffer is either NULL, or is corrupted.")
 
@@ -46,9 +46,9 @@ PRP_API PRP_Bool PRP_CALL CONT_StrArrIsValid(const CONT_StrArr *str_arr) {
 PRP_API PRP_Result PRP_CALL CONT_StrArrCreateUnchecked(PRP_Size init_bffr_size,
                                                        PRP_Size cap,
                                                        CONT_StrArr **pStr_arr) {
-    DIAG_ASSERT(init_bffr_size > 0);
-    DIAG_ASSERT(cap > 0);
-    DIAG_ASSERT(pStr_arr != NULL);
+    PRP_DIAG_ASSERT(init_bffr_size > 0);
+    PRP_DIAG_ASSERT(cap > 0);
+    PRP_DIAG_ASSERT(pStr_arr != NULL);
 
     if (cap > MAX_CAP) {
         return PRP_ERR_OOM;
@@ -91,7 +91,7 @@ PRP_API PRP_Result PRP_CALL CONT_StrArrCreateChecked(PRP_Size init_bffr_size,
 PRP_API PRP_Result PRP_CALL
 CONT_StrArrCloneUnchecked(const CONT_StrArr *str_arr, CONT_StrArr **pStr_arr) {
     ASSERT_INVARIANT_EXPR(str_arr);
-    DIAG_ASSERT(pStr_arr != NULL);
+    PRP_DIAG_ASSERT(pStr_arr != NULL);
 
     PRP_Result code = CONT_StrArrCreateUnchecked(str_arr->occupied_size,
                                                  str_arr->len, pStr_arr);
@@ -116,9 +116,10 @@ PRP_API PRP_Result PRP_CALL CONT_StrArrCloneChecked(const CONT_StrArr *str_arr,
 }
 
 PRP_API void PRP_CALL CONT_StrArrDeleteUnchecked(CONT_StrArr **pStr_arr) {
-    DIAG_ASSERT(pStr_arr != NULL);
-    DIAG_ASSERT(*pStr_arr != NULL);
-    DIAG_ASSERT((*pStr_arr)->pBffr != NULL && (*pStr_arr)->pStr_info != NULL);
+    PRP_DIAG_ASSERT(pStr_arr != NULL);
+    PRP_DIAG_ASSERT(*pStr_arr != NULL);
+    PRP_DIAG_ASSERT((*pStr_arr)->pBffr != NULL &&
+                    (*pStr_arr)->pStr_info != NULL);
 
     CONT_StrArr *str_arr = *pStr_arr;
     free(str_arr->pBffr);
@@ -155,8 +156,8 @@ PRP_API PRP_Size PRP_CALL CONT_StrArrLen(const CONT_StrArr *str_arr) {
 PRP_API const PRP_Char8 *PRP_CALL CONT_StrArrGetUnchecked(
     const CONT_StrArr *str_arr, PRP_Size i, PRP_Size *pStr_len) {
     ASSERT_INVARIANT_EXPR(str_arr);
-    DIAG_ASSERT(i < str_arr->len);
-    DIAG_ASSERT(pStr_len != NULL);
+    PRP_DIAG_ASSERT(i < str_arr->len);
+    PRP_DIAG_ASSERT(pStr_len != NULL);
 
     StrInfo info = str_arr->pStr_info[i];
     *pStr_len = info.len;
@@ -224,8 +225,8 @@ PRP_API PRP_Result PRP_CALL CONT_StrArrPushUnchecked(CONT_StrArr *str_arr,
                                                      const PRP_Char8 *pStr,
                                                      PRP_Size str_len) {
     ASSERT_INVARIANT_EXPR(str_arr);
-    DIAG_ASSERT(pStr != NULL);
-    DIAG_ASSERT(str_len > 0);
+    PRP_DIAG_ASSERT(pStr != NULL);
+    PRP_DIAG_ASSERT(str_len > 0);
 
     PRP_Result code = AccomodateString(str_arr, str_len);
     if (code != PRP_OK) {
@@ -254,9 +255,9 @@ PRP_API PRP_Result PRP_CALL CONT_StrArrInsertUnchecked(CONT_StrArr *str_arr,
                                                        PRP_Size str_len,
                                                        PRP_Size i) {
     ASSERT_INVARIANT_EXPR(str_arr);
-    DIAG_ASSERT(pStr != NULL);
-    DIAG_ASSERT(str_len > 0);
-    DIAG_ASSERT(i <= str_arr->len);
+    PRP_DIAG_ASSERT(pStr != NULL);
+    PRP_DIAG_ASSERT(str_len > 0);
+    PRP_DIAG_ASSERT(i <= str_arr->len);
 
     PRP_Result code = AccomodateString(str_arr, str_len);
     if (code != PRP_OK) {
@@ -305,10 +306,10 @@ PRP_API PRP_Result PRP_CALL CONT_StrArrPopUnchecked(CONT_StrArr *str_arr,
                                                     PRP_Char8 **ppStr,
                                                     PRP_Size *pStr_len) {
     ASSERT_INVARIANT_EXPR(str_arr);
-    DIAG_ASSERT_MSG((ppStr == NULL) == (pStr_len == NULL),
-                    "Both params shall either be provided or excluded.");
+    PRP_DIAG_ASSERT_MSG((ppStr == NULL) == (pStr_len == NULL),
+                        "Both params shall either be provided or excluded.");
     if (ppStr) {
-        DIAG_ASSERT(*ppStr != NULL);
+        PRP_DIAG_ASSERT(*ppStr != NULL);
     }
 
     if (!str_arr->len) {
@@ -340,11 +341,11 @@ PRP_API void PRP_CALL CONT_StrArrRemoveUnchecked(CONT_StrArr *str_arr,
                                                  PRP_Size *pStr_len,
                                                  PRP_Size i) {
     ASSERT_INVARIANT_EXPR(str_arr);
-    DIAG_ASSERT(i < str_arr->len);
-    DIAG_ASSERT_MSG((ppStr == NULL) == (pStr_len == NULL),
-                    "Both params shall either be provided or excluded.");
+    PRP_DIAG_ASSERT(i < str_arr->len);
+    PRP_DIAG_ASSERT_MSG((ppStr == NULL) == (pStr_len == NULL),
+                        "Both params shall either be provided or excluded.");
     if (ppStr) {
-        DIAG_ASSERT(*ppStr != NULL);
+        PRP_DIAG_ASSERT(*ppStr != NULL);
     }
 
     StrInfo to_rem = str_arr->pStr_info[i];
@@ -406,8 +407,8 @@ PRP_API PRP_Bool PRP_CALL CONT_StrArrSearchUnchecked(const CONT_StrArr *str_arr,
                                                      PRP_Size str_len,
                                                      PRP_Size *pIdx) {
     ASSERT_INVARIANT_EXPR(str_arr);
-    DIAG_ASSERT(pStr != NULL);
-    DIAG_ASSERT(str_len > 0);
+    PRP_DIAG_ASSERT(pStr != NULL);
+    PRP_DIAG_ASSERT(str_len > 0);
 
     for (PRP_Size i = 0; i < str_arr->len; i++) {
         StrInfo *pInfo = &str_arr->pStr_info[i];

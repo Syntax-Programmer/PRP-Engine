@@ -1,5 +1,5 @@
 #include "ByteBffr.h"
-#include "Diagnostics/Assert.h"
+#include "Core/Diagnostics/Assert/Assert.h"
 #include <string.h>
 
 struct CONT_ByteBffr {
@@ -8,8 +8,9 @@ struct CONT_ByteBffr {
 };
 
 #define ASSERT_INVARIANT_EXPR(b_bffr)                                          \
-    DIAG_ASSERT_MSG(CONT_ByteBffrIsValid(b_bffr),                              \
-                    "The given byte buffer is either NULL, or is corrupted.")
+    PRP_DIAG_ASSERT_MSG(                                                       \
+        CONT_ByteBffrIsValid(b_bffr),                                          \
+        "The given byte buffer is either NULL, or is corrupted.")
 
 PRP_API
 PRP_Bool PRP_CALL CONT_ByteBffrIsValid(const CONT_ByteBffr *b_bffr) {
@@ -18,8 +19,8 @@ PRP_Bool PRP_CALL CONT_ByteBffrIsValid(const CONT_ByteBffr *b_bffr) {
 
 PRP_API PRP_Result PRP_CALL
 CONT_ByteBffrCreateUnchecked(PRP_Size size, CONT_ByteBffr **pB_bffr) {
-    DIAG_ASSERT(size > 0);
-    DIAG_ASSERT(pB_bffr != NULL);
+    PRP_DIAG_ASSERT(size > 0);
+    PRP_DIAG_ASSERT(pB_bffr != NULL);
 
     CONT_ByteBffr *b_bffr = malloc(sizeof(CONT_ByteBffr));
     if (!b_bffr) {
@@ -49,7 +50,7 @@ CONT_ByteBffrCreateChecked(PRP_Size size, CONT_ByteBffr **pB_bffr) {
 PRP_API PRP_Result PRP_CALL CONT_ByteBffrCloneUnchecked(
     const CONT_ByteBffr *b_bffr, CONT_ByteBffr **pB_bffr) {
     ASSERT_INVARIANT_EXPR(b_bffr);
-    DIAG_ASSERT(pB_bffr != NULL);
+    PRP_DIAG_ASSERT(pB_bffr != NULL);
 
     PRP_Result code = CONT_ByteBffrCreateUnchecked(b_bffr->size, pB_bffr);
     if (code != PRP_OK) {
@@ -72,8 +73,8 @@ PRP_API PRP_Result PRP_CALL CONT_ByteBffrCloneChecked(
 }
 
 PRP_API void PRP_CALL CONT_ByteBffrDeleteUnchecked(CONT_ByteBffr **pB_bffr) {
-    DIAG_ASSERT(pB_bffr != NULL);
-    DIAG_ASSERT(*pB_bffr != NULL && (*pB_bffr)->mem != NULL);
+    PRP_DIAG_ASSERT(pB_bffr != NULL);
+    PRP_DIAG_ASSERT(*pB_bffr != NULL && (*pB_bffr)->mem != NULL);
 
     CONT_ByteBffr *b_bffr = *pB_bffr;
 
@@ -102,7 +103,7 @@ CONT_ByteBffrDeleteChecked(CONT_ByteBffr **pB_bffr) {
 PRP_API const void *PRP_CALL
 CONT_ByteBffrRawUnchecked(const CONT_ByteBffr *b_bffr, PRP_Size *pSize) {
     ASSERT_INVARIANT_EXPR(b_bffr);
-    DIAG_ASSERT(pSize != NULL);
+    PRP_DIAG_ASSERT(pSize != NULL);
 
     *pSize = b_bffr->size;
 
@@ -131,7 +132,7 @@ PRP_API PRP_Size PRP_CALL CONT_ByteBffrSize(const CONT_ByteBffr *b_bffr) {
 PRP_API void *PRP_CALL CONT_ByteBffrGetUnchecked(const CONT_ByteBffr *b_bffr,
                                                  PRP_Size ofs) {
     ASSERT_INVARIANT_EXPR(b_bffr);
-    DIAG_ASSERT(ofs < b_bffr->size);
+    PRP_DIAG_ASSERT(ofs < b_bffr->size);
 
     return b_bffr->mem + ofs;
 }
@@ -155,9 +156,9 @@ PRP_API void PRP_CALL CONT_ByteBffrUploadUnchecked(CONT_ByteBffr *b_bffr,
                                                    PRP_Size ofs, PRP_Size size,
                                                    void *pData) {
     ASSERT_INVARIANT_EXPR(b_bffr);
-    DIAG_ASSERT(ofs < b_bffr->size);
-    DIAG_ASSERT(b_bffr->size - ofs >= size);
-    DIAG_ASSERT(pData != NULL);
+    PRP_DIAG_ASSERT(ofs < b_bffr->size);
+    PRP_DIAG_ASSERT(b_bffr->size - ofs >= size);
+    PRP_DIAG_ASSERT(pData != NULL);
 
     memcpy(b_bffr->mem + ofs, pData, size);
 }
@@ -184,10 +185,10 @@ PRP_API void PRP_CALL CONT_ByteBffrCopyUnchecked(const CONT_ByteBffr *b_bffr1,
                                                  PRP_Size ofs2, PRP_Size size) {
     ASSERT_INVARIANT_EXPR(b_bffr1);
     ASSERT_INVARIANT_EXPR(b_bffr2);
-    DIAG_ASSERT(ofs1 < b_bffr1->size);
-    DIAG_ASSERT(ofs2 < b_bffr2->size);
-    DIAG_ASSERT(b_bffr1->size - ofs1 >= size);
-    DIAG_ASSERT(b_bffr2->size - ofs2 >= size);
+    PRP_DIAG_ASSERT(ofs1 < b_bffr1->size);
+    PRP_DIAG_ASSERT(ofs2 < b_bffr2->size);
+    PRP_DIAG_ASSERT(b_bffr1->size - ofs1 >= size);
+    PRP_DIAG_ASSERT(b_bffr2->size - ofs2 >= size);
 
     memcpy(b_bffr2->mem + ofs2, b_bffr1->mem + ofs1, size);
 }
@@ -212,8 +213,8 @@ PRP_API void PRP_CALL CONT_ByteBffrFillUnchecked(CONT_ByteBffr *b_bffr,
                                                  PRP_Size ofs, PRP_Size size,
                                                  PRP_U8 byte) {
     ASSERT_INVARIANT_EXPR(b_bffr);
-    DIAG_ASSERT(ofs < b_bffr->size);
-    DIAG_ASSERT(b_bffr->size - ofs >= size);
+    PRP_DIAG_ASSERT(ofs < b_bffr->size);
+    PRP_DIAG_ASSERT(b_bffr->size - ofs >= size);
 
     memset(b_bffr->mem + ofs, byte, size);
 }
@@ -292,12 +293,12 @@ PRP_API void PRP_CALL CONT_ByteBffrSwapRegionUnchecked(CONT_ByteBffr *b_bffr,
                                                        PRP_Size size,
                                                        void *pSwap_bffr) {
     ASSERT_INVARIANT_EXPR(b_bffr);
-    DIAG_ASSERT(pSwap_bffr != NULL);
-    DIAG_ASSERT(ofs1 < b_bffr->size);
-    DIAG_ASSERT(b_bffr->size - ofs1 >= size);
-    DIAG_ASSERT(ofs2 < b_bffr->size);
-    DIAG_ASSERT(b_bffr->size - ofs2 >= size);
-    DIAG_ASSERT(ofs1 > ofs2 + size || ofs2 > ofs1 + size);
+    PRP_DIAG_ASSERT(pSwap_bffr != NULL);
+    PRP_DIAG_ASSERT(ofs1 < b_bffr->size);
+    PRP_DIAG_ASSERT(b_bffr->size - ofs1 >= size);
+    PRP_DIAG_ASSERT(ofs2 < b_bffr->size);
+    PRP_DIAG_ASSERT(b_bffr->size - ofs2 >= size);
+    PRP_DIAG_ASSERT(ofs1 > ofs2 + size || ofs2 > ofs1 + size);
 
     if (ofs1 == ofs2) {
         return;
@@ -350,8 +351,8 @@ PRP_API PRP_Result PRP_CALL CONT_ByteBffrReserveUnchecked(CONT_ByteBffr *b_bffr,
                                                           PRP_Size ofs,
                                                           PRP_Size size) {
     ASSERT_INVARIANT_EXPR(b_bffr);
-    DIAG_ASSERT(ofs <= b_bffr->size);
-    DIAG_ASSERT(CONT_BYTE_BFFR_MAX_SIZE - ofs >= size);
+    PRP_DIAG_ASSERT(ofs <= b_bffr->size);
+    PRP_DIAG_ASSERT(CONT_BYTE_BFFR_MAX_SIZE - ofs >= size);
 
     if (b_bffr->size - ofs >= size) {
         return PRP_OK;
@@ -379,7 +380,7 @@ PRP_API PRP_Result PRP_CALL CONT_ByteBffrReserveChecked(CONT_ByteBffr *b_bffr,
 PRP_API PRP_Result PRP_CALL
 CONT_ByteBffrChangeSizeUnchecked(CONT_ByteBffr *b_bffr, PRP_Size new_size) {
     ASSERT_INVARIANT_EXPR(b_bffr);
-    DIAG_ASSERT(new_size > 0);
+    PRP_DIAG_ASSERT(new_size > 0);
 
     if (b_bffr->size == new_size) {
         return PRP_OK;

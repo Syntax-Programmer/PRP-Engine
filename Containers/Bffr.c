@@ -1,5 +1,5 @@
 #include "Bffr.h"
-#include "Diagnostics/Assert.h"
+#include "Core/Diagnostics/Assert/Assert.h"
 #include <string.h>
 
 struct CONT_Bffr {
@@ -9,8 +9,8 @@ struct CONT_Bffr {
 };
 
 #define ASSERT_INVARIANT_EXPR(pBffr)                                           \
-    DIAG_ASSERT_MSG(CONT_BffrIsValid(pBffr),                                   \
-                    "The given buffer is either NULL, or is corrupted.")
+    PRP_DIAG_ASSERT_MSG(CONT_BffrIsValid(pBffr), "The given pBffr is "         \
+                                                 "invalid.")
 
 PRP_API PRP_Bool PRP_CALL CONT_BffrIsValid(const CONT_Bffr *pBffr) {
     return (pBffr != NULL && pBffr->mem != NULL && pBffr->memb_size > 0 &&
@@ -21,10 +21,12 @@ PRP_API PRP_Bool PRP_CALL CONT_BffrIsValid(const CONT_Bffr *pBffr) {
 PRP_API PRP_Result PRP_CALL CONT_BffrCreateUnchecked(PRP_Size memb_size,
                                                      PRP_Size cap,
                                                      CONT_Bffr **ppBffr) {
-    DIAG_ASSERT(memb_size > 0);
-    DIAG_ASSERT(cap > 0);
-    DIAG_ASSERT(ppBffr != NULL);
+    PRP_DIAG_ASSERT_MSG(memb_size > 0,
+                        "The memb_size of the buffer must be > 0.");
+    PRP_DIAG_ASSERT_MSG(cap > 0, "The cap of the buffer must be > 0.");
+    PRP_DIAG_ASSERT(ppBffr != NULL);
 
+    *ppBffr = NULL;
     if (cap > CONT_BFFR_MAX_CAP(memb_size)) {
         return PRP_ERR_OOM;
     }
@@ -59,7 +61,7 @@ PRP_API PRP_Result PRP_CALL CONT_BffrCreateChecked(PRP_Size memb_size,
 PRP_API PRP_Result PRP_CALL CONT_BffrCloneUnchecked(const CONT_Bffr *pBffr,
                                                     CONT_Bffr **ppBffr) {
     ASSERT_INVARIANT_EXPR(pBffr);
-    DIAG_ASSERT(ppBffr != NULL);
+    PRP_DIAG_ASSERT(ppBffr != NULL);
 
     // Unchecked since we checked for invariants above.
     PRP_Result code =
@@ -84,8 +86,9 @@ PRP_API PRP_Result PRP_CALL CONT_BffrCloneChecked(const CONT_Bffr *pBffr,
 }
 
 PRP_API void PRP_CALL CONT_BffrDeleteUnchecked(CONT_Bffr **ppBffr) {
-    DIAG_ASSERT(ppBffr != NULL);
-    DIAG_ASSERT(*ppBffr != NULL && (*ppBffr)->mem != NULL);
+    PRP_DIAG_ASSERT(ppBffr != NULL);
+    PRP_DIAG_ASSERT_MSG(*ppBffr != NULL && (*ppBffr)->mem != NULL,
+                        "The given *ppBffr is invalid.");
 
     CONT_Bffr *pBffr = *ppBffr;
 
@@ -113,7 +116,7 @@ PRP_API PRP_Result PRP_CALL CONT_BffrDeleteChecked(CONT_Bffr **ppBffr) {
 PRP_API const void *PRP_CALL CONT_BffrRawUnchecked(const CONT_Bffr *pBffr,
                                                    PRP_Size *pCap) {
     ASSERT_INVARIANT_EXPR(pBffr);
-    DIAG_ASSERT(pCap != NULL);
+    PRP_DIAG_ASSERT(pCap != NULL);
 
     *pCap = pBffr->cap;
 
@@ -153,7 +156,7 @@ PRP_API PRP_Size PRP_CALL CONT_BffrMaxCap(const CONT_Bffr *pBffr) {
 PRP_API void *PRP_CALL CONT_BffrGetUnchecked(const CONT_Bffr *pBffr,
                                              PRP_Size i) {
     ASSERT_INVARIANT_EXPR(pBffr);
-    DIAG_ASSERT(i < pBffr->cap);
+    PRP_DIAG_ASSERT_MSG(i < pBffr->cap, "The index i is out of bounds.");
 
     return pBffr->mem + (i * pBffr->memb_size);
 }
@@ -175,8 +178,8 @@ PRP_API PRP_Result PRP_CALL CONT_BffrGetChecked(const CONT_Bffr *pBffr,
 PRP_API void PRP_CALL CONT_BffrSetUnchecked(CONT_Bffr *pBffr, PRP_Size i,
                                             const void *pData) {
     ASSERT_INVARIANT_EXPR(pBffr);
-    DIAG_ASSERT(pData != NULL);
-    DIAG_ASSERT(i < pBffr->cap);
+    PRP_DIAG_ASSERT(pData != NULL);
+    PRP_DIAG_ASSERT_MSG(i < pBffr->cap, "The index i is out of bounds.");
 
     memcpy(pBffr->mem + (i * pBffr->memb_size), pData, pBffr->memb_size);
 }
@@ -199,9 +202,10 @@ PRP_API void PRP_CALL CONT_BffrSetRangeUnchecked(CONT_Bffr *pBffr, PRP_Size i,
                                                  PRP_Size j,
                                                  const void *pData) {
     ASSERT_INVARIANT_EXPR(pBffr);
-    DIAG_ASSERT(pData != NULL);
-    DIAG_ASSERT(i < j);
-    DIAG_ASSERT(i < pBffr->cap && j <= pBffr->cap);
+    PRP_DIAG_ASSERT(pData != NULL);
+    PRP_DIAG_ASSERT_MSG(i < j, "Index i must be smaller than index j.");
+    PRP_DIAG_ASSERT_MSG(i < pBffr->cap, "The index i is out of bounds.");
+    PRP_DIAG_ASSERT_MSG(j <= pBffr->cap, "The index j is out of bounds.");
 
     PRP_U8 *ptr = pBffr->mem + (i * pBffr->memb_size);
     for (; i < j; i++) {
@@ -229,8 +233,10 @@ PRP_API void PRP_CALL CONT_BffrSetManyUnchecked(CONT_Bffr *pBffr, PRP_Size i,
                                                 const void *pData_arr,
                                                 PRP_Size len) {
     ASSERT_INVARIANT_EXPR(pBffr);
-    DIAG_ASSERT(pData_arr != NULL);
-    DIAG_ASSERT(i < pBffr->cap && pBffr->cap - i >= len);
+    PRP_DIAG_ASSERT(pData_arr != NULL);
+    PRP_DIAG_ASSERT_MSG(i < pBffr->cap, "The index i is out of bounds.");
+    PRP_DIAG_ASSERT_MSG(pBffr->cap - i >= len,
+                        "The requested range exceeds the buffer bounds.");
 
     memcpy(pBffr->mem + (i * pBffr->memb_size), pData_arr,
            pBffr->memb_size * len);
@@ -281,7 +287,9 @@ PRP_API PRP_Result PRP_CALL CONT_BffrExtendUnchecked(CONT_Bffr *pBffr1,
                                                      const CONT_Bffr *pBffr2) {
     ASSERT_INVARIANT_EXPR(pBffr1);
     ASSERT_INVARIANT_EXPR(pBffr2);
-    DIAG_ASSERT(pBffr1->memb_size == pBffr2->memb_size);
+    PRP_DIAG_ASSERT_MSG(
+        pBffr1->memb_size == pBffr2->memb_size,
+        "To extend, the memb_size of both buffers shall match.");
 
     if (pBffr1->cap > CONT_BFFR_MAX_CAP(pBffr1->memb_size) - pBffr2->cap) {
         return PRP_ERR_RES_EXHAUSTED;
@@ -310,9 +318,9 @@ PRP_API PRP_Result PRP_CALL CONT_BffrExtendChecked(CONT_Bffr *pBffr1,
 PRP_API void PRP_CALL CONT_BffrSwapUnchecked(CONT_Bffr *pBffr, PRP_Size i,
                                              PRP_Size j, void *pSwap_bffr) {
     ASSERT_INVARIANT_EXPR(pBffr);
-    DIAG_ASSERT(pSwap_bffr != NULL);
-    DIAG_ASSERT(i < pBffr->cap);
-    DIAG_ASSERT(j < pBffr->cap);
+    PRP_DIAG_ASSERT(pSwap_bffr != NULL);
+    PRP_DIAG_ASSERT_MSG(i < pBffr->cap, "The index i is out of bounds.");
+    PRP_DIAG_ASSERT_MSG(j < pBffr->cap, "The index j is out of bounds.");
 
     if (i == j) {
         return;
@@ -358,7 +366,7 @@ PRP_API PRP_Result PRP_CALL CONT_BffrClearChecked(CONT_Bffr *pBffr) {
 PRP_API PRP_Result PRP_CALL CONT_BffrChangeSizeUnchecked(CONT_Bffr *pBffr,
                                                          PRP_Size new_cap) {
     ASSERT_INVARIANT_EXPR(pBffr);
-    DIAG_ASSERT(new_cap > 0);
+    PRP_DIAG_ASSERT_MSG(new_cap > 0, "The new cap of buffer must be > 0.");
 
     if (pBffr->cap == new_cap) {
         return PRP_OK;

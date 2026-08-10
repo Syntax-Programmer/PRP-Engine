@@ -1,5 +1,5 @@
 #include "Bitmap.h"
-#include "Diagnostics/Assert.h"
+#include "Core/Diagnostics/Assert/Assert.h"
 #include <string.h>
 
 /* ----  BITWORD UTILS ---- */
@@ -73,8 +73,8 @@ struct CONT_Bitmap {
 };
 
 #define ASSERT_INVARIANT_EXPR(bmp)                                             \
-    DIAG_ASSERT_MSG(CONT_BitmapIsValid(bmp),                                   \
-                    "The given bitmap is either NULL, or is corrupted.")
+    PRP_DIAG_ASSERT_MSG(CONT_BitmapIsValid(bmp),                               \
+                        "The given bitmap is either NULL, or is corrupted.")
 
 /**
  * Recomputes the first set index for the given bitmap, updating the cached
@@ -129,8 +129,8 @@ PRP_API PRP_Bool PRP_CALL CONT_BitmapIsValid(const CONT_Bitmap *bmp) {
 
 PRP_API PRP_Result PRP_CALL CONT_BitmapCreateUnchecked(PRP_Size bit_cap,
                                                        CONT_Bitmap **pBmp) {
-    DIAG_ASSERT(bit_cap > 0 && bit_cap <= CONT_BITMAP_MAX_BIT_CAP);
-    DIAG_ASSERT(pBmp != NULL);
+    PRP_DIAG_ASSERT(bit_cap > 0 && bit_cap <= CONT_BITMAP_MAX_BIT_CAP);
+    PRP_DIAG_ASSERT(pBmp != NULL);
 
     CONT_Bitmap *bmp = malloc(sizeof(CONT_Bitmap));
     if (!bmp) {
@@ -163,7 +163,7 @@ PRP_API PRP_Result PRP_CALL CONT_BitmapCreateChecked(PRP_Size bit_cap,
 PRP_API PRP_Result PRP_CALL CONT_BitmapCloneUnchecked(const CONT_Bitmap *bmp,
                                                       CONT_Bitmap **pBmp) {
     ASSERT_INVARIANT_EXPR(bmp);
-    DIAG_ASSERT(pBmp != NULL);
+    PRP_DIAG_ASSERT(pBmp != NULL);
 
     PRP_Result code = CONT_BitmapCreateUnchecked(bmp->bit_cap, pBmp);
     if (code != PRP_OK) {
@@ -187,8 +187,8 @@ PRP_API PRP_Result PRP_CALL CONT_BitmapCloneChecked(const CONT_Bitmap *bmp,
 }
 
 PRP_API void PRP_CALL CONT_BitmapDeleteUnchecked(CONT_Bitmap **pBmp) {
-    DIAG_ASSERT(pBmp != NULL);
-    DIAG_ASSERT(*pBmp != NULL && (*pBmp)->words != NULL);
+    PRP_DIAG_ASSERT(pBmp != NULL);
+    PRP_DIAG_ASSERT(*pBmp != NULL && (*pBmp)->words != NULL);
 
     CONT_Bitmap *bmp = *pBmp;
 
@@ -217,8 +217,8 @@ PRP_API PRP_Result PRP_CALL CONT_BitmapDeleteChecked(CONT_Bitmap **pBmp) {
 PRP_API const CONT_Bitword *PRP_CALL CONT_BitmapRawUnchecked(
     const CONT_Bitmap *bmp, PRP_Size *pWord_cap, PRP_Size *pBit_cap) {
     ASSERT_INVARIANT_EXPR(bmp);
-    DIAG_ASSERT(pWord_cap != NULL);
-    DIAG_ASSERT(pBit_cap != NULL);
+    PRP_DIAG_ASSERT(pWord_cap != NULL);
+    PRP_DIAG_ASSERT(pBit_cap != NULL);
 
     *pWord_cap = bmp->word_cap;
     *pBit_cap = bmp->bit_cap;
@@ -262,7 +262,7 @@ PRP_API PRP_Size PRP_CALL CONT_BitmapBitCap(const CONT_Bitmap *bmp) {
 
 PRP_API void PRP_CALL CONT_BitmapSetUnchecked(CONT_Bitmap *bmp, PRP_Size i) {
     ASSERT_INVARIANT_EXPR(bmp);
-    DIAG_ASSERT(i < bmp->bit_cap);
+    PRP_DIAG_ASSERT(i < bmp->bit_cap);
 
     PRP_Size word_i = WORD_I(i);
     CONT_Bitword mask = BIT_MASK(i);
@@ -280,7 +280,7 @@ PRP_API void PRP_CALL CONT_BitmapSetUnchecked(CONT_Bitmap *bmp, PRP_Size i) {
 PRP_API PRP_Size PRP_CALL CONT_BitmapBitRankUnchecked(const CONT_Bitmap *bmp,
                                                       PRP_Size i) {
     ASSERT_INVARIANT_EXPR(bmp);
-    DIAG_ASSERT(i < bmp->bit_cap);
+    PRP_DIAG_ASSERT(i < bmp->bit_cap);
 
     PRP_Size idx = 0;
     for (PRP_Size j = 0; j < WORD_I(i); j++) {
@@ -322,7 +322,7 @@ PRP_API PRP_Result PRP_CALL CONT_BitmapSetChecked(CONT_Bitmap *bmp,
 
 PRP_API void PRP_CALL CONT_BitmapClrUnchecked(CONT_Bitmap *bmp, PRP_Size i) {
     ASSERT_INVARIANT_EXPR(bmp);
-    DIAG_ASSERT(i < bmp->bit_cap);
+    PRP_DIAG_ASSERT(i < bmp->bit_cap);
 
     PRP_Size word_i = WORD_I(i);
     CONT_Bitword mask = BIT_MASK(i);
@@ -352,7 +352,7 @@ PRP_API PRP_Result PRP_CALL CONT_BitmapClrChecked(CONT_Bitmap *bmp,
 
 PRP_API void PRP_CALL CONT_BitmapToggleUnchecked(CONT_Bitmap *bmp, PRP_Size i) {
     ASSERT_INVARIANT_EXPR(bmp);
-    DIAG_ASSERT(i < bmp->bit_cap);
+    PRP_DIAG_ASSERT(i < bmp->bit_cap);
 
     PRP_Size word_i = WORD_I(i);
     CONT_Bitword mask = BIT_MASK(i);
@@ -390,7 +390,7 @@ PRP_API PRP_Result PRP_CALL CONT_BitmapToggleChecked(CONT_Bitmap *bmp,
 PRP_API PRP_Bool PRP_CALL CONT_BitmapIsSetUnchecked(const CONT_Bitmap *bmp,
                                                     PRP_Size i) {
     ASSERT_INVARIANT_EXPR(bmp);
-    DIAG_ASSERT(i < bmp->bit_cap);
+    PRP_DIAG_ASSERT(i < bmp->bit_cap);
 
     return ((bmp->words[WORD_I(i)] & BIT_MASK(i)) != 0);
 }
@@ -413,8 +413,8 @@ PRP_API PRP_Result PRP_CALL CONT_BitmapIsSetChecked(const CONT_Bitmap *bmp,
 #define ASSERT_RANGE_OPS_VALIDITY(bmp, i, j)                                   \
     do {                                                                       \
         ASSERT_INVARIANT_EXPR((bmp));                                          \
-        DIAG_ASSERT((i) < (j));                                                \
-        DIAG_ASSERT((i) < (bmp)->bit_cap && (j) <= (bmp)->bit_cap);            \
+        PRP_DIAG_ASSERT((i) < (j));                                            \
+        PRP_DIAG_ASSERT((i) < (bmp)->bit_cap && (j) <= (bmp)->bit_cap);        \
     } while (0)
 
 #define CHECK_RANGE_OPS_VALIDITY(bmp, i, j)                                    \
@@ -960,7 +960,7 @@ PRP_API PRP_Result PRP_CALL CONT_BitmapShrinkFitChecked(CONT_Bitmap *bmp) {
 PRP_API PRP_Result PRP_CALL
 CONT_BitmapChangeSizeUnchecked(CONT_Bitmap *bmp, PRP_Size new_bit_cap) {
     ASSERT_INVARIANT_EXPR(bmp);
-    DIAG_ASSERT(new_bit_cap > 0 && new_bit_cap <= CONT_BITMAP_MAX_BIT_CAP);
+    PRP_DIAG_ASSERT(new_bit_cap > 0 && new_bit_cap <= CONT_BITMAP_MAX_BIT_CAP);
 
     PRP_Size new_word_i = WORD_I(new_bit_cap);
     PRP_Size new_word_cap = new_word_i + 1;

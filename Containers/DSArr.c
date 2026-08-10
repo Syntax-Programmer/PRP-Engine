@@ -1,5 +1,5 @@
 #include "DSArr.h"
-#include "Diagnostics/Assert.h"
+#include "Core/Diagnostics/Assert/Assert.h"
 #include <string.h>
 
 struct CONT_DSArr {
@@ -103,8 +103,8 @@ struct CONT_DSArr {
 #define PACK_UNPACKED(index, gen) (((PRP_U64)(gen) << 32) | (PRP_U64)(index))
 
 #define ASSERT_INVARIANT_EXPR(ds_arr)                                          \
-    DIAG_ASSERT_MSG(CONT_DSArrIsValid(ds_arr),                                 \
-                    "The given id array is either NULL, or is corrupted.")
+    PRP_DIAG_ASSERT_MSG(CONT_DSArrIsValid(ds_arr),                             \
+                        "The given id array is either NULL, or is corrupted.")
 
 /**
  * Fetches the data that we can derive from an id, while simultaneously checking
@@ -189,8 +189,8 @@ PRP_API PRP_Bool PRP_CALL CONT_DSArrIsValid(const CONT_DSArr *ds_arr) {
 PRP_API PRP_Result PRP_CALL CONT_DSArrCreateUnchecked(
     PRP_Size memb_size, PRP_Result (*elem_del_cb)(void *elem),
     CONT_DSArr **pDs_arr) {
-    DIAG_ASSERT(memb_size > 0);
-    DIAG_ASSERT(pDs_arr != NULL);
+    PRP_DIAG_ASSERT(memb_size > 0);
+    PRP_DIAG_ASSERT(pDs_arr != NULL);
 
     CONT_DSArr *ds_arr = calloc(1, sizeof(CONT_DSArr));
     if (!ds_arr) {
@@ -248,11 +248,11 @@ PRP_API PRP_Result PRP_CALL CONT_DSArrCreateChecked(
 }
 
 PRP_API void PRP_CALL CONT_DSArrDeleteUnchecked(CONT_DSArr **pDs_arr) {
-    DIAG_ASSERT(pDs_arr != NULL);
-    DIAG_ASSERT(*pDs_arr != NULL);
-    DIAG_ASSERT((*pDs_arr)->data_layer.elems != NULL);
-    DIAG_ASSERT((*pDs_arr)->data_layer.data_to_id_table != NULL);
-    DIAG_ASSERT((*pDs_arr)->id_layer.id_to_data_table != NULL);
+    PRP_DIAG_ASSERT(pDs_arr != NULL);
+    PRP_DIAG_ASSERT(*pDs_arr != NULL);
+    PRP_DIAG_ASSERT((*pDs_arr)->data_layer.elems != NULL);
+    PRP_DIAG_ASSERT((*pDs_arr)->data_layer.data_to_id_table != NULL);
+    PRP_DIAG_ASSERT((*pDs_arr)->id_layer.id_to_data_table != NULL);
 
     CONT_DSArr *ds_arr = *pDs_arr;
 
@@ -327,8 +327,8 @@ PRP_API void *PRP_CALL CONT_DSIdToDataUnchecked(const CONT_DSArr *ds_arr,
     PRP_U32 dummy1, dummy2, slot_data_i = 0, dummy3;
     PRP_Result code =
         GetIdData(ds_arr, id, &dummy1, &dummy2, &slot_data_i, &dummy3);
-    DIAG_ASSERT_MSG(code == PRP_OK,
-                    "The given id is invalid or used after free.");
+    PRP_DIAG_ASSERT_MSG(code == PRP_OK,
+                        "The given id is invalid or used after free.");
     (void)code;
 
     return ds_arr->data_layer.elems + (ds_arr->memb_size * slot_data_i);
@@ -450,8 +450,8 @@ static PRP_Result GrowIdLayer(CONT_DSArr *ds_arr, PRP_U32 to_add) {
 PRP_API PRP_Result PRP_CALL CONT_DSArrAddUnchecked(CONT_DSArr *ds_arr,
                                                    void *data, CONT_DSId *pId) {
     ASSERT_INVARIANT_EXPR(ds_arr);
-    DIAG_ASSERT(data != NULL);
-    DIAG_ASSERT(pId != NULL);
+    PRP_DIAG_ASSERT(data != NULL);
+    PRP_DIAG_ASSERT(pId != NULL);
 
     PRP_U32 free_index = ds_arr->id_layer.free_index;
     if (free_index == INVALID_ID_LAYER_INDEX) {
@@ -543,14 +543,14 @@ static inline void DelElem(CONT_DSArr *ds_arr, CONT_DSId *pId, PRP_U32 id_i,
 PRP_API void PRP_CALL CONT_DSArrDelElemUnchecked(CONT_DSArr *ds_arr,
                                                  CONT_DSId *pId) {
     ASSERT_INVARIANT_EXPR(ds_arr);
-    DIAG_ASSERT(pId != NULL);
+    PRP_DIAG_ASSERT(pId != NULL);
 
     // Initializing the doesn't change shit but we do it to satisfy compiler.
     PRP_U32 id_i = 0, dummy1, slot_data_i = 0, slot_gen = 0;
     PRP_Result code =
         GetIdData(ds_arr, *pId, &id_i, &dummy1, &slot_data_i, &slot_gen);
-    DIAG_ASSERT_MSG(code == PRP_OK,
-                    "The given id is invalid or used after free.");
+    PRP_DIAG_ASSERT_MSG(code == PRP_OK,
+                        "The given id is invalid or used after free.");
     (void)code;
 
     DelElem(ds_arr, pId, id_i, slot_data_i, slot_gen);
@@ -578,7 +578,7 @@ PRP_API PRP_Result PRP_CALL CONT_DSArrDelElemChecked(CONT_DSArr *ds_arr,
 PRP_API PRP_Result PRP_CALL CONT_DSArrReserveUnchecked(CONT_DSArr *ds_arr,
                                                        PRP_U32 count) {
     ASSERT_INVARIANT_EXPR(ds_arr);
-    DIAG_ASSERT(count > 0);
+    PRP_DIAG_ASSERT(count > 0);
 
     if (ds_arr->data_layer.cap - ds_arr->data_layer.len < count) {
         PRP_Result code = GrowDataLayer(ds_arr, count);
@@ -608,7 +608,7 @@ PRP_API PRP_Result PRP_CALL CONT_DSArrForEachUnchecked(
     CONT_DSArr *ds_arr, PRP_Result (*cb)(void *pVal, void *pUser_data),
     void *pUser_data) {
     ASSERT_INVARIANT_EXPR(ds_arr);
-    DIAG_ASSERT(cb != NULL);
+    PRP_DIAG_ASSERT(cb != NULL);
 
     PRP_U8 *mem = ds_arr->data_layer.elems;
     for (PRP_U32 i = 0; i < ds_arr->data_layer.len; i++) {
