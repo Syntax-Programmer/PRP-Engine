@@ -31,6 +31,8 @@ typedef struct PRP_DiagFailureInfo {
         .pFunc = __func__, .line = __LINE__                                    \
     }
 
+#define PRP_DIAG_DEFAULT_FAILURE_LOG_FILE (stderr)
+
 /**
  * Handles all type of failure inside a single convention.
  *
@@ -40,7 +42,7 @@ typedef struct PRP_DiagFailureInfo {
  * - If pFailure_info is NULL, it will not do anything and just return early.
  */
 PRP_API void PRP_CALL
-PRP_DiagHandleFailure(const PRP_DiagFailureInfo *pFailure_info);
+PRP_DiagLogFailure(const PRP_DiagFailureInfo *pFailure_info);
 
 /* ----  VERIFY ---- */
 
@@ -49,7 +51,7 @@ PRP_DiagHandleFailure(const PRP_DiagFailureInfo *pFailure_info);
         if (!(expr)) {                                                         \
             PRP_DiagFailureInfo info = PRP_DIAG_FAILURE_INFO_TEMPLATE(         \
                 PRP_DIAG_FAILURE_TYPE_VERIFY, #expr, NULL);                    \
-            PRP_DiagHandleFailure(&info);                                      \
+            PRP_DiagLogFailure(&info);                                         \
         }                                                                      \
     } while (0)
 
@@ -58,7 +60,7 @@ PRP_DiagHandleFailure(const PRP_DiagFailureInfo *pFailure_info);
         if (!(expr)) {                                                         \
             PRP_DiagFailureInfo info = PRP_DIAG_FAILURE_INFO_TEMPLATE(         \
                 PRP_DIAG_FAILURE_TYPE_VERIFY, #expr, pMsg);                    \
-            PRP_DiagHandleFailure(&info);                                      \
+            PRP_DiagLogFailure(&info);                                         \
         }                                                                      \
     } while (0)
 
@@ -68,14 +70,18 @@ PRP_DiagHandleFailure(const PRP_DiagFailureInfo *pFailure_info);
     do {                                                                       \
         PRP_DiagFailureInfo info = PRP_DIAG_FAILURE_INFO_TEMPLATE(             \
             PRP_DIAG_FAILURE_TYPE_PANIC, NULL, NULL);                          \
-        PRP_DiagHandleFailure(&info);                                          \
+        PRP_DiagLogFailure(&info);                                             \
+        PRP_DEBUG_BREAK();                                                     \
+        PRP_ABORT();                                                           \
     } while (0)
 
 #define PRP_DIAG_PANIC_MSG(pMsg)                                               \
     do {                                                                       \
         PRP_DiagFailureInfo info = PRP_DIAG_FAILURE_INFO_TEMPLATE(             \
             PRP_DIAG_FAILURE_TYPE_PANIC, NULL, pMsg);                          \
-        PRP_DiagHandleFailure(&info);                                          \
+        PRP_DiagLogFailure(&info);                                             \
+        PRP_DEBUG_BREAK();                                                     \
+        PRP_ABORT();                                                           \
     } while (0)
 
 /* ----  UNIMPLEMENTED/UNREACHABLE ---- */
@@ -84,7 +90,8 @@ PRP_DiagHandleFailure(const PRP_DiagFailureInfo *pFailure_info);
     do {                                                                       \
         PRP_DiagFailureInfo info = PRP_DIAG_FAILURE_INFO_TEMPLATE(             \
             PRP_DIAG_FAILURE_TYPE_UNIMPLEMENTED, NULL, NULL);                  \
-        PRP_DiagHandleFailure(&info);                                          \
+        PRP_DiagLogFailure(&info);                                             \
+        PRP_DEBUG_BREAK();                                                     \
     } while (0)
 
 #if defined(PRP_RELEASE_MODE)
@@ -95,7 +102,9 @@ PRP_DiagHandleFailure(const PRP_DiagFailureInfo *pFailure_info);
     do {                                                                       \
         PRP_DiagFailureInfo info = PRP_DIAG_FAILURE_INFO_TEMPLATE(             \
             PRP_DIAG_FAILURE_TYPE_UNREACHABLE, NULL, NULL);                    \
-        PRP_DiagHandleFailure(&info);                                          \
+        PRP_DiagLogFailure(&info);                                             \
+        PRP_DEBUG_BREAK();                                                     \
+        PRP_ABORT();                                                           \
     } while (0)
 #endif
 
@@ -115,7 +124,9 @@ PRP_DiagHandleFailure(const PRP_DiagFailureInfo *pFailure_info);
         if (!(expr)) {                                                         \
             PRP_DiagFailureInfo info = PRP_DIAG_FAILURE_INFO_TEMPLATE(         \
                 PRP_DIAG_FAILURE_TYPE_ASSERTION, #expr, NULL);                 \
-            PRP_DiagHandleFailure(&info);                                      \
+            PRP_DiagLogFailure(&info);                                         \
+            PRP_DEBUG_BREAK();                                                 \
+            PRP_ABORT();                                                       \
         }                                                                      \
     } while (0)
 #define PRP_DIAG_ASSERT_MSG(expr, pMsg)                                        \
@@ -123,7 +134,9 @@ PRP_DiagHandleFailure(const PRP_DiagFailureInfo *pFailure_info);
         if (!(expr)) {                                                         \
             PRP_DiagFailureInfo info = PRP_DIAG_FAILURE_INFO_TEMPLATE(         \
                 PRP_DIAG_FAILURE_TYPE_ASSERTION, #expr, pMsg);                 \
-            PRP_DiagHandleFailure(&info);                                      \
+            PRP_DiagLogFailure(&info);                                         \
+            PRP_DEBUG_BREAK();                                                 \
+            PRP_ABORT();                                                       \
         }                                                                      \
     } while (0)
 #endif

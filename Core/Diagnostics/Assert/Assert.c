@@ -2,7 +2,7 @@
 #include "Core/Logging/Log.h"
 
 PRP_API void PRP_CALL
-PRP_DiagHandleFailure(const PRP_DiagFailureInfo *pFailure_info) {
+PRP_DiagLogFailure(const PRP_DiagFailureInfo *pFailure_info) {
     if (!pFailure_info) {
         return;
     }
@@ -29,8 +29,8 @@ PRP_DiagHandleFailure(const PRP_DiagFailureInfo *pFailure_info) {
         break;
     }
 
-    PRP_LogFormatF(stderr, "%s [File: %s][Line: %d][Func: %s] |%s|: %s\n",
-                   initial_str, pFailure_info->pFile, pFailure_info->line,
-                   pFailure_info->pFunc, pFailure_info->pExpr,
-                   pFailure_info->pMsg);
+    PRP_Log(PRP_DIAG_DEFAULT_FAILURE_LOG_FILE, PRP_LOG_LVL_ERROR,
+            pFailure_info->pFile, pFailure_info->pFunc, pFailure_info->line,
+            "%s: (%s) : %s", initial_str, pFailure_info->pExpr,
+            pFailure_info->pMsg);
 }
