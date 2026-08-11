@@ -5,7 +5,7 @@
 struct CONT_Bffr {
     PRP_Size cap;
     PRP_Size memb_size;
-    PRP_U8 *mem;
+    PRP_U8 *pMem;
 };
 
 #define ASSERT_INVARIANT_EXPR(pBffr)                                           \
@@ -13,7 +13,7 @@ struct CONT_Bffr {
                                                  "invalid.")
 
 PRP_API PRP_Bool PRP_CALL CONT_BffrIsValid(const CONT_Bffr *pBffr) {
-    return (pBffr != NULL && pBffr->mem != NULL && pBffr->memb_size > 0 &&
+    return (pBffr != NULL && pBffr->pMem != NULL && pBffr->memb_size > 0 &&
             pBffr->cap > 0 &&
             pBffr->cap <= CONT_BFFR_MAX_CAP(pBffr->memb_size));
 }
@@ -35,8 +35,8 @@ PRP_API PRP_Result PRP_CALL CONT_BffrCreateUnchecked(PRP_Size memb_size,
     if (!pBffr) {
         return PRP_ERR_OOM;
     }
-    pBffr->mem = calloc(1, memb_size * cap);
-    if (!pBffr->mem) {
+    pBffr->pMem = calloc(1, memb_size * cap);
+    if (!pBffr->pMem) {
         free(pBffr);
         return PRP_ERR_OOM;
     }
@@ -71,7 +71,7 @@ PRP_API PRP_Result PRP_CALL CONT_BffrCloneUnchecked(const CONT_Bffr *pBffr,
     }
 
     CONT_Bffr *cpy = *ppBffr;
-    memcpy(cpy->mem, pBffr->mem, pBffr->memb_size * pBffr->cap);
+    memcpy(cpy->pMem, pBffr->pMem, pBffr->memb_size * pBffr->cap);
 
     return PRP_OK;
 }
@@ -92,7 +92,7 @@ PRP_API void PRP_CALL CONT_BffrDeleteUnchecked(CONT_Bffr **ppBffr) {
 
     CONT_Bffr *pBffr = *ppBffr;
 
-    free(pBffr->mem);
+    free(pBffr->pMem);
 
 #ifdef PRP_DEBUG_MODE
     pBffr->mem = NULL;
@@ -104,7 +104,7 @@ PRP_API void PRP_CALL CONT_BffrDeleteUnchecked(CONT_Bffr **ppBffr) {
 }
 
 PRP_API PRP_Result PRP_CALL CONT_BffrDeleteChecked(CONT_Bffr **ppBffr) {
-    if (!ppBffr || !(*ppBffr) || !(*ppBffr)->mem) {
+    if (!ppBffr || !(*ppBffr) || !(*ppBffr)->pMem) {
         return PRP_ERR_INV_ARG;
     }
 
@@ -120,7 +120,7 @@ PRP_API const void *PRP_CALL CONT_BffrRawUnchecked(const CONT_Bffr *pBffr,
 
     *pCap = pBffr->cap;
 
-    return pBffr->mem;
+    return pBffr->pMem;
 }
 
 PRP_API PRP_Result PRP_CALL CONT_BffrRawChecked(const CONT_Bffr *pBffr,
@@ -130,7 +130,7 @@ PRP_API PRP_Result PRP_CALL CONT_BffrRawChecked(const CONT_Bffr *pBffr,
     }
 
     *pCap = pBffr->cap;
-    *pRaw = pBffr->mem;
+    *pRaw = pBffr->pMem;
 
     return PRP_OK;
 }
@@ -158,7 +158,7 @@ PRP_API void *PRP_CALL CONT_BffrGetUnchecked(const CONT_Bffr *pBffr,
     ASSERT_INVARIANT_EXPR(pBffr);
     PRP_DIAG_ASSERT_MSG(i < pBffr->cap, "The index i is out of bounds.");
 
-    return pBffr->mem + (i * pBffr->memb_size);
+    return pBffr->pMem + (i * pBffr->memb_size);
 }
 
 PRP_API PRP_Result PRP_CALL CONT_BffrGetChecked(const CONT_Bffr *pBffr,
@@ -181,7 +181,7 @@ PRP_API void PRP_CALL CONT_BffrSetUnchecked(CONT_Bffr *pBffr, PRP_Size i,
     PRP_DIAG_ASSERT(pData != NULL);
     PRP_DIAG_ASSERT_MSG(i < pBffr->cap, "The index i is out of bounds.");
 
-    memcpy(pBffr->mem + (i * pBffr->memb_size), pData, pBffr->memb_size);
+    memcpy(pBffr->pMem + (i * pBffr->memb_size), pData, pBffr->memb_size);
 }
 
 PRP_API PRP_Result PRP_CALL CONT_BffrSetChecked(CONT_Bffr *pBffr, PRP_Size i,
@@ -207,7 +207,7 @@ PRP_API void PRP_CALL CONT_BffrSetRangeUnchecked(CONT_Bffr *pBffr, PRP_Size i,
     PRP_DIAG_ASSERT_MSG(i < pBffr->cap, "The index i is out of bounds.");
     PRP_DIAG_ASSERT_MSG(j <= pBffr->cap, "The index j is out of bounds.");
 
-    PRP_U8 *ptr = pBffr->mem + (i * pBffr->memb_size);
+    PRP_U8 *ptr = pBffr->pMem + (i * pBffr->memb_size);
     for (; i < j; i++) {
         memcpy(ptr, pData, pBffr->memb_size);
         ptr += pBffr->memb_size;
@@ -238,7 +238,7 @@ PRP_API void PRP_CALL CONT_BffrSetManyUnchecked(CONT_Bffr *pBffr, PRP_Size i,
     PRP_DIAG_ASSERT_MSG(pBffr->cap - i >= len,
                         "The requested range exceeds the buffer bounds.");
 
-    memcpy(pBffr->mem + (i * pBffr->memb_size), pData_arr,
+    memcpy(pBffr->pMem + (i * pBffr->memb_size), pData_arr,
            pBffr->memb_size * len);
 }
 
@@ -267,8 +267,8 @@ PRP_API PRP_Bool PRP_CALL CONT_BffrCmpUnchecked(const CONT_Bffr *pBffr1,
         return PRP_False;
     }
 
-    return (memcmp(pBffr1->mem, pBffr2->mem, pBffr1->cap * pBffr1->memb_size) ==
-            0);
+    return (memcmp(pBffr1->pMem, pBffr2->pMem,
+                   pBffr1->cap * pBffr1->memb_size) == 0);
 }
 
 PRP_API PRP_Result PRP_CALL CONT_BffrCmpChecked(const CONT_Bffr *pBffr1,
@@ -299,7 +299,7 @@ PRP_API PRP_Result PRP_CALL CONT_BffrExtendUnchecked(CONT_Bffr *pBffr1,
     if (code != PRP_OK) {
         return code;
     }
-    memcpy(pBffr1->mem + (old_cap * pBffr1->memb_size), pBffr2->mem,
+    memcpy(pBffr1->pMem + (old_cap * pBffr1->memb_size), pBffr2->pMem,
            pBffr2->cap * pBffr2->memb_size);
 
     return PRP_OK;
@@ -326,8 +326,8 @@ PRP_API void PRP_CALL CONT_BffrSwapUnchecked(CONT_Bffr *pBffr, PRP_Size i,
         return;
     }
 
-    PRP_U8 *i_elem = pBffr->mem + (i * pBffr->memb_size);
-    PRP_U8 *j_elem = pBffr->mem + (j * pBffr->memb_size);
+    PRP_U8 *i_elem = pBffr->pMem + (i * pBffr->memb_size);
+    PRP_U8 *j_elem = pBffr->pMem + (j * pBffr->memb_size);
     memcpy(pSwap_bffr, i_elem, pBffr->memb_size);
     memcpy(i_elem, j_elem, pBffr->memb_size);
     memcpy(j_elem, pSwap_bffr, pBffr->memb_size);
@@ -350,7 +350,7 @@ PRP_API PRP_Result PRP_CALL CONT_BffrSwapChecked(CONT_Bffr *pBffr, PRP_Size i,
 PRP_API void PRP_CALL CONT_BffrClearUnchecked(CONT_Bffr *pBffr) {
     ASSERT_INVARIANT_EXPR(pBffr);
 
-    memset(pBffr->mem, 0, pBffr->cap * pBffr->memb_size);
+    memset(pBffr->pMem, 0, pBffr->cap * pBffr->memb_size);
 }
 
 PRP_API PRP_Result PRP_CALL CONT_BffrClearChecked(CONT_Bffr *pBffr) {
@@ -375,7 +375,7 @@ PRP_API PRP_Result PRP_CALL CONT_BffrChangeSizeUnchecked(CONT_Bffr *pBffr,
     if (pBffr->cap == max_cap || new_cap > max_cap) {
         return PRP_ERR_RES_EXHAUSTED;
     }
-    PRP_U8 *mem = realloc(pBffr->mem, new_cap * pBffr->memb_size);
+    PRP_U8 *mem = realloc(pBffr->pMem, new_cap * pBffr->memb_size);
     if (!mem) {
         return PRP_ERR_OOM;
     }
@@ -383,7 +383,7 @@ PRP_API PRP_Result PRP_CALL CONT_BffrChangeSizeUnchecked(CONT_Bffr *pBffr,
         memset(mem + (pBffr->cap * pBffr->memb_size), 0,
                (new_cap - pBffr->cap) * pBffr->memb_size);
     }
-    pBffr->mem = mem;
+    pBffr->pMem = mem;
     pBffr->cap = new_cap;
 
     return PRP_OK;
