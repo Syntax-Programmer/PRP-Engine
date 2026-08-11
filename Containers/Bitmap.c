@@ -132,7 +132,7 @@ PRP_API PRP_Result PRP_CALL CONT_BitmapCreateUnchecked(PRP_Size bit_cap,
                                                        CONT_Bitmap **ppBmp) {
     PRP_DIAG_ASSERT_MSG(bit_cap > 0, "The bit_cap of the bitmap must be > 0.");
     PRP_DIAG_ASSERT_MSG(
-        bit_cap <= 0,
+        bit_cap <= CONT_BITMAP_MAX_BIT_CAP,
         "The bit_cap of the bitmap must be <= CONT_BITMAP_MAX_BIT_CAP.");
     PRP_DIAG_ASSERT(ppBmp != NULL);
 
@@ -173,10 +173,10 @@ PRP_API PRP_Result PRP_CALL CONT_BitmapCloneUnchecked(const CONT_Bitmap *pBmp,
     if (code != PRP_OK) {
         return code;
     }
-    CONT_Bitmap *cpy = *ppBmp;
-    cpy->set_c = pBmp->set_c;
-    cpy->first_set = pBmp->first_set;
-    memcpy(cpy->pWords, pBmp->pWords, sizeof(CONT_Bitword) * cpy->word_cap);
+    CONT_Bitmap *pCpy = *ppBmp;
+    pCpy->set_c = pBmp->set_c;
+    pCpy->first_set = pBmp->first_set;
+    memcpy(pCpy->pWords, pBmp->pWords, sizeof(CONT_Bitword) * pCpy->word_cap);
 
     return PRP_OK;
 }
@@ -192,7 +192,7 @@ PRP_API PRP_Result PRP_CALL CONT_BitmapCloneChecked(const CONT_Bitmap *pBmp,
 
 PRP_API void PRP_CALL CONT_BitmapDeleteUnchecked(CONT_Bitmap **ppBmp) {
     PRP_DIAG_ASSERT(ppBmp != NULL);
-    PRP_DIAG_ASSERT_MSG(*ppBmp != NULL && (*ppBmp)->words != NULL,
+    PRP_DIAG_ASSERT_MSG(*ppBmp != NULL && (*ppBmp)->pWords != NULL,
                         "The given *ppBmp is invalid.");
 
     CONT_Bitmap *pBmp = *ppBmp;
@@ -200,7 +200,7 @@ PRP_API void PRP_CALL CONT_BitmapDeleteUnchecked(CONT_Bitmap **ppBmp) {
     free(pBmp->pWords);
 
 #if PRP_DEBUG_MODE
-    pBmp->words = NULL;
+    pBmp->pWords = NULL;
     pBmp->bit_cap = pBmp->word_cap = pBmp->set_c = 0;
     pBmp->first_set = PRP_INVALID_INDEX;
 #endif
@@ -421,9 +421,9 @@ PRP_API PRP_Result PRP_CALL CONT_BitmapIsSetChecked(const CONT_Bitmap *pBmp,
         ASSERT_INVARIANT_EXPR((pBmp));                                         \
         PRP_DIAG_ASSERT_MSG((i) < (j),                                         \
                             "Bit index i must be smaller than bit index j.");  \
-        PRP_DIAG_ASSERT_MSG((i) < (pBmp)->cap,                                 \
+        PRP_DIAG_ASSERT_MSG((i) < (pBmp)->bit_cap,                             \
                             "The bit index i is out of bounds.");              \
-        PRP_DIAG_ASSERT_MSG((j) <= (pBmp)->cap,                                \
+        PRP_DIAG_ASSERT_MSG((j) <= (pBmp)->bit_cap,                            \
                             "The bit index j is out of bounds.");              \
     } while (0)
 
@@ -905,9 +905,10 @@ PRP_API PRP_Bool PRP_CALL CONT_BitmapCmpUnchecked(const CONT_Bitmap *pBmp1,
         return PRP_False;
     }
     // This will not run for edge cases since loops.
-    const CONT_Bitmap *mx_pBmp = (pBmp1->word_cap == max_words) ? pBmp1 : pBmp2;
+    const CONT_Bitmap *pMx_pBmp =
+        (pBmp1->word_cap == max_words) ? pBmp1 : pBmp2;
     for (PRP_Size i = min_words; i < max_words; i++) {
-        if (mx_pBmp->pWords[i]) {
+        if (pMx_pBmp->pWords[i]) {
             return PRP_False;
         }
     }
@@ -998,17 +999,17 @@ CONT_BitmapChangeSizeUnchecked(CONT_Bitmap *pBmp, PRP_Size new_bit_cap) {
         }
     }
 
-    CONT_Bitword *words =
+    CONT_Bitword *pWords =
         realloc(pBmp->pWords, sizeof(CONT_Bitword) * new_word_cap);
-    if (!words) {
+    if (!pWords) {
         return PRP_ERR_OOM;
     }
 
     if (new_word_cap > pBmp->word_cap) {
-        memset(&(words[pBmp->word_cap]), 0,
+        memset(&(pWords[pBmp->word_cap]), 0,
                sizeof(CONT_Bitword) * (new_word_cap - pBmp->word_cap));
     }
-    pBmp->pWords = words;
+    pBmp->pWords = pWords;
     pBmp->word_cap = new_word_cap;
     pBmp->bit_cap = new_bit_cap;
     pBmp->set_c -= set_c_neg;

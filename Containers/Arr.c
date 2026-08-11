@@ -54,11 +54,11 @@ static PRP_Result ArrChangeSize(CONT_Arr *pArr, PRP_Size new_cap) {
         return PRP_ERR_RES_EXHAUSTED;
     }
 
-    PRP_U8 *mem = realloc(pArr->pMem, new_cap * pArr->memb_size);
-    if (!mem) {
+    PRP_U8 *pMem = realloc(pArr->pMem, new_cap * pArr->memb_size);
+    if (!pMem) {
         return PRP_ERR_OOM;
     }
-    pArr->pMem = mem;
+    pArr->pMem = pMem;
     pArr->cap = new_cap;
 
     return PRP_OK;
@@ -123,9 +123,9 @@ PRP_API PRP_Result PRP_CALL CONT_ArrCloneUnchecked(const CONT_Arr *pArr,
         return code;
     }
 
-    CONT_Arr *cpy = *ppArr;
-    cpy->len = pArr->len;
-    memcpy(cpy->pMem, pArr->pMem, pArr->memb_size * pArr->len);
+    CONT_Arr *pCpy = *ppArr;
+    pCpy->len = pArr->len;
+    memcpy(pCpy->pMem, pArr->pMem, pArr->memb_size * pArr->len);
 
     return PRP_OK;
 }
@@ -175,7 +175,7 @@ PRP_API PRP_Result PRP_CALL CONT_ArrCreateWithDataChecked(PRP_Size memb_size,
 
 PRP_API void PRP_CALL CONT_ArrDeleteUnchecked(CONT_Arr **ppArr) {
     PRP_DIAG_ASSERT(ppArr != NULL);
-    PRP_DIAG_ASSERT_MSG(*ppArr != NULL && (*ppArr)->mem != NULL,
+    PRP_DIAG_ASSERT_MSG(*ppArr != NULL && (*ppArr)->pMem != NULL,
                         "The given *ppArr is invalid.");
 
     CONT_Arr *pArr = *ppArr;
@@ -183,7 +183,7 @@ PRP_API void PRP_CALL CONT_ArrDeleteUnchecked(CONT_Arr **ppArr) {
     free(pArr->pMem);
 
 #ifdef PRP_DEBUG_MODE
-    pArr->mem = NULL;
+    pArr->pMem = NULL;
     pArr->cap = pArr->len = pArr->memb_size = 0;
 #endif
 
@@ -504,11 +504,11 @@ PRP_API void PRP_CALL CONT_ArrSwapUnchecked(CONT_Arr *pArr, PRP_Size i,
         return;
     }
 
-    PRP_U8 *i_elem = pArr->pMem + (i * pArr->memb_size);
-    PRP_U8 *j_elem = pArr->pMem + (j * pArr->memb_size);
-    memcpy(pSwap_bffr, i_elem, pArr->memb_size);
-    memcpy(i_elem, j_elem, pArr->memb_size);
-    memcpy(j_elem, pSwap_bffr, pArr->memb_size);
+    PRP_U8 *pI_elem = pArr->pMem + (i * pArr->memb_size);
+    PRP_U8 *pJ_elem = pArr->pMem + (j * pArr->memb_size);
+    memcpy(pSwap_bffr, pI_elem, pArr->memb_size);
+    memcpy(pI_elem, pJ_elem, pArr->memb_size);
+    memcpy(pJ_elem, pSwap_bffr, pArr->memb_size);
 }
 
 PRP_API PRP_Result PRP_CALL CONT_ArrSwapChecked(CONT_Arr *pArr, PRP_Size i,
@@ -529,7 +529,7 @@ PRP_API void PRP_CALL CONT_ArrResetUnchecked(CONT_Arr *pArr) {
     ASSERT_INVARIANT_EXPR(pArr);
 
 #ifdef PRP_DEBUG_MODE
-    memset(pArr->mem, 0, pArr->len * pArr->memb_size);
+    memset(pArr->pMem, 0, pArr->len * pArr->memb_size);
 #endif
     pArr->len = 0;
 }
@@ -564,13 +564,13 @@ PRP_API PRP_Result PRP_CALL CONT_ArrForEachUnchecked(
     ASSERT_INVARIANT_EXPR(pArr);
     PRP_DIAG_ASSERT(pCb != NULL);
 
-    PRP_U8 *mem = pArr->pMem;
+    PRP_U8 *pMem = pArr->pMem;
     for (PRP_Size i = 0; i < pArr->len; i++) {
-        PRP_Result code = pCb(mem, pUser_data);
+        PRP_Result code = pCb(pMem, pUser_data);
         if (code != PRP_OK) {
             return code;
         }
-        mem += pArr->memb_size;
+        pMem += pArr->memb_size;
     }
 
     return PRP_OK;

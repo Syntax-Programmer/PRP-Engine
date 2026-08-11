@@ -5,8 +5,8 @@
 struct MEM_Pool {
     PRP_Size cap;
     PRP_Size memb_size;
-    PRP_U8 *free_list;
-    PRP_U8 mem[];
+    PRP_U8 *pFree_list;
+    PRP_U8 pMem[];
 };
 
 #define MAX_ALLOCABLE_SIZE (PRP_SIZE_MAX - sizeof(MEM_Pool))
@@ -42,14 +42,14 @@ PRP_API PRP_Result PRP_CALL MEM_PoolCreateUnchecked(PRP_Size memb_size,
     }
     pPool->memb_size = memb_size;
     pPool->cap = cap;
-    pPool->free_list = NULL;
-    PRP_U8 *curr = pPool->mem;
+    pPool->pFree_list = NULL;
+    PRP_U8 *pCurr = pPool->pMem;
     for (PRP_Size i = 0; i < pPool->cap - 1; i++) {
-        *((PRP_U8 **)curr) = curr + pPool->memb_size;
-        curr += memb_size;
+        *((PRP_U8 **)pCurr) = pCurr + pPool->memb_size;
+        pCurr += memb_size;
     }
-    *((PRP_U8 **)curr) = pPool->free_list;
-    pPool->free_list = pPool->mem;
+    *((PRP_U8 **)pCurr) = pPool->pFree_list;
+    pPool->pFree_list = pPool->pMem;
 
     *ppPool = pPool;
 
@@ -73,7 +73,7 @@ PRP_API void PRP_CALL MEM_PoolDeleteUnchecked(MEM_Pool **ppPool) {
     MEM_Pool *pPool = *ppPool;
 
     pPool->memb_size = pPool->cap = 0;
-    pPool->free_list = NULL;
+    pPool->pFree_list = NULL;
     free(pPool);
     *ppPool = NULL;
 }
@@ -93,12 +93,12 @@ PRP_API PRP_Result PRP_CALL MEM_PoolAllocUnchecked(MEM_Pool *pPool,
     ASSERT_INVARIANT_EXPR(pPool);
     PRP_DIAG_ASSERT(ppDest != NULL);
 
-    if (!pPool->free_list) {
+    if (!pPool->pFree_list) {
         return PRP_ERR_RES_EXHAUSTED;
     }
 
-    void *ptr = pPool->free_list;
-    pPool->free_list = *((PRP_U8 **)pPool->free_list);
+    void *ptr = pPool->pFree_list;
+    pPool->pFree_list = *((PRP_U8 **)pPool->pFree_list);
     *ppDest = ptr;
 
     return PRP_OK;
@@ -118,12 +118,12 @@ PRP_API PRP_Result PRP_CALL MEM_PoolCallocUnchecked(MEM_Pool *pPool,
     ASSERT_INVARIANT_EXPR(pPool);
     PRP_DIAG_ASSERT(ppDest != NULL);
 
-    if (!pPool->free_list) {
+    if (!pPool->pFree_list) {
         return PRP_ERR_RES_EXHAUSTED;
     }
 
-    void *ptr = pPool->free_list;
-    pPool->free_list = *((PRP_U8 **)pPool->free_list);
+    void *ptr = pPool->pFree_list;
+    pPool->pFree_list = *((PRP_U8 **)pPool->pFree_list);
     memset(ptr, 0, pPool->memb_size);
     *ppDest = ptr;
 
@@ -154,8 +154,8 @@ PRP_API void PRP_CALL MEM_PoolFreeUnchecked(MEM_Pool *pPool, void *ptr) {
      *
      * TODO: Fix it.
      */
-    *((PRP_U8 **)ptr) = pPool->free_list;
-    pPool->free_list = ptr;
+    *((PRP_U8 **)ptr) = pPool->pFree_list;
+    pPool->pFree_list = ptr;
 }
 
 PRP_API PRP_Result PRP_CALL MEM_PoolFreeChecked(MEM_Pool *pPool, void *ptr) {
@@ -163,8 +163,8 @@ PRP_API PRP_Result PRP_CALL MEM_PoolFreeChecked(MEM_Pool *pPool, void *ptr) {
         return PRP_ERR_INV_ARG;
     }
     PRP_U8 *p = ptr;
-    if (p < pPool->mem || p >= pPool->mem + pPool->cap * pPool->memb_size ||
-        ((p - pPool->mem) % pPool->memb_size) != 0) {
+    if (p < pPool->pMem || p >= pPool->pMem + pPool->cap * pPool->memb_size ||
+        ((p - pPool->pMem) % pPool->memb_size) != 0) {
         return PRP_ERR_INV_ARG;
     }
 
@@ -194,14 +194,14 @@ PRP_API PRP_Size PRP_CALL MEM_PoolMaxCap(const MEM_Pool *pPool) {
 PRP_API void PRP_CALL MEM_PoolResetUnchecked(MEM_Pool *pPool) {
     ASSERT_INVARIANT_EXPR(pPool);
 
-    pPool->free_list = NULL;
-    PRP_U8 *curr = pPool->mem;
+    pPool->pFree_list = NULL;
+    PRP_U8 *pCurr = pPool->pMem;
     for (PRP_Size i = 0; i < pPool->cap - 1; i++) {
-        *((PRP_U8 **)curr) = curr + pPool->memb_size;
-        curr += pPool->memb_size;
+        *((PRP_U8 **)pCurr) = pCurr + pPool->memb_size;
+        pCurr += pPool->memb_size;
     }
-    *((PRP_U8 **)curr) = pPool->free_list;
-    pPool->free_list = pPool->mem;
+    *((PRP_U8 **)pCurr) = pPool->pFree_list;
+    pPool->pFree_list = pPool->pMem;
 }
 
 PRP_API PRP_Result PRP_CALL MEM_PoolResetChecked(MEM_Pool *pPool) {

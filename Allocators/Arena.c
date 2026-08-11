@@ -5,7 +5,7 @@
 struct MEM_Arena {
     PRP_Size size;
     PRP_Size ofs;
-    PRP_U8 mem[];
+    PRP_U8 pMem[];
 };
 
 #define MAX_ALLOCABLE_SIZE (PRP_SIZE_MAX - sizeof(MEM_Arena))
@@ -80,7 +80,7 @@ PRP_API PRP_Result PRP_CALL MEM_ArenaAllocUnchecked(MEM_Arena *pArena,
         return PRP_ERR_RES_EXHAUSTED;
     }
 
-    void *ptr = pArena->mem + pArena->ofs;
+    void *ptr = pArena->pMem + pArena->ofs;
     pArena->ofs += size;
     *ppDest = ptr;
 
@@ -108,7 +108,7 @@ PRP_API PRP_Result PRP_CALL MEM_ArenaCallocUnchecked(MEM_Arena *pArena,
         return PRP_ERR_RES_EXHAUSTED;
     }
 
-    void *ptr = pArena->mem + pArena->ofs;
+    void *ptr = pArena->pMem + pArena->ofs;
     pArena->ofs += size;
     memset(ptr, 0, size);
     *ppDest = ptr;
@@ -131,7 +131,7 @@ PRP_API void PRP_CALL MEM_ArenaResetUnchecked(MEM_Arena *pArena) {
 
     pArena->ofs = 0;
 #ifdef PRP_DEBUG_MODE
-    memset(pArena->mem, 0, pArena->size);
+    memset(pArena->pMem, 0, pArena->size);
 #endif
 }
 

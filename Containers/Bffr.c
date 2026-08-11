@@ -70,8 +70,8 @@ PRP_API PRP_Result PRP_CALL CONT_BffrCloneUnchecked(const CONT_Bffr *pBffr,
         return code;
     }
 
-    CONT_Bffr *cpy = *ppBffr;
-    memcpy(cpy->pMem, pBffr->pMem, pBffr->memb_size * pBffr->cap);
+    CONT_Bffr *pCpy = *ppBffr;
+    memcpy(pCpy->pMem, pBffr->pMem, pBffr->memb_size * pBffr->cap);
 
     return PRP_OK;
 }
@@ -87,7 +87,7 @@ PRP_API PRP_Result PRP_CALL CONT_BffrCloneChecked(const CONT_Bffr *pBffr,
 
 PRP_API void PRP_CALL CONT_BffrDeleteUnchecked(CONT_Bffr **ppBffr) {
     PRP_DIAG_ASSERT(ppBffr != NULL);
-    PRP_DIAG_ASSERT_MSG(*ppBffr != NULL && (*ppBffr)->mem != NULL,
+    PRP_DIAG_ASSERT_MSG(*ppBffr != NULL && (*ppBffr)->pMem != NULL,
                         "The given *ppBffr is invalid.");
 
     CONT_Bffr *pBffr = *ppBffr;
@@ -95,7 +95,7 @@ PRP_API void PRP_CALL CONT_BffrDeleteUnchecked(CONT_Bffr **ppBffr) {
     free(pBffr->pMem);
 
 #ifdef PRP_DEBUG_MODE
-    pBffr->mem = NULL;
+    pBffr->pMem = NULL;
     pBffr->memb_size = pBffr->cap = 0;
 #endif
 
@@ -326,11 +326,11 @@ PRP_API void PRP_CALL CONT_BffrSwapUnchecked(CONT_Bffr *pBffr, PRP_Size i,
         return;
     }
 
-    PRP_U8 *i_elem = pBffr->pMem + (i * pBffr->memb_size);
-    PRP_U8 *j_elem = pBffr->pMem + (j * pBffr->memb_size);
-    memcpy(pSwap_bffr, i_elem, pBffr->memb_size);
-    memcpy(i_elem, j_elem, pBffr->memb_size);
-    memcpy(j_elem, pSwap_bffr, pBffr->memb_size);
+    PRP_U8 *pI_elem = pBffr->pMem + (i * pBffr->memb_size);
+    PRP_U8 *pJ_elem = pBffr->pMem + (j * pBffr->memb_size);
+    memcpy(pSwap_bffr, pI_elem, pBffr->memb_size);
+    memcpy(pI_elem, pJ_elem, pBffr->memb_size);
+    memcpy(pJ_elem, pSwap_bffr, pBffr->memb_size);
 }
 
 PRP_API PRP_Result PRP_CALL CONT_BffrSwapChecked(CONT_Bffr *pBffr, PRP_Size i,
@@ -375,15 +375,15 @@ PRP_API PRP_Result PRP_CALL CONT_BffrChangeSizeUnchecked(CONT_Bffr *pBffr,
     if (pBffr->cap == max_cap || new_cap > max_cap) {
         return PRP_ERR_RES_EXHAUSTED;
     }
-    PRP_U8 *mem = realloc(pBffr->pMem, new_cap * pBffr->memb_size);
-    if (!mem) {
+    PRP_U8 *pMem = realloc(pBffr->pMem, new_cap * pBffr->memb_size);
+    if (!pMem) {
         return PRP_ERR_OOM;
     }
     if (new_cap > pBffr->cap) {
-        memset(mem + (pBffr->cap * pBffr->memb_size), 0,
+        memset(pMem + (pBffr->cap * pBffr->memb_size), 0,
                (new_cap - pBffr->cap) * pBffr->memb_size);
     }
-    pBffr->pMem = mem;
+    pBffr->pMem = pMem;
     pBffr->cap = new_cap;
 
     return PRP_OK;
