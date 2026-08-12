@@ -4,23 +4,23 @@
 
 /* ----  STD HASH FUNCS ---- */
 
-PRP_U64 CONT_HmHashStr(const void *str_key) {
-    const PRP_Char8 *key = str_key;
+PRP_U64 CONT_HmHashStr(const void *pStr_key) {
+    const PRP_Char8 *pKey = pStr_key;
     const PRP_U64 FNV1A64_OFFSET_BASIS = 14695981039346656037ULL;
     const PRP_U64 FNV1A64_PRIME = 1099511628211ULL;
 
     PRP_U64 hash = FNV1A64_OFFSET_BASIS;
 
-    while (*key) {
-        hash ^= (PRP_U8)*key++;
+    while (*pKey) {
+        hash ^= (PRP_U8)*pKey++;
         hash *= FNV1A64_PRIME;
     }
 
     return hash;
 }
 
-PRP_U64 CONT_HmHashSplitMix64(const void *u64_key) {
-    PRP_U64 x = *(const PRP_U64 *)u64_key;
+PRP_U64 CONT_HmHashSplitMix64(const void *pU64_key) {
+    PRP_U64 x = *(const PRP_U64 *)pU64_key;
 
     x ^= x >> 30;
     x *= 0xbf58476d1ce4e5b9ULL;
@@ -55,8 +55,8 @@ PRP_U64 CONT_HmHashSplitMix64(const void *u64_key) {
 #define INIT_ELEM_CAP (8)
 
 typedef struct Elem {
-    void *key;
-    void *val;
+    void *pKey;
+    void *pVal;
     // To avoid recomputation each time we lookup.
     PRP_U64 hash;
 } Elem;
@@ -65,311 +65,315 @@ struct CONT_Hm {
     /*
      * Stores the indices of entries mapped to physical hashed locations.
      * This step saves about 67% percent of mem and improves cache locality, by
-     * only storing an index rather than the key-val-hash trio.
+     * only storing an index rather than the pKey-pVal-hash trio.
      */
-    PRP_Size *layout;
+    PRP_Size *pLayout;
     PRP_Size layout_cap;
     /*
-     * Stores the key-val pairs in a tightly packed array separate from the hm
-     * layout. This also promotes iterability over every key/val, since values
-     * are in an array.
+     * Stores the pKey-pVal pairs in a tightly packed array separate from the
+     * pHm layout. This also promotes iterability over every pKey/pVal, since
+     * values are in an array.
      */
-    Elem *elems;
+    Elem *pElems;
     PRP_Size elem_cap;
     PRP_Size elem_len;
     /*
      * User defined hash function so that the hashmap can be a general hashmap
      * that can store even things like structs and compound types.
      */
-    PRP_U64 (*hash_fn)(const void *key);
+    PRP_U64 (*pHash_fn)(const void *pKey);
     /*
-     * How will the key be compared to other keys during probing to determine if
-     * it is a unique key or a duplicate one.
+     * How will the pKey be compared to other keys during probing to determine
+     * if it is a unique pKey or a duplicate one.
      *
-     * This can also allow for some interesting key structure, where only one
-     * field in the struct like key ot be uniques while other fields may be
+     * This can also allow for some interesting pKey structure, where only one
+     * field in the struct like pKey ot be uniques while other fields may be
      * duplicate.
      */
-    PRP_Bool (*key_cmp_cb)(const void *k1, const void *k2);
-    // Frees the memory of the key during the entry/hashmap deletion.
-    PRP_Result (*key_del_cb)(void *key);
-    // Frees the memory of the val during the entry/hashmap deletion.
-    PRP_Result (*val_del_cb)(void *val);
+    PRP_Bool (*pKey_cmp_cb)(const void *pKey1, const void *pKey2);
+    // Frees the memory of the pKey during the entry/hashmap deletion.
+    PRP_Result (*pKey_del_cb)(void *pKey);
+    // Frees the memory of the pVal during the entry/hashmap deletion.
+    PRP_Result (*pVal_del_cb)(void *pVal);
 };
 
 #define MAX_LAYOUT_CAP (PRP_SIZE_MAX / sizeof(PRP_Size))
 #define MAX_ELEM_CAP (PRP_SIZE_MAX / sizeof(Elem))
 
-#define ASSERT_INVARIANT_EXPR(hm)                                              \
-    PRP_DIAG_ASSERT_MSG(CONT_HmIsValid(hm),                                    \
-                        "The given hashmap is either NULL, or is corrupted.")
+#define ASSERT_INVARIANT_EXPR(pHm)                                             \
+    PRP_DIAG_ASSERT_MSG(CONT_HmIsValid(pHm), "The given pHm is invalid.")
 
 /**
  * Grows the elem array of the hashmap safely.
  *
- * @param hm The hashmap to grow the elems array of.
+ * @param pHm The hashmap to grow the elems array of.
  *
  * @return PRP_OK on success.
  * @return PRP_ERR_RES_EXHAUSTED if max cap is reached.
  * @return PRP_ERR_OOM if allocation fails.
  */
-static PRP_Result GrowHmElems(CONT_Hm *hm);
+static PRP_Result GrowHmElems(CONT_Hm *pHm);
 /**
  * Grows the layout array of the hashmap safely, purges all the dead slots and
  * reorders the array to match the new capacity.
  *
- * @param hm the hashmap to grow the layout array of.
+ * @param pHm the hashmap to grow the layout array of.
  *
  * @note Imp:
  * - If this fails its no issue there is still cap in the hashmap, just that we
  * don't return anything since whatever it returns is ignored based on the
  * assumption that there is still free space in the hashmap.
  */
-static void GrowHmLayout(CONT_Hm *hm);
+static void GrowHmLayout(CONT_Hm *pHm);
 /**
- * Fetchs the layout and elem index of the given key.
+ * Fetchs the layout and elem index of the given pKey.
  *
- * @param hm        The hm, the given key supposedly resides in.
- * @param key       The key to find the indices for.
+ * @param pHm       The pHm, the given pKey supposedly resides in.
+ * @param pKey      The pKey to find the indices for.
  * @param pLayout_i The pointer to the layout index to store the result.
  * @param pElem_i   The pointer to the elem index to store the result.
  *
  * @return PRP_OK on success.
- * @return PRP_ERR_OOB if the key doesn't exist in hashmap.
+ * @return PRP_ERR_OOB if the pKey doesn't exist in hashmap.
  */
-static PRP_Result FetchLayoutElemI(const CONT_Hm *hm, const void *key,
+static PRP_Result FetchLayoutElemI(const CONT_Hm *pHm, const void *pKey,
                                    PRP_Size *pLayout_i, PRP_Size *pElem_i);
 
-PRP_API PRP_Bool PRP_CALL CONT_HmIsValid(const CONT_Hm *hm) {
-    return (hm != NULL && hm->layout != NULL && hm->elems != NULL &&
-            hm->layout_cap > 0 && hm->elem_cap > 0 &&
-            hm->layout_cap <= MAX_LAYOUT_CAP &&
-            (hm->layout_cap & (hm->layout_cap - 1)) == 0 &&
-            hm->elem_cap <= MAX_ELEM_CAP && hm->elem_len <= hm->elem_cap &&
-            hm->elem_len <= hm->layout_cap && hm->hash_fn != NULL &&
-            hm->key_cmp_cb != NULL);
+PRP_API PRP_Bool PRP_CALL CONT_HmIsValid(const CONT_Hm *pHm) {
+    return (pHm != NULL && pHm->pLayout != NULL && pHm->pElems != NULL &&
+            pHm->layout_cap > 0 && pHm->elem_cap > 0 &&
+            pHm->layout_cap <= MAX_LAYOUT_CAP &&
+            (pHm->layout_cap & (pHm->layout_cap - 1)) == 0 &&
+            pHm->elem_cap <= MAX_ELEM_CAP && pHm->elem_len <= pHm->elem_cap &&
+            pHm->elem_len <= pHm->layout_cap && pHm->pHash_fn != NULL &&
+            pHm->pKey_cmp_cb != NULL);
 }
 
-PRP_API PRP_Result PRP_CALL
-CONT_HmCreateUnchecked(PRP_U64 (*hash_fn)(const void *key),
-                       PRP_Bool (*key_cmp_cb)(const void *k1, const void *k2),
-                       PRP_Result (*key_del_cb)(void *key),
-                       PRP_Result (*val_del_cb)(void *val), CONT_Hm **pHm) {
-    PRP_DIAG_ASSERT(hash_fn != NULL);
-    PRP_DIAG_ASSERT(key_cmp_cb != NULL);
-    PRP_DIAG_ASSERT(pHm != NULL);
+PRP_API PRP_Result PRP_CALL CONT_HmCreateUnchecked(
+    PRP_U64 (*pHash_fn)(const void *pKey),
+    PRP_Bool (*pKey_cmp_cb)(const void *pKey1, const void *pKey2),
+    PRP_Result (*pKey_del_cb)(void *pKey),
+    PRP_Result (*pVal_del_cb)(void *pVal), CONT_Hm **ppHm) {
+    PRP_DIAG_ASSERT(pHash_fn != NULL);
+    PRP_DIAG_ASSERT(pKey_cmp_cb != NULL);
+    PRP_DIAG_ASSERT(ppHm != NULL);
 
-    CONT_Hm *hm = calloc(1, sizeof(CONT_Hm));
-    if (!hm) {
+    *ppHm = NULL;
+    CONT_Hm *pHm = calloc(1, sizeof(CONT_Hm));
+    if (!pHm) {
         return PRP_ERR_OOM;
     }
-    hm->layout = malloc(sizeof(PRP_Size) * INIT_LAYOUT_CAP);
-    if (!hm->layout) {
-        free(hm);
+    pHm->pLayout = malloc(sizeof(PRP_Size) * INIT_LAYOUT_CAP);
+    if (!pHm->pLayout) {
+        free(pHm);
         return PRP_ERR_OOM;
     }
-    hm->elems = malloc(sizeof(Elem) * INIT_ELEM_CAP);
-    if (!hm->elems) {
-        free(hm->layout);
-        free(hm);
+    pHm->pElems = malloc(sizeof(Elem) * INIT_ELEM_CAP);
+    if (!pHm->pElems) {
+        free(pHm->pLayout);
+        free(pHm);
         return PRP_ERR_OOM;
     }
-    hm->hash_fn = hash_fn;
-    hm->key_cmp_cb = key_cmp_cb;
-    hm->key_del_cb = key_del_cb;
-    hm->val_del_cb = val_del_cb;
-    hm->elem_cap = INIT_ELEM_CAP;
-    hm->elem_len = 0;
-    hm->layout_cap = INIT_LAYOUT_CAP;
+    pHm->pHash_fn = pHash_fn;
+    pHm->pKey_cmp_cb = pKey_cmp_cb;
+    pHm->pKey_del_cb = pKey_del_cb;
+    pHm->pVal_del_cb = pVal_del_cb;
+    pHm->elem_cap = INIT_ELEM_CAP;
+    pHm->elem_len = 0;
+    pHm->layout_cap = INIT_LAYOUT_CAP;
     // using 0XFF since memset works per byte and it performs correctly.
-    memset(hm->layout, LAYOUT_EMPTYING_MASK,
+    memset(pHm->pLayout, LAYOUT_EMPTYING_MASK,
            sizeof(PRP_Size) * INIT_LAYOUT_CAP);
 
-    *pHm = hm;
+    *ppHm = pHm;
 
     return PRP_OK;
 }
 
-PRP_API PRP_Result PRP_CALL
-CONT_HmCreateChecked(PRP_U64 (*hash_fn)(const void *key),
-                     PRP_Bool (*key_cmp_cb)(const void *k1, const void *k2),
-                     PRP_Result (*key_del_cb)(void *key),
-                     PRP_Result (*val_del_cb)(void *val), CONT_Hm **pHm) {
-    if (!hash_fn || !key_cmp_cb || !key_del_cb || !val_del_cb || !pHm) {
+PRP_API PRP_Result PRP_CALL CONT_HmCreateChecked(
+    PRP_U64 (*pHash_fn)(const void *pKey),
+    PRP_Bool (*pKey_cmp_cb)(const void *pKey1, const void *pKey2),
+    PRP_Result (*pKey_del_cb)(void *pKey),
+    PRP_Result (*pVal_del_cb)(void *pVal), CONT_Hm **ppHm) {
+    if (!pHash_fn || !pKey_cmp_cb || !pKey_del_cb || !pVal_del_cb || !ppHm) {
         return PRP_ERR_INV_ARG;
     }
 
-    return CONT_HmCreateUnchecked(hash_fn, key_cmp_cb, key_del_cb, val_del_cb,
-                                  pHm);
+    return CONT_HmCreateUnchecked(pHash_fn, pKey_cmp_cb, pKey_del_cb,
+                                  pVal_del_cb, ppHm);
 }
 
-PRP_API void PRP_CALL CONT_HmDeleteUnchecked(CONT_Hm **pHm) {
-    PRP_DIAG_ASSERT(pHm != NULL);
-    PRP_DIAG_ASSERT(*pHm != NULL);
-    PRP_DIAG_ASSERT((*pHm)->layout != NULL && (*pHm)->elems != NULL);
+PRP_API void PRP_CALL CONT_HmDeleteUnchecked(CONT_Hm **ppHm) {
+    PRP_DIAG_ASSERT(ppHm != NULL);
+    PRP_DIAG_ASSERT_MSG(*ppHm != NULL && (*ppHm)->pLayout != NULL &&
+                            (*ppHm)->pElems != NULL,
+                        "The given *ppHm is invalid.");
 
-    CONT_Hm *hm = *pHm;
+    CONT_Hm *pHm = *ppHm;
 
-    free(hm->layout);
-    for (PRP_Size i = 0; i < hm->elem_len; i++) {
-        Elem elem = hm->elems[i];
-        if (hm->key_del_cb) {
-            hm->key_del_cb(elem.key);
+    free(pHm->pLayout);
+    for (PRP_Size i = 0; i < pHm->elem_len; i++) {
+        Elem elem = pHm->pElems[i];
+        if (pHm->pKey_del_cb) {
+            pHm->pKey_del_cb(elem.pKey);
         }
-        if (elem.val && hm->val_del_cb) {
-            hm->val_del_cb(elem.val);
+        if (elem.pVal && pHm->pVal_del_cb) {
+            pHm->pVal_del_cb(elem.pVal);
         }
     }
-    free(hm->elems);
+    free(pHm->pElems);
 
 #ifdef PRP_DEBUG_MODE
-    hm->layout = NULL;
-    hm->elems = NULL;
-    hm->elem_cap = hm->layout_cap = hm->elem_len = 0;
-    hm->hash_fn = NULL;
-    hm->key_cmp_cb = NULL;
-    hm->key_del_cb = hm->val_del_cb = NULL;
+    pHm->pLayout = NULL;
+    pHm->pElems = NULL;
+    pHm->elem_cap = pHm->layout_cap = pHm->elem_len = 0;
+    pHm->pHash_fn = NULL;
+    pHm->pKey_cmp_cb = NULL;
+    pHm->pKey_del_cb = pHm->pVal_del_cb = NULL;
 #endif
 
-    free(hm);
-    *pHm = NULL;
+    free(pHm);
+    *ppHm = NULL;
 }
 
-PRP_API PRP_Result PRP_CALL CONT_HmDeleteChecked(CONT_Hm **pHm) {
-    if (!pHm || !(*pHm) || !(*pHm)->layout || !(*pHm)->elems) {
+PRP_API PRP_Result PRP_CALL CONT_HmDeleteChecked(CONT_Hm **ppHm) {
+    if (!ppHm || !(*ppHm) || !(*ppHm)->pLayout || !(*ppHm)->pElems) {
         return PRP_ERR_INV_ARG;
     }
 
-    CONT_HmDeleteUnchecked(pHm);
+    CONT_HmDeleteUnchecked(ppHm);
 
     return PRP_OK;
 }
 
-static PRP_Result GrowHmElems(CONT_Hm *hm) {
-    if (hm->elem_cap == MAX_ELEM_CAP) {
+static PRP_Result GrowHmElems(CONT_Hm *pHm) {
+    if (pHm->elem_cap == MAX_ELEM_CAP) {
         return PRP_ERR_RES_EXHAUSTED;
     }
-    PRP_Size new_cap = hm->elem_cap * 2;
+    PRP_Size new_cap = pHm->elem_cap * 2;
     if (new_cap > MAX_ELEM_CAP) {
         new_cap = MAX_ELEM_CAP;
     }
-    Elem *elems = realloc(hm->elems, sizeof(Elem) * new_cap);
-    if (!elems) {
+    Elem *pElems = realloc(pHm->pElems, sizeof(Elem) * new_cap);
+    if (!pElems) {
         return PRP_ERR_OOM;
     }
-    hm->elems = elems;
-    hm->elem_cap = new_cap;
+    pHm->pElems = pElems;
+    pHm->elem_cap = new_cap;
 
     return PRP_OK;
 }
 
-static void GrowHmLayout(CONT_Hm *hm) {
-    if (hm->layout_cap == MAX_LAYOUT_CAP) {
+static void GrowHmLayout(CONT_Hm *pHm) {
+    if (pHm->layout_cap == MAX_LAYOUT_CAP) {
         return;
     }
-    PRP_Size new_cap = hm->layout_cap * 2;
+    PRP_Size new_cap = pHm->layout_cap * 2;
     if (new_cap > MAX_LAYOUT_CAP) {
         new_cap = MAX_LAYOUT_CAP;
     }
-    PRP_Size *layout = realloc(hm->layout, sizeof(PRP_Size) * new_cap);
-    if (!layout) {
+    PRP_Size *pLayout = realloc(pHm->pLayout, sizeof(PRP_Size) * new_cap);
+    if (!pLayout) {
         return;
     }
-    hm->layout = layout;
-    hm->layout_cap = new_cap;
+    pHm->pLayout = pLayout;
+    pHm->layout_cap = new_cap;
 
-    memset(hm->layout, LAYOUT_EMPTYING_MASK, sizeof(PRP_Size) * hm->layout_cap);
+    memset(pHm->pLayout, LAYOUT_EMPTYING_MASK,
+           sizeof(PRP_Size) * pHm->layout_cap);
     // Rehashing and deleting all the dead slots.
-    PRP_U64 mask = hm->layout_cap - 1;
-    for (PRP_Size i = 0; i < hm->elem_len; i++) {
-        Elem elem = hm->elems[i];
+    PRP_U64 mask = pHm->layout_cap - 1;
+    for (PRP_Size i = 0; i < pHm->elem_len; i++) {
+        Elem elem = pHm->pElems[i];
         PRP_U64 perturb = elem.hash, j = perturb & mask;
-        while (hm->layout[j] != EMPTY_I) {
+        while (pHm->pLayout[j] != EMPTY_I) {
             PROBE(j, perturb, mask);
         }
-        hm->layout[j] = i;
+        pHm->pLayout[j] = i;
     }
 
     return;
 }
 
-PRP_API PRP_Result PRP_CALL CONT_HmAddUnchecked(CONT_Hm *hm, void *key,
-                                                void *val,
+PRP_API PRP_Result PRP_CALL CONT_HmAddUnchecked(CONT_Hm *pHm, void *pKey,
+                                                void *pVal,
                                                 PRP_Bool fail_on_duplicate) {
-    ASSERT_INVARIANT_EXPR(hm);
-    PRP_DIAG_ASSERT(key != NULL);
+    ASSERT_INVARIANT_EXPR(pHm);
+    PRP_DIAG_ASSERT(pKey != NULL);
 
-    if (hm->elem_len == hm->elem_cap) {
-        PRP_Result code = GrowHmElems(hm);
+    if (pHm->elem_len == pHm->elem_cap) {
+        PRP_Result code = GrowHmElems(pHm);
         if (code != PRP_OK) {
             return code;
         }
     }
-    if (hm->elem_len >= (PRP_Size)((PRP_F64)hm->layout_cap * LOAD_FACTOR)) {
+    if (pHm->elem_len >= (PRP_Size)((PRP_F64)pHm->layout_cap * LOAD_FACTOR)) {
         // This doesn't fail, as there is still space in layout.
-        GrowHmLayout(hm);
+        GrowHmLayout(pHm);
     }
-    if (hm->elem_len == hm->layout_cap) {
+    if (pHm->elem_len == pHm->layout_cap) {
         return PRP_ERR_RES_EXHAUSTED;
     }
 
-    PRP_U64 mask = hm->layout_cap - 1;
-    PRP_U64 hash = hm->hash_fn(key);
+    PRP_U64 mask = pHm->layout_cap - 1;
+    PRP_U64 hash = pHm->pHash_fn(pKey);
     PRP_U64 perturb = hash;
     PRP_U64 i = perturb & mask, j = EMPTY_I;
-    while (hm->layout[i] != EMPTY_I) {
-        if (hm->layout[i] == DEAD_I) {
-            // Marking dead index for reuse. But searching fwd for key match
+    while (pHm->pLayout[i] != EMPTY_I) {
+        if (pHm->pLayout[i] == DEAD_I) {
+            // Marking dead index for reuse. But searching fwd for pKey match
             j = i;
         } else {
-            PRP_Size elem_i = hm->layout[i];
-            if (!hm->key_cmp_cb(key, hm->elems[elem_i].key)) {
+            PRP_Size elem_i = pHm->pLayout[i];
+            if (!pHm->pKey_cmp_cb(pKey, pHm->pElems[elem_i].pKey)) {
                 PROBE(i, perturb, mask);
                 continue;
             }
             if (fail_on_duplicate) {
                 return PRP_ERR_ALREADY_EXISTS;
             }
-            if (hm->elems[elem_i].val && hm->val_del_cb) {
-                hm->val_del_cb(hm->elems[elem_i].val);
+            if (pHm->pElems[elem_i].pVal && pHm->pVal_del_cb) {
+                pHm->pVal_del_cb(pHm->pElems[elem_i].pVal);
             }
-            hm->elems[elem_i].val = val;
+            pHm->pElems[elem_i].pVal = pVal;
             return PRP_OK;
         }
         PROBE(i, perturb, mask);
     }
     // At this point, memory is guaranteed.
-    hm->layout[(j != EMPTY_I) ? j : i] = hm->elem_len;
-    hm->elems[hm->elem_len++] = (Elem){.key = key, .val = val, .hash = hash};
+    pHm->pLayout[(j != EMPTY_I) ? j : i] = pHm->elem_len;
+    pHm->pElems[pHm->elem_len++] =
+        (Elem){.pKey = pKey, .pVal = pVal, .hash = hash};
 
     return PRP_OK;
 }
 
-PRP_API PRP_Result PRP_CALL CONT_HmAddChecked(CONT_Hm *hm, void *key, void *val,
+PRP_API PRP_Result PRP_CALL CONT_HmAddChecked(CONT_Hm *pHm, void *pKey,
+                                              void *pVal,
                                               PRP_Bool fail_on_duplicate) {
-    if (!CONT_HmIsValid(hm) || !key) {
+    if (!CONT_HmIsValid(pHm) || !pKey) {
         return PRP_ERR_INV_ARG;
     }
 
-    return CONT_HmAddUnchecked(hm, key, val, fail_on_duplicate);
+    return CONT_HmAddUnchecked(pHm, pKey, pVal, fail_on_duplicate);
 }
 
-PRP_API PRP_Result PRP_CALL CONT_HmGetUnchecked(const CONT_Hm *hm, void *key,
+PRP_API PRP_Result PRP_CALL CONT_HmGetUnchecked(const CONT_Hm *pHm, void *pKey,
                                                 void **pVal) {
-    ASSERT_INVARIANT_EXPR(hm);
-    PRP_DIAG_ASSERT(key != NULL);
+    ASSERT_INVARIANT_EXPR(pHm);
+    PRP_DIAG_ASSERT(pKey != NULL);
     PRP_DIAG_ASSERT(pVal != NULL);
 
-    PRP_U64 mask = hm->layout_cap - 1;
-    PRP_U64 hash = hm->hash_fn(key);
+    PRP_U64 mask = pHm->layout_cap - 1;
+    PRP_U64 hash = pHm->pHash_fn(pKey);
     PRP_U64 perturb = hash;
     PRP_U64 i = perturb & mask;
-    while (hm->layout[i] != EMPTY_I) {
-        if (hm->layout[i] != DEAD_I) {
-            // Checking all non dead i for key match.
-            PRP_Size elem_i = hm->layout[i];
-            if (hm->key_cmp_cb(key, hm->elems[elem_i].key)) {
-                *pVal = hm->elems[elem_i].val;
+    while (pHm->pLayout[i] != EMPTY_I) {
+        if (pHm->pLayout[i] != DEAD_I) {
+            // Checking all non dead i for pKey match.
+            PRP_Size elem_i = pHm->pLayout[i];
+            if (pHm->pKey_cmp_cb(pKey, pHm->pElems[elem_i].pKey)) {
+                *pVal = pHm->pElems[elem_i].pVal;
                 return PRP_OK;
             }
         }
@@ -379,27 +383,27 @@ PRP_API PRP_Result PRP_CALL CONT_HmGetUnchecked(const CONT_Hm *hm, void *key,
     return PRP_ERR_NOT_FOUND;
 }
 
-PRP_API PRP_Result PRP_CALL CONT_HmGetChecked(const CONT_Hm *hm, void *key,
+PRP_API PRP_Result PRP_CALL CONT_HmGetChecked(const CONT_Hm *pHm, void *pKey,
                                               void **pVal) {
-    if (!CONT_HmIsValid(hm) || !key || !pVal) {
+    if (!CONT_HmIsValid(pHm) || !pKey || !pVal) {
         return PRP_ERR_INV_ARG;
     }
 
-    return CONT_HmGetUnchecked(hm, key, pVal);
+    return CONT_HmGetUnchecked(pHm, pKey, pVal);
 }
 
-static PRP_Result FetchLayoutElemI(const CONT_Hm *hm, const void *key,
+static PRP_Result FetchLayoutElemI(const CONT_Hm *pHm, const void *pKey,
                                    PRP_Size *pLayout_i, PRP_Size *pElem_i) {
     *pLayout_i = *pElem_i = PRP_INVALID_INDEX;
 
-    PRP_U64 mask = hm->layout_cap - 1;
-    PRP_U64 hash = hm->hash_fn(key);
+    PRP_U64 mask = pHm->layout_cap - 1;
+    PRP_U64 hash = pHm->pHash_fn(pKey);
     PRP_U64 perturb = hash;
     PRP_U64 i = perturb & mask;
-    while (hm->layout[i] != EMPTY_I) {
-        if (hm->layout[i] != DEAD_I) {
-            PRP_U64 elem_i = hm->layout[i];
-            if (hm->key_cmp_cb(key, hm->elems[elem_i].key)) {
+    while (pHm->pLayout[i] != EMPTY_I) {
+        if (pHm->pLayout[i] != DEAD_I) {
+            PRP_U64 elem_i = pHm->pLayout[i];
+            if (pHm->pKey_cmp_cb(pKey, pHm->pElems[elem_i].pKey)) {
                 *pLayout_i = i;
                 *pElem_i = elem_i;
                 return PRP_OK;
@@ -411,62 +415,62 @@ static PRP_Result FetchLayoutElemI(const CONT_Hm *hm, const void *key,
     return PRP_ERR_NOT_FOUND;
 }
 
-PRP_API PRP_Result PRP_CALL CONT_HmDelElemUnchecked(CONT_Hm *hm, void *key) {
-    ASSERT_INVARIANT_EXPR(hm);
-    PRP_DIAG_ASSERT(key != NULL);
+PRP_API PRP_Result PRP_CALL CONT_HmDelElemUnchecked(CONT_Hm *pHm, void *pKey) {
+    ASSERT_INVARIANT_EXPR(pHm);
+    PRP_DIAG_ASSERT(pKey != NULL);
 
     PRP_Size key_layout_i, key_elem_i;
-    PRP_Result code = FetchLayoutElemI(hm, key, &key_layout_i, &key_elem_i);
+    PRP_Result code = FetchLayoutElemI(pHm, pKey, &key_layout_i, &key_elem_i);
     if (code != PRP_OK) {
         return code;
     }
     PRP_Size last_layout_i, last_elem_i;
     // This shouldn't really fail ever.
-    code = FetchLayoutElemI(hm, hm->elems[hm->elem_len - 1].key, &last_layout_i,
-                            &last_elem_i);
+    code = FetchLayoutElemI(pHm, pHm->pElems[pHm->elem_len - 1].pKey,
+                            &last_layout_i, &last_elem_i);
     PRP_DIAG_VERIFY(code == PRP_OK);
 
-    Elem to_del = hm->elems[key_elem_i];
-    if (hm->key_del_cb) {
-        hm->key_del_cb(to_del.key);
+    Elem to_del = pHm->pElems[key_elem_i];
+    if (pHm->pKey_del_cb) {
+        pHm->pKey_del_cb(to_del.pKey);
     }
-    if (to_del.val && hm->val_del_cb) {
-        hm->val_del_cb(to_del.val);
+    if (to_del.pVal && pHm->pVal_del_cb) {
+        pHm->pVal_del_cb(to_del.pVal);
     }
 
-    hm->elems[key_elem_i] = hm->elems[last_elem_i];
-    hm->elem_len--;
-    hm->layout[last_layout_i] = key_elem_i;
-    hm->layout[key_layout_i] = DEAD_I;
+    pHm->pElems[key_elem_i] = pHm->pElems[last_elem_i];
+    pHm->elem_len--;
+    pHm->pLayout[last_layout_i] = key_elem_i;
+    pHm->pLayout[key_layout_i] = DEAD_I;
 
     return PRP_OK;
 }
 
-PRP_API PRP_Result PRP_CALL CONT_HmDelElemChecked(CONT_Hm *hm, void *key) {
-    if (!CONT_HmIsValid(hm) || !key) {
+PRP_API PRP_Result PRP_CALL CONT_HmDelElemChecked(CONT_Hm *pHm, void *pKey) {
+    if (!CONT_HmIsValid(pHm) || !pKey) {
         return PRP_ERR_INV_ARG;
     }
 
-    return CONT_HmDelElemUnchecked(hm, key);
+    return CONT_HmDelElemUnchecked(pHm, pKey);
 }
 
-PRP_API PRP_Size PRP_CALL CONT_HmLen(const CONT_Hm *hm) {
-    ASSERT_INVARIANT_EXPR(hm);
+PRP_API PRP_Size PRP_CALL CONT_HmLen(const CONT_Hm *pHm) {
+    ASSERT_INVARIANT_EXPR(pHm);
 
-    return hm->elem_len;
+    return pHm->elem_len;
 }
 
 PRP_API PRP_Size PRP_CALL CONT_HmMaxCap(void) { return MAX_ELEM_CAP; }
 
 PRP_API PRP_Result PRP_CALL CONT_HmForEachUnchecked(
-    CONT_Hm *hm, PRP_Result (*cb)(void *key, void *val, void *pUser_data),
+    CONT_Hm *pHm, PRP_Result (*pCb)(void *pKey, void *pVal, void *pUser_data),
     void *pUser_data) {
-    ASSERT_INVARIANT_EXPR(hm);
-    PRP_DIAG_ASSERT(cb != NULL);
+    ASSERT_INVARIANT_EXPR(pHm);
+    PRP_DIAG_ASSERT(pCb != NULL);
 
-    for (PRP_Size i = 0; i < hm->elem_len; i++) {
-        Elem elem = hm->elems[i];
-        PRP_Result code = cb(elem.key, elem.val, pUser_data);
+    for (PRP_Size i = 0; i < pHm->elem_len; i++) {
+        Elem elem = pHm->pElems[i];
+        PRP_Result code = pCb(elem.pKey, elem.pVal, pUser_data);
         if (code != PRP_OK) {
             return code;
         }
@@ -476,41 +480,42 @@ PRP_API PRP_Result PRP_CALL CONT_HmForEachUnchecked(
 }
 
 PRP_API PRP_Result PRP_CALL CONT_HmForEachChecked(
-    CONT_Hm *hm, PRP_Result (*cb)(void *key, void *val, void *pUser_data),
+    CONT_Hm *pHm, PRP_Result (*pCb)(void *pKey, void *pVal, void *pUser_data),
     void *pUser_data) {
-    if (!CONT_HmIsValid(hm) || !cb) {
+    if (!CONT_HmIsValid(pHm) || !pCb) {
         return PRP_ERR_INV_ARG;
     }
 
-    return CONT_HmForEachUnchecked(hm, cb, pUser_data);
+    return CONT_HmForEachUnchecked(pHm, pCb, pUser_data);
 }
 
-PRP_API void PRP_CALL CONT_HmResetUnchecked(CONT_Hm *hm) {
-    ASSERT_INVARIANT_EXPR(hm);
+PRP_API void PRP_CALL CONT_HmResetUnchecked(CONT_Hm *pHm) {
+    ASSERT_INVARIANT_EXPR(pHm);
 
     // Setting all to empty indices as memset works per byte.
-    memset(hm->layout, LAYOUT_EMPTYING_MASK, sizeof(PRP_Size) * hm->layout_cap);
-    for (PRP_Size i = 0; i < hm->elem_len; i++) {
-        Elem elem = hm->elems[i];
-        if (hm->key_del_cb) {
-            hm->key_del_cb(elem.key);
+    memset(pHm->pLayout, LAYOUT_EMPTYING_MASK,
+           sizeof(PRP_Size) * pHm->layout_cap);
+    for (PRP_Size i = 0; i < pHm->elem_len; i++) {
+        Elem elem = pHm->pElems[i];
+        if (pHm->pKey_del_cb) {
+            pHm->pKey_del_cb(elem.pKey);
         }
-        if (elem.val && hm->val_del_cb) {
-            hm->val_del_cb(elem.val);
+        if (elem.pVal && pHm->pVal_del_cb) {
+            pHm->pVal_del_cb(elem.pVal);
         }
     }
 #ifdef PRP_DEBUG_MODE
-    memset(hm->elems, 0, hm->elem_len * sizeof(Elem));
+    memset(pHm->pElems, 0, pHm->elem_len * sizeof(Elem));
 #endif
-    hm->elem_len = 0;
+    pHm->elem_len = 0;
 }
 
-PRP_API PRP_Result PRP_CALL CONT_HmResetChecked(CONT_Hm *hm) {
-    if (!CONT_HmIsValid(hm)) {
+PRP_API PRP_Result PRP_CALL CONT_HmResetChecked(CONT_Hm *pHm) {
+    if (!CONT_HmIsValid(pHm)) {
         return PRP_ERR_INV_ARG;
     }
 
-    CONT_HmResetUnchecked(hm);
+    CONT_HmResetUnchecked(pHm);
 
     return PRP_OK;
 }

@@ -11,21 +11,21 @@ extern "C" {
 /**
  * Hash func can be used to hash a string using FNV1a64 hashing.
  *
- * @param key The key to hash.
+ * @param pStr_key The pKey to hash.
  *
- * @return The hash created of the key.
+ * @return The hash created of the pKey.
  *
  * @note Generic Use Case Tip:
- * - This can be used to hash any generic byte stream, just cast it to a PRP_Char8
- * ptr and make sure the last byte is nul byte.
+ * - This can be used to hash any generic byte stream, just cast it to a
+ * PRP_Char8 ptr and make sure the last byte is nul byte.
  */
-PRP_U64 CONT_HmHashStr(const void *str_key);
+PRP_U64 CONT_HmHashStr(const void *pStr_key);
 /**
  * Hash func can be used to hash a u64 using SplitMix64 hashing.
  *
- * @param key The key to hash.
+ * @param pU64_key The pKey to hash.
  *
- * @return The hash created of the key.
+ * @return The hash created of the pKey.
  *
  * @note Generic Use Case Tip:
  * - This can be used to hash ptrs, ints(any size), uints(any size) if the user
@@ -38,7 +38,7 @@ PRP_U64 CONT_HmHashSplitMix64(const void *u64_key);
 /**
  * CONT_Hm
  *
- * A generic hashmap storing key-value pairs.
+ * A generic hashmap storing pKey-value pairs.
  *
  * - Uses user-provided hash and comparison functions.
  * - Supports custom destruction callbacks for keys and values.
@@ -49,20 +49,20 @@ typedef struct CONT_Hm CONT_Hm;
 /**
  * Checks whether the given hashmap is structurally valid.
  *
- * @param hm Pointer to the hashmap.
+ * @param pHm Pointer to the hashmap.
  *
  * @return PRP_True if valid, PRP_False otherwise.
  */
-PRP_API PRP_Bool PRP_CALL CONT_HmIsValid(const CONT_Hm *hm);
+PRP_API PRP_Bool PRP_CALL CONT_HmIsValid(const CONT_Hm *pHm);
 
 /**
  * Creates a hashmap with user-defined behavior.
  *
- * @param hash_fn     Function used to hash keys.
- * @param key_cmp_cb  Function used to compare keys.
- * @param key_del_cb  Callback to destroy keys (can be NULL if not needed).
- * @param val_del_cb  Callback to destroy values (can be NULL if not needed).
- * @param pHm         Output pointer receiving the created hashmap.
+ * @param pHash_fn     Function used to hash keys.
+ * @param pKey_cmp_cb  Function used to compare keys.
+ * @param pKey_del_cb  Callback to destroy keys (can be NULL if not needed).
+ * @param pVal_del_cb  Callback to destroy values (can be NULL if not needed).
+ * @param ppHm         Output pointer receiving the created hashmap.
  *
  * @return PRP_OK on success.
  * @return PRP_ERR_OOM if allocation fails.
@@ -70,57 +70,57 @@ PRP_API PRP_Bool PRP_CALL CONT_HmIsValid(const CONT_Hm *hm);
  * @note Unchecked variant:
  * - Asserts on invalid arguments in debug.
  */
-PRP_API PRP_Result PRP_CALL
-CONT_HmCreateUnchecked(PRP_U64 (*hash_fn)(const void *key),
-                       PRP_Bool (*key_cmp_cb)(const void *k1, const void *k2),
-                       PRP_Result (*key_del_cb)(void *key),
-                       PRP_Result (*val_del_cb)(void *val), CONT_Hm **pHm);
+PRP_API PRP_Result PRP_CALL CONT_HmCreateUnchecked(
+    PRP_U64 (*pHash_fn)(const void *pKey),
+    PRP_Bool (*pKey_cmp_cb)(const void *pKey1, const void *pKey2),
+    PRP_Result (*pKey_del_cb)(void *pKey),
+    PRP_Result (*pVal_del_cb)(void *pVal), CONT_Hm **ppHm);
 
 /**
  * Creates a hashmap with validation.
  *
- * @param hash_fn     Function used to hash keys.
- * @param key_cmp_cb  Function used to compare keys.
- * @param key_del_cb  Callback to destroy keys.
- * @param val_del_cb  Callback to destroy values.
- * @param pHm         Output pointer receiving the created hashmap.
+ * @param pHash_fn     Function used to hash keys.
+ * @param pKey_cmp_cb  Function used to compare keys.
+ * @param pKey_del_cb  Callback to destroy keys (can be NULL if not needed).
+ * @param pVal_del_cb  Callback to destroy values (can be NULL if not needed).
+ * @param ppHm         Output pointer receiving the created hashmap.
  *
  * @return PRP_OK on success.
  * @return PRP_ERR_INV_ARG if arguments are invalid.
  * @return PRP_ERR_OOM if allocation fails.
  */
-PRP_API PRP_Result PRP_CALL
-CONT_HmCreateChecked(PRP_U64 (*hash_fn)(const void *key),
-                     PRP_Bool (*key_cmp_cb)(const void *k1, const void *k2),
-                     PRP_Result (*key_del_cb)(void *key),
-                     PRP_Result (*val_del_cb)(void *val), CONT_Hm **pHm);
+PRP_API PRP_Result PRP_CALL CONT_HmCreateChecked(
+    PRP_U64 (*pHash_fn)(const void *pKey),
+    PRP_Bool (*pKey_cmp_cb)(const void *pKey1, const void *pKey2),
+    PRP_Result (*pKey_del_cb)(void *pKey),
+    PRP_Result (*pVal_del_cb)(void *pVal), CONT_Hm **ppHm);
 
 /**
  * Deletes the hashmap and nullifies the pointer.
  *
- * @param pHm Pointer to hashmap pointer.
+ * @param ppHm Pointer to hashmap pointer.
  *
  * @note Unchecked variant:
  * - Asserts on invalid arguments in debug.
  */
-PRP_API void PRP_CALL CONT_HmDeleteUnchecked(CONT_Hm **pHm);
+PRP_API void PRP_CALL CONT_HmDeleteUnchecked(CONT_Hm **ppHm);
 
 /**
  * Deletes the hashmap and nullifies the pointer.
  *
- * @param pHm Pointer to hashmap pointer.
+ * @param ppHm Pointer to hashmap pointer.
  *
  * @return PRP_OK on success.
- * @return PRP_ERR_INV_ARG if pHm or *pHm is invalid.
+ * @return PRP_ERR_INV_ARG if ppHm or *ppHm is invalid.
  */
-PRP_API PRP_Result PRP_CALL CONT_HmDeleteChecked(CONT_Hm **pHm);
+PRP_API PRP_Result PRP_CALL CONT_HmDeleteChecked(CONT_Hm **ppHm);
 
 /**
- * Inserts a key-value pair into the hashmap.
+ * Inserts a pKey-value pair into the hashmap.
  *
- * @param hm  Hashmap instance.
- * @param key Key (must not be NULL).
- * @param val Value associated with the key.
+ * @param pHm  Hashmap instance.
+ * @param pKey Key (must not be NULL).
+ * @param pVal Value associated with the pKey.
  *
  * @return PRP_OK on success.
  * @return PRP_ERR_OOM or PRP_ERR_RES_EXHAUSTED if insertion fails.
@@ -128,90 +128,91 @@ PRP_API PRP_Result PRP_CALL CONT_HmDeleteChecked(CONT_Hm **pHm);
  * @note Unchecked variant:
  * - Asserts on invalid arguments in debug.
  */
-PRP_API PRP_Result PRP_CALL CONT_HmAddUnchecked(CONT_Hm *hm, void *key,
-                                                void *val,
+PRP_API PRP_Result PRP_CALL CONT_HmAddUnchecked(CONT_Hm *pHm, void *pKey,
+                                                void *pVal,
                                                 PRP_Bool fail_on_duplicate);
 
 /**
- * Inserts a key-value pair with validation.
+ * Inserts a pKey-value pair with validation.
  *
- * @param hm  Hashmap instance.
- * @param key Key.
- * @param val Value.
+ * @param pHm  Hashmap instance.
+ * @param pKey Key (must not be NULL).
+ * @param pVal Value associated with the pKey.
  *
  * @return PRP_OK on success.
  * @return PRP_ERR_INV_ARG if arguments are invalid.
  * @return PRP_ERR_OOM or PRP_ERR_RES_EXHAUSTED if insertion fails.
  */
-PRP_API PRP_Result PRP_CALL CONT_HmAddChecked(CONT_Hm *hm, void *key, void *val,
+PRP_API PRP_Result PRP_CALL CONT_HmAddChecked(CONT_Hm *pHm, void *pKey,
+                                              void *pVal,
                                               PRP_Bool fail_on_duplicate);
 
 /**
- * Retrieves the value associated with a key.
+ * Retrieves the value associated with a pKey.
  *
- * @param hm   Hashmap instance.
- * @param key  Key to search.
+ * @param pHm  Hashmap instance.
+ * @param pKey Key to search.
  * @param pVal Output pointer receiving the value if found.
  *
- * @return PRP_OK if key is found.
- * @return PRP_ERR_NOT_FOUND if key does not exist.
+ * @return PRP_OK if pKey is found.
+ * @return PRP_ERR_NOT_FOUND if pKey does not exist.
  *
  * @note Unchecked variant:
  * - Asserts on invalid arguments in debug.
  */
-PRP_API PRP_Result PRP_CALL CONT_HmGetUnchecked(const CONT_Hm *hm, void *key,
+PRP_API PRP_Result PRP_CALL CONT_HmGetUnchecked(const CONT_Hm *pHm, void *pKey,
                                                 void **pVal);
 
 /**
- * Retrieves the value associated with a key with validation.
+ * Retrieves the value associated with a pKey with validation.
  *
- * @param hm   Hashmap instance.
- * @param key  Key to search.
+ * @param pHm  Hashmap instance.
+ * @param pKey Key to search.
  * @param pVal Output pointer receiving the value if found.
  *
- * @return PRP_OK if key is found.
- * @return PRP_ERR_NOT_FOUND if key does not exist.
+ * @return PRP_OK if pKey is found.
+ * @return PRP_ERR_NOT_FOUND if pKey does not exist.
  * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
-PRP_API PRP_Result PRP_CALL CONT_HmGetChecked(const CONT_Hm *hm, void *key,
+PRP_API PRP_Result PRP_CALL CONT_HmGetChecked(const CONT_Hm *pHm, void *pKey,
                                               void **pVal);
 
 /**
- * Removes a key-value pair from the hashmap.
+ * Removes a pKey-value pair from the hashmap.
  *
- * @param hm  Hashmap instance.
- * @param key Key identifying the entry.
+ * @param pHm  Hashmap instance.
+ * @param pKey Key identifying the entry.
  *
  * @return PRP_OK on success.
- * @return PRP_ERR_NOT_FOUND if key does not exist.
+ * @return PRP_ERR_NOT_FOUND if pKey does not exist.
  *
  * @note Unchecked variant:
  * - Asserts on invalid arguments in debug.
  */
-PRP_API PRP_Result PRP_CALL CONT_HmDelElemUnchecked(CONT_Hm *hm, void *key);
+PRP_API PRP_Result PRP_CALL CONT_HmDelElemUnchecked(CONT_Hm *pHm, void *pKey);
 
 /**
- * Removes a key-value pair with validation.
+ * Removes a pKey-value pair with validation.
  *
- * @param hm  Hashmap instance.
- * @param key Key identifying the entry.
+ * @param pHm  Hashmap instance.
+ * @param pKey Key identifying the entry.
  *
  * @return PRP_OK on success.
- * @return PRP_ERR_NOT_FOUND if key does not exist.
+ * @return PRP_ERR_NOT_FOUND if pKey does not exist.
  * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
-PRP_API PRP_Result PRP_CALL CONT_HmDelElemChecked(CONT_Hm *hm, void *key);
+PRP_API PRP_Result PRP_CALL CONT_HmDelElemChecked(CONT_Hm *pHm, void *pKey);
 
 /**
  * Returns the number of elements currently stored.
  *
- * @param hm Hashmap instance.
+ * @param pHm Hashmap instance.
  *
  * @return Number of elements.
  *
  * @note Assumes valid hashmap (asserts in debug).
  */
-PRP_API PRP_Size PRP_CALL CONT_HmLen(const CONT_Hm *hm);
+PRP_API PRP_Size PRP_CALL CONT_HmLen(const CONT_Hm *pHm);
 
 /**
  * Returns the maximum capacity supported by the hashmap.
@@ -221,10 +222,10 @@ PRP_API PRP_Size PRP_CALL CONT_HmLen(const CONT_Hm *hm);
 PRP_API PRP_Size PRP_CALL CONT_HmMaxCap(void);
 
 /**
- * Iterates over all key-value pairs.
+ * Iterates over all pKey-value pairs.
  *
- * @param hm         Hashmap instance.
- * @param cb         Callback invoked per element.
+ * @param pHm        Hashmap instance.
+ * @param pCb        Callback invoked per element.
  * @param pUser_data User-provided context.
  *
  * @return PRP_OK if iteration completes.
@@ -234,14 +235,14 @@ PRP_API PRP_Size PRP_CALL CONT_HmMaxCap(void);
  * - Asserts on invalid arguments in debug.
  */
 PRP_API PRP_Result PRP_CALL CONT_HmForEachUnchecked(
-    CONT_Hm *hm, PRP_Result (*cb)(void *key, void *val, void *pUser_data),
+    CONT_Hm *pHm, PRP_Result (*pCb)(void *pKey, void *pVal, void *pUser_data),
     void *pUser_data);
 
 /**
- * Iterates over all key-value pairs with validation.
+ * Iterates over all pKey-value pairs with validation.
  *
- * @param hm         Hashmap instance.
- * @param cb         Callback invoked per element.
+ * @param pHm        Hashmap instance.
+ * @param pCb        Callback invoked per element.
  * @param pUser_data User-provided context.
  *
  * @return PRP_OK if iteration completes.
@@ -249,7 +250,7 @@ PRP_API PRP_Result PRP_CALL CONT_HmForEachUnchecked(
  * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
 PRP_API PRP_Result PRP_CALL CONT_HmForEachChecked(
-    CONT_Hm *hm, PRP_Result (*cb)(void *key, void *val, void *pUser_data),
+    CONT_Hm *pHm, PRP_Result (*pCb)(void *pKey, void *pVal, void *pUser_data),
     void *pUser_data);
 
 /**
@@ -258,22 +259,22 @@ PRP_API PRP_Result PRP_CALL CONT_HmForEachChecked(
  * - All entries are removed.
  * - Key/value destructors are invoked if provided.
  *
- * @param hm Hashmap instance.
+ * @param pHm Hashmap instance.
  *
  * @note Unchecked variant:
  * - Asserts on invalid arguments in debug.
  */
-PRP_API void PRP_CALL CONT_HmResetUnchecked(CONT_Hm *hm);
+PRP_API void PRP_CALL CONT_HmResetUnchecked(CONT_Hm *pHm);
 
 /**
  * Resets the hashmap with validation.
  *
- * @param hm Hashmap instance.
+ * @param pHm Hashmap instance.
  *
  * @return PRP_OK on success.
  * @return PRP_ERR_INV_ARG if hashmap is invalid.
  */
-PRP_API PRP_Result PRP_CALL CONT_HmResetChecked(CONT_Hm *hm);
+PRP_API PRP_Result PRP_CALL CONT_HmResetChecked(CONT_Hm *pHm);
 
 #ifdef __cplusplus
 }
