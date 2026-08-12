@@ -22,6 +22,7 @@ CONT_ByteBffrCreateUnchecked(PRP_Size size, CONT_ByteBffr **ppB_bffr) {
     PRP_DIAG_ASSERT_MSG(size > 0, "The size of the byte buffer must be > 0.");
     PRP_DIAG_ASSERT(ppB_bffr != NULL);
 
+    *ppB_bffr = NULL;
     CONT_ByteBffr *pB_bffr = malloc(sizeof(CONT_ByteBffr));
     if (!pB_bffr) {
         return PRP_ERR_OOM;
@@ -396,7 +397,8 @@ PRP_API PRP_Result PRP_CALL CONT_ByteBffrReserveChecked(CONT_ByteBffr *pB_bffr,
 PRP_API PRP_Result PRP_CALL
 CONT_ByteBffrChangeSizeUnchecked(CONT_ByteBffr *pB_bffr, PRP_Size new_size) {
     ASSERT_INVARIANT_EXPR(pB_bffr);
-    PRP_DIAG_ASSERT_MSG(new_size > 0,"The new size of byte buffer must be > 0.");
+    PRP_DIAG_ASSERT_MSG(new_size > 0,
+                        "The new size of byte buffer must be > 0.");
 
     if (pB_bffr->size == new_size) {
         return PRP_OK;

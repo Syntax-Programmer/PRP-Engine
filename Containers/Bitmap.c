@@ -136,6 +136,7 @@ PRP_API PRP_Result PRP_CALL CONT_BitmapCreateUnchecked(PRP_Size bit_cap,
         "The bit_cap of the bitmap must be <= CONT_BITMAP_MAX_BIT_CAP.");
     PRP_DIAG_ASSERT(ppBmp != NULL);
 
+    *ppBmp = NULL;
     CONT_Bitmap *pBmp = malloc(sizeof(CONT_Bitmap));
     if (!pBmp) {
         return PRP_ERR_OOM;
