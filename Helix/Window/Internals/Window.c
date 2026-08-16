@@ -1,49 +1,4 @@
-#pragma once
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#include "Core/Defs.h"
-#include "Helix/Window/Internals/Typedefs.h"
-#include "vulkan/vulkan.h"
-
-/**
-    Tier 1 (implement now)
-    Window System
-     Win32
-     X11
-     Wayland
-     Cocoa (macos only not ios)
-
-
-     Tier 2 (later)
-     Android
-     iOS
-     Web (Emscripten)
-
-
-     Tier 3 (very far future)
-     PS5
-     Xbox
-     Nintendo Switch
-     Steam Deck specific APIs
-
-     Those require vendor SDKs.
-
-     Ignore them.
- */
-
-typedef struct HLIX_WindowCreateInfo {
-    const PRP_Char8 *pTitle;
-
-    PRP_U32 width;
-    PRP_U32 height;
-
-    HLIX_WindowFlags flags;
-
-    void *pUser_data;
-} HLIX_WindowCreateInfo;
+#include "Helix/Window/Window.h"
 
 /* ---- CREATE / DESTROY ---- */
 
@@ -170,6 +125,23 @@ PRP_API PRP_Result PRP_CALL HLIX_WindowCreateSurface(const HLIX_Window *pWindow,
 
 /* ---- CALLBACKS ---- */
 
+typedef void (*HLIX_WindowResizeCb)(HLIX_Window *pWindow, PRP_U32 width,
+                                    PRP_U32 height, void *pUser_data);
+typedef void (*HLIX_WindowMoveCb)(HLIX_Window *pWindow, PRP_I32 x, PRP_I32 y,
+                                  void *pUser_data);
+typedef void (*HLIX_WindowFocusCb)(HLIX_Window *pWindow, PRP_Bool focused,
+                                   void *pUser_data);
+typedef void (*HLIX_WindowCloseCb)(HLIX_Window *pWindow, void *pUser_data);
+typedef void (*HLIX_MouseCb)(HLIX_Window *pWindow, PRP_I32 button,
+                             PRP_I32 action, PRP_I32 mods, void *pUser_data);
+typedef void (*HLIX_KeyCb)(HLIX_Window *pWindow, PRP_I32 key, PRP_I32 scancode,
+                           PRP_I32 action, PRP_I32 mods, void *pUser_data);
+typedef void (*HLIX_ScrollCb)(HLIX_Window *pWindow, PRP_F64 xOffset,
+                              PRP_F64 yOffset, void *pUser_data);
+typedef void (*HLIX_DropFileCb)(HLIX_Window *pWindow, PRP_Size count,
+                                const PRP_Char8 *const *ppPaths,
+                                void *pUser_data);
+
 PRP_API PRP_Result PRP_CALL HLIX_WindowSetResizeCallback(
     HLIX_Window *pWindow, HLIX_WindowResizeCb callback, void *pUser_data);
 PRP_API PRP_Result PRP_CALL HLIX_WindowSetMoveCallback(
@@ -189,7 +161,3 @@ PRP_API PRP_Result PRP_CALL HLIX_WindowSetScrollCallback(HLIX_Window *pWindow,
                                                          void *pUser_data);
 PRP_API PRP_Result PRP_CALL HLIX_WindowSetDropFileCallback(
     HLIX_Window *pWindow, HLIX_DropFileCb callback, void *pUser_data);
-
-#ifdef __cplusplus
-}
-#endif
