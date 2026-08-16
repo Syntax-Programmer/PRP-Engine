@@ -18,6 +18,11 @@ extern "C" {
  * PRP_USE_DLL
  *     Indicates that PRP is being linked against as a shared library.
  *     Public symbols are imported.
+ *
+ * PRP_WINDOW_BACKEND_USE_WAYLAND
+ *     Indicates that PRP is run on linux, and the user specifically wants to
+ *     use Wayland window backend for helix, otherwise default window backend
+ *     for linux is x11.
  */
 
 #ifdef PRP_NDEBUG
@@ -50,6 +55,34 @@ extern "C" {
 
 #else
 #error Unsupported Platform Detected
+#endif
+
+/* ---- WINDOW SYSTEM BACKEND DETECTION ---- */
+
+#if PRP_PLATFORM_WINDOWS
+#define PRP_WINDOW_BACKEND_WIN32 1
+
+#elif PRP_PLATFORM_MACOS
+#define PRP_WINDOW_BACKEND_COCOA 1
+
+#elif PRP_PLATFORM_LINUX
+#if defined(PRP_WINDOW_BACKEND_USE_WAYLAND)
+#define PRP_WINDOW_BACKEND_WAYLAND 1
+#else
+#define PRP_WINDOW_BACKEND_X11 1
+#endif
+
+#elif PRP_PLATFORM_ANDROID
+#define PRP_WINDOW_BACKEND_ANDROID 1
+
+#elif PRP_PLATFORM_IOS
+#define PRP_WINDOW_BACKEND_UIKIT 1
+
+#elif PRP_PLATFORM_WEB
+#define PRP_WINDOW_BACKEND_EMSCRIPTEN 1
+
+#else
+#error Unsupported Window Backend Detected
 #endif
 
 /* ----  COMPILER DETECTION ---- */
