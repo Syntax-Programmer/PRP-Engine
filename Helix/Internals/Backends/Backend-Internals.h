@@ -6,6 +6,15 @@ extern "C" {
 
 #include "Helix/Internals/Typedefs.h"
 
+/* ---- INTERNAL CONTEXT ---- */
+
+// Shared context across every window.
+typedef struct HLIX_InternalCtx HLIX_InternalCtx;
+
+extern HLIX_InternalCtx *g_ctx;
+
+/* ---- WINDOW ---- */
+
 typedef struct HLIX_Window {
     /* ---- GENERIC STATE ---- */
 

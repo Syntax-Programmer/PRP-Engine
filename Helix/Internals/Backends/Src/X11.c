@@ -11,3 +11,11 @@
  * legacy software. highest roi will come from me making win32 and wayland
  * first.
  */
+
+typedef struct HLIX_InternalCtx {
+} HLIX_InternalCtx;
+
+HLIX_InternalCtx *g_ctx = NULL;
+
+PRP_Result InternalCtxInit(void);
+PRP_Result InternalCtxInit(void);

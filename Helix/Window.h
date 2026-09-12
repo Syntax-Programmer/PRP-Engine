@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Core/Platform.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -189,6 +190,11 @@ PRP_API PRP_Result PRP_CALL HLIX_WindowSetScrollCallback(HLIX_Window *pWindow,
                                                          void *pUser_data);
 PRP_API PRP_Result PRP_CALL HLIX_WindowSetDropFileCallback(
     HLIX_Window *pWindow, HLIX_DropFileCb callback, void *pUser_data);
+
+/* ---- INITIALIZE/EXIT ---- */
+
+PRP_API PRP_Result PRP_CALL HLIX_Init(void);
+PRP_API PRP_Result PRP_CALL HLIX_Exit(void);
 
 #ifdef __cplusplus
 }

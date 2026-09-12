@@ -1,4 +1,5 @@
 #include "Helix/Window.h"
+#include "Helix/Internals/Backends/Backend-Internals.h"
 
 /* ---- CREATE / DESTROY ---- */
 
@@ -161,3 +162,8 @@ PRP_API PRP_Result PRP_CALL HLIX_WindowSetScrollCallback(HLIX_Window *pWindow,
                                                          void *pUser_data);
 PRP_API PRP_Result PRP_CALL HLIX_WindowSetDropFileCallback(
     HLIX_Window *pWindow, HLIX_DropFileCb callback, void *pUser_data);
+
+/* ---- INITIALIZE/EXIT ---- */
+
+PRP_API PRP_Result PRP_CALL HLIX_Init(void);
+PRP_API PRP_Result PRP_CALL HLIX_Exit(void);
