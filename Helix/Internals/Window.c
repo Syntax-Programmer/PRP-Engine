@@ -1,4 +1,4 @@
-#include "Helix/Window/Window.h"
+#include "Helix/Window.h"
 
 /* ---- CREATE / DESTROY ---- */
 

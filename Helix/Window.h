@@ -5,7 +5,7 @@ extern "C" {
 #endif
 
 #include "Core/Defs.h"
-#include "Helix/Window/Internals/Typedefs.h"
+#include "Helix/Internals/Typedefs.h"
 #include "vulkan/vulkan.h"
 
 /**

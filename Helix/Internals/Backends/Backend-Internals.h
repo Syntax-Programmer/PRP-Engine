@@ -4,8 +4,7 @@
 extern "C" {
 #endif
 
-#include "Core/Defs.h"
-#include "Helix/Window/Internals/Typedefs.h"
+#include "Helix/Internals/Typedefs.h"
 
 typedef struct HLIX_Window {
     /* ---- GENERIC STATE ---- */
@@ -22,28 +21,33 @@ typedef struct HLIX_Window {
     /* ---- CALLBACKS ---- */
 
     HLIX_WindowResizeCb resize_cb;
-    HLIX_WindowMoveCb move_cb;
-    HLIX_WindowFocusCb focus_cb;
-    HLIX_WindowCloseCb close_cb;
-    HLIX_MouseCb mouse_cb;
-    HLIX_KeyCb key_cb;
-    HLIX_ScrollCb scroll_cb;
-    HLIX_DropFileCb drop_file_cb;
-
-    /* ---- CALLBACK USER DATA ---- */
-
     void *pResize_cb_user_data;
+
+    HLIX_WindowMoveCb move_cb;
     void *pMove_cb_user_data;
+
+    HLIX_WindowFocusCb focus_cb;
     void *pFocus_cb_user_data;
+
+    HLIX_WindowCloseCb close_cb;
     void *pClose_cb_user_data;
+
+    HLIX_MouseCb mouse_cb;
     void *pMouse_cb_user_data;
+
+    HLIX_KeyCb key_cb;
     void *pKey_cb_user_data;
+
+    HLIX_ScrollCb scroll_cb;
     void *pScroll_cb_user_data;
+
+    HLIX_DropFileCb drop_file_cb;
     void *pDrop_file_cb_user_data;
 
     /* ---- GENERIC BACKEND ---- */
 
     void *pBackend;
+    void *pWindow;
 } HLIX_Window;
 
 #ifdef __cplusplus
