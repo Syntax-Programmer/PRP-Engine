@@ -488,6 +488,8 @@ FECS_SystemInstanceFetchComp(const FECS_SystemExecInternalData *pExec_internals,
 
 /* ----  FECS ---- */
 
+FECS_InternalCtx *g_ctx = NULL;
+
 PRP_API PRP_Result PRP_CALL FECS_Init(void) {
     if (CTX_INVARIANT_EXPR) {
         return PRP_OK;

@@ -1,7 +1,5 @@
 #include "Forge/Internals/FECS/FECS-Internals.h"
 
-FECS_InternalCtx *g_ctx = NULL;
-
 /* ----  COMPS ---- */
 
 PRP_Result CompRegister(PRP_Char8 *pName, PRP_Size name_len, PRP_Size comp_size,
