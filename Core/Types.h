@@ -4,11 +4,14 @@
 extern "C" {
 #endif
 
+#include <limits.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
-// So that all using this get the access to malloc/realloc/free.
 #include <stdlib.h>
+#include <uchar.h>
+
+/* ---- Fixed-width integers ---- */
 
 typedef uint64_t PRP_U64;
 typedef int64_t PRP_I64;
@@ -22,26 +25,57 @@ typedef int16_t PRP_I16;
 typedef uint8_t PRP_U8;
 typedef int8_t PRP_I8;
 
+/* ---- Bit-precise integers (C23) ---- */
+
+typedef unsigned _BitInt(24) PRP_U24;
+typedef _BitInt(24) PRP_I24;
+
+typedef unsigned _BitInt(40) PRP_U40;
+typedef _BitInt(40) PRP_I40;
+
+typedef unsigned _BitInt(48) PRP_U48;
+typedef _BitInt(48) PRP_I48;
+
+typedef unsigned _BitInt(56) PRP_U56;
+typedef _BitInt(56) PRP_I56;
+
+/* ---- Binary floating point ---- */
+
 typedef float PRP_F32;
 typedef double PRP_F64;
+
+/* ---- Decimal floating point (C23) ---- */
+
+/*
+ * Available only when the implementation supports
+ * IEC 60559 decimal floating-point arithmetic.
+ */
+#ifdef PRP_HAS_DECIMAL_FLOAT
+typedef _Decimal32 PRP_D32;
+typedef _Decimal64 PRP_D64;
+typedef _Decimal128 PRP_D128;
+#endif
+
+/* ---- Character types ---- */
+
+typedef char8_t PRP_UChar8;
+typedef char16_t PRP_UChar16;
+typedef char32_t PRP_UChar32;
 
 typedef char PRP_Char8;
 typedef uint16_t PRP_Char16;
 typedef uint32_t PRP_Char32;
 
-/**
- * This is an system dependent type.
- *
- * For 64 bit systems it is most likely 8 bytes.
- *
- * For 32 bit systems it is most likely 4 bytes.
- */
+/* ---- Pointer and size types ---- */
+
+typedef nullptr_t PRP_NullptrT;
+
 typedef size_t PRP_Size;
 typedef ptrdiff_t PRP_PtrDiff;
 
+/* ---- Boolean ---- */
+
 typedef bool PRP_Bool;
-#define PRP_True (true)
-#define PRP_False (false)
 
 /* ----  MIN MAX VALUES  ---- */
 
@@ -70,6 +104,7 @@ typedef bool PRP_Bool;
 #define PRP_U64_MIN ((PRP_U64)0ull)
 
 #define PRP_SIZE_MAX (SIZE_MAX)
+#define PRP_BITINT_MAXWIDTH (BITINT_MAXWIDTH)
 
 #ifdef __cplusplus
 }

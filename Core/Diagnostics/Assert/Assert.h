@@ -6,12 +6,12 @@ extern "C" {
 
 #include "Core/Defs.h"
 
-typedef enum PRP_DiagFailureType {
-    PRP_DIAG_FAILURE_TYPE_VERIFY,
-    PRP_DIAG_FAILURE_TYPE_PANIC,
-    PRP_DIAG_FAILURE_TYPE_ASSERTION,
-    PRP_DIAG_FAILURE_TYPE_UNREACHABLE,
-    PRP_DIAG_FAILURE_TYPE_UNIMPLEMENTED,
+typedef enum PRP_DiagFailureType : PRP_U8 {
+    PRP_DIAG_FAILURE_TYPE_VERIFY = 0,
+    PRP_DIAG_FAILURE_TYPE_PANIC = 1,
+    PRP_DIAG_FAILURE_TYPE_ASSERTION = 2,
+    PRP_DIAG_FAILURE_TYPE_UNREACHABLE = 3,
+    PRP_DIAG_FAILURE_TYPE_UNIMPLEMENTED = 4,
 } PRP_DiagFailureType;
 
 typedef struct PRP_DiagFailureInfo {
@@ -21,7 +21,6 @@ typedef struct PRP_DiagFailureInfo {
     const PRP_Char8 *pFile;
     const PRP_Char8 *pFunc;
     PRP_U32 line;
-
     // Future stack trace using platform apis.
 } PRP_DiagFailureInfo;
 
@@ -110,7 +109,7 @@ PRP_DiagLogFailure(const PRP_DiagFailureInfo *pFailure_info);
 
 /* ----  STATIC ASSERT ---- */
 
-#define PRP_DIAG_STATIC_ASSERT(expr, msg) _Static_assert(expr, msg)
+#define PRP_DIAG_STATIC_ASSERT(expr, msg) static_assert(expr, msg)
 
 /* ----  ASSERT ---- */
 

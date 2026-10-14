@@ -1,5 +1,5 @@
 #include "Assert.h"
-#include "Core/Logging/Log.h"
+#include "Core/Diagnostics/Logs/Log.h"
 
 PRP_API void PRP_CALL
 PRP_DiagLogFailure(const PRP_DiagFailureInfo *pFailure_info) {
@@ -29,8 +29,8 @@ PRP_DiagLogFailure(const PRP_DiagFailureInfo *pFailure_info) {
         break;
     }
 
-    PRP_Log(PRP_DIAG_DEFAULT_FAILURE_LOG_FILE, PRP_LOG_LVL_ERROR,
-            pFailure_info->pFile, pFailure_info->pFunc, pFailure_info->line,
-            "%s: (%s) : %s", initial_str, pFailure_info->pExpr,
-            pFailure_info->pMsg);
+    PRP_DiagLog(PRP_DIAG_DEFAULT_FAILURE_LOG_FILE, PRP_DIAG_LOG_LVL_ERROR,
+                pFailure_info->pFile, pFailure_info->pFunc, pFailure_info->line,
+                "%s: (%s) : %s", initial_str, pFailure_info->pExpr,
+                pFailure_info->pMsg);
 }

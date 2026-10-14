@@ -7,10 +7,11 @@ extern "C" {
 #include "Platform.h"
 #include "Types.h"
 
-#define PRP_INVALID_SIZE ((PRP_Size)(-1))
-#define PRP_INVALID_INDEX ((PRP_Size)(-1))
-// Pos is like a 1 based index.
-#define PRP_INVALID_POS ((PRP_Size)(0))
+// Invalid sentinel value for sizes/indices(0-based).
+#define PRP_INVALID_SIZE ((PRP_Size)(~0ULL))
+#define PRP_INVALID_INDEX ((PRP_Size)(~0ULL))
+// Invalid sentinel value for position(1-based).
+#define PRP_INVALID_POS ((PRP_Size)(0ULL))
 
 #define PRP_POS_TO_I(pos) ((pos) - 1)
 #define PRP_I_TO_POS(i) ((i) + 1)
@@ -26,10 +27,13 @@ extern "C" {
 #define PRP_MAX(x, y) (((x) > (y)) ? (x) : (y))
 #define PRP_MIN(x, y) (((x) > (y)) ? (y) : (x))
 
+/*
+ * Aligns val upwards to align.
+ * Preconditions:
+ * - align is a nonzero power of two.
+ * - val + align - 1 does not overflow.
+ */
 #define PRP_ALIGN_UP(val, align) (((val) + ((align) - 1)) & ~((align) - 1))
-
-#define PRP_STRINGIFY_IMPL(x) #x
-#define PRP_STRINGIFY(x) PRP_STRINGIFY_IMPL(x)
 
 typedef enum PRP_Result {
     PRP_OK = 0,

@@ -198,6 +198,12 @@ extern "C" {
 
 /* ---- BIUILTIN DETECTION ---- */
 
+/* ----  DECIMAL FLOATING POINT DETECTION ---- */
+
+#ifdef __STDC_IEC_60559_DFP__
+#define PRP_HAS_DECIMAL_FLOAT 1
+#endif
+
 #ifdef __has_builtin
 
 #if __has_builtin(__builtin_popcount)
