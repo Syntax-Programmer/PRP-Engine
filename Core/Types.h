@@ -72,6 +72,7 @@ typedef nullptr_t PRP_NullptrT;
 
 typedef size_t PRP_Size;
 typedef ptrdiff_t PRP_PtrDiff;
+typedef uintptr_t PRP_UIntPtr;
 
 /* ---- Boolean ---- */
 
