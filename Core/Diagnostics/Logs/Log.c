@@ -1,5 +1,4 @@
 #include "Log.h"
-#include "Core/Defs.h"
 #include <pthread.h>
 #include <stdarg.h>
 

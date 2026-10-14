@@ -7,6 +7,8 @@ extern "C" {
 #include "Core/Defs.h"
 #include <stdio.h>
 
+#define PRP_DIAG_LOG_DEFAULT_LOG_FILE (stdout)
+
 /**
  * Formats the given string into pDest.
  *
@@ -127,28 +129,28 @@ PRP_API PRP_Result PRP_CALL PRP_DiagLog(FILE *pLog_file, PRP_DiagLogLvl lvl,
     PRP_PRINTF_FORMAT(6, 7);
 
 #define PRP_DIAG_LOG_TRACE(pLog_file, pMsg, ...)                               \
-    PRP_Log((pLog_file), PRP_LOG_LVL_TRACE, __FILE__, __func__, __LINE__,      \
-            (pMsg)__VA_OPT__(, ) __VA_ARGS__)
+    PRP_DiagLog((pLog_file), PRP_DIAG_LOG_LVL_TRACE, __FILE__, __func__,       \
+                __LINE__, (pMsg)__VA_OPT__(, ) __VA_ARGS__)
 
 #define PRP_DIAG_LOG_DEBUG(pLog_file, pMsg, ...)                               \
-    PRP_Log((pLog_file), PRP_LOG_LVL_DEBUG, __FILE__, __func__, __LINE__,      \
-            (pMsg)__VA_OPT__(, ) __VA_ARGS__)
+    PRP_DiagLog((pLog_file), PRP_DIAG_LOG_LVL_DEBUG, __FILE__, __func__,       \
+                __LINE__, (pMsg)__VA_OPT__(, ) __VA_ARGS__)
 
 #define PRP_DIAG_LOG_INFO(pLog_file, pMsg, ...)                                \
-    PRP_Log((pLog_file), PRP_LOG_LVL_INFO, __FILE__, __func__, __LINE__,       \
-            (pMsg)__VA_OPT__(, ) __VA_ARGS__)
+    PRP_DiagLog((pLog_file), PRP_DIAG_LOG_LVL_INFO, __FILE__, __func__,        \
+                __LINE__, (pMsg)__VA_OPT__(, ) __VA_ARGS__)
 
 #define PRP_DIAG_LOG_WARN(pLog_file, pMsg, ...)                                \
-    PRP_Log((pLog_file), PRP_LOG_LVL_WARN, __FILE__, __func__, __LINE__,       \
-            (pMsg)__VA_OPT__(, ) __VA_ARGS__)
+    PRP_DiagLog((pLog_file), PRP_DIAG_LOG_LVL_WARN, __FILE__, __func__,        \
+                __LINE__, (pMsg)__VA_OPT__(, ) __VA_ARGS__)
 
 #define PRP_DIAG_LOG_ERROR(pLog_file, pMsg, ...)                               \
-    PRP_Log((pLog_file), PRP_LOG_LVL_ERROR, __FILE__, __func__, __LINE__,      \
-            (pMsg)__VA_OPT__(, ) __VA_ARGS__)
+    PRP_DiagLog((pLog_file), PRP_DIAG_LOG_LVL_ERROR, __FILE__, __func__,       \
+                __LINE__, (pMsg)__VA_OPT__(, ) __VA_ARGS__)
 
 #define PRP_DIAG_LOG_FATAL(pLog_file, pMsg, ...)                               \
-    PRP_Log((pLog_file), PRP_LOG_LVL_FATAL, __FILE__, __func__, __LINE__,      \
-            (pMsg)__VA_OPT__(, ) __VA_ARGS__)
+    PRP_DiagLog((pLog_file), PRP_DIAG_LOG_LVL_FATAL, __FILE__, __func__,       \
+                __LINE__, (pMsg)__VA_OPT__(, ) __VA_ARGS__)
 
 #ifdef __cplusplus
 }

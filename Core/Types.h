@@ -76,6 +76,8 @@ typedef ptrdiff_t PRP_PtrDiff;
 /* ---- Boolean ---- */
 
 typedef bool PRP_Bool;
+#define PRP_True (true)
+#define PRP_False (false)
 
 /* ----  MIN MAX VALUES  ---- */
 

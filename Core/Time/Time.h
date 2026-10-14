@@ -9,7 +9,7 @@ extern "C" {
 /* ---- TIMING ---- */
 
 /**
- * 1 tick represents a singular incrementation into the platform's monotonic
+ * 1 tick represents a singular increment into the platform's monotonic
  * clock.
  *
  * This is an int value used to reduce the floating point error accumulation.
@@ -24,11 +24,11 @@ typedef PRP_U64 PRP_TimeTicks;
  * PRP_TIME_UNIT_MS: milliseconds.
  * PRP_TIME_UNIT_S: seconds.
  */
-typedef enum PRP_TimeUnit {
-    PRP_TIME_UNIT_NS,
-    PRP_TIME_UNIT_US,
-    PRP_TIME_UNIT_MS,
-    PRP_TIME_UNIT_S,
+typedef enum PRP_TimeUnit : PRP_U8 {
+    PRP_TIME_UNIT_NS = 0,
+    PRP_TIME_UNIT_US = 1,
+    PRP_TIME_UNIT_MS = 2,
+    PRP_TIME_UNIT_S = 3,
 } PRP_TimeUnit;
 
 /**
@@ -144,6 +144,7 @@ typedef struct PRP_TimeStopwatch {
  * @return PRP_ERR_INV_ARG if pSw is provided as NULL.
  * @return PRP_ERR_INV_STATE if you try to start an already running stopwatch.
  */
+[[nodiscard("PRP_TimeStopwatchStart can fail and lead to undefined behavior.")]]
 PRP_API PRP_Result PRP_CALL PRP_TimeStopwatchStart(PRP_TimeStopwatch *pSw);
 /**
  * Stops an already running stopwatch.
@@ -154,6 +155,7 @@ PRP_API PRP_Result PRP_CALL PRP_TimeStopwatchStart(PRP_TimeStopwatch *pSw);
  * @return PRP_ERR_INV_ARG if pSw is provided as NULL.
  * @return PRP_ERR_INV_STATE if you try to stop an already stopped stopwatch.
  */
+[[nodiscard("PRP_TimeStopwatchStop can fail and lead to undefined behavior.")]]
 PRP_API PRP_Result PRP_CALL PRP_TimeStopwatchStop(PRP_TimeStopwatch *pSw);
 /**
  * Resets the stopwatch to a new state. All previous state is lost.
@@ -163,6 +165,7 @@ PRP_API PRP_Result PRP_CALL PRP_TimeStopwatchStop(PRP_TimeStopwatch *pSw);
  * @return PRP_OK on success.
  * @return PRP_ERR_INV_ARG if pSw is provided as NULL.
  */
+[[nodiscard("PRP_TimeStopwatchReset can fail and lead to undefined behavior.")]]
 PRP_API PRP_Result PRP_CALL PRP_TimeStopwatchReset(PRP_TimeStopwatch *pSw);
 /**
  * Finds the accumulated elapsed ticks of the stopwatch running.
@@ -173,6 +176,8 @@ PRP_API PRP_Result PRP_CALL PRP_TimeStopwatchReset(PRP_TimeStopwatch *pSw);
  * @return PRP_OK on success.
  * @return PRP_ERR_INV_ARG if arguments is/are NULL.
  */
+[[nodiscard(
+    "PRP_TimeStopwatchElapsedTicks can fail and lead to undefined behavior.")]]
 PRP_API PRP_Result PRP_CALL PRP_TimeStopwatchElapsedTicks(
     const PRP_TimeStopwatch *pSw, PRP_TimeTicks *pTicks);
 /**
@@ -185,6 +190,8 @@ PRP_API PRP_Result PRP_CALL PRP_TimeStopwatchElapsedTicks(
  * @return PRP_OK on success.
  * @return PRP_ERR_INV_ARG if arguments is/are NULL.
  */
+[[nodiscard(
+    "PRP_TimeStopwatchElapsed can fail and lead to undefined behavior.")]]
 PRP_API PRP_Result PRP_CALL PRP_TimeStopwatchElapsed(
     const PRP_TimeStopwatch *pSw, PRP_TimeUnit unit, PRP_F64 *pTime);
 
@@ -195,7 +202,7 @@ PRP_API PRP_Result PRP_CALL PRP_TimeStopwatchElapsed(
  *
  * This is used to smooth out random jitter in fps caused by system noise.
  */
-#define PRP_TIME_FRAME_TIMER_ACCUMULATION_TICKS (500000000)
+constexpr PRP_TimeTicks PRP_TIME_FRAME_TIMER_ACCUMULATION_TICKS = 500'000'000;
 
 /**
  * A frame timer object
@@ -214,7 +221,7 @@ typedef struct PRP_TimeFrameTimer {
      * Total number of frames since initialization.
      *
      * Fun Fact:
-     * If the application ran at 32kfps
+     * If the application ran at 32k fps
      * For the frame count to overflow it will take the app to be running for
      * 18279.450542346 millennia(1 Millennium = 1000 years).
      */
@@ -227,7 +234,7 @@ typedef struct PRP_TimeFrameTimer {
      * has passed.
      */
     PRP_TimeTicks fps_accumulator;
-    // Number of frames it took to accumulaate 1 sec of delta times.
+    // Number of frames it took to accumulate 1 sec of delta times.
     PRP_U64 accumulated_frame_count;
     // Averaged out fps.
     PRP_F64 fps;
@@ -241,15 +248,17 @@ typedef struct PRP_TimeFrameTimer {
 
 /**
  * Starts a new frame inside the frame timer.
- * Starting a new frame updates all the accumulation and metadatas.
+ * Starting a new frame updates all the accumulation and metadata.
  *
  * @param pF_timer PRP_TimeFrameTimer instance.
  *
  * @return PRP_OK on success.
  * @return PRP_ERR_INV_ARG if pF_timer is provided as NULL.
  */
+[[nodiscard(
+    "PRP_TimeFrameTimerBegin can fail and lead to undefined behavior.")]]
 PRP_API
-PRP_Result PRP_CALL PRP_TimeFrameTimerBegin(PRP_TimeFrameTimer *pF_timer);
+    PRP_Result PRP_CALL PRP_TimeFrameTimerBegin(PRP_TimeFrameTimer *pF_timer);
 /**
  * Resets the frame timer to a new state. All previous state is lost.
  *
@@ -258,8 +267,10 @@ PRP_Result PRP_CALL PRP_TimeFrameTimerBegin(PRP_TimeFrameTimer *pF_timer);
  * @return PRP_OK on success.
  * @return PRP_ERR_INV_ARG if pF_timer is provided as NULL.
  */
-PRP_API PRP_Result PRP_CALL
-PRP_TimeFrameTimerReset(PRP_TimeFrameTimer *pF_timer);
+[[nodiscard(
+    "PRP_TimeFrameTimerReset can fail and lead to undefined behavior.")]]
+PRP_API
+    PRP_Result PRP_CALL PRP_TimeFrameTimerReset(PRP_TimeFrameTimer *pF_timer);
 /**
  * Queries the delta ticks b/w start and end of the previous frame.
  *
@@ -269,6 +280,8 @@ PRP_TimeFrameTimerReset(PRP_TimeFrameTimer *pF_timer);
  * @return PRP_OK on success.
  * @return PRP_ERR_INV_ARG if arguments is/are NULL.
  */
+[[nodiscard(
+    "PRP_TimeFrameTimerDeltaTicks can fail and lead to undefined behavior.")]]
 PRP_API PRP_Result PRP_CALL PRP_TimeFrameTimerDeltaTicks(
     const PRP_TimeFrameTimer *pF_timer, PRP_TimeTicks *pTicks);
 /**
@@ -282,6 +295,8 @@ PRP_API PRP_Result PRP_CALL PRP_TimeFrameTimerDeltaTicks(
  * @return PRP_OK on success.
  * @return PRP_ERR_INV_ARG if arguments is/are NULL.
  */
+[[nodiscard(
+    "PRP_TimeFrameTimerDeltaTime can fail and lead to undefined behavior.")]]
 PRP_API PRP_Result PRP_CALL PRP_TimeFrameTimerDeltaTime(
     const PRP_TimeFrameTimer *pF_timer, PRP_TimeUnit unit, PRP_F64 *pTime);
 /**
@@ -297,10 +312,11 @@ PRP_API PRP_Result PRP_CALL PRP_TimeFrameTimerDeltaTime(
  * - Before the first smoothing out cycle of the frame timer completes, the fps
  * is 0.
  */
+[[nodiscard("PRP_TimeFrameTimerFPS can fail and lead to undefined behavior.")]]
 PRP_API PRP_Result PRP_CALL
 PRP_TimeFrameTimerFPS(const PRP_TimeFrameTimer *pF_timer, PRP_F64 *pFPS);
 /**
- * Queries the total number of frames elapesed since the creation of the frame
+ * Queries the total number of frames elapsed since the creation of the frame
  * counter.
  *
  * @param pF_timer     PRP_TimeFrameTimer instance.
@@ -309,6 +325,8 @@ PRP_TimeFrameTimerFPS(const PRP_TimeFrameTimer *pF_timer, PRP_F64 *pFPS);
  * @return PRP_OK on success.
  * @return PRP_ERR_INV_ARG if arguments is/are NULL.
  */
+[[nodiscard(
+    "PRP_TimeFrameTimerFrameCount can fail and lead to undefined behavior.")]]
 PRP_API PRP_Result PRP_CALL PRP_TimeFrameTimerFrameCount(
     const PRP_TimeFrameTimer *pF_timer, PRP_U64 *pFrame_count);
 
