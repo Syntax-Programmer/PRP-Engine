@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Core/Platform.h"
+#include "Core/Types.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -15,12 +17,6 @@ extern "C" {
  */
 typedef struct ALOC_Arena ALOC_Arena;
 
-/**
- * Queries the maximum logical size an arena can have.
- *
- * @return The theoretical max size of arena that is supported.
- */
-PRP_API PRP_Size PRP_CALL ALOC_ArenaMaxSize(void);
 /**
  * Checks whether the given pArena is structurally valid object.
  *
@@ -205,6 +201,56 @@ PRP_API PRP_Result PRP_CALL ALOC_ArenaAllocAlignedUnchecked(
 PRP_API PRP_Result PRP_CALL
 ALOC_ArenaAllocAlignedChecked(ALOC_Arena *pArena, PRP_Size size, PRP_Size align,
                               PRP_Bool zero_initialize, void **ppDest);
+
+/**
+ * Queries the maximum logical size an arena can have.
+ *
+ * @return The theoretical max size of arena that is supported.
+ */
+PRP_API PRP_Size PRP_CALL ALOC_ArenaMaxSize(void);
+/**
+ * Queries the current free space available in the arena.
+ *
+ * @param pArena The arena to query free space of.
+ *
+ * @return Total free space available in the arena.
+ *
+ * @note Assumes valid arena object (asserts in debug).
+ */
+PRP_API PRP_Size PRP_CALL ALOC_ArenaGetFreeSpace(const ALOC_Arena *pArena);
+/**
+ * Checks if the arena is empty.
+ *
+ * @param pArena The arena to check.
+ *
+ * @return PRP_True if arena is empty, false otherwise.
+ *
+ * @note Assumes valid arena object (asserts in debug).
+ */
+PRP_API PRP_Bool PRP_CALL ALOC_ArenaIsEmpty(const ALOC_Arena *pArena);
+/**
+ * Checks if the arena is full.
+ *
+ * @param pArena The arena to check.
+ *
+ * @return PRP_True if arena is full, PRP_False otherwise.
+ *
+ * @note Assumes valid arena object (asserts in debug).
+ */
+PRP_API PRP_Bool PRP_CALL ALOC_ArenaIsFull(const ALOC_Arena *pArena);
+/**
+ * Checks if the give memory pointer owned by the arena.
+ *
+ * @param pArena The arena to check into.
+ * @param ptr    The memory pointer to check.
+ *
+ * @return PRP_True if the pointer belongs to the arena memory allocation,
+ *         PRP_False otherwise.
+ *
+ * @note Assumes valid arena object (asserts in debug).
+ */
+PRP_API PRP_Bool PRP_CALL ALOC_ArenaIsOwnedByArena(const ALOC_Arena *pArena,
+                                                   void *ptr);
 
 #ifdef __cplusplus
 }

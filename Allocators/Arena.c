@@ -8,18 +8,14 @@ struct ALOC_Arena {
     PRP_U8 pMem[];
 };
 
-PRP_API PRP_Size PRP_CALL ALOC_ArenaMaxSize(void) {
-    return PRP_SIZE_MAX - sizeof(ALOC_Arena);
-}
-
 PRP_API PRP_Bool PRP_CALL ALOC_ArenaIsValid(const ALOC_Arena *pArena) {
-    return (pArena != NULL && pArena->size > 0 &&
+    return (pArena != nullptr && pArena->size > 0 &&
             pArena->size <= ALOC_ArenaMaxSize() && pArena->ofs <= pArena->size);
 }
 
 #define ASSERT_VALIDITY(pArena)                                                \
     PRP_DIAG_ASSERT_MSG(ALOC_ArenaIsValid(pArena),                             \
-                        "The given pArena is invalid.")
+                        "The given arena object is invalid.")
 
 PRP_API PRP_Result PRP_CALL ALOC_ArenaCreateUnchecked(PRP_Size size,
                                                       ALOC_Arena **ppArena) {
@@ -115,7 +111,6 @@ PRP_API PRP_Result PRP_CALL ALOC_ArenaAllocChecked(ALOC_Arena *pArena,
                                                    PRP_Bool zero_initialize,
                                                    void **ppDest) {
     if (!ALOC_ArenaIsValid(pArena) || size == 0 || !ppDest) {
-        *ppDest = nullptr;
         return PRP_ERR_INV_ARG;
     }
 
@@ -155,10 +150,43 @@ ALOC_ArenaAllocAlignedChecked(ALOC_Arena *pArena, PRP_Size size, PRP_Size align,
                               PRP_Bool zero_initialize, void **ppDest) {
     if (!ALOC_ArenaIsValid(pArena) || size == 0 || align == 0 ||
         (align & (align - 1)) != 0 || !ppDest) {
-        *ppDest = nullptr;
         return PRP_ERR_INV_ARG;
     }
 
     return ALOC_ArenaAllocAlignedUnchecked(pArena, size, align, zero_initialize,
                                            ppDest);
+}
+
+PRP_API PRP_Size PRP_CALL ALOC_ArenaMaxSize(void) {
+    return PRP_SIZE_MAX - sizeof(ALOC_Arena);
+}
+
+PRP_API PRP_Size PRP_CALL ALOC_ArenaGetFreeSpace(const ALOC_Arena *pArena) {
+    ASSERT_VALIDITY(pArena);
+
+    return pArena->size - pArena->ofs;
+}
+
+PRP_API PRP_Bool PRP_CALL ALOC_ArenaIsEmpty(const ALOC_Arena *pArena) {
+    ASSERT_VALIDITY(pArena);
+
+    return pArena->ofs == 0;
+}
+
+PRP_API PRP_Bool PRP_CALL ALOC_ArenaIsFull(const ALOC_Arena *pArena) {
+    ASSERT_VALIDITY(pArena);
+
+    return pArena->size == pArena->ofs;
+}
+
+PRP_API PRP_Bool PRP_CALL ALOC_ArenaIsOwnedByArena(const ALOC_Arena *pArena,
+                                                   void *ptr) {
+    ASSERT_VALIDITY(pArena);
+
+    if (!ptr) {
+        return PRP_False;
+    }
+
+    return (PRP_U8 *)ptr >= pArena->pMem &&
+           (PRP_U8 *)ptr < pArena->pMem + pArena->size;
 }
