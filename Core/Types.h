@@ -5,80 +5,81 @@ extern "C" {
 #endif
 
 #include <limits.h>
-#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <stdlib.h>
 #include <uchar.h>
 
-/* ---- Fixed-width integers ---- */
+/* ---- INT TYPES ---- */
 
-typedef uint64_t PRP_U64;
-typedef int64_t PRP_I64;
+typedef uint64_t PRP_u64;
+typedef int64_t  PRP_i64;
 
-typedef uint32_t PRP_U32;
-typedef int32_t PRP_I32;
+typedef uint32_t PRP_u32;
+typedef int32_t  PRP_i32;
 
-typedef uint16_t PRP_U16;
-typedef int16_t PRP_I16;
+typedef uint16_t PRP_u16;
+typedef int16_t  PRP_i16;
 
-typedef uint8_t PRP_U8;
-typedef int8_t PRP_I8;
+typedef uint8_t PRP_u8;
+typedef int8_t  PRP_i8;
 
-/* ---- Bit-precise integers (C23) ---- */
+typedef unsigned _BitInt(24) PRP_u24;
+typedef _BitInt(24) PRP_i24;
 
-typedef unsigned _BitInt(24) PRP_U24;
-typedef _BitInt(24) PRP_I24;
+typedef unsigned _BitInt(40) PRP_u40;
+typedef _BitInt(40) PRP_i40;
 
-typedef unsigned _BitInt(40) PRP_U40;
-typedef _BitInt(40) PRP_I40;
+typedef unsigned _BitInt(48) PRP_u48;
+typedef _BitInt(48) PRP_i48;
 
-typedef unsigned _BitInt(48) PRP_U48;
-typedef _BitInt(48) PRP_I48;
+typedef unsigned _BitInt(56) PRP_u56;
+typedef _BitInt(56) PRP_i56;
 
-typedef unsigned _BitInt(56) PRP_U56;
-typedef _BitInt(56) PRP_I56;
+typedef float  PRP_f32;
+typedef double PRP_f64;
 
-/* ---- Binary floating point ---- */
+/* ---- CHAR TYPES ---- */
 
-typedef float PRP_F32;
-typedef double PRP_F64;
+typedef char     PRP_char8u;
+typedef uint16_t PRP_char16u;
+typedef uint32_t PRP_char32u;
 
-/* ---- Decimal floating point (C23) ---- */
+typedef char     PRP_char8;
+typedef uint16_t PRP_char16;
+typedef uint32_t PRP_char32;
 
-/*
- * Available only when the implementation supports
- * IEC 60559 decimal floating-point arithmetic.
- */
-#ifdef PRP_HAS_DECIMAL_FLOAT
-typedef _Decimal32 PRP_D32;
-typedef _Decimal64 PRP_D64;
-typedef _Decimal128 PRP_D128;
-#endif
+/* ---- POINTERS AND SIZES ---- */
 
-/* ---- Character types ---- */
+typedef size_t PRP_size;
 
-typedef char8_t PRP_UChar8;
-typedef char16_t PRP_UChar16;
-typedef char32_t PRP_UChar32;
+typedef nullptr_t PRP_nullptrT;
+typedef ptrdiff_t PRP_ptrdiff;
+typedef uintptr_t PRP_uintptr;
 
-typedef char PRP_Char8;
-typedef uint16_t PRP_Char16;
-typedef uint32_t PRP_Char32;
+/* ---- BOOLEAN ---- */
 
-/* ---- Pointer and size types ---- */
+typedef bool PRP_bool;
 
-typedef nullptr_t PRP_NullptrT;
+/* ---- STD FUNCTION RETURN ---- */
 
-typedef size_t PRP_Size;
-typedef ptrdiff_t PRP_PtrDiff;
-typedef uintptr_t PRP_UIntPtr;
+typedef PRP_u64 PRP_rslt;
 
-/* ---- Boolean ---- */
-
-typedef bool PRP_Bool;
-#define PRP_True (true)
-#define PRP_False (false)
+#define PRP_UNKNOWN_ERROR      (0ull)
+#define PRP_SUCCESS            (1ull << 0)
+#define PRP_ERR_INV_ARG        (1ull << 1)
+#define PRP_ERR_INV_STATE      (1ull << 2)
+#define PRP_ERR_OOM            (1ull << 3)
+#define PRP_ERR_OOB            (1ull << 4)
+#define PRP_ERR_RES_EXHAUSTED  (1ull << 5)
+#define PRP_ERR_IO             (1ull << 6)
+#define PRP_ERR_PARSE          (1ull << 7)
+#define PRP_ERR_NOT_FOUND      (1ull << 8)
+#define PRP_ERR_ALREADY_EXISTS (1ull << 9)
+#define PRP_ERR_UNSUPPORTED    (1ull << 10)
+#define PRP_ERR_BUSY           (1ull << 11)
+#define PRP_ERR_TIMEOUT        (1ull << 12)
+#define PRP_ERR_CORRUPTED      (1ull << 13)
+#define PRP_ERR_INTERNAL       (1ull << 14)
 
 /* ----  MIN MAX VALUES  ---- */
 
@@ -106,7 +107,7 @@ typedef bool PRP_Bool;
 #define PRP_U64_MAX ((PRP_U64)0XFFFFFFFFFFFFFFFFull)
 #define PRP_U64_MIN ((PRP_U64)0ull)
 
-#define PRP_SIZE_MAX (SIZE_MAX)
+#define PRP_SIZE_MAX        (SIZE_MAX)
 #define PRP_BITINT_MAXWIDTH (BITINT_MAXWIDTH)
 
 #ifdef __cplusplus
