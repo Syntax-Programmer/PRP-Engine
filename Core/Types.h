@@ -52,9 +52,9 @@ typedef uint32_t PRP_char32;
 
 typedef size_t PRP_size;
 
-typedef nullptr_t PRP_nullptrT;
-typedef ptrdiff_t PRP_ptrdiff;
-typedef uintptr_t PRP_uintptr;
+typedef nullptr_t PRP_nullptr_t;
+typedef ptrdiff_t PRP_ptrdiff_t;
+typedef uintptr_t PRP_uintptr_t;
 
 /* ---- BOOLEAN ---- */
 
@@ -62,6 +62,10 @@ typedef bool PRP_bool;
 
 /* ---- STD FUNCTION RETURN ---- */
 
+/**
+ * You can either return standalone result codes, or chain multiple of them
+ * together for extra information.
+ */
 typedef PRP_u64 PRP_rslt;
 
 #define PRP_UNKNOWN_ERROR      (0ull)

@@ -4,7 +4,8 @@
 extern "C" {
 #endif
 
-#include "Core/Defs.h"
+#include "Core/Platform.h"
+#include "Core/Types.h"
 
 /* ---- TIMING ---- */
 
@@ -14,42 +15,57 @@ extern "C" {
  *
  * This is an int value used to reduce the floating point error accumulation.
  */
-typedef PRP_U64 PRP_TimeTicks;
+typedef PRP_u64 PRP_TimeTicks;
 
 /**
  * Defines all the time units our time api supports.
  *
- * PRP_TIME_UNIT_NS: nanoseconds.
- * PRP_TIME_UNIT_US: microseconds.
- * PRP_TIME_UNIT_MS: milliseconds.
- * PRP_TIME_UNIT_S: seconds.
+ * PRP_TIME_UNIT_NS: nanoseconds
+ * PRP_TIME_UNIT_US: microseconds
+ * PRP_TIME_UNIT_MS: milliseconds
+ * PRP_TIME_UNIT_S : seconds
  */
-typedef enum PRP_TimeUnit : PRP_U8 {
+typedef enum PRP_TimeUnit : PRP_u8 {
     PRP_TIME_UNIT_NS = 0,
     PRP_TIME_UNIT_US = 1,
     PRP_TIME_UNIT_MS = 2,
-    PRP_TIME_UNIT_S = 3,
+    PRP_TIME_UNIT_S  = 3,
 } PRP_TimeUnit;
 
 /**
- * Returns the value of the platform's monotonic clock.
+ * Queries the value of the platform's monotonic clock.
  *
  * @return The value of the monotonic clock in ticks.
  */
+[[nodiscard("Called PRP_TimeNow without using the result.")]]
 PRP_API PRP_TimeTicks PRP_CALL PRP_TimeNow(void);
 /**
- * Finds the platform's monotonic clock's frequency(Number of ticks per second)
+ * Queries the platform's monotonic clock's frequency(ticks per second).
  *
- * @return The number of ticks in 1 physical second of the monotonic clock  .
+ * @return The number of ticks in 1 physical second of the monotonic clock.
  */
+[[nodiscard("Called PRP_TimeFreq without using the result.")]]
 PRP_API PRP_TimeTicks PRP_CALL PRP_TimeFreq(void);
+
+/**
+ * Changes the time ticks into described units.
+ *
+ * @param ticks The ticks to convert to physical units.
+ * @param unit  The unit to convert the ticks to.
+ *
+ * @return -1 if the unit is invalid.
+ * @return Converted ticks into the time unit based on the platform's frequency.
+ */
+[[nodiscard("Called PRP_TimeTicksToUnits without using the result.")]]
+PRP_API PRP_f64 PRP_CALL PRP_TimeTicksToUnits(PRP_TimeTicks ticks,
+                                              PRP_TimeUnit  unit);
 
 /**
  * Suspends the execution of the calling thread for at least given milliseconds.
  *
  * @param ms The duration to sleep for in milliseconds.
  */
-PRP_API void PRP_CALL PRP_TimeSleep(PRP_F64 ms);
+PRP_API void PRP_CALL PRP_TimeSleep(PRP_f64 ms);
 /**
  * Suspends the execution of the calling thread for at least given ticks.
  *
@@ -61,41 +77,26 @@ PRP_API void PRP_CALL PRP_TimeSleepTicks(PRP_TimeTicks ticks);
  * Yields execution of the calling thread to allow another runnable thread
  * to execute.
  *
- * This function is a scheduling hint and may return immediately if no other
- * thread is available to run. On platforms without explicit thread yielding,
- * this operation may have no effect.
+ * @note:
+ * -This function is a scheduling hint and may return immediately if no other
+ *  thread is available to run. On platforms without explicit thread yielding,
+ *  this operation may have no effect.
  */
 PRP_API void PRP_CALL PRP_TimeYield(void);
-
-/**
- * Changes the platform's monotonic clock ticks into real world units.
- *
- * @param ticks The ticks to convert to physical units.
- * @param unit  The unit to convert the ticks to.
- *
- * @return Converted ticks into the defined time unit based on the platform's
- *         frequency.
- *
- * @note: Invalid unit case
- * - If the given unit is invalid, we default to returning 0.
- */
-PRP_API PRP_F64 PRP_CALL PRP_TimeTicksToTimeUnits(PRP_TimeTicks ticks,
-                                                  PRP_TimeUnit unit);
 
 /* ---- TIMER ---- */
 
 /**
- * A timer object.
- *
- * This only defines at what tick the timer was started at.
+ * A standard timer.
  */
 typedef PRP_TimeTicks PRP_TimeTimer;
 
 /**
- * Creates/Starts a new timer.
+ * Creates or starts a new timer.
  *
  * @return The timer created.
  */
+[[nodiscard("Called PRP_TimeTimerCreate without using the result.")]]
 PRP_API PRP_TimeTimer PRP_CALL PRP_TimeTimerCreate(void);
 /**
  * Finds the number of elapsed ticks since the timer was created.
@@ -104,17 +105,19 @@ PRP_API PRP_TimeTimer PRP_CALL PRP_TimeTimerCreate(void);
  *
  * @return The number of ticks elapsed since the timer creation.
  */
+[[nodiscard("Called PRP_TimeTimerElapsedTicks without using the result.")]]
 PRP_API PRP_TimeTicks PRP_CALL PRP_TimeTimerElapsedTicks(PRP_TimeTimer timer);
 /**
- * Finds the elapsed time since the timer was created in the specified units.
+ * Finds the elapsed time since the timer was created in the described units.
  *
  * @param timer The timer to find elapsed time of.
  * @param unit  The unit of time to return in.
  *
  * @return The time elapsed since the timer creation in the specified unit.
  */
-PRP_API PRP_F64 PRP_CALL PRP_TimeTimerElapsed(PRP_TimeTimer timer,
-                                              PRP_TimeUnit unit);
+[[nodiscard("Called PRP_TimeTimerElapsed without using the result.")]]
+PRP_API PRP_TimeTicks PRP_CALL PRP_TimeTimerElapsed(PRP_TimeTimer timer,
+                                                    PRP_TimeUnit  unit);
 
 /* ---- STOPWATCH ---- */
 
@@ -127,7 +130,7 @@ PRP_API PRP_F64 PRP_CALL PRP_TimeTimerElapsed(PRP_TimeTimer timer,
 typedef struct PRP_TimeStopwatch {
     PRP_TimeTicks start;
     PRP_TimeTicks elapsed;
-    PRP_Bool is_running;
+    PRP_bool      is_running;
 } PRP_TimeStopwatch;
 
 /**
@@ -138,62 +141,64 @@ typedef struct PRP_TimeStopwatch {
 /**
  * Starts an already created stopwatch.
  *
- * @param pSw PRP_TimeStopwatch instance.
+ * @param pSw The stopwatch object to start.
  *
  * @return PRP_OK on success.
  * @return PRP_ERR_INV_ARG if pSw is provided as NULL.
  * @return PRP_ERR_INV_STATE if you try to start an already running stopwatch.
  */
 [[nodiscard("PRP_TimeStopwatchStart can fail and lead to undefined behavior.")]]
-PRP_API PRP_Result PRP_CALL PRP_TimeStopwatchStart(PRP_TimeStopwatch *pSw);
+PRP_API PRP_rslt PRP_CALL PRP_TimeStopwatchStart(PRP_TimeStopwatch *pSw);
 /**
  * Stops an already running stopwatch.
  *
- * @param pSw PRP_TimeStopwatch instance.
+ * @param pSw The stopwatch object to stop.
  *
  * @return PRP_OK on success.
- * @return PRP_ERR_INV_ARG if pSw is provided as NULL.
+ * @return PRP_ERR_INV_ARG if arguments are invalid.
  * @return PRP_ERR_INV_STATE if you try to stop an already stopped stopwatch.
  */
 [[nodiscard("PRP_TimeStopwatchStop can fail and lead to undefined behavior.")]]
-PRP_API PRP_Result PRP_CALL PRP_TimeStopwatchStop(PRP_TimeStopwatch *pSw);
+PRP_API PRP_rslt PRP_CALL PRP_TimeStopwatchStop(PRP_TimeStopwatch *pSw);
 /**
  * Resets the stopwatch to a new state. All previous state is lost.
  *
- * @param pSw PRP_TimeStopwatch instance.
+ * @param pSw The stopwatch object to reset.
  *
  * @return PRP_OK on success.
- * @return PRP_ERR_INV_ARG if pSw is provided as NULL.
+ * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
 [[nodiscard("PRP_TimeStopwatchReset can fail and lead to undefined behavior.")]]
-PRP_API PRP_Result PRP_CALL PRP_TimeStopwatchReset(PRP_TimeStopwatch *pSw);
+PRP_API PRP_rslt PRP_CALL PRP_TimeStopwatchReset(PRP_TimeStopwatch *pSw);
 /**
- * Finds the accumulated elapsed ticks of the stopwatch running.
+ * Gets the accumulated elapsed ticks of the stopwatch running.
  *
- * @param pSw    PRP_TimeStopwatch instance.
+ * @param pSw    The stopwatch object to query into.
  * @param pTicks Output pointer to store the elapsed ticks.
  *
  * @return PRP_OK on success.
- * @return PRP_ERR_INV_ARG if arguments is/are NULL.
+ * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
 [[nodiscard(
     "PRP_TimeStopwatchElapsedTicks can fail and lead to undefined behavior.")]]
-PRP_API PRP_Result PRP_CALL PRP_TimeStopwatchElapsedTicks(
+PRP_API PRP_rslt PRP_CALL PRP_TimeStopwatchElapsedTicks(
     const PRP_TimeStopwatch *pSw, PRP_TimeTicks *pTicks);
 /**
- * Finds the accumulated elapsed time of the stopwatch running in units asked.
+ * Gets the accumulated elapsed time of the stopwatch running in described
+ * units.
  *
- * @param pSw   PRP_TimeStopwatch instance.
- * @param unit  The unit to get the time into.
+ * @param pSw   The stopwatch object to query into.
  * @param pTime Output pointer to store the elapsed time.
+ * @param unit  The unit to get the time into.
  *
  * @return PRP_OK on success.
- * @return PRP_ERR_INV_ARG if arguments is/are NULL.
+ * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
 [[nodiscard(
     "PRP_TimeStopwatchElapsed can fail and lead to undefined behavior.")]]
-PRP_API PRP_Result PRP_CALL PRP_TimeStopwatchElapsed(
-    const PRP_TimeStopwatch *pSw, PRP_TimeUnit unit, PRP_F64 *pTime);
+PRP_API PRP_rslt PRP_CALL PRP_TimeStopwatchElapsed(const PRP_TimeStopwatch *pSw,
+                                                   PRP_f64     *pTime,
+                                                   PRP_TimeUnit unit);
 
 /* ---- FRAME TIMING ---- */
 
@@ -202,7 +207,7 @@ PRP_API PRP_Result PRP_CALL PRP_TimeStopwatchElapsed(
  *
  * This is used to smooth out random jitter in fps caused by system noise.
  */
-constexpr PRP_TimeTicks PRP_TIME_FRAME_TIMER_ACCUMULATION_TICKS = 500'000'000;
+#define PRP_TIME_FRAME_TIMER_ACCUMULATION_TICKS (500'000'000)
 
 /**
  * A frame timer object
@@ -213,31 +218,12 @@ constexpr PRP_TimeTicks PRP_TIME_FRAME_TIMER_ACCUMULATION_TICKS = 500'000'000;
  * The fps stored is smoothed out over a specified amount of ticks.
  */
 typedef struct PRP_TimeFrameTimer {
-    // The tick at the beginning of the frame.
-    PRP_TimeTicks frame_start;
-    // Duration of the previous frame.
-    PRP_TimeTicks frame_delta;
-    /**
-     * Total number of frames since initialization.
-     *
-     * Fun Fact:
-     * If the application ran at 32k fps
-     * For the frame count to overflow it will take the app to be running for
-     * 18279.450542346 millennia(1 Millennium = 1000 years).
-     */
-    PRP_U64 frame_count;
-
-    /*
-     * Accumulates frame deltas to average them out for a smoother fps curve.
-     *
-     * This accumulator accumulates frames till a predefined averaging interval
-     * has passed.
-     */
-    PRP_TimeTicks fps_accumulator;
-    // Number of frames it took to accumulate 1 sec of delta times.
-    PRP_U64 accumulated_frame_count;
-    // Averaged out fps.
-    PRP_F64 fps;
+    PRP_TimeTicks frame_start;     // The tick at the starting of a frame.
+    PRP_TimeTicks frame_delta;     // Duration of the previous frame.
+    PRP_u64       frame_count;     // Total frames since initialization.
+    PRP_TimeTicks fps_accumulator; // Frame delta accumulate for smooth fps.
+    PRP_u64       accumulated_frame_count; // Frame to accumulate set delta.
+    PRP_f64       fps;                     // Averages out fps.
 } PRP_TimeFrameTimer;
 
 /**
@@ -250,85 +236,84 @@ typedef struct PRP_TimeFrameTimer {
  * Starts a new frame inside the frame timer.
  * Starting a new frame updates all the accumulation and metadata.
  *
- * @param pF_timer PRP_TimeFrameTimer instance.
+ * @param pF_timer The frame timer object to begin.
  *
  * @return PRP_OK on success.
- * @return PRP_ERR_INV_ARG if pF_timer is provided as NULL.
+ * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
 [[nodiscard(
     "PRP_TimeFrameTimerBegin can fail and lead to undefined behavior.")]]
-PRP_API
-    PRP_Result PRP_CALL PRP_TimeFrameTimerBegin(PRP_TimeFrameTimer *pF_timer);
+PRP_API PRP_rslt PRP_CALL PRP_TimeFrameTimerBegin(PRP_TimeFrameTimer *pF_timer);
 /**
  * Resets the frame timer to a new state. All previous state is lost.
  *
- * @param pF_timer PRP_TimeFrameTimer instance.
+ * @param pF_timer The frame timer object to reset.
  *
  * @return PRP_OK on success.
- * @return PRP_ERR_INV_ARG if pF_timer is provided as NULL.
+ * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
 [[nodiscard(
     "PRP_TimeFrameTimerReset can fail and lead to undefined behavior.")]]
-PRP_API
-    PRP_Result PRP_CALL PRP_TimeFrameTimerReset(PRP_TimeFrameTimer *pF_timer);
+PRP_API PRP_rslt PRP_CALL PRP_TimeFrameTimerReset(PRP_TimeFrameTimer *pF_timer);
 /**
  * Queries the delta ticks b/w start and end of the previous frame.
  *
- * @param pF_timer PRP_TimeFrameTimer instance.
+ * @param pF_timer The frame timer object to query into.
  * @param pTicks   Output pointer the delta ticks.
  *
  * @return PRP_OK on success.
- * @return PRP_ERR_INV_ARG if arguments is/are NULL.
+ * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
 [[nodiscard(
     "PRP_TimeFrameTimerDeltaTicks can fail and lead to undefined behavior.")]]
-PRP_API PRP_Result PRP_CALL PRP_TimeFrameTimerDeltaTicks(
+PRP_API PRP_rslt PRP_CALL PRP_TimeFrameTimerDeltaTicks(
     const PRP_TimeFrameTimer *pF_timer, PRP_TimeTicks *pTicks);
 /**
  * Queries the delta time b/w start and end of the previous frame in the
- * requested units.
+ * described unit.
  *
- * @param pF_timer PRP_TimeFrameTimer instance.
- * @param unit     The unit to get the delta time into.
+ * @param pF_timer The frame timer object to query into.
  * @param pTime    Output pointer the delta time.
+ * @param unit     The unit to get the delta time into.
  *
  * @return PRP_OK on success.
- * @return PRP_ERR_INV_ARG if arguments is/are NULL.
+ * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
 [[nodiscard(
     "PRP_TimeFrameTimerDeltaTime can fail and lead to undefined behavior.")]]
-PRP_API PRP_Result PRP_CALL PRP_TimeFrameTimerDeltaTime(
-    const PRP_TimeFrameTimer *pF_timer, PRP_TimeUnit unit, PRP_F64 *pTime);
+PRP_API PRP_rslt PRP_CALL
+PRP_TimeFrameTimerDeltaTime(const PRP_TimeFrameTimer *pF_timer,
+                            PRP_TimeTicks *pTime, PRP_TimeUnit unit);
 /**
- * Queries the averaged out smoothed fps the frame timer is storing.
+ * Queries the averaged out fps the frame timer is storing.
  *
- * @param pF_timer PRP_TimeFrameTimer instance.
+ * @param pF_timer The frame timer object to query into.
  * @param pFPS     Output pointer the smoothed fps.
  *
  * @return PRP_OK on success.
- * @return PRP_ERR_INV_ARG if arguments is/are NULL.
+ * @return PRP_ERR_INV_ARG if arguments are invalid.
  *
  * @note Accumulation cycle:
  * - Before the first smoothing out cycle of the frame timer completes, the fps
  * is 0.
  */
 [[nodiscard("PRP_TimeFrameTimerFPS can fail and lead to undefined behavior.")]]
-PRP_API PRP_Result PRP_CALL
-PRP_TimeFrameTimerFPS(const PRP_TimeFrameTimer *pF_timer, PRP_F64 *pFPS);
+PRP_API PRP_rslt PRP_CALL
+PRP_TimeFrameTimerFPS(const PRP_TimeFrameTimer *pF_timer, PRP_f64 *pFPS);
 /**
  * Queries the total number of frames elapsed since the creation of the frame
  * counter.
  *
- * @param pF_timer     PRP_TimeFrameTimer instance.
+ * @param pF_timer     The frame timer object to query into.
  * @param pFrame_count Output pointer the frame count.
  *
  * @return PRP_OK on success.
- * @return PRP_ERR_INV_ARG if arguments is/are NULL.
+ * @return PRP_ERR_INV_ARG if arguments are invalid.
  */
 [[nodiscard(
     "PRP_TimeFrameTimerFrameCount can fail and lead to undefined behavior.")]]
-PRP_API PRP_Result PRP_CALL PRP_TimeFrameTimerFrameCount(
-    const PRP_TimeFrameTimer *pF_timer, PRP_U64 *pFrame_count);
+PRP_API PRP_rslt PRP_CALL PRP_TimeFrameTimerFrameCount(
+    const PRP_TimeFrameTimer *pF_timer, PRP_u64 *pFrame_count);
 
 #ifdef __cplusplus
 }
